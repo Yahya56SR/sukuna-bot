@@ -13,8 +13,6 @@ import { eightBallCommand } from './fun/8ball.js';
 import { coinflipCommand } from './fun/coinflip.js';
 import { diceCommand } from './fun/dice.js';
 import { rankCommand } from './leveling/rank.js';
-import { userInfoCommand } from './utility/userinfo.js';
-import { serverInfoCommand } from './utility/serverinfo.js';
 
 /**
  * Static registry. Every new command must be added here so esbuild can bundle
@@ -35,6 +33,4 @@ export const commands: readonly Command[] = [
   coinflipCommand,
   diceCommand,
   rankCommand,
-  userInfoCommand,
-  serverInfoCommand,
 ];

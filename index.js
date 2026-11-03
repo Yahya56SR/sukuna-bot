@@ -113586,7 +113586,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder4, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder2, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113612,7 +113612,7 @@ var require_dist9 = __commonJS({
       SlashCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports10, "SlashCommandAssertions"),
       SlashCommandAttachmentOption: /* @__PURE__ */ __name(() => SlashCommandAttachmentOption, "SlashCommandAttachmentOption"),
       SlashCommandBooleanOption: /* @__PURE__ */ __name(() => SlashCommandBooleanOption, "SlashCommandBooleanOption"),
-      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder17, "SlashCommandBuilder"),
+      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder15, "SlashCommandBuilder"),
       SlashCommandChannelOption: /* @__PURE__ */ __name(() => SlashCommandChannelOption, "SlashCommandChannelOption"),
       SlashCommandIntegerOption: /* @__PURE__ */ __name(() => SlashCommandIntegerOption, "SlashCommandIntegerOption"),
       SlashCommandMentionableOption: /* @__PURE__ */ __name(() => SlashCommandMentionableOption, "SlashCommandMentionableOption"),
@@ -113720,7 +113720,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name2(normalizeArray, "normalizeArray");
-    var EmbedBuilder4 = class {
+    var EmbedBuilder2 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -118090,7 +118090,7 @@ var require_dist9 = __commonJS({
         return this;
       }
     };
-    var SlashCommandBuilder17 = class {
+    var SlashCommandBuilder15 = class {
       static {
         __name(this, "SlashCommandBuilder");
       }
@@ -118146,10 +118146,10 @@ var require_dist9 = __commonJS({
        */
       nsfw = void 0;
     };
-    __name2(SlashCommandBuilder17, "SlashCommandBuilder");
-    SlashCommandBuilder17 = __decorateClass([
+    __name2(SlashCommandBuilder15, "SlashCommandBuilder");
+    SlashCommandBuilder15 = __decorateClass([
       (0, import_ts_mixer6.mix)(SharedSlashCommandOptions, SharedNameAndDescription, SharedSlashCommandSubcommands, SharedSlashCommand)
-    ], SlashCommandBuilder17);
+    ], SlashCommandBuilder15);
     var Assertions_exports11 = {};
     __export2(Assertions_exports11, {
       contextsPredicate: /* @__PURE__ */ __name(() => contextsPredicate2, "contextsPredicate"),
@@ -147289,7 +147289,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder4 = class extends BuildersEmbed {
+    var EmbedBuilder2 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147321,7 +147321,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder4;
+    module2.exports = EmbedBuilder2;
   }
 });
 
@@ -152626,10 +152626,10 @@ var require_pino = __commonJS({
 });
 
 // src/db/index.ts
-var import_mongoose3 = __toESM(require_mongoose2(), 1);
+var import_mongoose3 = __toESM(require_mongoose2());
 
 // src/db/models/Guild.ts
-var import_mongoose = __toESM(require_mongoose2(), 1);
+var import_mongoose = __toESM(require_mongoose2());
 var guildSchema = new import_mongoose.Schema(
   {
     guildId: { type: String, required: true, unique: true, index: true },
@@ -152651,7 +152651,7 @@ async function readGuildConfig(guildId) {
 __name(readGuildConfig, "readGuildConfig");
 
 // src/db/models/User.ts
-var import_mongoose2 = __toESM(require_mongoose2(), 1);
+var import_mongoose2 = __toESM(require_mongoose2());
 var userSchema = new import_mongoose2.Schema(
   {
     userId: { type: String, required: true, unique: true, index: true },
@@ -152699,7 +152699,7 @@ async function disconnectDatabase() {
 __name(disconnectDatabase, "disconnectDatabase");
 
 // src/commands/core/ping.ts
-var import_discord = __toESM(require_src(), 1);
+var import_discord = __toESM(require_src());
 var pingCommand = {
   data: new import_discord.SlashCommandBuilder().setName("ping").setDescription("Check the bot's latency."),
   category: "utility",
@@ -152720,7 +152720,7 @@ var pingCommand = {
 };
 
 // src/commands/core/help.ts
-var import_discord2 = __toESM(require_src(), 1);
+var import_discord2 = __toESM(require_src());
 var helpCommand = {
   data: new import_discord2.SlashCommandBuilder().setName("help").setDescription("List all available commands."),
   category: "utility",
@@ -152738,7 +152738,7 @@ ${list}`,
 };
 
 // src/commands/moderation/kick.ts
-var import_discord3 = __toESM(require_src(), 1);
+var import_discord3 = __toESM(require_src());
 var kickCommand = {
   data: new import_discord3.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").addUserOption(
     (option) => option.setName("user").setDescription("The user to kick").setRequired(true)
@@ -152767,7 +152767,7 @@ var kickCommand = {
 };
 
 // src/commands/moderation/ban.ts
-var import_discord4 = __toESM(require_src(), 1);
+var import_discord4 = __toESM(require_src());
 var banCommand = {
   data: new import_discord4.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").addUserOption(
     (option) => option.setName("user").setDescription("The user to ban").setRequired(true)
@@ -152787,7 +152787,7 @@ var banCommand = {
 };
 
 // src/commands/moderation/timeout.ts
-var import_discord5 = __toESM(require_src(), 1);
+var import_discord5 = __toESM(require_src());
 var timeoutCommand = {
   data: new import_discord5.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to timeout").setRequired(true)
@@ -152818,7 +152818,7 @@ var timeoutCommand = {
 };
 
 // src/commands/moderation/clear.ts
-var import_discord6 = __toESM(require_src(), 1);
+var import_discord6 = __toESM(require_src());
 var clearCommand = {
   data: new import_discord6.SlashCommandBuilder().setName("clear").setDescription("Delete messages in a channel.").addIntegerOption(
     (option) => option.setName("amount").setDescription("Number of messages to delete").setRequired(true).setMinValue(1).setMaxValue(100)
@@ -152838,7 +152838,7 @@ var clearCommand = {
 };
 
 // src/commands/moderation/warn.ts
-var import_discord7 = __toESM(require_src(), 1);
+var import_discord7 = __toESM(require_src());
 var warnCommand = {
   data: new import_discord7.SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to warn").setRequired(true)
@@ -152859,7 +152859,7 @@ var warnCommand = {
 };
 
 // src/commands/economy/balance.ts
-var import_discord8 = __toESM(require_src(), 1);
+var import_discord8 = __toESM(require_src());
 var balanceCommand = {
   data: new import_discord8.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
@@ -152878,7 +152878,7 @@ var balanceCommand = {
 };
 
 // src/commands/economy/daily.ts
-var import_discord9 = __toESM(require_src(), 1);
+var import_discord9 = __toESM(require_src());
 var dailyCommand = {
   data: new import_discord9.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
   category: "economy",
@@ -152907,7 +152907,7 @@ var dailyCommand = {
 };
 
 // src/commands/economy/work.ts
-var import_discord10 = __toESM(require_src(), 1);
+var import_discord10 = __toESM(require_src());
 var workCommand = {
   data: new import_discord10.SlashCommandBuilder().setName("work").setDescription("Work to earn some coins."),
   category: "economy",
@@ -152936,7 +152936,7 @@ var workCommand = {
 };
 
 // src/commands/fun/8ball.ts
-var import_discord11 = __toESM(require_src(), 1);
+var import_discord11 = __toESM(require_src());
 var eightBallCommand = {
   data: new import_discord11.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
     (option) => option.setName("question").setDescription("Your question").setRequired(true)
@@ -152974,7 +152974,7 @@ Answer: ${answer}`);
 };
 
 // src/commands/fun/coinflip.ts
-var import_discord12 = __toESM(require_src(), 1);
+var import_discord12 = __toESM(require_src());
 var coinflipCommand = {
   data: new import_discord12.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
   category: "fun",
@@ -152986,7 +152986,7 @@ var coinflipCommand = {
 };
 
 // src/commands/fun/dice.ts
-var import_discord13 = __toESM(require_src(), 1);
+var import_discord13 = __toESM(require_src());
 var diceCommand = {
   data: new import_discord13.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
     (option) => option.setName("sides").setDescription("Number of sides").setRequired(false).setMinValue(2).setMaxValue(1e3)
@@ -153001,7 +153001,7 @@ var diceCommand = {
 };
 
 // src/commands/leveling/rank.ts
-var import_discord14 = __toESM(require_src(), 1);
+var import_discord14 = __toESM(require_src());
 var rankCommand = {
   data: new import_discord14.SlashCommandBuilder().setName("rank").setDescription("Check your leveling rank.").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
@@ -153027,68 +153027,6 @@ var rankCommand = {
   }, "execute")
 };
 
-// src/commands/utility/userinfo.ts
-var import_discord15 = __toESM(require_src(), 1);
-var userInfoCommand = {
-  data: new import_discord15.SlashCommandBuilder().setName("userinfo").setDescription("Get information about a user.").addUserOption(
-    (option) => option.setName("user").setDescription("The user to look up").setRequired(false)
-  ),
-  category: "utility",
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const user = interaction.options.getUser("user") ?? interaction.user;
-    const member = interaction.guild?.members.cache.get(user.id);
-    const embed = new import_discord15.EmbedBuilder().setColor(7506394).setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() }).setThumbnail(user.displayAvatarURL({ size: 1024 })).addFields(
-      { name: "\u{1F194} ID", value: user.id, inline: true },
-      { name: "\u{1F916} Bot", value: user.bot ? "Yes" : "No", inline: true },
-      {
-        name: "\u{1F4C5} Account Created",
-        value: `<t:${Math.floor(user.createdTimestamp / 1e3)}:R>`,
-        inline: true
-      }
-    );
-    if (member) {
-      embed.addFields(
-        {
-          name: "\u{1F4E5} Joined Server",
-          value: `<t:${Math.floor(member.joinedTimestamp.getTime() / 1e3)}:R>`,
-          inline: true
-        },
-        {
-          name: "\u{1F3C5} Roles",
-          value: member.roles.cache.filter((r) => r.id !== interaction.guild.id).map((r) => r.toString()).join(", ") || "None",
-          inline: false
-        }
-      );
-    }
-    await interaction.reply({ embeds: [embed] });
-  }, "execute")
-};
-
-// src/commands/utility/serverinfo.ts
-var import_discord16 = __toESM(require_src(), 1);
-var serverInfoCommand = {
-  data: new import_discord16.SlashCommandBuilder().setName("serverinfo").setDescription("Get information about the server."),
-  category: "utility",
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const guild = interaction.guild;
-    const embed = new import_discord16.EmbedBuilder().setColor(7506394).setTitle(guild.name).setThumbnail(guild.iconURL() || void 0).addFields(
-      { name: "\u{1F194} ID", value: guild.id, inline: true },
-      { name: "\u{1F451} Owner", value: `<@${guild.ownerId}>`, inline: true },
-      { name: "\u{1F465} Members", value: guild.memberCount.toString(), inline: true },
-      { name: "\u{1F4AC} Channels", value: guild.channels.cache.size.toString(), inline: true },
-      { name: "\u{1F3C5} Roles", value: guild.roles.cache.size.toString(), inline: true },
-      {
-        name: "\u{1F4C5} Created",
-        value: `<t:${Math.floor(guild.createdTimestamp.getTime() / 1e3)}:R>`,
-        inline: true
-      }
-    );
-    await interaction.reply({ embeds: [embed] });
-  }, "execute")
-};
-
 // src/commands/index.ts
 var commands = [
   pingCommand,
@@ -153104,9 +153042,7 @@ var commands = [
   eightBallCommand,
   coinflipCommand,
   diceCommand,
-  rankCommand,
-  userInfoCommand,
-  serverInfoCommand
+  rankCommand
 ];
 
 // node_modules/zod/v4/classic/external.js
@@ -173528,8 +173464,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord17 = __toESM(require_src(), 1);
-var SukunaClient = class extends import_discord17.Client {
+var import_discord15 = __toESM(require_src());
+var SukunaClient = class extends import_discord15.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -173544,15 +173480,15 @@ var SukunaClient = class extends import_discord17.Client {
   constructor() {
     super({
       intents: [
-        import_discord17.GatewayIntentBits.Guilds,
-        import_discord17.GatewayIntentBits.GuildMembers,
-        import_discord17.GatewayIntentBits.GuildMessages,
-        import_discord17.GatewayIntentBits.MessageContent,
-        import_discord17.GatewayIntentBits.DirectMessages,
-        import_discord17.GatewayIntentBits.GuildVoiceStates,
-        import_discord17.GatewayIntentBits.GuildMessageReactions
+        import_discord15.GatewayIntentBits.Guilds,
+        import_discord15.GatewayIntentBits.GuildMembers,
+        import_discord15.GatewayIntentBits.GuildMessages,
+        import_discord15.GatewayIntentBits.MessageContent,
+        import_discord15.GatewayIntentBits.DirectMessages,
+        import_discord15.GatewayIntentBits.GuildVoiceStates,
+        import_discord15.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord17.Partials.Message, import_discord17.Partials.Channel, import_discord17.Partials.GuildMember, import_discord17.Partials.Reaction],
+      partials: [import_discord15.Partials.Message, import_discord15.Partials.Channel, import_discord15.Partials.GuildMember, import_discord15.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false }
     });
   }
@@ -173632,7 +173568,7 @@ function registerEvents(client, events2) {
 __name(registerEvents, "registerEvents");
 
 // src/core/logger.ts
-var import_pino = __toESM(require_pino(), 1);
+var import_pino = __toESM(require_pino());
 var isProduction = process.env.NODE_ENV === "production";
 var transport = isProduction ? void 0 : {
   target: "pino-pretty",
@@ -173653,7 +173589,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord19 = __toESM(require_src(), 1);
+var import_discord17 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -173685,17 +173621,17 @@ function newErrorId() {
 __name(newErrorId, "newErrorId");
 
 // src/core/respond.ts
-var import_discord18 = __toESM(require_src(), 1);
+var import_discord16 = __toESM(require_src());
 async function replyError(interaction, message, errorId) {
   const content = errorId ? `${message} (ref: ${errorId})` : message;
-  await interaction.reply({ content, flags: import_discord18.MessageFlags.Ephemeral }).catch(() => {
+  await interaction.reply({ content, flags: import_discord16.MessageFlags.Ephemeral }).catch(() => {
   });
 }
 __name(replyError, "replyError");
 
 // src/events/interactionCreate.ts
 var interactionCreate = {
-  name: import_discord19.Events.InteractionCreate,
+  name: import_discord17.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     if (!interaction.isChatInputCommand()) return;
     const command = client.commands.get(interaction.commandName);
@@ -173773,9 +173709,9 @@ var interactionCreate = {
 };
 
 // src/events/ready.ts
-var import_discord20 = __toESM(require_src(), 1);
+var import_discord18 = __toESM(require_src());
 var ready = {
-  name: import_discord20.Events.ClientReady,
+  name: import_discord18.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name((client) => {
     client.logger.info(
@@ -173786,9 +173722,9 @@ var ready = {
 };
 
 // src/events/messageCreate.ts
-var import_discord21 = __toESM(require_src(), 1);
+var import_discord19 = __toESM(require_src());
 var messageCreate = {
-  name: import_discord21.Events.MessageCreate,
+  name: import_discord19.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     if (message.author.bot) return;
     if (!message.guild) return;
