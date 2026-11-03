@@ -3,6 +3,7 @@ import { addXp } from '../db/utils.js';
 import { handleLevelUp } from '../handlers/levelUp.js';
 import { randomXp } from '../utils/level.js';
 import { readLevelSettings, type LevelSettings } from '../utils/levelSettings.js';
+import { handleBotVoiceMove } from '../voice/manager.js';
 
 /** userId -> join timestamp (aligned to minute boundaries as XP is awarded). */
 const voiceSessions = new Map<string, number>();
@@ -65,6 +66,15 @@ export async function handleVoiceStateUpdate(
 
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
+
+  // The bot itself was moved to another voice channel (or disconnected): the
+  // Live conversation belongs to the old channel, so restart it. Otherwise the
+  // two channels would share one conversation.
+  const selfId = client.user?.id;
+  if (selfId && userId === selfId && changedChannel) {
+    const guild = newState.guild ?? oldState.guild;
+    if (guild) handleBotVoiceMove(guild, newState.channelId);
+  }
 
   // Left a voice channel, or moved to a different one.
   if (oldState.channelId && changedChannel) {

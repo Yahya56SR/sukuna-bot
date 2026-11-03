@@ -174193,6 +174193,7 @@ var manager_exports = {};
 __export(manager_exports, {
   connectVoice: () => connectVoice,
   disconnectVoice: () => disconnectVoice,
+  handleBotVoiceMove: () => handleBotVoiceMove,
   isVoiceConnected: () => isVoiceConnected,
   shutdownVoice: () => shutdownVoice,
   speakInVoice: () => speakInVoice,
@@ -174280,6 +174281,31 @@ async function connectVoice(guild, channelId) {
   }
   session.mode = await startDuplex(session, guild) ? "duplex" : "tts";
   return voiceStatus(guild.id);
+}
+function handleBotVoiceMove(guild, channelId) {
+  const session = sessions.get(guild.id);
+  if (!session) return;
+  if (session.channelId === channelId) return;
+  if (!channelId) {
+    disconnectVoice(guild.id);
+    return;
+  }
+  const previous = session.conversation;
+  session.conversation = void 0;
+  session.queue.length = 0;
+  session.channelId = channelId;
+  session.mode = "tts";
+  previous?.stop();
+  console.log("[Voice] Moved to another channel \u2014 starting a fresh conversation", {
+    guildId: guild.id,
+    channelId
+  });
+  void startDuplex(session, guild).then((ok) => {
+    if (sessions.get(guild.id) !== session) return;
+    session.mode = ok ? "duplex" : "tts";
+  }).catch(() => {
+    if (sessions.get(guild.id) === session) session.mode = "tts";
+  });
 }
 function disconnectVoice(guildId) {
   const session = sessions.get(guildId);
@@ -174403,6 +174429,7 @@ var init_manager = __esm({
     __name(voiceStatus, "voiceStatus");
     __name(isVoiceConnected, "isVoiceConnected");
     __name(connectVoice, "connectVoice");
+    __name(handleBotVoiceMove, "handleBotVoiceMove");
     __name(disconnectVoice, "disconnectVoice");
     __name(speakInVoice, "speakInVoice");
     __name(shutdownVoice, "shutdownVoice");
@@ -182541,8 +182568,6 @@ var QUOTA_BASE_BACKOFF_MS = 6e4;
 var MAX_QUOTA_BACKOFF_MS = 15 * 6e4;
 var QUOTA_LOG_INTERVAL_MS = 3e4;
 var DEFAULT_MAX_QUEUE_SIZE = 10;
-var DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
-var DEFAULT_SESSION_MAX_AGE_MS = 5 * 6e4;
 var MAX_EVENT_LENGTH = 24e3;
 var MAX_REPLY_LENGTH = 2e3;
 var SEND_MESSAGE_TOOL = "send_message";
@@ -182615,13 +182640,10 @@ var GeminiLiveSukuna = class {
   temperature;
   requestTimeoutMs;
   maxQueueSize;
-  maxRequestsPerSession;
-  sessionMaxAgeMs;
+  label;
   session = null;
   connected = false;
   sessionGeneration = 0;
-  sessionOpenedAt = 0;
-  requestsInSession = 0;
   connectPromise = null;
   queue = [];
   inFlight = null;
@@ -182637,7 +182659,6 @@ var GeminiLiveSukuna = class {
   turnCompleteSeen = false;
   toolRoundInFlight = false;
   toolExecuting = false;
-  goAway = false;
   closed = false;
   loggedUnsupportedConfig = false;
   constructor(options) {
@@ -182657,8 +182678,7 @@ var GeminiLiveSukuna = class {
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
     this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
     this.maxQueueSize = options.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE;
-    this.maxRequestsPerSession = options.maxRequestsPerSession ?? DEFAULT_MAX_REQUESTS_PER_SESSION;
-    this.sessionMaxAgeMs = options.sessionMaxAgeMs ?? DEFAULT_SESSION_MAX_AGE_MS;
+    this.label = options.label ?? "";
   }
   ask(text, executeTool, timeoutMs, media = []) {
     if (!text || !text.trim() || this.closed) return Promise.resolve(null);
@@ -182759,11 +182779,9 @@ var GeminiLiveSukuna = class {
     item.timer = setTimeout(() => this.onItemDeadline(item, "in flight"), item.timeoutMs);
     this.inFlight = item;
     this.resetTurnBuffers();
-    this.requestsInSession += 1;
     logLive("turn start", {
+      conversation: this.label,
       model: this.model,
-      requestInSession: this.requestsInSession,
-      maxRequestsPerSession: this.maxRequestsPerSession,
       chars: item.text.length,
       media: item.media.length,
       timeoutMs: item.timeoutMs
@@ -182890,12 +182908,10 @@ var GeminiLiveSukuna = class {
       }
       this.session = session;
       this.connected = true;
-      this.sessionOpenedAt = Date.now();
-      this.requestsInSession = 0;
       this.reconnectAttempts = 0;
-      this.goAway = false;
       this.resetTurnBuffers();
       logLive("session ready", {
+        conversation: this.label,
         model: this.model,
         thinkingLevel: this.thinkingLevel ?? "(none)",
         output: "audio+transcription",
@@ -182962,12 +182978,12 @@ var GeminiLiveSukuna = class {
     const session = this.session;
     this.session = null;
     this.connected = false;
-    this.goAway = false;
     this.resetTurnBuffers();
     if (this.inFlight) {
       this.failItem(this.inFlight, reason);
     }
     if (session) {
+      logLive("session closed", { conversation: this.label, reason });
       try {
         session.close();
       } catch {
@@ -183004,8 +183020,8 @@ var GeminiLiveSukuna = class {
       // Verified against the l7aj-bot persona, which uses the same models.
       responseModalities: [import_genai3.Modality.AUDIO],
       outputAudioTranscription: {},
-      // Bound server-side conversation history; this client also recycles the
-      // socket periodically because every event is an independent request.
+      // The socket is closed after every turn, so this only bounds the history
+      // of the tool rounds inside a single turn.
       contextWindowCompression: { slidingWindow: {} },
       tools: [{ functionDeclarations: this.declarations }]
     };
@@ -183025,7 +183041,7 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
   handleServerMessage(message) {
     if (this.closed) return;
     if (message.goAway) {
-      this.goAway = true;
+      logLive("session going away", { conversation: this.label });
     }
     const item = this.inFlight;
     if (!item) return;
@@ -183250,10 +183266,7 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
         toolCalls: toolCalls.length ? toolCalls.join(",") : "(none)"
       });
     }
-    const expired = forceReset || this.goAway || this.requestsInSession >= this.maxRequestsPerSession || Date.now() - this.sessionOpenedAt >= this.sessionMaxAgeMs;
-    if (expired) {
-      this.teardownSession(expired ? "recycle" : reason);
-    }
+    this.teardownSession(reason);
     void this.pump();
   }
   resetTurnBuffers() {
@@ -184797,6 +184810,7 @@ async function handleLevelUp(guild, user, newLevel, oldLevel, channel, settings)
 __name(handleLevelUp, "handleLevelUp");
 
 // src/events/voiceStateUpdate.ts
+init_manager();
 var voiceSessions = /* @__PURE__ */ new Map();
 var tickInterval = null;
 async function awardVoiceXp(client, userId, minutes, guild, user, settings) {
@@ -184833,6 +184847,11 @@ async function handleVoiceStateUpdate(client, oldState, newState) {
   if (!userId) return;
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
+  const selfId = client.user?.id;
+  if (selfId && userId === selfId && changedChannel) {
+    const guild = newState.guild ?? oldState.guild;
+    if (guild) handleBotVoiceMove(guild, newState.channelId);
+  }
   if (oldState.channelId && changedChannel) {
     const joinTs = voiceSessions.get(userId);
     if (joinTs) {
@@ -185369,10 +185388,13 @@ var channelHistoryIds = /* @__PURE__ */ new Map();
 var channelRate = { lastDecisionAt: 0, lastReplyAt: 0, replyTimestamps: [] };
 var dmRate = { lastDecisionAt: 0, lastReplyAt: 0, replyTimestamps: [] };
 var apiKeyCache = "";
-var liveClients = {
-  channel: { client: null, signature: "" },
-  dm: { client: null, signature: "" }
-};
+var liveClients = /* @__PURE__ */ new Map();
+var MAX_LIVE_CLIENTS = 32;
+function conversationKey(message) {
+  if (message.channel.isDMBased()) return `dm:${message.channelId}`;
+  return `text:${message.guildId ?? "unknown"}:${message.channelId}`;
+}
+__name(conversationKey, "conversationKey");
 function handleMessage(message) {
   const cfg = getSukunaConfig2();
   if (!cfg.enabled) return;
@@ -185399,12 +185421,9 @@ function handleMessage(message) {
 }
 __name(handleMessage, "handleMessage");
 function closeSukuna() {
-  logPersona("closing Live session");
-  for (const surface of Object.keys(liveClients)) {
-    liveClients[surface].client?.close();
-    liveClients[surface].client = null;
-    liveClients[surface].signature = "";
-  }
+  logPersona("closing Live sessions", { conversations: liveClients.size });
+  for (const slot of liveClients.values()) slot.client.close();
+  liveClients.clear();
   channelHistory.clear();
   channelHistoryIds.clear();
 }
@@ -185447,7 +185466,7 @@ function getSukunaConfig2() {
   return getSukunaConfig();
 }
 __name(getSukunaConfig2, "getSukunaConfig");
-function getLiveClient(cfg, apiKey, botId, surface) {
+function getLiveClient(cfg, apiKey, botId, conversation) {
   const systemPrompt = buildSystemPrompt(cfg, botId);
   const tools = cfg.toolsEnabled === false ? [] : buildSukunaToolDeclarations(cfg);
   const signature = [
@@ -185459,35 +185478,55 @@ function getLiveClient(cfg, apiKey, botId, surface) {
     tools.map((tool) => tool.name).join(","),
     systemPrompt
   ].join("|");
-  const slot = liveClients[surface];
-  if (slot.client && slot.signature === signature) return slot.client;
-  slot.client?.close();
-  slot.client = null;
-  slot.signature = "";
+  const existing = liveClients.get(conversation);
+  if (existing && existing.signature === signature) {
+    existing.lastUsedAt = Date.now();
+    return existing.client;
+  }
+  if (existing) {
+    existing.client.close();
+    liveClients.delete(conversation);
+  }
+  if (liveClients.size >= MAX_LIVE_CLIENTS) {
+    let oldestKey = null;
+    let oldestAt = Number.POSITIVE_INFINITY;
+    for (const [key, slot] of liveClients) {
+      if (slot.lastUsedAt < oldestAt) {
+        oldestAt = slot.lastUsedAt;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey) {
+      liveClients.get(oldestKey)?.client.close();
+      liveClients.delete(oldestKey);
+      logPersona("live client evicted", { conversation: oldestKey });
+    }
+  }
   try {
-    slot.client = new GeminiLiveSukuna({
+    const client = new GeminiLiveSukuna({
       apiKey,
       model: cfg.model,
       systemPrompt,
       tools,
       thinkingLevel: cfg.thinkingLevel,
       temperature: cfg.temperature,
-      requestTimeoutMs: cfg.requestTimeoutMs
+      requestTimeoutMs: cfg.requestTimeoutMs,
+      label: conversation
     });
-    slot.signature = signature;
+    liveClients.set(conversation, { client, signature, lastUsedAt: Date.now() });
     logPersona("live client created", {
-      surface,
+      conversation,
       model: cfg.model,
       tools: tools.length,
       thinkingLevel: cfg.thinkingLevel ?? "(model default)",
       temperature: cfg.temperature,
       promptChars: systemPrompt.length
     });
+    return client;
   } catch (error62) {
     console.error("[Sukuna] Could not create the Live client:", error62);
     return null;
   }
-  return slot.client;
 }
 __name(getLiveClient, "getLiveClient");
 async function processMessage(message, cfg) {
@@ -185520,7 +185559,8 @@ async function processMessage(message, cfg) {
     return;
   }
   const guild = message.guild ?? (isDm ? resolveHomeGuild(message) : null);
-  const live = getLiveClient(cfg, apiKey, message.client.user?.id || "", surface);
+  const conversation = conversationKey(message);
+  const live = getLiveClient(cfg, apiKey, message.client.user?.id || "", conversation);
   if (!live) return;
   const executeTool = createSukunaToolExecutor({
     client: message.client,
@@ -185542,6 +185582,7 @@ async function processMessage(message, cfg) {
   }
   logPersona("incoming", {
     surface,
+    conversation,
     guild: guild?.name ?? null,
     channel: channelName,
     author: message.author.tag,

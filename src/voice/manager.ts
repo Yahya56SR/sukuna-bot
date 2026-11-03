@@ -167,6 +167,45 @@ export async function connectVoice(guild: Guild, channelId: string): Promise<Voi
   return voiceStatus(guild.id);
 }
 
+/**
+ * The bot was dragged to another voice channel, or removed from voice, by a
+ * member. `@discordjs/voice` keeps the same connection across a move, so the
+ * Live conversation would otherwise keep running with the previous channel's
+ * context. Restart it for the channel the bot now sits in.
+ */
+export function handleBotVoiceMove(guild: Guild, channelId: string | null): void {
+  const session = sessions.get(guild.id);
+  if (!session) return;
+  if (session.channelId === channelId) return;
+
+  if (!channelId) {
+    // Kicked or disconnected from voice: drop the conversation with it.
+    disconnectVoice(guild.id);
+    return;
+  }
+
+  const previous = session.conversation;
+  session.conversation = undefined;
+  session.queue.length = 0;
+  session.channelId = channelId;
+  session.mode = 'tts';
+  previous?.stop();
+
+  console.log('[Voice] Moved to another channel — starting a fresh conversation', {
+    guildId: guild.id,
+    channelId,
+  });
+
+  void startDuplex(session, guild)
+    .then((ok) => {
+      if (sessions.get(guild.id) !== session) return;
+      session.mode = ok ? 'duplex' : 'tts';
+    })
+    .catch(() => {
+      if (sessions.get(guild.id) === session) session.mode = 'tts';
+    });
+}
+
 /** Leaves the channel for this guild. Returns true when a connection existed. */
 export function disconnectVoice(guildId: string): boolean {
   const session = sessions.get(guildId);

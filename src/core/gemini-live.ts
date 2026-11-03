@@ -56,8 +56,8 @@ export interface GeminiLiveSukunaOptions {
   temperature?: number;
   requestTimeoutMs?: number;
   maxQueueSize?: number;
-  maxRequestsPerSession?: number;
-  sessionMaxAgeMs?: number;
+  /** Conversation this client belongs to, e.g. `text:<guildId>:<channelId>`. */
+  label?: string;
 }
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
@@ -71,8 +71,6 @@ const QUOTA_BASE_BACKOFF_MS = 60_000;
 const MAX_QUOTA_BACKOFF_MS = 15 * 60_000;
 const QUOTA_LOG_INTERVAL_MS = 30_000;
 const DEFAULT_MAX_QUEUE_SIZE = 10;
-const DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
-const DEFAULT_SESSION_MAX_AGE_MS = 5 * 60_000;
 const MAX_EVENT_LENGTH = 24_000;
 const MAX_REPLY_LENGTH = 2_000;
 
@@ -164,14 +162,11 @@ export class GeminiLiveSukuna {
   private readonly temperature: number;
   private readonly requestTimeoutMs: number;
   private readonly maxQueueSize: number;
-  private readonly maxRequestsPerSession: number;
-  private readonly sessionMaxAgeMs: number;
+  private readonly label: string;
 
   private session: Session | null = null;
   private connected = false;
   private sessionGeneration = 0;
-  private sessionOpenedAt = 0;
-  private requestsInSession = 0;
   private connectPromise: Promise<void> | null = null;
 
   private queue: QueuedItem[] = [];
@@ -190,7 +185,6 @@ export class GeminiLiveSukuna {
   private turnCompleteSeen = false;
   private toolRoundInFlight = false;
   private toolExecuting = false;
-  private goAway = false;
   private closed = false;
   private loggedUnsupportedConfig = false;
 
@@ -214,8 +208,7 @@ export class GeminiLiveSukuna {
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
     this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
     this.maxQueueSize = options.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE;
-    this.maxRequestsPerSession = options.maxRequestsPerSession ?? DEFAULT_MAX_REQUESTS_PER_SESSION;
-    this.sessionMaxAgeMs = options.sessionMaxAgeMs ?? DEFAULT_SESSION_MAX_AGE_MS;
+    this.label = options.label ?? '';
   }
 
   ask(
@@ -337,12 +330,10 @@ export class GeminiLiveSukuna {
 
     this.inFlight = item;
     this.resetTurnBuffers();
-    this.requestsInSession += 1;
 
     logLive('turn start', {
+      conversation: this.label,
       model: this.model,
-      requestInSession: this.requestsInSession,
-      maxRequestsPerSession: this.maxRequestsPerSession,
       chars: item.text.length,
       media: item.media.length,
       timeoutMs: item.timeoutMs,
@@ -488,13 +479,11 @@ export class GeminiLiveSukuna {
 
       this.session = session;
       this.connected = true;
-      this.sessionOpenedAt = Date.now();
-      this.requestsInSession = 0;
       this.reconnectAttempts = 0;
-      this.goAway = false;
       this.resetTurnBuffers();
 
       logLive('session ready', {
+        conversation: this.label,
         model: this.model,
         thinkingLevel: this.thinkingLevel ?? '(none)',
         output: 'audio+transcription',
@@ -584,7 +573,6 @@ export class GeminiLiveSukuna {
     const session = this.session;
     this.session = null;
     this.connected = false;
-    this.goAway = false;
     this.resetTurnBuffers();
 
     if (this.inFlight) {
@@ -592,6 +580,7 @@ export class GeminiLiveSukuna {
     }
 
     if (session) {
+      logLive('session closed', { conversation: this.label, reason });
       try {
         session.close();
       } catch {
@@ -635,8 +624,8 @@ export class GeminiLiveSukuna {
       // Verified against the l7aj-bot persona, which uses the same models.
       responseModalities: [Modality.AUDIO],
       outputAudioTranscription: {},
-      // Bound server-side conversation history; this client also recycles the
-      // socket periodically because every event is an independent request.
+      // The socket is closed after every turn, so this only bounds the history
+      // of the tool rounds inside a single turn.
       contextWindowCompression: { slidingWindow: {} },
       tools: [{ functionDeclarations: this.declarations }],
     };
@@ -663,7 +652,7 @@ export class GeminiLiveSukuna {
     if (this.closed) return;
 
     if (message.goAway) {
-      this.goAway = true;
+      logLive('session going away', { conversation: this.label });
     }
 
     const item = this.inFlight;
@@ -957,15 +946,11 @@ export class GeminiLiveSukuna {
       });
     }
 
-    const expired =
-      forceReset ||
-      this.goAway ||
-      this.requestsInSession >= this.maxRequestsPerSession ||
-      Date.now() - this.sessionOpenedAt >= this.sessionMaxAgeMs;
-
-    if (expired) {
-      this.teardownSession(expired ? 'recycle' : reason);
-    }
+    // One Discord event = one self-contained Live turn. Its history travels in
+    // the payload, so keeping this socket would let the next event — another
+    // channel, another DM, another guild — continue this conversation
+    // server-side and mix the two contexts together. Always drop the socket.
+    this.teardownSession(reason);
 
     void this.pump();
   }

@@ -66,12 +66,26 @@ const dmRate: RateState = { lastDecisionAt: 0, lastReplyAt: 0, replyTimestamps: 
 
 let apiKeyCache = '';
 
-// One persistent Live session per configuration and surface; recreated when
-// the configuration changes.
-const liveClients: Record<PersonaSurface, { client: GeminiLiveSukuna | null; signature: string }> = {
-  channel: { client: null, signature: '' },
-  dm: { client: null, signature: '' },
-};
+/**
+ * Live clients are scoped to one conversation — `text:<guildId>:<channelId>` or
+ * `dm:<userId>`. One channel can never share a queue, a socket or a quota
+ * backoff with another channel, a DM or a different guild.
+ */
+interface LiveSlot {
+  client: GeminiLiveSukuna;
+  signature: string;
+  lastUsedAt: number;
+}
+
+const liveClients = new Map<string, LiveSlot>();
+/** Conversations kept alive at once; least recently used are closed first. */
+const MAX_LIVE_CLIENTS = 32;
+
+/** Stable id of the conversation a Discord event belongs to. */
+function conversationKey(message: Message): string {
+  if (message.channel.isDMBased()) return `dm:${message.channelId}`;
+  return `text:${message.guildId ?? 'unknown'}:${message.channelId}`;
+}
 
 interface HistoryEntry {
   id: string;
@@ -125,12 +139,9 @@ function handleMessage(message: Message): void {
  * Close Sukuna (for shutdown).
  */
 function closeSukuna(): void {
-  logPersona('closing Live session');
-  for (const surface of Object.keys(liveClients) as PersonaSurface[]) {
-    liveClients[surface].client?.close();
-    liveClients[surface].client = null;
-    liveClients[surface].signature = '';
-  }
+  logPersona('closing Live sessions', { conversations: liveClients.size });
+  for (const slot of liveClients.values()) slot.client.close();
+  liveClients.clear();
   channelHistory.clear();
   channelHistoryIds.clear();
 }
@@ -198,13 +209,15 @@ function getSukunaConfig(): SukunaConfig {
 }
 
 /**
- * Reuse one Live session per surface while the persona configuration is unchanged.
+ * One Live client per conversation, reused while the persona configuration is
+ * unchanged. A client never serves two channels, so their conversations cannot
+ * be mixed.
  */
 function getLiveClient(
   cfg: SukunaConfig,
   apiKey: string,
   botId: string,
-  surface: PersonaSurface,
+  conversation: string,
 ): GeminiLiveSukuna | null {
   const systemPrompt = buildSystemPrompt(cfg, botId);
   const tools = cfg.toolsEnabled === false ? [] : buildSukunaToolDeclarations(cfg);
@@ -218,15 +231,37 @@ function getLiveClient(
     systemPrompt,
   ].join('|');
 
-  const slot = liveClients[surface];
-  if (slot.client && slot.signature === signature) return slot.client;
+  const existing = liveClients.get(conversation);
+  if (existing && existing.signature === signature) {
+    existing.lastUsedAt = Date.now();
+    return existing.client;
+  }
 
-  slot.client?.close();
-  slot.client = null;
-  slot.signature = '';
+  if (existing) {
+    existing.client.close();
+    liveClients.delete(conversation);
+  }
+
+  // Sessions are closed after every turn, so an idle client costs almost
+  // nothing; still bound the map so a busy bot cannot grow it forever.
+  if (liveClients.size >= MAX_LIVE_CLIENTS) {
+    let oldestKey: string | null = null;
+    let oldestAt = Number.POSITIVE_INFINITY;
+    for (const [key, slot] of liveClients) {
+      if (slot.lastUsedAt < oldestAt) {
+        oldestAt = slot.lastUsedAt;
+        oldestKey = key;
+      }
+    }
+    if (oldestKey) {
+      liveClients.get(oldestKey)?.client.close();
+      liveClients.delete(oldestKey);
+      logPersona('live client evicted', { conversation: oldestKey });
+    }
+  }
 
   try {
-    slot.client = new GeminiLiveSukuna({
+    const client = new GeminiLiveSukuna({
       apiKey,
       model: cfg.model,
       systemPrompt,
@@ -234,22 +269,22 @@ function getLiveClient(
       thinkingLevel: cfg.thinkingLevel,
       temperature: cfg.temperature,
       requestTimeoutMs: cfg.requestTimeoutMs,
+      label: conversation,
     });
-    slot.signature = signature;
+    liveClients.set(conversation, { client, signature, lastUsedAt: Date.now() });
     logPersona('live client created', {
-      surface,
+      conversation,
       model: cfg.model,
       tools: tools.length,
       thinkingLevel: cfg.thinkingLevel ?? '(model default)',
       temperature: cfg.temperature,
       promptChars: systemPrompt.length,
     });
+    return client;
   } catch (error) {
     console.error('[Sukuna] Could not create the Live client:', error);
     return null;
   }
-
-  return slot.client;
 }
 
 async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
@@ -287,8 +322,9 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   // In a DM there is no guild: fall back to a server the member shares with the
   // bot (memory scope and guild tools), or to none at all.
   const guild = message.guild ?? (isDm ? resolveHomeGuild(message) : null);
+  const conversation = conversationKey(message);
 
-  const live = getLiveClient(cfg, apiKey, message.client.user?.id || '', surface);
+  const live = getLiveClient(cfg, apiKey, message.client.user?.id || '', conversation);
   if (!live) return;
 
   const executeTool = createSukunaToolExecutor({
@@ -314,6 +350,7 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
 
   logPersona('incoming', {
     surface,
+    conversation,
     guild: guild?.name ?? null,
     channel: channelName,
     author: message.author.tag,
