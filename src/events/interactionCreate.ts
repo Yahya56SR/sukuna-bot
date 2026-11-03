@@ -1,12 +1,25 @@
-import { Events, type ClientEvents } from 'discord.js';
+import {
+  Events,
+  type ClientEvents,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import { takeCooldown } from '../core/cooldowns.js';
 import { newErrorId, UserFacingError } from '../core/errors.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
+import { TicketPanel, OpenTicket } from '../db/models/Ticket.js';
 
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
   execute: async (client: any, interaction: any) => {
+    // Handle button interactions (ticket system)
+    if (interaction.isButton()) {
+      await handleButtonInteraction(client, interaction);
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
@@ -110,3 +123,152 @@ export const interactionCreate = {
     }
   },
 };
+
+/* -------------------------------------------------------------------------- */
+/* Ticket button interactions                                                 */
+/* -------------------------------------------------------------------------- */
+
+async function handleButtonInteraction(client: any, interaction: any): Promise<void> {
+  const { customId } = interaction;
+
+  if (customId === 'ticket_create') {
+    await handleTicketCreate(client, interaction);
+    return;
+  }
+
+  if (customId === 'ticket_close') {
+    await handleTicketCloseButton(interaction);
+    return;
+  }
+}
+
+async function handleTicketCreate(client: any, interaction: any): Promise<void> {
+  await interaction.deferReply({ flags: 64 });
+
+  const guild = interaction.guild;
+  const user = interaction.user;
+  if (!guild) {
+    await interaction.editReply({ content: '❌ Server-only.' });
+    return;
+  }
+
+  // Check if user already has an open ticket in this guild
+  const existing = await OpenTicket.findOne({
+    guildId: guild.id,
+    userId: user.id,
+    closedAt: null,
+  });
+  if (existing) {
+    const channel = guild.channels.cache.get(existing.channelId);
+    await interaction.editReply({
+      content: `❌ You already have an open ticket: ${channel?.toString() ?? 'a channel'}.`,
+    });
+    return;
+  }
+
+  // Find the panel to confirm this interaction is valid
+  const panel = await TicketPanel.findOne({ guildId: guild.id });
+  if (!panel) {
+    await interaction.editReply({ content: '❌ No ticket panel is configured.' });
+    return;
+  }
+
+  const overwrites: Record<string, any> = {
+    [guild.id]: { ViewChannel: false }, // hide from @everyone
+    [user.id]: {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true,
+      AttachFiles: true,
+    },
+    [client.user.id]: {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true,
+      ManageChannels: true,
+    },
+  };
+
+  // Allow staff with ManageGuild to see all tickets
+  for (const role of guild.roles.cache.values()) {
+    if (role.permissions.has('ManageGuild') && !role.managed) {
+      overwrites[role.id] = { ViewChannel: true, SendMessages: true, ReadMessageHistory: true };
+    }
+  }
+
+  try {
+    const channel = await guild.channels.create({
+      name: `ticket-${user.username}`,
+      type: 0, // GuildText
+      topic: `Support ticket for ${user.tag} (${user.id})`,
+      parent: undefined,
+      permissionOverwrites: overwrites,
+      reason: `Ticket created by ${user.tag}`,
+    });
+
+    await OpenTicket.create({
+      guildId: guild.id,
+      channelId: channel.id,
+      userId: user.id,
+    });
+
+    const closeButton = new ButtonBuilder()
+      .setCustomId('ticket_close')
+      .setLabel('Close Ticket')
+      .setStyle(ButtonStyle.Danger)
+      .setEmoji('🔒');
+
+    const closeRow = new ActionRowBuilder().addComponents(closeButton);
+
+    await channel.send({
+      content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly. Use the button below to close the ticket when done.`,
+      components: [closeRow],
+    });
+
+    await interaction.editReply({
+      content: `✅ Ticket created: ${channel}.`,
+    });
+  } catch (error) {
+    await interaction.editReply({
+      content: '❌ Failed to create ticket channel.',
+    });
+  }
+}
+
+async function handleTicketCloseButton(interaction: any): Promise<void> {
+  const guild = interaction.guild;
+  if (!guild) {
+    await interaction.reply({ content: '❌ Server-only.', flags: 64 });
+    return;
+  }
+
+  const ticket = await OpenTicket.findOne({
+    guildId: guild.id,
+    channelId: interaction.channelId,
+    closedAt: null,
+  });
+  if (!ticket) {
+    await interaction.reply({
+      content: '❌ This is not an open ticket channel.',
+      flags: 64,
+    });
+    return;
+  }
+
+  await OpenTicket.updateOne(
+    { guildId: guild.id, channelId: interaction.channelId },
+    { closedAt: new Date() },
+  );
+
+  await interaction.reply({
+    content: '🔒 This ticket is being closed. The channel will be deleted in 10 seconds...',
+  });
+
+  setTimeout(async () => {
+    try {
+      await (interaction.channel as any).delete();
+    } catch {
+      /* channel already deleted or missing permissions */
+    }
+  }, 10_000);
+}
