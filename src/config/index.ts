@@ -7,8 +7,18 @@ export { env };
 export type Env = EnvType;
 
 /* ------------------------------------------------------------------ */
-/* Sukuna AI Persona Configuration */
+/* 爱 Doctora AI Persona Configuration */
 /* ------------------------------------------------------------------ */
+
+/** Name used whenever the persona has no explicit display name. */
+export const DEFAULT_DISPLAY_NAME = '爱 Doctora';
+
+/**
+ * Names this persona shipped with before. A stored config still holding one of
+ * them counts as "not customised", so renaming the bot also renames existing
+ * deployments instead of leaving the old UI value in MongoDB forever.
+ */
+const LEGACY_DISPLAY_NAMES = new Set(['Sukuna']);
 
 export interface SukunaConfig {
   enabled: boolean;
@@ -37,7 +47,7 @@ export interface SukunaConfig {
 
 export const defaultSukunaConfig: SukunaConfig = {
   enabled: process.env.SUKUNA_ENABLED === 'true' || false,
-  displayName: process.env.SUKUNA_DISPLAY_NAME || 'Sukuna',
+  displayName: process.env.SUKUNA_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
   channelIds: process.env.SUKUNA_CHANNELS?.split(',').map((s) => s.trim()).filter(Boolean) || [],
   model: process.env.SUKUNA_MODEL || 'gemini-3.8-live',
   temperature: Number(process.env.SUKUNA_TEMPERATURE) || 1,
@@ -73,7 +83,9 @@ export function normalizeSukunaConfig(input: Partial<SukunaConfig>): SukunaConfi
   merged.channelIds = Array.isArray(merged.channelIds)
     ? [...new Set(merged.channelIds.map(String).filter((id) => /^\d{5,25}$/.test(id)))]
     : [];
-  merged.displayName = String(merged.displayName || 'Sukuna').slice(0, 64);
+  const requestedName = String(merged.displayName ?? '').trim();
+  const name = LEGACY_DISPLAY_NAMES.has(requestedName) ? DEFAULT_DISPLAY_NAME : requestedName;
+  merged.displayName = (name || DEFAULT_DISPLAY_NAME).slice(0, 64);
   merged.model = String(merged.model || 'gemini-3.8-live').slice(0, 100);
   if (merged.systemPrompt === null || merged.systemPrompt === undefined) {
     merged.systemPrompt = undefined;

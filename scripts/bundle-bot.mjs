@@ -13,7 +13,11 @@ const EXTERNALS = [
   "erlpack",
   "@discordjs/opus",
   "sodium-native",
+  "opusscript",
   "@google/genai",
+  // Only reached by prism-media's FFmpeg helper, which the bot never uses; the
+  // package is not installed, so keep the require unresolved instead of failing.
+  "ffmpeg-static",
 ];
 
 const MAX_BUNDLE_BYTES = 20 * 1024 * 1024;

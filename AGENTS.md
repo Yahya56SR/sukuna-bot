@@ -1,9 +1,11 @@
-# Sukuna Bot — Agent Notes
+# 爱 Doctora Bot — Agent Notes
+
+> The persona/bot is **爱 Doctora** (a girl speaking Arabizi Darija). `sukuna`/`Sukuna*`/`SUKUNA_*` names are the legacy internal namespace and are intentionally **not** renamed: they would break env vars, Mongo config keys and model names.
 
 ## Runtime pattern (vernova-bot style)
 - Dev: `npm run dev` → `tsx watch src/index.ts`
 - Production: `node index.js` (single esbuild CJS bundle committed at repo root)
-- Bundle: `npm run bundle:bot` → esbuild bundles `src/index.ts` → `index.js` (~6.9MB, gated at 20MB)
+- Bundle: `npm run bundle:bot` → esbuild bundles `src/index.ts` → `index.js` (~7.4MB, gated at 20MB)
 - **`package.json` has NO `"type": "module"`** — the bundle runs as CJS (required for `mongoose require()`)
 
 ## Commands that matter
@@ -41,6 +43,15 @@ Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
 **8. Live 3.8 models reject `responseModalities: [TEXT]`**
 `gemini-3.8-live` / `-extended-thinking` close the socket with code 1007 ("The requested combination of response modalities (TEXT) is not supported"). Always request `Modality.AUDIO` with `outputAudioTranscription: {}` and read `serverContent.outputTranscription` (see l7aj-bot, which runs the same models in production). Also: `gemini-3.8-live` must NOT receive `thinkingConfig`, while the extended-thinking model requires a `thinkingLevel`.
 
+**9. Voice is opt-in and has two modes**
+`/voice join` joins the caller's channel. `src/voice/manager.ts` keeps one connection + player per guild:
+- `duplex` (default with `GEMINI_API_KEY`): `src/voice/conversation.ts` opens a second Live session. Mic path: OPUS from `connection.receiver.subscribe()` → `prism-media` decoder → `DiscordPcmTo16k` (48 kHz stereo → 16 kHz mono) → 20 ms frames via `sendRealtimeInput`, silence-padded so server VAD ends turns. Output path: Live 24 kHz PCM → `PcmToDiscord` → `StreamType.Raw` player; `serverContent.interrupted` flushes playback for barge-in.
+- `tts` (fallback, or `SUKUNA_VOICE_DUPLEX=false`): `speech.ts` reads each posted text reply with a one-shot Live turn.
+`speakInVoice()` (called from `src/utils/sukuna.ts` after a reply is posted) is a no-op in duplex mode, otherwise the reply would be spoken twice. The duplex system prompt (`buildSukunaVoicePrompt`) strips the tool-call decision contract, since a call cannot end in `send_message`.
+
+**10. `@discordjs/voice` is pinned to 0.18.0**
+0.19+ statically requires the native `@snazzah/davey` addon (DAVE/E2EE), which cannot be bundled and cannot be installed on bot-hosting.net. Do not bump it without a plan for native deps. `prism-media` is bundled; `opusscript`, `tweetnacl` and `ffmpeg-static` stay runtime-resolved (the last one is external-only and never called).
+
 ## File locations
 - Entry: `src/index.ts`
 - Client: `src/core/client.ts` (`SukunaClient` extends `discord.js.Client`)
@@ -49,6 +60,7 @@ Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
 - Config: `src/config/env.ts` (env schema), `src/config/index.ts` (Sukuna persona config)
 - DB: `src/db/index.ts` + `src/db/models/*.ts`
 - AI persona: `src/utils/sukuna.ts`, `src/core/gemini-live.ts`, `src/utils/sukuna-tools.ts`, `src/utils/sukuna-memory.ts`, `src/prompts/sukuna.ts`
+- Voice: `src/voice/manager.ts` (connections/queue), `src/voice/conversation.ts` (duplex Live call), `src/voice/speech.ts` (TTS turn), `src/voice/pcm.ts` (resamplers), `/voice` in `src/commands/core/voice.ts`
 - Dashboard: `dashboard/server.ts` + `dashboard/{index.html,styles.css,app.js}`
 - Bundle script: `scripts/bundle-bot.mjs`
 

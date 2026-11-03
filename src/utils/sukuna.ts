@@ -10,7 +10,11 @@
  */
 
 import type { Client, Guild, Message, TextChannel } from 'discord.js';
-import { getSukunaConfig as readSukunaConfig, type SukunaConfig } from '../config/index.js';
+import {
+  DEFAULT_DISPLAY_NAME,
+  getSukunaConfig as readSukunaConfig,
+  type SukunaConfig,
+} from '../config/index.js';
 import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../prompts/sukuna.js';
 import {
   GeminiLiveSukuna,
@@ -20,6 +24,8 @@ import {
 import { buildSukunaToolDeclarations, createSukunaToolExecutor } from './sukuna-tools.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { collectSukunaMedia } from './sukuna-media.js';
+import { speakInVoice } from '../voice/manager.js';
+import { resolveVoiceName } from '../voice/speech.js';
 
 const MAX_REPLY_LENGTH = 2000;
 
@@ -272,11 +278,23 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   addHistoryEntry(message.channelId, {
     id: sent.id,
     authorId: message.client.user?.id || 'unknown',
-    authorName: cfg.displayName || 'Sukuna',
+    authorName: cfg.displayName || DEFAULT_DISPLAY_NAME,
     content: historyContent,
     timestamp: now,
     bot: true,
   });
+
+  // Voice is opt-in and only speaks in `tts` mode; when the guild runs a live
+  // duplex conversation the model already answers out loud, so the text reply
+  // would be spoken twice.
+  if (message.guildId) {
+    speakInVoice(message.guildId, decision.message.slice(0, MAX_REPLY_LENGTH), {
+      apiKey,
+      model: cfg.model,
+      voiceName: resolveVoiceName(),
+      timeoutMs: cfg.requestTimeoutMs,
+    });
+  }
 }
 
 /**
@@ -328,7 +346,7 @@ async function deliverDecision(
 
 function buildSystemPrompt(cfg: SukunaConfig, botId: string): string {
   const runtime = buildSukunaRuntimePrompt({
-    displayName: cfg.displayName || 'Sukuna',
+    displayName: cfg.displayName || DEFAULT_DISPLAY_NAME,
     botId,
     toolsEnabled: cfg.toolsEnabled ?? true,
     memoryEnabled: cfg.memoryEnabled ?? true,

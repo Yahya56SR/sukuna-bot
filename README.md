@@ -1,4 +1,4 @@
-# Sukuna Bot — All-in-One Discord Bot
+# 爱 Doctora — All-in-One Discord Bot
 
 A modular, slash-command-first Discord bot with moderation, economy, leveling, tickets, fun, utility, and more — inspired by PeakBot and similar all-in-one bots.
 
@@ -6,7 +6,7 @@ A modular, slash-command-first Discord bot with moderation, economy, leveling, t
 
 | Category | Commands |
 |----------|----------|
-| **Utility** | `ping`, `help`, `userinfo`, `serverinfo` |
+| **Utility** | `ping`, `help`, `userinfo`, `serverinfo`, `voice` |
 | **Moderation** | `kick`, `ban`, `timeout`, `clear`, `warn` |
 | **Economy** | `balance`, `daily`, `work` |
 | **Leveling** | `rank` (XP gained on messages) |
@@ -18,7 +18,7 @@ A modular, slash-command-first Discord bot with moderation, economy, leveling, t
 ### 1. Create a Discord Application
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click **New Application** → give it a name (e.g., "Sukuna")
+2. Click **New Application** → give it a name (e.g., "爱 Doctora")
 3. Go to **Bot** → **Reset Token** to get your `BOT_TOKEN`
 4. Copy the **Application ID** → that's your `CLIENT_ID`
 5. Under **Privileged Gateway Intents**, enable:
@@ -41,7 +41,7 @@ Or use the **OAuth2 → URL Generator** in the Developer Portal with:
 
 ### 3. Set Up MongoDB Atlas
 
-Sukuna Bot uses **MongoDB Atlas** (cloud) by default.
+爱 Doctora uses **MongoDB Atlas** (cloud) by default.
 
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and create a free account
 2. Create a **Shared Cluster** (free tier M0/M2/M5)
@@ -183,6 +183,40 @@ What you can do from it:
 
 Changes made in the dashboard are persisted in MongoDB (`bot_configs` for the
 persona, `guilds` for per-server settings) and apply without a restart.
+
+## 🎙️ Voice
+
+`/voice join` puts 爱 Doctora in your voice channel and opens a duplex Gemini
+Live session:
+
+- **Listening** – every member who speaks is decoded (Opus → 48 kHz stereo PCM),
+  downmixed to 16 kHz mono and streamed to the Live API in 20 ms frames, with
+  silence padding so the server-side VAD can end a turn.
+- **Talking** – the model's audio (24 kHz PCM) is converted to 48 kHz stereo and
+  played with `@discordjs/voice` (`StreamType.Raw`, so no ffmpeg). Talking over
+  her sends `interrupted`, which flushes playback (barge-in).
+- **Text replies** – in duplex mode she answers out loud only. If no Gemini key
+  is configured (or `SUKUNA_VOICE_DUPLEX=false`), the bot falls back to reading
+  its text replies out loud with a dedicated Live TTS turn instead.
+
+```
+/voice join     # join your channel and start talking
+/voice status   # channel, mode, how many members are heard, speaking/idle
+/voice say      # TTS mode only: read a line out loud
+/voice leave    # stop and disconnect
+```
+
+Notes:
+
+- Requires **Connect** and **Speak** in the channel, plus `GEMINI_API_KEY` and a
+  Live model (`SUKUNA_MODEL`).
+- `SUKUNA_VOICE_NAME` picks the prebuilt voice (default `Aoede`).
+- `@discordjs/voice@0.18.0` is pinned on purpose: 0.19+ needs the native
+  `@snazzah/davey` addon, which cannot be bundled or installed on the host, so
+  DAVE/E2EE encrypted voice is not supported.
+- `opusscript` and `tweetnacl` are runtime dependencies like `@google/genai`: they
+  must be present in `node_modules` next to `index.js` (prism-media itself is
+  bundled).
 
 ## 📜 Scripts
 

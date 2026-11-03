@@ -1,6 +1,7 @@
 import type { Command } from '../core/commands.js';
 import { pingCommand } from './core/ping.js';
 import { helpCommand } from './core/help.js';
+import { voiceCommand } from './core/voice.js';
 import { kickCommand } from './moderation/kick.js';
 import { banCommand } from './moderation/ban.js';
 import { timeoutCommand } from './moderation/timeout.js';
@@ -21,6 +22,7 @@ import { rankCommand } from './leveling/rank.js';
 export const commands: readonly Command[] = [
   pingCommand,
   helpCommand,
+  voiceCommand,
   kickCommand,
   banCommand,
   timeoutCommand,

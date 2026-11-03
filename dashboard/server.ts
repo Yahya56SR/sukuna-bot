@@ -23,6 +23,7 @@ import { z } from 'zod';
 import type { SukunaClient } from '../src/core/client.js';
 import { mongoose } from '../src/db/index.js';
 import {
+  DEFAULT_DISPLAY_NAME,
   defaultSukunaConfig,
   getSukunaConfig,
   resetSukunaConfig,
@@ -689,7 +690,7 @@ async function testPersona(req: http.IncomingMessage, res: http.ServerResponse):
   const elapsedMs = Date.now() - startedAt;
   const silent = !response.trim();
   const answer = silent
-    ? '(Sukuna chose to stay silent for this prompt — that is a valid decision.)'
+    ? `(${config.displayName || DEFAULT_DISPLAY_NAME} chose to stay silent for this prompt — that is a valid decision.)`
     : response.slice(0, 10000);
 
   recordActivity('ai', silent ? 'Persona test: stayed silent' : 'Persona test succeeded', {
@@ -701,7 +702,7 @@ async function testPersona(req: http.IncomingMessage, res: http.ServerResponse):
 
 function buildRuntimePrompt(config: SukunaConfig, botId?: string): string {
   return buildSukunaRuntimePrompt({
-    displayName: config.displayName || 'Sukuna',
+    displayName: config.displayName || DEFAULT_DISPLAY_NAME,
     botId,
     toolsEnabled: config.toolsEnabled ?? true,
     memoryEnabled: config.memoryEnabled ?? true,

@@ -14,7 +14,7 @@ export const interactionCreate = {
 
     const guildId = interaction.guildId;
     if (!guildId) {
-      await replyError(interaction, "Sukuna only works inside a Discord server.");
+      await replyError(interaction, "爱 Doctora only works inside a Discord server.");
       return;
     }
 

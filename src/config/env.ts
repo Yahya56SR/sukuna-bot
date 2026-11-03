@@ -24,8 +24,13 @@ const EnvSchema = z.object({
     (v) => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : (v ?? []),
     z.array(z.string()).default([]),
   ),
-  SUKUNA_DISPLAY_NAME: z.string().default("Sukuna"),
+  SUKUNA_DISPLAY_NAME: z.string().default("爱 Doctora"),
   SUKUNA_MODEL: z.string().default("gemini-3.8-live"),
+  SUKUNA_VOICE_NAME: z.string().default("Aoede"),
+  SUKUNA_VOICE_DUPLEX: z.preprocess(
+    (v) => (v === undefined || v === "" ? true : v === "true" || v === true),
+    z.boolean().default(true),
+  ),
   SUKUNA_TEMPERATURE: z.preprocess(
     (v) => typeof v === 'number' ? v : Number(v ?? 1),
     z.number().min(0).max(2).default(1),
@@ -59,6 +64,8 @@ export interface Env {
   SUKUNA_CHANNELS: string[];
   SUKUNA_DISPLAY_NAME: string;
   SUKUNA_MODEL: string;
+  SUKUNA_VOICE_NAME: string;
+  SUKUNA_VOICE_DUPLEX: boolean;
   SUKUNA_TEMPERATURE: number;
   SUKUNA_MAX_MESSAGE_LENGTH: number;
   DASHBOARD_ENABLED: boolean;
