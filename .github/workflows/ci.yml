@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -14,9 +14,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,18 +27,5 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Bundle bot
+      - name: Bundle bot (verify build succeeds)
         run: npm run bundle:bot
-
-      - name: Commit bundle if changed
-        if: github.event_name == 'push'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet index.js; then
-            echo "index.js unchanged — nothing to commit"
-          else
-            git add index.js
-            git commit -m "chore: rebuild bot bundle [skip ci]"
-            git push
-          fi
