@@ -1,11 +1,13 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../core/commands.js';
 
-export default {
+export const pingCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("ping")
     .setDescription("Check the bot's latency."),
-  category: "Utility",
-  execute: async (client: any, interaction: any) => {
+  category: "utility",
+  execute: async (context) => {
+    const { client, interaction } = context;
     const sent = await interaction.reply({
       content: "🏓 Pinging...",
       fetchReply: true,
@@ -13,7 +15,7 @@ export default {
     const wsPing = client.ws.ping;
     const msgPing = sent.createdTimestamp - interaction.createdTimestamp;
     await interaction.editReply(
-      `🏓 Pong!\n💎 WebSocket: ${wsPing}ms\n📝 Message: ${msgPing}ms`
+      `🏓 Pong!\n💎 WebSocket: ${wsPing}ms\n📝 Message: ${msgPing}ms`,
     );
   },
 };

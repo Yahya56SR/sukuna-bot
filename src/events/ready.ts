@@ -1,11 +1,12 @@
-import { Events } from "discord.js";
+import { Events, type ClientEvents } from 'discord.js';
 
-export default {
-  name: Events.ClientReady,
+export const ready = {
+  name: Events.ClientReady as keyof ClientEvents,
   once: true,
   execute: (client: any) => {
-    console.log(`[Ready] Logged in as ${client.user?.tag} (${client.user?.id})`);
-    console.log(`[Ready] Serving ${client.guilds.cache.size} guild(s)`);
-    console.log(`[Ready] Owners: ${client.owners.join(", ")}`);
+    client.logger.info(
+      { tag: client.user?.tag, id: client.user?.id, guilds: client.guilds.cache.size },
+      "ready",
+    );
   },
 };

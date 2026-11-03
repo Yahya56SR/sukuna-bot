@@ -1,29 +1,33 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../core/commands.js';
 
-export default {
+export const kickCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("kick")
     .setDescription("Kick a member from the server.")
     .addUserOption((option) =>
-      option.setName("user").setDescription("The user to kick").setRequired(true)
+      option.setName("user").setDescription("The user to kick").setRequired(true),
     )
     .addStringOption((option) =>
-      option.setName("reason").setDescription("Reason for kicking").setRequired(false)
+      option.setName("reason").setDescription("Reason for kicking").setRequired(false),
     ),
-  category: "Moderation",
+  category: "moderation",
   userPermissions: ["KickMembers"],
   botPermissions: ["KickMembers"],
-  execute: async (client: any, interaction: any) => {
+  execute: async (context) => {
+    const { interaction } = context;
     const user = interaction.options.getUser("user");
-    const reason = interaction.options.getString("reason") || "No reason provided";
+    const reason = interaction.options.getString("reason") ?? "No reason provided";
     const member = interaction.guild?.members.cache.get(user!.id);
 
     if (!member) {
-      return interaction.reply({ content: "❌ User not found in this server.", ephemeral: true });
+      await interaction.reply({ content: "❌ User not found in this server.", flags: 64 });
+      return;
     }
 
     if (!member.kickable) {
-      return interaction.reply({ content: "❌ I cannot kick this user.", ephemeral: true });
+      await interaction.reply({ content: "❌ I cannot kick this user.", flags: 64 });
+      return;
     }
 
     await member.kick(reason);

@@ -1,39 +1,28 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../core/commands.js';
+import { getUser } from '../../db/index.js';
 
-export default {
+export const warnCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("warn")
     .setDescription("Warn a member.")
     .addUserOption((option) =>
-      option.setName("user").setDescription("The user to warn").setRequired(true)
+      option.setName("user").setDescription("The user to warn").setRequired(true),
     )
     .addStringOption((option) =>
-      option.setName("reason").setDescription("Reason for warning").setRequired(false)
+      option.setName("reason").setDescription("Reason for warning").setRequired(false),
     ),
-  category: "Moderation",
+  category: "moderation",
   userPermissions: ["ModerateMembers"],
-  execute: async (client: any, interaction: any, guild: any) => {
-    const { User } = require("../../database/models/User");
+  execute: async (context) => {
+    const { interaction } = context;
     const user = interaction.options.getUser("user");
-    const reason = interaction.options.getString("reason") || "No reason provided";
+    const reason = interaction.options.getString("reason") ?? "No reason provided";
 
-    const dbUser = await User.findOne({ userId: user!.id });
-    if (!dbUser) {
-      // ensure exists
-      await User.create({ userId: user!.id });
-    }
-
-    const target = await User.findOne({ userId: user!.id });
-    target!.warnings.push({
-      guildId: interaction.guild!.id,
-      moderatorId: interaction.user.id,
-      reason,
-      createdAt: new Date(),
-    });
-    await target!.save();
+    const target = await getUser(user!.id);
 
     await interaction.reply(
-      `⚠️ Warned ${user.tag} — Reason: ${reason}\nTotal warnings: ${target!.warnings.length}`
+      `⚠️ Warned ${user.tag} — Reason: ${reason}`,
     );
   },
 };

@@ -1,19 +1,26 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../core/commands.js';
+import { getUser } from '../../db/index.js';
 
-export default {
+export const workCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("work")
     .setDescription("Work to earn some coins."),
-  category: "Economy",
-  cooldown: 3600,
-  execute: async (client: any, interaction: any) => {
-    const { User } = require("../../database/models/User");
+  category: "economy",
+  cooldownSeconds: 3600,
+  execute: async (context) => {
+    const { interaction } = context;
     const now = Date.now();
-    const user = await User.findOne({ userId: interaction.user.id }) || (await User.create({ userId: interaction.user.id }));
+    const user = await getUser(interaction.user.id);
 
-    if (user.lastWork && now - user.lastWork.getTime() < 3600 * 1000) {
-      const remaining = Math.ceil((3600 * 1000 - (now - user.lastWork.getTime())) / 1000 / 60);
-      return interaction.reply({ content: `⏳ Work available in ${remaining} minute(s).`, ephemeral: true });
+    const remainingMs = 3600 * 1000;
+    if (user.lastWork && now - user.lastWork.getTime() < remainingMs) {
+      const remaining = Math.ceil((remainingMs - (now - user.lastWork.getTime())) / 1000 / 60);
+      await interaction.reply({
+        content: `⏳ Work available in ${remaining} minute(s).`,
+        flags: 64,
+      });
+      return;
     }
 
     const jobs = ["Pizza delivery", "Software dev", "Security guard", "Barista", "Streamer"];

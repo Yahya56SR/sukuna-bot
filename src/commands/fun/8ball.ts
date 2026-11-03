@@ -1,14 +1,16 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from 'discord.js';
+import type { Command } from '../core/commands.js';
 
-export default {
+export const eightBallCommand: Command = {
   data: new SlashCommandBuilder()
     .setName("8ball")
     .setDescription("Ask the magic 8-ball a question.")
     .addStringOption((option) =>
-      option.setName("question").setDescription("Your question").setRequired(true)
+      option.setName("question").setDescription("Your question").setRequired(true),
     ),
-  category: "Fun",
-  execute: async (client: any, interaction: any) => {
+  category: "fun",
+  execute: async (context) => {
+    const { interaction } = context;
     const question = interaction.options.getString("question")!;
     const answers = [
       "It is certain.",

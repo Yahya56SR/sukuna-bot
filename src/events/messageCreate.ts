@@ -1,17 +1,17 @@
-import { Events } from "discord.js";
-import { getUser, getGuild, xpForLevel } from "../utils";
+import { Events, type ClientEvents } from 'discord.js';
+import { getUser, xpForLevel } from '../db/index.js';
 
-export default {
-  name: Events.MessageCreate,
+export const messageCreate = {
+  name: Events.MessageCreate as keyof ClientEvents,
   execute: async (client: any, message: any) => {
     if (message.author.bot) return;
     if (!message.guild) return;
 
-    const guild = await getGuild(message.guild.id);
-    if (!guild.modules.leveling || !guild.xpEnabled) return;
+    const guild = message.guild;
+    const config = await client.getConfig(guild.id);
 
-    // Disable XP in ignored channels
-    if (guild.disableXpChannels.includes(message.channelId)) return;
+    // Leveling always on unless explicitly disabled
+    if (config.modules?.leveling === false) return;
 
     // Cooldown per user
     const cooldownKey = `xp_${message.author.id}`;
@@ -19,19 +19,19 @@ export default {
     const xpCooldowns: Map<string, number> = client.xpCooldowns || new Map();
     client.xpCooldowns = xpCooldowns;
 
+    const cooldownSeconds = config.xpCooldown ?? 60;
     if (xpCooldowns.has(cooldownKey)) {
-      if (now - xpCooldowns.get(cooldownKey)! < guild.xpCooldown * 1000) return;
+      if (now - xpCooldowns.get(cooldownKey)! < cooldownSeconds * 1000) return;
     }
     xpCooldowns.set(cooldownKey, now);
 
-    const xpGain = Math.floor(Math.random() * (guild.xpMax - guild.xpMin + 1)) + guild.xpMin;
+    const xpGain = Math.floor(Math.random() * ((config.xpMax ?? 25) - (config.xpMin ?? 15) + 1)) + (config.xpMin ?? 15);
 
     const user = await getUser(message.author.id);
     const oldLevel = user.level;
     user.xp += xpGain;
     user.totalXp += xpGain;
 
-    // Calculate new level
     let newLevel = oldLevel;
     while (user.xp >= xpForLevel(newLevel + 1)) {
       newLevel += 1;
@@ -40,20 +40,17 @@ export default {
     if (newLevel > oldLevel) {
       user.level = newLevel;
 
-      // Level up notification
-      const levelUpMsg = (guild.levelUpMessage || "Congrats {user}! You reached level {level}!")
+      const levelUpMsg = (config.levelUpMessage ?? "Congrats {user}! You reached level {level}!")
         .replace("{user}", `<@${message.author.id}>`)
         .replace("{level}", String(newLevel))
-        .replace("{guild}", message.guild.name);
+        .replace("{guild}", guild.name);
 
       const channel =
-        guild.levelUpChannel && message.guild.channels.cache.has(guild.levelUpChannel)
-          ? message.guild.channels.cache.get(guild.levelUpChannel)
+        config.levelUpChannel && guild.channels.cache.has(config.levelUpChannel)
+          ? guild.channels.cache.get(config.levelUpChannel)
           : message.channel;
 
       await channel.send(`🎊 ${levelUpMsg}`).catch(() => {});
-
-      // Auto roles on level could go here
     }
 
     await user.save().catch(() => {});
