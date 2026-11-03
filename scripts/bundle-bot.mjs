@@ -12,6 +12,7 @@ const EXTERNALS = [
   "utf-8-validate",
   "erlpack",
   "@discordjs/opus",
+  "@snazzah/davey",
   "sodium-native",
   "opusscript",
   "@google/genai",

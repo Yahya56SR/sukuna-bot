@@ -1,8 +1,6 @@
 import { PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { getSukunaConfig } from '../../config/index.js';
 import type { Command } from '../../core/commands.js';
-import { connectVoice, disconnectVoice, speakInVoice, voiceStatus } from '../../voice/manager.js';
-import { resolveVoiceName } from '../../voice/speech.js';
 
 export const voiceCommand: Command = {
   data: new SlashCommandBuilder()
@@ -22,10 +20,32 @@ export const voiceCommand: Command = {
         ),
     ),
   category: 'utility',
-  botPermissions: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
-  execute: async (context) => {
+  botPermissions: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],  execute: async (context) => {
     const { interaction, guild, member } = context;
     const subcommand = interaction.options.getSubcommand(true);
+
+    // The voice stack (and its native DAVE addon) is loaded on demand so a
+    // broken optional dependency cannot stop the bot from booting.
+    let voice: typeof import('../../voice/manager.js');
+    let speech: typeof import('../../voice/speech.js');
+    try {
+      [voice, speech] = await Promise.all([
+        import('../../voice/manager.js'),
+        import('../../voice/speech.js'),
+      ]);
+    } catch (error) {
+      await interaction.reply({
+        content:
+          '❌ Voice is unavailable on this host: ' +
+          (error instanceof Error ? error.message : String(error)) +
+          '\nRun `npm install` so `@discordjs/voice` and `@snazzah/davey` are present.',
+        flags: 64,
+      });
+      return;
+    }
+
+    const { connectVoice, disconnectVoice, speakInVoice, voiceStatus } = voice;
+    const { resolveVoiceName } = speech;
 
     if (subcommand === 'join') {
       const channel = member.voice.channel;

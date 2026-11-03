@@ -24,8 +24,6 @@ import {
 import { buildSukunaToolDeclarations, createSukunaToolExecutor } from './sukuna-tools.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { collectSukunaMedia } from './sukuna-media.js';
-import { speakInVoice } from '../voice/manager.js';
-import { resolveVoiceName } from '../voice/speech.js';
 
 const MAX_REPLY_LENGTH = 2000;
 
@@ -288,12 +286,34 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   // duplex conversation the model already answers out loud, so the text reply
   // would be spoken twice.
   if (message.guildId) {
-    speakInVoice(message.guildId, decision.message.slice(0, MAX_REPLY_LENGTH), {
+    void speakReplyInVoice(message.guildId, decision.message.slice(0, MAX_REPLY_LENGTH), apiKey, cfg);
+  }
+}
+
+/**
+ * Loaded on demand on purpose: `@discordjs/voice` pulls in the native DAVE addon,
+ * and a broken optional dependency there must not take the whole bot down.
+ */
+async function speakReplyInVoice(
+  guildId: string,
+  text: string,
+  apiKey: string,
+  cfg: SukunaConfig,
+): Promise<void> {
+  try {
+    const [{ speakInVoice }, { resolveVoiceName }] = await Promise.all([
+      import('../voice/manager.js'),
+      import('../voice/speech.js'),
+    ]);
+
+    speakInVoice(guildId, text, {
       apiKey,
       model: cfg.model,
       voiceName: resolveVoiceName(),
       timeoutMs: cfg.requestTimeoutMs,
     });
+  } catch (error) {
+    console.warn('[Sukuna] Voice unavailable:', error instanceof Error ? error.message : error);
   }
 }
 

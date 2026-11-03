@@ -211,12 +211,13 @@ Notes:
 - Requires **Connect** and **Speak** in the channel, plus `GEMINI_API_KEY` and a
   Live model (`SUKUNA_MODEL`).
 - `SUKUNA_VOICE_NAME` picks the prebuilt voice (default `Aoede`).
-- `@discordjs/voice@0.18.0` is pinned on purpose: 0.19+ needs the native
-  `@snazzah/davey` addon, which cannot be bundled or installed on the host, so
-  DAVE/E2EE encrypted voice is not supported.
-- `opusscript` and `tweetnacl` are runtime dependencies like `@google/genai`: they
-  must be present in `node_modules` next to `index.js` (prism-media itself is
-  bundled).
+- `@discordjs/voice@0.19.2` negotiates DAVE/E2EE, which Discord now expects on
+  voice connections. It depends on the native `@snazzah/davey` package (prebuilt
+  per platform), so it stays outside the bundle and must be installed by the
+  host's `npm install`.
+- `opusscript` and `tweetnacl` are runtime dependencies like `@google/genai`:
+  they must be present in `node_modules` next to `index.js` (prism-media itself
+  is bundled).
 
 ## 📜 Scripts
 

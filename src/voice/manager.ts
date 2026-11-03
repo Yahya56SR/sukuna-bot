@@ -31,7 +31,7 @@ import { VoiceConversation } from './conversation.js';
 import { createSpeechStream, resolveVoiceName, sanitizeForSpeech, type SpeechOptions } from './speech.js';
 
 const MAX_QUEUE = 5;
-const READY_TIMEOUT_MS = 20_000;
+const READY_TIMEOUT_MS = 30_000;
 /** Safety net: a stuck encoder must never block the whole queue forever. */
 const PLAYBACK_TIMEOUT_MS = 90_000;
 
@@ -117,7 +117,17 @@ export async function connectVoice(guild: Guild, channelId: string): Promise<Voi
   connection.on('error', (error) => {
     console.warn('[Voice] Connection error:', error instanceof Error ? error.message : error);
   });
-  connection.on(VoiceConnectionStatus.Destroyed, () => {
+
+  // Keep the reason around: Discord's voice server closes with a code that says
+  // exactly why it refused (4014 = kicked/unauthorised, 4016 = bad session,
+  // 4017 = the channel requires DAVE/E2EE, ...).
+  let lastFailure = '';
+  connection.on('stateChange', (_previous, next) => {
+    if (next.status !== VoiceConnectionStatus.Disconnected) return;
+    const closeCode = 'closeCode' in next ? `, close code ${next.closeCode}` : '';
+    lastFailure = `disconnected (reason: ${next.reason}${closeCode})`;
+    console.warn('[Voice] Connection lost:', lastFailure);
+  });  connection.on(VoiceConnectionStatus.Destroyed, () => {
     if (sessions.get(guild.id) !== session) return;
     session.conversation?.stop();
     sessions.delete(guild.id);
@@ -142,10 +152,13 @@ export async function connectVoice(guild: Guild, channelId: string): Promise<Voi
   try {
     await entersState(connection, VoiceConnectionStatus.Ready, READY_TIMEOUT_MS);
   } catch (error) {
+    const stuckAt = connection.state.status;
     connection.destroy();
     if (sessions.get(guild.id) === session) sessions.delete(guild.id);
     throw new Error(
-      'Discord refused the voice connection. Check the Connect and Speak permissions for that channel.',
+      'Discord refused the voice connection' +
+        (lastFailure ? ` — ${lastFailure}` : ` — stuck in "${stuckAt}"`) +
+        '. Check the Connect and Speak permissions for that channel.',
       { cause: error },
     );
   }

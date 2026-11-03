@@ -49,8 +49,8 @@ Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
 - `tts` (fallback, or `SUKUNA_VOICE_DUPLEX=false`): `speech.ts` reads each posted text reply with a one-shot Live turn.
 `speakInVoice()` (called from `src/utils/sukuna.ts` after a reply is posted) is a no-op in duplex mode, otherwise the reply would be spoken twice. The duplex system prompt (`buildSukunaVoicePrompt`) strips the tool-call decision contract, since a call cannot end in `send_message`.
 
-**10. `@discordjs/voice` is pinned to 0.18.0**
-0.19+ statically requires the native `@snazzah/davey` addon (DAVE/E2EE), which cannot be bundled and cannot be installed on bot-hosting.net. Do not bump it without a plan for native deps. `prism-media` is bundled; `opusscript`, `tweetnacl` and `ffmpeg-static` stay runtime-resolved (the last one is external-only and never called).
+**10. `@discordjs/voice` is 0.19.2 and needs the native `@snazzah/davey`**
+Discord requires DAVE/E2EE negotiation on voice connections; 0.18 has no DAVE support at all and the voice socket is refused. `@snazzah/davey` is a NAPI package with per-platform prebuilt optional deps, so it cannot be bundled: it is listed in `EXTERNALS` and installed from `package.json` by the host (`npm install` does run on bot-hosting.net). `prism-media` is bundled; `opusscript`, `tweetnacl` and `ffmpeg-static` stay runtime-resolved (the last one is external-only and never called).
 
 `@discordjs/voice` ships ESM and calls `createRequire(import.meta.url)` at load time. In CJS output esbuild turns `import.meta` into `{}`, which crashed the bundle with `ERR_INVALID_ARG_VALUE` on the host. `scripts/bundle-bot.mjs` now injects `var __importMetaUrl = require("node:url").pathToFileURL(__filename).href;` in the banner and maps `import.meta.url` to it via `define` — keep both together when touching the banner.
 
