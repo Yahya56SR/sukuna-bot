@@ -1,36 +1,28 @@
 /**
- * Sukuna — community persona that lives in Discord channels.
+ * Sukuna — community persona with real-time streaming to/from Gemini.
+ *
+ * Each Discord message triggers ONE streaming Gemini call.
+ * Chunks flow back to Discord immediately (edited into one message).
+ * No persistent WebSocket, no batching.
  */
 
 import type { TextChannel, Guild, Message, Client } from 'discord.js';
-import { Type as GenAIType, type FunctionDeclaration } from '@google/genai';
 import { normalizeSukunaConfig, type SukunaConfig, defaultSukunaConfig } from '../config/index.js';
 import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../prompts/sukuna.js';
-import {
-  GeminiLiveSukuna,
-  type SukunaDecision,
-  type SukunaMedia,
-  type SukunaToolCall,
-} from '../core/gemini-live.js';
-import { addMemory, countMemories, recallMemories, type ISukunaMemory } from './sukuna-memory.js';
+import { GeminiStreamSukuna } from '../core/gemini-stream.js';
+import { addMemory, countMemories, recallMemories } from './sukuna-memory.js';
 import { collectSukunaMedia } from './sukuna-media.js';
 
-const MAX_HISTORY_ENTRIES = 100;
-const MAX_MESSAGE_CHARS = 500;
-const MAX_BATCH_MESSAGES = 8;
 const MAX_REPLY_LENGTH = 2000;
-const MAX_REPLY_AGE_MS = 60_000;
 
-// In-memory buffers
+// In-memory channel history (for context only, not batching)
 const channelHistory = new Map<string, HistoryEntry[]>();
 const channelHistoryIds = new Map<string, Set<string>>();
-const pendingBatches = new Map<string, PendingBatch>();
-const replyTimestamps: number[] = [];
 
-// Persona state
-let personaInstance: GeminiLiveSukuna | null = null;
+// Rate limiting state
 let lastReplyAt = 0;
 let lastDecisionAt = 0;
+const replyTimestamps: number[] = [];
 let apiKeyCache = '';
 
 interface HistoryEntry {
@@ -40,69 +32,37 @@ interface HistoryEntry {
   content: string;
   timestamp: number;
   bot: boolean;
-  replyTo?: string;
-}
-
-interface PendingBatch {
-  messages: Message[];
-  timer: ReturnType<typeof setTimeout>;
 }
 
 /**
- * Feed one Discord message to Sukuna.
+ * Feed one Discord message to Sukuna — starts a streaming response immediately.
  */
-export function handleMessage(message: Message | { guild?: any; author: any; channel: any; content: any; createdTimestamp: number; system?: boolean; channelId?: string }): void {
+function handleMessage(message: Message): void {
   const cfg = getSukunaConfig();
   if (!cfg.enabled) return;
+  if (!message.guild) return;
+  if (!message.channel.isTextBased() || message.channel.isDMBased()) return;
 
-  const msg = message as any;
-  if (!msg.guild) return;
-  
-  const channelId = msg.channelId || msg.channel?.id;
-  if (!channelId || !cfg.channelIds.includes(channelId)) return;
+  const channelId = message.channelId;
+  if (!cfg.channelIds.includes(channelId)) return;
 
-  // Handle bot messages for history
-  if (msg.author?.bot) {
-    addToHistory(msg, cfg);
+  // Bot messages only go to history
+  if (message.author.bot) {
+    addToHistory(message, cfg);
     return;
   }
 
   // Skip empty messages
-  if (!msg.content?.trim() && (!msg.attachments?.size || msg.attachments.size === 0)) return;
+  if (!message.content?.trim() && message.attachments.size === 0) return;
 
-  addToHistory(msg, cfg);
-
-  // Batch processing
-  const existing = pendingBatches.get(channelId);
-  if (existing) {
-    existing.messages.push(msg);
-    if (existing.messages.length >= MAX_BATCH_MESSAGES) {
-      clearTimeout(existing.timer);
-      pendingBatches.delete(channelId);
-      void processBatch(channelId, existing.messages, cfg);
-    }
-    return;
-  }
-
-  const batch: PendingBatch = {
-    messages: [msg],
-    timer: setTimeout(() => {
-      pendingBatches.delete(channelId);
-      void processBatch(channelId, batch.messages, cfg);
-    }, Math.max(cfg.batchWindowMs, 250)),
-  };
-  pendingBatches.set(channelId, batch);
+  addToHistory(message, cfg);
+  void processMessage(message, cfg);
 }
 
 /**
- * Close the Live session (for shutdown).
+ * Close Sukuna (for shutdown).
  */
 function closeSukuna(): void {
-  personaInstance?.close();
-  personaInstance = null;
-  
-  for (const batch of pendingBatches.values()) clearTimeout(batch.timer);
-  pendingBatches.clear();
   channelHistory.clear();
   channelHistoryIds.clear();
 }
@@ -111,7 +71,7 @@ function closeSukuna(): void {
  * Check if Sukuna is active.
  */
 function isSukunaActive(): boolean {
-  return personaInstance !== null;
+  return true;
 }
 
 /**
@@ -125,26 +85,23 @@ function setApiKey(key: string): void {
  * Prime history from existing channels.
  */
 function primeSukunaHistory(client: Client): void {
-  // Placeholder - would load history from Discord
+  // Placeholder
 }
 
-function addToHistory(message: any, cfg: SukunaConfig): void {
+function addToHistory(message: Message, cfg: SukunaConfig): void {
   const content = describeMessage(message);
   if (!content) return;
 
   const entry: HistoryEntry = {
     id: message.id,
-    authorId: message.author?.id || 'unknown',
-    authorName: message.member?.displayName || message.author?.username || 'Unknown',
+    authorId: message.author.id,
+    authorName: message.member?.displayName || message.author.username,
     content,
     timestamp: message.createdTimestamp,
-    bot: message.author?.bot ?? false,
-    replyTo: describeReply(message),
+    bot: message.author.bot,
   };
 
-  const channelId = message.channelId || message.channel?.id;
-  if (!channelId) return;
-
+  const channelId = message.channelId;
   let ids = channelHistoryIds.get(channelId);
   if (!ids) {
     ids = new Set<string>();
@@ -159,29 +116,20 @@ function addToHistory(message: any, cfg: SukunaConfig): void {
     channelHistory.set(channelId, entries);
   }
   entries.push(entry);
-  if (entries.length > MAX_HISTORY_ENTRIES) {
-    entries.splice(0, entries.length - MAX_HISTORY_ENTRIES);
+  if (entries.length > 100) {
+    entries.splice(0, entries.length - 100);
   }
 }
 
-function describeMessage(message: any): string {
+function describeMessage(message: Message): string {
   return message.content?.replace(/\s+/g, ' ').trim() || '';
 }
 
-function describeReply(message: any): string {
-  const ref = message.reference?.messageId;
-  if (!ref) return '';
-  return '[reply to earlier message]';
+function getSukunaConfig(): SukunaConfig {
+  return normalizeSukunaConfig(defaultSukunaConfig);
 }
 
-type SukunaToolExecutor = (call: SukunaToolCall) => Promise<Record<string, unknown>>;
-
-async function processBatch(channelId: string, messages: any[], cfg: SukunaConfig): Promise<void> {
-  if (!cfg.enabled || !cfg.channelIds.includes(channelId)) return;
-
-  const trigger = messages[messages.length - 1];
-  if (!trigger || !trigger.guild) return;
-
+async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
   if (isRateLimited(cfg)) return;
   if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1000) {
     return;
@@ -193,177 +141,91 @@ async function processBatch(channelId: string, messages: any[], cfg: SukunaConfi
     return;
   }
 
-  const channel = trigger.channel as TextChannel;
-  if (!channel?.isTextBased?.()) return;
+  const channel = message.channel as TextChannel;
+  const entries = channelHistory.get(message.channelId) ?? [];
 
-  const entries = channelHistory.get(channelId) ?? [];
-  const batchIds = new Set(messages.map((m: any) => m.id));
-  const previous = entries.filter((e: any) => !batchIds.has(e.id));
+  const guild = message.guild;
+  if (!guild) return;
 
-  const payload = buildPayload(trigger.guild, channel, previous, messages, cfg);
-  const media = await collectSukunaMedia(messages).catch(() => [] as SukunaMedia[]);
+  const payload = buildPayload(guild, channel, entries, message);
 
   if (cfg.showTyping) {
     channel.sendTyping().catch(() => {});
   }
 
-  let decision: SukunaDecision | null = null;
+  let fullResponse = '';
+  const state: { msg: Message | null } = { msg: null };
+  let editLock = false;
+  let lastEditAt = 0;
+
   try {
-    personaInstance = new GeminiLiveSukuna({
+    const streamer = new GeminiStreamSukuna({
       apiKey,
       model: cfg.model || 'gemini-3.1-flash',
-      systemPrompt: buildSystemPrompt(cfg, trigger.client?.user?.id || ''),
-      tools: buildDecisionsAndTools(cfg, channel),
-      thinkingLevel: cfg.thinkingLevel,
+      systemPrompt: buildSystemPrompt(cfg, message.client.user?.id || ''),
       temperature: cfg.temperature,
       requestTimeoutMs: cfg.requestTimeoutMs,
     });
 
-    const executor = createToolExecutor(trigger);
-    decision = await personaInstance.ask(payload, executor, cfg.requestTimeoutMs, media);
-  } catch (err) {
-    console.error('[Sukuna] Failed:', err);
-    return;
-  } finally {
+    // Stream chunks to Discord in real time
+    await streamer.stream(payload, async (chunk) => {
+      fullResponse += chunk;
+      const now = Date.now();
+
+      // Throttle: max one edit per second, serialize edits
+      if (now - lastEditAt < 1000 || editLock) return;
+      lastEditAt = now;
+      editLock = true;
+
+      try {
+        const text = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
+        if (!text) return;
+
+        if (state.msg) {
+          await state.msg.edit({ content: text }).catch(() => {});
+        } else {
+          state.msg = await message.reply({ content: text, failIfNotExists: false }).catch(() => {
+            return channel.send({ content: text });
+          }) as Message | null;
+        }
+      } catch (err) {
+        console.error('[Sukuna] Stream edit/send failed:', err);
+      } finally {
+        editLock = false;
+      }
+    });
+
     lastDecisionAt = Date.now();
-  }
-
-  if (!decision || decision.action !== 'reply' || (!decision.message.trim() && !decision.stickerId)) {
+  } catch (err) {
+    console.error('[Sukuna] Stream failed:', err);
     return;
   }
 
-  if (isRateLimited(cfg)) return;
-  if (Date.now() - trigger.createdTimestamp > MAX_REPLY_AGE_MS) return;
-
-  await sendDecision(trigger, decision, cfg);
-}
-
-function createToolExecutor(trigger: Message | any): SukunaToolExecutor {
-  return async (call: SukunaToolCall): Promise<Record<string, unknown>> => {
-    const name = call.name ?? '';
-    const args = call.args ?? {};
-
+  // Final edit to ensure complete message
+  if (fullResponse.trim() && state.msg) {
     try {
-      return await handleTool(name, args, trigger.guild!, trigger.channel as TextChannel, trigger);
-    } catch (error) {
-      console.error('[Sukuna Tool] Failed: ' + String(error));
-      return { ok: false, error: String(error) };
+      const finalText = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
+      await state.msg.edit({ content: finalText }).catch(() => {});
+    } catch (err) {
+      console.error('[Sukuna] Final edit failed:', err);
     }
-  };
-}
-
-async function handleTool(
-  name: string,
-  args: Record<string, unknown>,
-  guild: Guild,
-  channel: TextChannel,
-  trigger: Message,
-): Promise<Record<string, unknown>> {
-  switch (name) {
-    case 'get_recent_messages': {
-      const limit = Math.min(Math.max(Math.floor(Number(args.limit ?? 10)), 1), 25);
-      const messages = await channel.messages.fetch({ limit }).catch(() => new Map());
-      return { ok: true, messages: [...messages.values()].map((m) => ({ id: m.id, authorId: m.author.id, content: m.content })) };
-    }
-
-    case 'send_message': {
-      const content = args.content as string;
-      if (!content) return { ok: false, error: 'Content is required' };
-      await channel.send({ content });
-      return { ok: true, sent: true };
-    }
-
-    case 'stay_silent':
-      return { ok: true, silent: true };
-
-    case 'remember_information': {
-      const fact = args.fact as string;
-      if (!fact) return { ok: false, error: 'Fact is required' };
-      const about = args.about as string | undefined;
-      const note = await addMemory(guild.id, { fact, aboutUserId: about, aboutName: about });
-      return { ok: true, id: (note as any)._id?.toString() ?? String(Date.now()), fact: note.fact };
-    }
-
-    case 'search_memory': {
-      const query = args.query as string | undefined;
-      const limit = Math.min(Math.max(Math.floor(Number(args.limit ?? 10)), 1), 100);
-      const memories = await (query ? recallMemories(guild.id, { about: query, limit }) : recallMemories(guild.id, { limit }));
-      return { ok: true, notes: memories.map((n) => ({ fact: n.fact, createdAt: new Date(n.createdAt).toISOString() })), total: await countMemories(guild.id) };
-    }
-
-    default:
-      return { ok: false, error: 'Unknown tool: ' + name };
-  }
-}
-
-function buildDecisionsAndTools(cfg: SukunaConfig, channel: TextChannel): FunctionDeclaration[] {
-  const tools: FunctionDeclaration[] = [];
-
-  tools.push({
-    name: 'send_message',
-    description: 'Send a Discord message.',
-    parameters: {
-      type: GenAIType.OBJECT,
-      properties: {
-        content: { type: GenAIType.STRING },
-      },
-      required: ['content'],
-    },
-  });
-
-  tools.push({
-    name: 'send_sticker',
-    description: 'Send a server sticker.',
-    parameters: {
-      type: GenAIType.OBJECT,
-      properties: {
-        sticker_id: { type: GenAIType.STRING },
-      },
-      required: ['sticker_id'],
-    },
-  });
-
-  tools.push({
-    name: 'stay_silent',
-    description: 'Choose not to respond.',
-    parameters: { type: GenAIType.OBJECT, properties: {} },
-  });
-
-  tools.push({
-    name: 'get_recent_messages',
-    description: 'Get recent messages in channel.',
-    parameters: {
-      type: GenAIType.OBJECT,
-      properties: { limit: { type: GenAIType.INTEGER } },
-    },
-  });
-
-  if (cfg.memoryEnabled) {
-    tools.push({
-      name: 'remember_information',
-      description: 'Store information.',
-      parameters: {
-        type: GenAIType.OBJECT,
-        properties: { fact: { type: GenAIType.STRING }, about: { type: GenAIType.STRING } },
-        required: ['fact'],
-      },
-    });
-
-    tools.push({
-      name: 'search_memory',
-      description: 'Search memories.',
-      parameters: {
-        type: GenAIType.OBJECT,
-        properties: { query: { type: GenAIType.STRING }, limit: { type: GenAIType.INTEGER } },
-      },
-    });
   }
 
-  return tools;
-}
+  if (!state.msg) return;
 
-function getSukunaConfig(): SukunaConfig {
-  return normalizeSukunaConfig(defaultSukunaConfig);
+  // Rate limit + history
+  const now = Date.now();
+  lastReplyAt = now;
+  replyTimestamps.push(now);
+
+  addHistoryEntry(message.channelId, {
+    id: state.msg.id,
+    authorId: message.client.user?.id || 'unknown',
+    authorName: cfg.displayName || 'Sukuna',
+    content: fullResponse.slice(0, MAX_REPLY_LENGTH).trim(),
+    timestamp: now,
+    bot: true,
+  });
 }
 
 function buildSystemPrompt(cfg: SukunaConfig, botId: string): string {
@@ -372,28 +234,22 @@ function buildSystemPrompt(cfg: SukunaConfig, botId: string): string {
     botId,
     toolsEnabled: cfg.toolsEnabled ?? true,
     memoryEnabled: cfg.memoryEnabled ?? true,
-    maxMessageLength: Math.min(Math.max(cfg.maxMessageLength, 1), MAX_REPLY_LENGTH),
+    maxMessageLength: MAX_REPLY_LENGTH,
   });
   const character = cfg.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT;
   return character + '\n\n' + runtime;
 }
 
-function buildPayload(guild: Guild, channel: TextChannel, previous: any[], batch: any[], cfg: SukunaConfig): string {
-  const recent = previous.slice(-Math.max(cfg.historySize, 1));
-  const incoming = batch.map((m: any) => ({
-    author: m.author?.displayName || m.author?.username || 'Unknown',
-    content: m.content?.slice(0, 200) || '',
-  }));
-
+function buildPayload(guild: Guild, channel: TextChannel, history: HistoryEntry[], trigger: Message): string {
+  const recent = history.slice(-50);
   return [
     '<current_time>' + new Date().toISOString() + '</current_time>',
-    '<server>' + guild.name + ' - ' + guild.memberCount + ' members</server>',
+    '<server>' + guild.name + ' — ' + guild.memberCount + ' members</server>',
     '<channel>' + (channel.name || 'this channel') + '</channel>',
-    '<recent_messages>' + (recent.length ? recent.map((e: any) => '[' + new Date(e.timestamp).toISOString().slice(11, 16) + '] ' + e.authorName + ': ' + e.content).join('\n') : '(no earlier messages)') + '</recent_messages>',
-    '<new_messages>' + (incoming.length ? incoming.map((i: any) => i.author + ': ' + i.content).join('\n') : '(no new messages)') + '</new_messages>',
-    '<latest_message>' + (incoming[incoming.length - 1]?.author + ': ' + (incoming[incoming.length - 1]?.content || '')) + '</latest_message>',
+    '<recent_messages>' + (recent.length ? recent.map((e) => '[' + new Date(e.timestamp).toISOString().slice(11, 16) + '] ' + e.authorName + ': ' + e.content).join('\n') : '(no earlier messages)') + '</recent_messages>',
+    '<latest_message>' + (trigger.author.displayName + ': ' + (trigger.content || '(empty)')) + '</latest_message>',
     '',
-    'Decide whether Sukuna should respond. Silence is the default.',
+    'Respond naturally. Silence is acceptable if nothing needs saying.',
   ].join('\n');
 }
 
@@ -413,30 +269,25 @@ function pruneTimestamps(now: number): void {
   }
 }
 
-async function sendDecision(trigger: Message, decision: SukunaDecision, cfg: SukunaConfig): Promise<void> {
-  const channel = trigger.channel as TextChannel;
-  if (!trigger.guild || !channel?.isTextBased?.() || channel.isDMBased?.()) return;
-
-  const limit = Math.min(Math.max(cfg.maxMessageLength, 1), MAX_REPLY_LENGTH);
-  const content = decision.message.slice(0, limit).trim();
-
-  if (!content && !decision.stickerId) return;
-
-  try {
-    if (decision.replyToTrigger) {
-      await trigger.reply({ content, failIfNotExists: false });
-    } else {
-      await channel.send({ content });
-    }
-
-    const now = Date.now();
-    lastReplyAt = now;
-    replyTimestamps.push(now);
-  } catch (err) {
-    console.error('[Sukuna] Failed to send reply:', err);
+function addHistoryEntry(channelId: string, entry: HistoryEntry): void {
+  let entries = channelHistory.get(channelId);
+  if (!entries) {
+    entries = [];
+    channelHistory.set(channelId, entries);
+  }
+  let ids = channelHistoryIds.get(channelId);
+  if (!ids) {
+    ids = new Set<string>();
+    channelHistoryIds.set(channelId, ids);
+  }
+  if (ids.has(entry.id)) return;
+  ids.add(entry.id);
+  entries.push(entry);
+  if (entries.length > 100) {
+    entries.splice(0, entries.length - 100);
   }
 }
 
 // Export handlers
-export { closeSukuna, isSukunaActive, primeSukunaHistory, setApiKey };
 export { handleMessage as handleSukunaMessage };
+export { closeSukuna, isSukunaActive, primeSukunaHistory, setApiKey };
