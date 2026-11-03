@@ -38,3 +38,7 @@ export async function getUser(userId: string) {
   }
   return user;
 }
+
+export async function updateUser(userId: string, updates: Partial<IUser>): Promise<IUser | null> {
+  return User.findOneAndUpdate({ userId }, updates, { new: true }).lean();
+}

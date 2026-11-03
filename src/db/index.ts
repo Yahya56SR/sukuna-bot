@@ -18,6 +18,6 @@ export async function disconnectDatabase(): Promise<void> {
 export { mongoose };
 export type Database = typeof mongoose;
 
-export { readGuildConfig } from './models/Guild.js';
-export { getUser } from './models/User.js';
-export { xpForLevel } from './utils.js';
+export { readGuildConfig, getGuildId, updateGuildConfig } from './models/Guild.js';
+export { getUser, updateUser } from './models/User.js';
+export { xpForLevel, getUserXp, getLeaderboard, countRanked, getRankPosition } from './utils.js';

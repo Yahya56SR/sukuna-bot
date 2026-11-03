@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../core/commands.js';
+import type { Command } from '../../core/commands.js';
 
 export const banCommand: Command = {
   data: new SlashCommandBuilder()
@@ -19,7 +19,12 @@ export const banCommand: Command = {
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
 
-    await interaction.guild?.members.ban(user!, { reason });
+    if (!user) {
+      await interaction.reply({ content: "❌ User not found.", flags: 64 });
+      return;
+    }
+
+    await interaction.guild?.members.ban(user.id, { reason });
     await interaction.reply(`🔨 Banned ${user.tag} — Reason: ${reason}`);
   },
 };

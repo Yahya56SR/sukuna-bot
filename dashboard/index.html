@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sukuna Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🤖 Sukuna AI Persona Dashboard</h1>
+      <div id="status">Connecting...</div>
+    </header>
+
+    <main>
+      <section id="persona-section">
+        <h2>Persona Settings</h2>
+        <div class="field">
+          <label>
+            <input type="checkbox" id="enabled">
+            Enable Sukuna Persona
+          </label>
+        </div>
+
+        <div class="field">
+          <label>Display Name:</label>
+          <input type="text" id="displayName" placeholder="Sukuna">
+        </div>
+
+        <div class="field">
+          <label>Model:</label>
+          <select id="model">
+            <option value="gemini-3.1-flash">gemini-3.1-flash (default)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            <option value="gemini-3.0-pro">gemini-3.0-pro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Temperature: <span id="temp-value">1.0</span></label>
+          <input type="range" id="temperature" min="0" max="2" step="0.1" value="1" range-label="Temperature">
+        </div>
+
+        <div class="field">
+          <label>Thinking Level:</label>
+          <select id="thinkingLevel">
+            <option value="">none</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </section>
+
+      <section id="channels-section">
+        <h2>Activation Channels</h2>
+        <p>Sukuna will respond in these channels.</p>
+        <div id="channel-list">
+          <!-- Populated dynamically -->
+        </div>
+        <button id="refresh-channels">Refresh Channels</button>
+      </section>
+
+      <section id="behavior-section">
+        <h2>Behavior Settings</h2>
+
+        <div class="field">
+          <label>Batch Window: <span id="batch-value">500ms</span></label>
+          <input type="range" id="batchWindow" min="100" max="2000" step="100" value="500">
+        </div>
+
+        <div class="field">
+          <label>History Size: <span id="history-value">50</span></label>
+          <input type="range" id="historySize" min="20" max="200" step="10" value="50">
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="showTyping">
+            Show typing indicator before replies
+          </label>
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="memoryEnabled">
+            Enable long-term memory (remember facts)
+          </label>
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="knowledgeEnabled">
+            Enable community knowledge tools (rules, FAQ, announcements)
+          </label>
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="islamicEnabled">
+            Enable Islamic knowledge tools
+          </label>
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="webEnabled">
+            Enable web search tools
+          </label>
+        </div>
+
+        <div class="field">
+          <label>
+            <input type="checkbox" id="attachmentsEnabled">
+            Enable image analysis tools
+          </label>
+        </div>
+      </section>
+
+      <section id="limits-section">
+        <h2>Rate Limits</h2>
+
+        <div class="field">
+          <label>Decision Cooldown: <span id="decision-cooldown-val">2s</span></label>
+          <input type="range" id="decisionCooldown" min="0" max="10" step="0.5" value="2">
+        </div>
+
+        <div class="field">
+          <label>Reply Cooldown: <span id="reply-cooldown-val">2s</span></label>
+          <input type="range" id="replyCooldown" min="0" max="10" step="0.5" value="2">
+        </div>
+
+        <div class="field">
+          <label>Max Replies/Hour: <span id="max-replies-val">10</span></label>
+          <input type="range" id="maxReplies" min="1" max="50" step="1" value="10">
+        </div>
+      </section>
+
+      <section id="test-section">
+        <h2>Test Persona</h2>
+        <p>Run a quick test to see if Sukuna responds correctly.</p>
+        <textarea id="test-prompt" rows="2" placeholder="Type a test question..."></textarea>
+        <button id="test-btn">Test Persona</button>
+        <div id="test-result"></div>
+      </section>
+
+      <footer>
+        <button id="save-btn">Save Configuration</button>
+        <span id="last-saved">Not saved</span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

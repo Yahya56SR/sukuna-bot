@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../core/commands.js';
+import type { Command } from '../../core/commands.js';
 
 export const timeoutCommand: Command = {
   data: new SlashCommandBuilder()
@@ -27,7 +27,13 @@ export const timeoutCommand: Command = {
     const user = interaction.options.getUser("user");
     const minutes = interaction.options.getInteger("duration")!;
     const reason = interaction.options.getString("reason") ?? "No reason provided";
-    const member = interaction.guild?.members.cache.get(user!.id);
+
+    if (!user) {
+      await interaction.reply({ content: "❌ User not found.", flags: 64 });
+      return;
+    }
+
+    const member = interaction.guild?.members.cache.get(user.id);
 
     if (!member) {
       await interaction.reply({ content: "❌ User not found in this server.", flags: 64 });

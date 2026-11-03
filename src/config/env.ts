@@ -16,9 +16,46 @@ const EnvSchema = z.object({
     z.boolean().default(false),
   ),
   GEMINI_API_KEY: z.string().optional(),
+  SUKUNA_ENABLED: z.preprocess(
+    (v) => v === "true" || v === true,
+    z.boolean().default(false),
+  ),
+  SUKUNA_CHANNELS: z.preprocess(
+    (v) => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : (v ?? []),
+    z.array(z.string()).default([]),
+  ),
+  SUKUNA_DISPLAY_NAME: z.string().default("Sukuna"),
+  SUKUNA_MODEL: z.string().default("gemini-3.1-flash"),
+  SUKUNA_TEMPERATURE: z.preprocess(
+    (v) => typeof v === 'number' ? v : Number(v ?? 1),
+    z.number().min(0).max(2).default(1),
+  ),
+  SUKUNA_MAX_MESSAGE_LENGTH: z.preprocess(
+    (v) => typeof v === 'number' ? v : Number(v ?? 2000),
+    z.number().default(2000),
+  ),
 });
 
-export type Env = z.infer<typeof EnvSchema>;
+export interface Env {
+  DISCORD_TOKEN: string;
+  DISCORD_CLIENT_ID: string;
+  DEV_GUILD_ID?: string;
+  OWNER_IDS: string;
+  MONGO_URI: string;
+  LOG_LEVEL: "fatal" | "error" | "warn" | "info" | "debug" | "trace" | "silent";
+  REGISTER_COMMANDS: boolean;
+  SKIP_MIGRATIONS: boolean;
+  GEMINI_API_KEY?: string;
+  SUKUNA_ENABLED: boolean;
+  SUKUNA_CHANNELS: string[];
+  SUKUNA_DISPLAY_NAME: string;
+  SUKUNA_MODEL: string;
+  SUKUNA_TEMPERATURE: number;
+  SUKUNA_MAX_MESSAGE_LENGTH: number;
+}
+
+export const env = loadEnv();
+export type EnvType = Env;
 
 export function loadEnv(): Env {
   // node >=20.6 supports process.loadEnvFile
@@ -38,4 +75,9 @@ export function loadEnv(): Env {
   }
 
   return parsed.data;
+}
+
+// Default config getter
+export function getDefaultConfig(): Env {
+  return env;
 }

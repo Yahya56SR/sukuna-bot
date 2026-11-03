@@ -30548,14 +30548,14 @@ var require_command_builder = __commonJS({
         const namespaces = /* @__PURE__ */ new Map();
         this.previousModelIndex = this.currentModelIndex;
         while (this.currentModelIndex < this.models.length) {
-          const model3 = this.models[this.currentModelIndex];
-          const ns = model3.namespace;
+          const model4 = this.models[this.currentModelIndex];
+          const ns = model4.namespace;
           const nsIndex = namespaces.get(ns);
-          if (model3.name === "deleteMany" || model3.name === "updateMany") {
+          if (model4.name === "deleteMany" || model4.name === "updateMany") {
             this.isBatchRetryable = false;
           }
           if (nsIndex != null) {
-            const operation = buildOperation(model3, nsIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model4, nsIndex, this.pkFactory, this.options);
             let operationBuffer;
             try {
               operationBuffer = bson_1.BSON.serialize(operation);
@@ -30572,7 +30572,7 @@ var require_command_builder = __commonJS({
           } else {
             namespaces.set(ns, currentNamespaceIndex);
             const nsInfo = { ns };
-            const operation = buildOperation(model3, currentNamespaceIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model4, currentNamespaceIndex, this.pkFactory, this.options);
             let nsInfoBuffer;
             let operationBuffer;
             try {
@@ -30622,44 +30622,44 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateBufferSize, "validateBufferSize");
-    var buildInsertOneOperation = /* @__PURE__ */ __name((model3, index, pkFactory) => {
+    var buildInsertOneOperation = /* @__PURE__ */ __name((model4, index, pkFactory) => {
       const document = {
         insert: index,
-        document: model3.document
+        document: model4.document
       };
-      document.document._id = model3.document._id ?? pkFactory.createPk();
+      document.document._id = model4.document._id ?? pkFactory.createPk();
       return document;
     }, "buildInsertOneOperation");
     exports2.buildInsertOneOperation = buildInsertOneOperation;
-    var buildDeleteOneOperation = /* @__PURE__ */ __name((model3, index) => {
-      return createDeleteOperation(model3, index, false);
+    var buildDeleteOneOperation = /* @__PURE__ */ __name((model4, index) => {
+      return createDeleteOperation(model4, index, false);
     }, "buildDeleteOneOperation");
     exports2.buildDeleteOneOperation = buildDeleteOneOperation;
-    var buildDeleteManyOperation = /* @__PURE__ */ __name((model3, index) => {
-      return createDeleteOperation(model3, index, true);
+    var buildDeleteManyOperation = /* @__PURE__ */ __name((model4, index) => {
+      return createDeleteOperation(model4, index, true);
     }, "buildDeleteManyOperation");
     exports2.buildDeleteManyOperation = buildDeleteManyOperation;
-    function createDeleteOperation(model3, index, multi) {
+    function createDeleteOperation(model4, index, multi) {
       const document = {
         delete: index,
         multi,
-        filter: model3.filter
+        filter: model4.filter
       };
-      if (model3.hint) {
-        document.hint = model3.hint;
+      if (model4.hint) {
+        document.hint = model4.hint;
       }
-      if (model3.collation) {
-        document.collation = model3.collation;
+      if (model4.collation) {
+        document.collation = model4.collation;
       }
       return document;
     }
     __name(createDeleteOperation, "createDeleteOperation");
-    var buildUpdateOneOperation = /* @__PURE__ */ __name((model3, index, options) => {
-      return createUpdateOperation(model3, index, false, options);
+    var buildUpdateOneOperation = /* @__PURE__ */ __name((model4, index, options) => {
+      return createUpdateOperation(model4, index, false, options);
     }, "buildUpdateOneOperation");
     exports2.buildUpdateOneOperation = buildUpdateOneOperation;
-    var buildUpdateManyOperation = /* @__PURE__ */ __name((model3, index, options) => {
-      return createUpdateOperation(model3, index, true, options);
+    var buildUpdateManyOperation = /* @__PURE__ */ __name((model4, index, options) => {
+      return createUpdateOperation(model4, index, true, options);
     }, "buildUpdateManyOperation");
     exports2.buildUpdateManyOperation = buildUpdateManyOperation;
     function validateUpdate(update, options) {
@@ -30668,71 +30668,71 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateUpdate, "validateUpdate");
-    function createUpdateOperation(model3, index, multi, options) {
-      validateUpdate(model3.update, options);
+    function createUpdateOperation(model4, index, multi, options) {
+      validateUpdate(model4.update, options);
       const document = {
         update: index,
         multi,
-        filter: model3.filter,
-        updateMods: model3.update
+        filter: model4.filter,
+        updateMods: model4.update
       };
-      if (model3.hint) {
-        document.hint = model3.hint;
+      if (model4.hint) {
+        document.hint = model4.hint;
       }
-      if (model3.upsert) {
-        document.upsert = model3.upsert;
+      if (model4.upsert) {
+        document.upsert = model4.upsert;
       }
-      if (model3.arrayFilters) {
-        document.arrayFilters = model3.arrayFilters;
+      if (model4.arrayFilters) {
+        document.arrayFilters = model4.arrayFilters;
       }
-      if (model3.collation) {
-        document.collation = model3.collation;
+      if (model4.collation) {
+        document.collation = model4.collation;
       }
-      if (!multi && "sort" in model3 && model3.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model3.sort);
+      if (!multi && "sort" in model4 && model4.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model4.sort);
       }
       return document;
     }
     __name(createUpdateOperation, "createUpdateOperation");
-    var buildReplaceOneOperation = /* @__PURE__ */ __name((model3, index) => {
-      if ((0, utils_1.hasAtomicOperators)(model3.replacement)) {
+    var buildReplaceOneOperation = /* @__PURE__ */ __name((model4, index) => {
+      if ((0, utils_1.hasAtomicOperators)(model4.replacement)) {
         throw new error_1.MongoAPIError("Client bulk write replace models must not contain atomic modifiers (start with $) and must not be empty.");
       }
       const document = {
         update: index,
         multi: false,
-        filter: model3.filter,
-        updateMods: model3.replacement
+        filter: model4.filter,
+        updateMods: model4.replacement
       };
-      if (model3.hint) {
-        document.hint = model3.hint;
+      if (model4.hint) {
+        document.hint = model4.hint;
       }
-      if (model3.upsert) {
-        document.upsert = model3.upsert;
+      if (model4.upsert) {
+        document.upsert = model4.upsert;
       }
-      if (model3.collation) {
-        document.collation = model3.collation;
+      if (model4.collation) {
+        document.collation = model4.collation;
       }
-      if (model3.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model3.sort);
+      if (model4.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model4.sort);
       }
       return document;
     }, "buildReplaceOneOperation");
     exports2.buildReplaceOneOperation = buildReplaceOneOperation;
-    function buildOperation(model3, index, pkFactory, options) {
-      switch (model3.name) {
+    function buildOperation(model4, index, pkFactory, options) {
+      switch (model4.name) {
         case "insertOne":
-          return (0, exports2.buildInsertOneOperation)(model3, index, pkFactory);
+          return (0, exports2.buildInsertOneOperation)(model4, index, pkFactory);
         case "deleteOne":
-          return (0, exports2.buildDeleteOneOperation)(model3, index);
+          return (0, exports2.buildDeleteOneOperation)(model4, index);
         case "deleteMany":
-          return (0, exports2.buildDeleteManyOperation)(model3, index);
+          return (0, exports2.buildDeleteManyOperation)(model4, index);
         case "updateOne":
-          return (0, exports2.buildUpdateOneOperation)(model3, index, options);
+          return (0, exports2.buildUpdateOneOperation)(model4, index, options);
         case "updateMany":
-          return (0, exports2.buildUpdateManyOperation)(model3, index, options);
+          return (0, exports2.buildUpdateManyOperation)(model4, index, options);
         case "replaceOne":
-          return (0, exports2.buildReplaceOneOperation)(model3, index);
+          return (0, exports2.buildReplaceOneOperation)(model4, index);
       }
     }
     __name(buildOperation, "buildOperation");
@@ -35552,9 +35552,9 @@ var require_cast = __commonJS({
       /*!
        * ignore
        */
-      setModel(model3) {
+      setModel(model4) {
         this.message = formatMessage(
-          model3,
+          model4,
           this.kind,
           this.value,
           this.path,
@@ -35597,22 +35597,22 @@ var require_cast = __commonJS({
       }
     }
     __name(getMessageFormat, "getMessageFormat");
-    function formatMessage(model3, kind, value, path, messageFormat, valueType, reason) {
+    function formatMessage(model4, kind, value, path, messageFormat, valueType, reason) {
       if (typeof messageFormat === "string") {
         const stringValue = getStringValue(value);
         let ret = messageFormat.replace("{KIND}", kind).replace("{VALUE}", stringValue).replace("{PATH}", path);
-        if (model3 != null) {
-          ret = ret.replace("{MODEL}", model3.modelName);
+        if (model4 != null) {
+          ret = ret.replace("{MODEL}", model4.modelName);
         }
         return ret;
       } else if (typeof messageFormat === "function") {
-        return messageFormat(value, path, model3, kind);
+        return messageFormat(value, path, model4, kind);
       } else {
         const stringValue = getStringValue(value);
         const valueTypeMsg = valueType ? " (type " + valueType + ")" : "";
         let ret = "Cast to " + kind + " failed for value " + stringValue + valueTypeMsg + ' at path "' + path + '"';
-        if (model3 != null) {
-          ret += ' for model "' + model3.modelName + '"';
+        if (model4 != null) {
+          ret += ' for model "' + model4.modelName + '"';
         }
         if (reason != null && typeof reason.constructor === "function" && reason.constructor.name !== "AssertionError" && reason.constructor.name !== "Error" && reason.constructor.name !== "BSONError") {
           ret += ' because of "' + reason.constructor.name + '"';
@@ -35635,13 +35635,13 @@ var require_notFound = __commonJS({
       static {
         __name(this, "DocumentNotFoundError");
       }
-      constructor(filter, model3, numAffected, result) {
+      constructor(filter, model4, numAffected, result) {
         let msg;
         const messages = MongooseError.messages;
         if (messages.DocumentNotFoundError != null) {
-          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model3) : messages.DocumentNotFoundError;
+          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model4) : messages.DocumentNotFoundError;
         } else {
-          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model3 + '"';
+          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model4 + '"';
         }
         super(msg);
         this.result = result;
@@ -37496,7 +37496,7 @@ var require_compile = __commonJS({
     var documentSchemaSymbol = require_symbols().documentSchemaSymbol;
     var internalToObjectOptions = require_options().internalToObjectOptions;
     var utils = require_utils3();
-    var Document3;
+    var Document4;
     var getSymbol = require_symbols().getSymbol;
     var scopeSymbol = require_symbols().scopeSymbol;
     var isPOJO = utils.isPOJO;
@@ -37512,7 +37512,7 @@ var require_compile = __commonJS({
       noDottedPath: true
     });
     function compile2(tree, proto, prefix, options) {
-      Document3 = Document3 || require_document2();
+      Document4 = Document4 || require_document2();
       const typeKey = options.typeKey;
       for (const key of Object.keys(tree)) {
         const limb = tree[key];
@@ -37523,7 +37523,7 @@ var require_compile = __commonJS({
     }
     __name(compile2, "compile");
     function defineKey({ prop, subprops, prototype, prefix, options }) {
-      Document3 = Document3 || require_document2();
+      Document4 = Document4 || require_document2();
       const path = (prefix ? prefix + "." : "") + prop;
       prefix = prefix || "";
       const useGetOptions = prefix ? Object.freeze({}) : noDottedPathGetOptions;
@@ -37540,7 +37540,7 @@ var require_compile = __commonJS({
               this.$__.getters = {};
             }
             if (!this.$__.getters[path]) {
-              const nested = Object.create(Document3.prototype, getOwnPropertyDescriptors(this));
+              const nested = Object.create(Document4.prototype, getOwnPropertyDescriptors(this));
               if (!prefix) {
                 nested.$__[scopeSymbol] = this;
               }
@@ -37621,7 +37621,7 @@ var require_compile = __commonJS({
           set: /* @__PURE__ */ __name(function(v) {
             if (v?.$__isNested) {
               v = v.$__get();
-            } else if (v instanceof Document3 && !v.$__isNested) {
+            } else if (v instanceof Document4 && !v.$__isNested) {
               v = v.$toObject(internalToObjectOptions);
             }
             const doc = this.$__[scopeSymbol] || this;
@@ -38184,9 +38184,9 @@ var require_queryHelpers = __commonJS({
       }
       return pop;
     }, "preparePopulationOptionsMQ");
-    exports2.createModel = /* @__PURE__ */ __name(function createModel(model3, doc, fields, userProvidedFields, options) {
-      model3.hooks.execPreSync("createModel", doc);
-      const discriminatorMapping = model3.schema ? model3.schema.discriminatorMapping : null;
+    exports2.createModel = /* @__PURE__ */ __name(function createModel(model4, doc, fields, userProvidedFields, options) {
+      model4.hooks.execPreSync("createModel", doc);
+      const discriminatorMapping = model4.schema ? model4.schema.discriminatorMapping : null;
       const key = discriminatorMapping?.isRoot ? discriminatorMapping.key : null;
       const _opts = {
         skipId: true,
@@ -38200,17 +38200,17 @@ var require_queryHelpers = __commonJS({
         _opts.strict = options.strict;
       }
       const value = doc[key];
-      if (key && value && model3.discriminators) {
-        const discriminator = getDiscriminatorByKey(model3.discriminators, value) || getDiscriminatorByValue(model3.discriminators, value);
+      if (key && value && model4.discriminators) {
+        const discriminator = getDiscriminatorByKey(model4.discriminators, value) || getDiscriminatorByValue(model4.discriminators, value);
         if (discriminator) {
           const _fields = clone2(userProvidedFields);
           exports2.applyPaths(_fields, discriminator.schema);
           return new discriminator(void 0, _fields, _opts);
         }
       }
-      return new model3(void 0, fields, _opts);
+      return new model4(void 0, fields, _opts);
     }, "createModel");
-    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model3, doc, fields, userProvidedFields, options, populatedIds, callback) {
+    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model4, doc, fields, userProvidedFields, options, populatedIds, callback) {
       const initOpts = {};
       if (populatedIds) {
         initOpts.populated = populatedIds;
@@ -38218,7 +38218,7 @@ var require_queryHelpers = __commonJS({
       if (options?.middleware != null) {
         initOpts.middleware = options.middleware;
       }
-      const casted = exports2.createModel(model3, doc, fields, userProvidedFields, options);
+      const casted = exports2.createModel(model4, doc, fields, userProvidedFields, options);
       try {
         casted.$init(doc, initOpts, callback);
       } catch (error62) {
@@ -38552,7 +38552,7 @@ var require_toObjectRecursive = __commonJS({
 var require_subdocument = __commonJS({
   "node_modules/mongoose/lib/types/subdocument.js"(exports2, module2) {
     "use strict";
-    var Document3 = require_document2();
+    var Document4 = require_document2();
     var internalToObjectOptions = require_options().internalToObjectOptions;
     var util = require("util");
     var utils = require_utils3();
@@ -38568,11 +38568,11 @@ var require_subdocument = __commonJS({
       if (options?.path != null) {
         this.$basePath = options.path;
       }
-      Document3.call(this, value, fields, options);
+      Document4.call(this, value, fields, options);
       delete this.$__.priorDoc;
     }
     __name(Subdocument, "Subdocument");
-    Subdocument.prototype = Object.create(Document3.prototype);
+    Subdocument.prototype = Object.create(Document4.prototype);
     Object.defineProperty(Subdocument.prototype, "$isSubdocument", {
       configurable: false,
       writable: false,
@@ -38623,10 +38623,10 @@ var require_subdocument = __commonJS({
       if (parent != null && fullPath != null) {
         return parent.$isValid(fullPath);
       }
-      return Document3.prototype.$isValid.call(this, path);
+      return Document4.prototype.$isValid.call(this, path);
     };
     Subdocument.prototype.markModified = function(path) {
-      Document3.prototype.markModified.call(this, path);
+      Document4.prototype.markModified.call(this, path);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path);
       if (parent == null || fullPath == null) {
@@ -38649,10 +38649,10 @@ var require_subdocument = __commonJS({
         }
         return parent.$isModified(paths, options, modifiedPaths);
       }
-      return Document3.prototype.isModified.call(this, paths, options, modifiedPaths);
+      return Document4.prototype.isModified.call(this, paths, options, modifiedPaths);
     };
     Subdocument.prototype.$markValid = function(path) {
-      Document3.prototype.$markValid.call(this, path);
+      Document4.prototype.$markValid.call(this, path);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path);
       if (parent != null && fullPath != null) {
@@ -38660,7 +38660,7 @@ var require_subdocument = __commonJS({
       }
     };
     Subdocument.prototype.invalidate = function(path, err, val) {
-      Document3.prototype.invalidate.call(this, path, err, val);
+      Document4.prototype.invalidate.call(this, path, err, val);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path);
       if (parent != null && fullPath != null) {
@@ -38671,7 +38671,7 @@ var require_subdocument = __commonJS({
       return this.ownerDocument().$__.validationError;
     };
     Subdocument.prototype.$ignore = function(path) {
-      Document3.prototype.$ignore.call(this, path);
+      Document4.prototype.$ignore.call(this, path);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path);
       if (parent != null && fullPath != null) {
@@ -38754,7 +38754,7 @@ var require_subdocument = __commonJS({
       Subdocument.prototype[util.inspect.custom] = Subdocument.prototype.inspect;
     }
     Subdocument.prototype.$toObject = /* @__PURE__ */ __name(function $toObject(options, json2) {
-      const ret = Document3.prototype.$toObject.call(this, options, json2);
+      const ret = Document4.prototype.$toObject.call(this, options, json2);
       if (utils.hasOwnKeys(ret) === false && options?._calledWithOptions != null) {
         const minimize = options._calledWithOptions?.minimize ?? this?.$__schemaTypeOptions?.minimize ?? options.minimize;
         if (minimize && !this.constructor.$__required && !this.$isDocumentArrayElement) {
@@ -38883,7 +38883,7 @@ var require_arraySubdocument = __commonJS({
 var require_methods = __commonJS({
   "node_modules/mongoose/lib/types/array/methods/index.js"(exports2, module2) {
     "use strict";
-    var Document3 = require_document2();
+    var Document4 = require_document2();
     var ArraySubdocument = require_arraySubdocument();
     var MongooseError = require_mongooseError();
     var cleanModifiedSubpaths = require_cleanModifiedSubpaths();
@@ -39430,7 +39430,7 @@ var require_methods = __commonJS({
         this._markModified();
         while (i--) {
           mem = cur[i];
-          if (mem instanceof Document3) {
+          if (mem instanceof Document4) {
             const some = values.some(function(v) {
               return mem.equals(v);
             });
@@ -39669,7 +39669,7 @@ var require_methods = __commonJS({
           options = clone2(options);
           options._isNested = true;
           return [].concat(arr).map(function(doc) {
-            return doc instanceof Document3 ? doc.toObject(options) : doc;
+            return doc instanceof Document4 ? doc.toObject(options) : doc;
           });
         }
         return [].concat(arr);
@@ -39711,8 +39711,8 @@ var require_methods = __commonJS({
         if (arg == null) {
           return false;
         }
-        const model3 = arg.constructor;
-        if (!(arg instanceof Document3) || model3.modelName !== ref && model3.baseModelName !== ref) {
+        const model4 = arg.constructor;
+        if (!(arg instanceof Document4) || model4.modelName !== ref && model4.baseModelName !== ref) {
           return false;
         }
       }
@@ -39794,7 +39794,7 @@ var require_methods2 = __commonJS({
   "node_modules/mongoose/lib/types/documentArray/methods/index.js"(exports2, module2) {
     "use strict";
     var ArrayMethods = require_methods();
-    var Document3 = require_document2();
+    var Document4 = require_document2();
     var getDiscriminatorByKey = require_getDiscriminatorByKey();
     var getDiscriminatorByValue = require_getDiscriminatorByValue();
     var internalToObjectOptions = require_options().internalToObjectOptions;
@@ -39918,7 +39918,7 @@ var require_methods2 = __commonJS({
           _id = val.get("_id");
           if (_id == null) {
             continue;
-          } else if (_id instanceof Document3) {
+          } else if (_id instanceof Document4) {
             _id = _id.get("_id");
             if (castedId != null && utils.deepEqual(castedId, _id)) {
               return val;
@@ -40305,7 +40305,7 @@ var require_document2 = __commonJS({
     var ObjectParameterError = require_objectParameter();
     var ParallelValidateError = require_parallelValidate();
     var PathTrie = require_pathTrie();
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var StrictModeError = require_strict();
     var ValidationError = require_validation();
     var ValidatorError = require_validator();
@@ -40357,7 +40357,7 @@ var require_document2 = __commonJS({
     var VERSION_WHERE = 1;
     var VERSION_INC = 2;
     var VERSION_ALL = VERSION_WHERE | VERSION_INC;
-    function Document3(obj, fields, options) {
+    function Document4(obj, fields, options) {
       if (typeof options === "boolean") {
         throw new Error("The skipId parameter has been removed. Use { skipId: true } in the options parameter instead.");
       }
@@ -40365,7 +40365,7 @@ var require_document2 = __commonJS({
       let skipId = options.skipId;
       this.$__ = new InternalCache();
       if (this.$__schema == null) {
-        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema3(fields) : fields;
+        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema4(fields) : fields;
         this.$__setSchema(_schema);
         fields = options;
         skipId = options.skipId;
@@ -40422,7 +40422,7 @@ var require_document2 = __commonJS({
         } else {
           this.$set(obj, void 0, true, options);
         }
-        if (obj.$__ != null && obj instanceof Document3) {
+        if (obj.$__ != null && obj instanceof Document4) {
           this.$isNew = obj.$isNew;
         }
       }
@@ -40444,9 +40444,9 @@ var require_document2 = __commonJS({
       }
       applyQueue(this);
     }
-    __name(Document3, "Document");
-    Document3.prototype.$isMongooseDocumentPrototype = true;
-    Object.defineProperty(Document3.prototype, "isNew", {
+    __name(Document4, "Document");
+    Document4.prototype.$isMongooseDocumentPrototype = true;
+    Object.defineProperty(Document4.prototype, "isNew", {
       get: /* @__PURE__ */ __name(function() {
         return this.$isNew;
       }, "get"),
@@ -40454,7 +40454,7 @@ var require_document2 = __commonJS({
         this.$isNew = value;
       }, "set")
     });
-    Object.defineProperty(Document3.prototype, "errors", {
+    Object.defineProperty(Document4.prototype, "errors", {
       get: /* @__PURE__ */ __name(function() {
         return this.$errors;
       }, "get"),
@@ -40462,7 +40462,7 @@ var require_document2 = __commonJS({
         this.$errors = value;
       }, "set")
     });
-    Document3.prototype.$isNew = true;
+    Document4.prototype.$isNew = true;
     utils.each(
       [
         "on",
@@ -40475,7 +40475,7 @@ var require_document2 = __commonJS({
         "addListener"
       ],
       function(emitterFn) {
-        Document3.prototype[emitterFn] = function() {
+        Document4.prototype[emitterFn] = function() {
           if (!this.$__.emitter) {
             if (emitterFn === "emit") {
               return;
@@ -40485,16 +40485,16 @@ var require_document2 = __commonJS({
           }
           return this.$__.emitter[emitterFn].apply(this.$__.emitter, arguments);
         };
-        Document3.prototype[`$${emitterFn}`] = Document3.prototype[emitterFn];
+        Document4.prototype[`$${emitterFn}`] = Document4.prototype[emitterFn];
       }
     );
-    Document3.prototype.constructor = Document3;
+    Document4.prototype.constructor = Document4;
     for (const i in EventEmitter.prototype) {
-      Document3[i] = EventEmitter.prototype[i];
+      Document4[i] = EventEmitter.prototype[i];
     }
-    Document3.prototype.$__schema;
-    Document3.prototype.schema;
-    Object.defineProperty(Document3.prototype, "$locals", {
+    Document4.prototype.$__schema;
+    Document4.prototype.schema;
+    Object.defineProperty(Document4.prototype, "$locals", {
       configurable: false,
       enumerable: false,
       get: /* @__PURE__ */ __name(function() {
@@ -40507,15 +40507,15 @@ var require_document2 = __commonJS({
         this.$__.locals = v;
       }, "set")
     });
-    Document3.prototype.isNew;
-    Object.defineProperty(Document3.prototype, "$where", {
+    Document4.prototype.isNew;
+    Object.defineProperty(Document4.prototype, "$where", {
       configurable: false,
       enumerable: false,
       writable: true
     });
-    Document3.prototype.id;
-    Document3.prototype.$errors;
-    Object.defineProperty(Document3.prototype, "$op", {
+    Document4.prototype.id;
+    Document4.prototype.$errors;
+    Object.defineProperty(Document4.prototype, "$op", {
       get: /* @__PURE__ */ __name(function() {
         return this.$__.op || null;
       }, "get"),
@@ -40570,7 +40570,7 @@ var require_document2 = __commonJS({
       }
     }
     __name($applyDefaultsToNested, "$applyDefaultsToNested");
-    Document3.prototype.$__buildDoc = function(obj, fields, skipId, exclude, hasIncludedChildren) {
+    Document4.prototype.$__buildDoc = function(obj, fields, skipId, exclude, hasIncludedChildren) {
       if (!utils.hasOwnKeys(this.$__schema.nested)) {
         this._doc = {};
         return;
@@ -40618,10 +40618,10 @@ var require_document2 = __commonJS({
       }
       this._doc = doc;
     };
-    Document3.prototype.toBSON = function() {
+    Document4.prototype.toBSON = function() {
       return this.toObject(internalToObjectOptions);
     };
-    Document3.prototype.init = function(doc, opts, fn) {
+    Document4.prototype.init = function(doc, opts, fn) {
       if (typeof opts === "function") {
         fn = opts;
         opts = null;
@@ -40635,10 +40635,10 @@ var require_document2 = __commonJS({
       }
       return this;
     };
-    Document3.prototype.$init = function() {
+    Document4.prototype.$init = function() {
       return this.constructor.prototype.init.apply(this, arguments);
     };
-    Document3.prototype.$__init = function(doc, opts) {
+    Document4.prototype.$__init = function(doc, opts) {
       if (doc == null) {
         throw new ObjectParameterError(doc, "doc", "init");
       }
@@ -40776,7 +40776,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(init, "init");
-    Document3.prototype.updateOne = /* @__PURE__ */ __name(function updateOne(update, options) {
+    Document4.prototype.updateOne = /* @__PURE__ */ __name(function updateOne(update, options) {
       const query = this.constructor.updateOne();
       const self2 = this;
       query.pre(/* @__PURE__ */ __name(async function queryPreUpdateOne() {
@@ -40800,12 +40800,12 @@ var require_document2 = __commonJS({
       }, "queryPostUpdateOne"));
       return query;
     }, "updateOne");
-    Document3.prototype.replaceOne = /* @__PURE__ */ __name(function replaceOne() {
+    Document4.prototype.replaceOne = /* @__PURE__ */ __name(function replaceOne() {
       const args = [...arguments];
       args.unshift({ _id: this._doc._id });
       return this.constructor.replaceOne.apply(this.constructor, args);
     }, "replaceOne");
-    Document3.prototype.$session = /* @__PURE__ */ __name(function $session(session) {
+    Document4.prototype.$session = /* @__PURE__ */ __name(function $session(session) {
       if (arguments.length === 0) {
         if (this.$__.session?.hasEnded) {
           this.$__.session = null;
@@ -40828,7 +40828,7 @@ var require_document2 = __commonJS({
       }
       return session;
     }, "$session");
-    Document3.prototype.$timestamps = /* @__PURE__ */ __name(function $timestamps(value) {
+    Document4.prototype.$timestamps = /* @__PURE__ */ __name(function $timestamps(value) {
       if (arguments.length === 0) {
         if (this.$__.timestamps != null) {
           return this.$__.timestamps;
@@ -40844,7 +40844,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$timestamps");
-    Document3.prototype.overwrite = /* @__PURE__ */ __name(function overwrite(obj) {
+    Document4.prototype.overwrite = /* @__PURE__ */ __name(function overwrite(obj) {
       const keys = new Set(Object.keys(this._doc));
       for (const key of Object.keys(obj)) {
         keys.add(key);
@@ -40864,7 +40864,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "overwrite");
-    Document3.prototype.$set = /* @__PURE__ */ __name(function $set(path, val, type, options) {
+    Document4.prototype.$set = /* @__PURE__ */ __name(function $set(path, val, type, options) {
       if (utils.isPOJO(type)) {
         options = type;
         type = void 0;
@@ -40887,7 +40887,7 @@ var require_document2 = __commonJS({
       if (path == null) {
         [path, val] = [val, path];
       } else if (typeof path !== "string") {
-        if (path instanceof Document3) {
+        if (path instanceof Document4) {
           if (path.$__isNested) {
             path = path.toObject();
           } else {
@@ -40932,7 +40932,7 @@ var require_document2 = __commonJS({
             }
             if (pathtype === "real" || pathtype === "virtual") {
               this.$set(pathName, valForKey, constructing, options);
-            } else if (pathtype === "nested" && valForKey instanceof Document3) {
+            } else if (pathtype === "nested" && valForKey instanceof Document4) {
               this.$set(
                 pathName,
                 valForKey.toObject({ transform: false }),
@@ -41099,7 +41099,7 @@ var require_document2 = __commonJS({
         _markValidSubpaths(this, path);
       }
       if (val != null && merge2 && schema.$isSingleNested) {
-        if (val instanceof Document3) {
+        if (val instanceof Document4) {
           val = val.toObject({ virtuals: false, transform: false });
         }
         const keys2 = Object.keys(val);
@@ -41110,14 +41110,14 @@ var require_document2 = __commonJS({
       }
       let shouldSet = true;
       try {
-        const refMatches = !(val instanceof Document3) ? false : (() => {
+        const refMatches = !(val instanceof Document4) ? false : (() => {
           if (schema.options == null) {
             return false;
           }
-          const model3 = val.constructor;
+          const model4 = val.constructor;
           const refOpt = typeof schema.options.ref === "function" && !schema.options.ref[modelSymbol] ? schema.options.ref.call(this, this) : schema.options.ref;
           const ref = refOpt?.modelName || refOpt;
-          if (ref != null && (ref === model3.modelName || ref === model3.baseModelName)) {
+          if (ref != null && (ref === model4.modelName || ref === model4.baseModelName)) {
             return true;
           }
           let refPath = schema.options.refPath;
@@ -41136,10 +41136,10 @@ var require_document2 = __commonJS({
             throw new MongooseError("`refPath` must be a string or a function that returns a string, got " + inspect(refPath));
           }
           const modelName = this.ownerDocument().get(refPath);
-          return modelName === model3.modelName || modelName === model3.baseModelName;
+          return modelName === model4.modelName || modelName === model4.baseModelName;
         })();
         let didPopulate = false;
-        if (refMatches && val instanceof Document3 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
+        if (refMatches && val instanceof Document4 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
           const unpopulatedValue = schema?.$isSingleNested ? schema.cast(val, this) : val._doc._id;
           this.$populated(path, unpopulatedValue, { [populateModelSymbol]: val.constructor });
           val.$__.wasPopulated = { value: unpopulatedValue };
@@ -41182,7 +41182,7 @@ var require_document2 = __commonJS({
         if (!didPopulate && this.$__.populated) {
           if (Array.isArray(val) && this.$__.populated[path]) {
             for (let i2 = 0; i2 < val.length; ++i2) {
-              if (val[i2] instanceof Document3) {
+              if (val[i2] instanceof Document4) {
                 val.set(i2, val[i2]._doc._id, true);
               }
             }
@@ -41243,7 +41243,7 @@ var require_document2 = __commonJS({
         return false;
       }
       for (const el of val) {
-        if (!(el instanceof Document3)) {
+        if (!(el instanceof Document4)) {
           return false;
         }
         const modelName = el.constructor.modelName;
@@ -41257,8 +41257,8 @@ var require_document2 = __commonJS({
       return true;
     }
     __name(_isManuallyPopulatedArray, "_isManuallyPopulatedArray");
-    Document3.prototype.set = Document3.prototype.$set;
-    Document3.prototype.$__shouldModify = function(pathToMark, path, options, constructing, parts, schema, val, priorVal) {
+    Document4.prototype.set = Document4.prototype.$set;
+    Document4.prototype.$__shouldModify = function(pathToMark, path, options, constructing, parts, schema, val, priorVal) {
       if (options?._skipMarkModified) {
         return false;
       }
@@ -41274,7 +41274,7 @@ var require_document2 = __commonJS({
       if (val === void 0 && path in this.$__.activePaths.getStatePaths("default")) {
         return false;
       }
-      if (this.$populated(path) && val instanceof Document3 && deepEqual(val._doc._id, priorVal)) {
+      if (this.$populated(path) && val instanceof Document4 && deepEqual(val._doc._id, priorVal)) {
         return false;
       }
       if (!deepEqual(val, priorVal !== void 0 ? priorVal : utils.getValue(path, this))) {
@@ -41285,7 +41285,7 @@ var require_document2 = __commonJS({
       }
       return false;
     };
-    Document3.prototype.$__set = function(pathToMark, path, options, constructing, parts, schema, val, priorVal) {
+    Document4.prototype.$__set = function(pathToMark, path, options, constructing, parts, schema, val, priorVal) {
       Embedded = Embedded || require_arraySubdocument();
       const shouldModify = this.$isNew && !options?._skipMarkModified ? true : this.$__shouldModify(pathToMark, path, options, constructing, parts, schema, val, priorVal);
       if (shouldModify) {
@@ -41370,7 +41370,7 @@ var require_document2 = __commonJS({
         }
       }
     };
-    Document3.prototype.$__getValue = function(path) {
+    Document4.prototype.$__getValue = function(path) {
       if (typeof path !== "string" && !Array.isArray(path)) {
         throw new TypeError(
           `Invalid \`path\`. Must be either string or array. Got "${path}" (type ${typeof path})`
@@ -41378,7 +41378,7 @@ var require_document2 = __commonJS({
       }
       return utils.getValue(path, this._doc);
     };
-    Document3.prototype.$inc = /* @__PURE__ */ __name(function $inc(path, val) {
+    Document4.prototype.$inc = /* @__PURE__ */ __name(function $inc(path, val) {
       if (val == null) {
         val = 1;
       }
@@ -41421,7 +41421,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$inc");
-    Document3.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path, val) {
+    Document4.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path, val) {
       if (Array.isArray(path) && path.length === 1) {
         this._doc[path[0]] = val;
         return this;
@@ -41429,7 +41429,7 @@ var require_document2 = __commonJS({
       utils.setValue(path, val, this._doc);
       return this;
     }, "$__setValue");
-    Document3.prototype.get = function(path, type, options) {
+    Document4.prototype.get = function(path, type, options) {
       let adhoc;
       if (options == null) {
         options = {};
@@ -41494,9 +41494,9 @@ var require_document2 = __commonJS({
       }
       return obj;
     };
-    Document3.prototype[getSymbol] = Document3.prototype.get;
-    Document3.prototype.$get = Document3.prototype.get;
-    Document3.prototype.$__path = function(path) {
+    Document4.prototype[getSymbol] = Document4.prototype.get;
+    Document4.prototype.$get = Document4.prototype.get;
+    Document4.prototype.$__path = function(path) {
       const adhocs = this.$__.adhocPaths;
       const adhocType = adhocs && Object.hasOwn(adhocs, path) ? adhocs[path] : null;
       if (adhocType) {
@@ -41504,7 +41504,7 @@ var require_document2 = __commonJS({
       }
       return this.$__schema.path(path);
     };
-    Document3.prototype.markModified = function(path, scope) {
+    Document4.prototype.markModified = function(path, scope) {
       this.$__saveInitialState(path);
       this.$__.activePaths.modify(path);
       if (scope != null && !this.$isSubdocument) {
@@ -41512,7 +41512,7 @@ var require_document2 = __commonJS({
         this.$__.pathsToScopes[path] = scope;
       }
     };
-    Document3.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path) {
+    Document4.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path) {
       const savedState = this.$__.savedState;
       const savedStatePath = path;
       if (savedState != null) {
@@ -41523,19 +41523,19 @@ var require_document2 = __commonJS({
         }
       }
     }, "$__saveInitialState");
-    Document3.prototype.unmarkModified = function(path) {
+    Document4.prototype.unmarkModified = function(path) {
       this.$__.activePaths.init(path);
       if (this.$__.pathsToScopes != null) {
         delete this.$__.pathsToScopes[path];
       }
     };
-    Document3.prototype.$ignore = function(path) {
+    Document4.prototype.$ignore = function(path) {
       this.$__.activePaths.ignore(path);
     };
-    Document3.prototype.directModifiedPaths = function() {
+    Document4.prototype.directModifiedPaths = function() {
       return Object.keys(this.$__.activePaths.getStatePaths("modify"));
     };
-    Document3.prototype.$isEmpty = function(path) {
+    Document4.prototype.$isEmpty = function(path) {
       const isEmptyOptions = {
         minimize: true,
         virtuals: false,
@@ -41572,7 +41572,7 @@ var require_document2 = __commonJS({
       return true;
     }
     __name(_isEmpty, "_isEmpty");
-    Document3.prototype.modifiedPaths = function(options) {
+    Document4.prototype.modifiedPaths = function(options) {
       options = options || {};
       const directModifiedPaths = Object.keys(this.$__.activePaths.getStatePaths("modify"));
       const result = /* @__PURE__ */ new Set();
@@ -41623,8 +41623,8 @@ var require_document2 = __commonJS({
       }
       return Array.from(result);
     };
-    Document3.prototype[documentModifiedPaths] = Document3.prototype.modifiedPaths;
-    Document3.prototype.isModified = function(paths, options, modifiedPaths) {
+    Document4.prototype[documentModifiedPaths] = Document4.prototype.modifiedPaths;
+    Document4.prototype.isModified = function(paths, options, modifiedPaths) {
       if (paths) {
         const ignoreAtomics = options?.ignoreAtomics;
         const directModifiedPathsObj = this.$__.activePaths.states.modify;
@@ -41661,9 +41661,9 @@ var require_document2 = __commonJS({
       }
       return this.$__.activePaths.some("modify");
     };
-    Document3.prototype.$isModified = Document3.prototype.isModified;
-    Document3.prototype[documentIsModified] = Document3.prototype.isModified;
-    Document3.prototype.$isDefault = function(path) {
+    Document4.prototype.$isModified = Document4.prototype.isModified;
+    Document4.prototype[documentIsModified] = Document4.prototype.isModified;
+    Document4.prototype.$isDefault = function(path) {
       if (path == null) {
         return this.$__.activePaths.some("default");
       }
@@ -41676,14 +41676,14 @@ var require_document2 = __commonJS({
       }
       return paths.some((path2) => Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path2));
     };
-    Document3.prototype.$isDeleted = function(val) {
+    Document4.prototype.$isDeleted = function(val) {
       if (arguments.length === 0) {
         return !!this.$__.isDeleted;
       }
       this.$__.isDeleted = !!val;
       return this;
     };
-    Document3.prototype.isDirectModified = function(path) {
+    Document4.prototype.isDirectModified = function(path) {
       if (path == null) {
         return this.$__.activePaths.some("modify");
       }
@@ -41708,7 +41708,7 @@ var require_document2 = __commonJS({
       }
       return paths.some((path2) => this.isDirectModified(path2));
     };
-    Document3.prototype.isInit = function(path) {
+    Document4.prototype.isInit = function(path) {
       if (path == null) {
         return this.$__.activePaths.some("init");
       }
@@ -41721,7 +41721,7 @@ var require_document2 = __commonJS({
       }
       return paths.some((path2) => Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path2));
     };
-    Document3.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path) {
+    Document4.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path) {
       if (this.$__.selected == null) {
         return true;
       }
@@ -41801,8 +41801,8 @@ var require_document2 = __commonJS({
       };
     }
     __name(_getProjectionIndex, "_getProjectionIndex");
-    Document3.prototype.$__isSelected = Document3.prototype.isSelected;
-    Document3.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path) {
+    Document4.prototype.$__isSelected = Document4.prototype.isSelected;
+    Document4.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path) {
       if (this.$__.selected == null) {
         return true;
       }
@@ -41827,7 +41827,7 @@ var require_document2 = __commonJS({
       }
       return !index.inclusive;
     }, "isDirectSelected");
-    Document3.prototype.validate = /* @__PURE__ */ __name(async function validate2(pathsToValidate, options) {
+    Document4.prototype.validate = /* @__PURE__ */ __name(async function validate2(pathsToValidate, options) {
       if (typeof pathsToValidate === "function" || typeof options === "function" || typeof arguments[2] === "function") {
         throw new MongooseError("Document.prototype.validate() no longer accepts a callback");
       }
@@ -41989,7 +41989,7 @@ var require_document2 = __commonJS({
         this.$__.validating = null;
       }
     }, "validate");
-    Document3.prototype.$validate = Document3.prototype.validate;
+    Document4.prototype.$validate = Document4.prototype.validate;
     function _completeValidate(doc) {
       let error62 = doc.$__.validationError;
       doc.$__.validationError = null;
@@ -42309,11 +42309,11 @@ var require_document2 = __commonJS({
       }
     }
     __name(_pushNestedArrayPaths, "_pushNestedArrayPaths");
-    Document3.prototype._execDocumentPreHooks = /* @__PURE__ */ __name(function _execDocumentPreHooks(opName, options, argsForHooks) {
+    Document4.prototype._execDocumentPreHooks = /* @__PURE__ */ __name(function _execDocumentPreHooks(opName, options, argsForHooks) {
       const filter = buildMiddlewareFilter(options, "pre");
       return this.$__middleware.execPre(opName, this, argsForHooks || [], { filter });
     }, "_execDocumentPreHooks");
-    Document3.prototype._execDocumentPostHooks = /* @__PURE__ */ __name(function _execDocumentPostHooks(opName, options, error62) {
+    Document4.prototype._execDocumentPostHooks = /* @__PURE__ */ __name(function _execDocumentPostHooks(opName, options, error62) {
       const filter = buildMiddlewareFilter(options, "post");
       return this.$__middleware.execPost(opName, this, [this], { error: error62, filter });
     }, "_execDocumentPostHooks");
@@ -42360,11 +42360,11 @@ var require_document2 = __commonJS({
       return paths;
     }
     __name(_handlePathsToSkip, "_handlePathsToSkip");
-    Document3.prototype.validateSync = function() {
+    Document4.prototype.validateSync = function() {
       utils.warn("Mongoose: `Document.prototype.validateSync()` is deprecated and will be removed in Mongoose 10. Use `Document.prototype.validate()` instead.");
       return this.$__validateSync.apply(this, arguments);
     };
-    Document3.prototype.$__validateSync = function(pathsToValidate, options) {
+    Document4.prototype.$__validateSync = function(pathsToValidate, options) {
       const _this = this;
       if (arguments.length === 1 && typeof arguments[0] === "object" && !Array.isArray(arguments[0])) {
         options = arguments[0];
@@ -42447,7 +42447,7 @@ var require_document2 = __commonJS({
       }
       return err;
     };
-    Document3.prototype.invalidate = function(path, err, val, kind) {
+    Document4.prototype.invalidate = function(path, err, val, kind) {
       if (!this.$__.validationError) {
         this.$__.validationError = new ValidationError(this);
       }
@@ -42474,7 +42474,7 @@ var require_document2 = __commonJS({
       this.$__.validationError.addError(path, err);
       return this.$__.validationError;
     };
-    Document3.prototype.$markValid = function(path) {
+    Document4.prototype.$markValid = function(path) {
       if (!this.$__.validationError?.errors[path]) {
         return;
       }
@@ -42513,7 +42513,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(_checkImmutableSubpaths, "_checkImmutableSubpaths");
-    Document3.prototype.$isValid = function(path) {
+    Document4.prototype.$isValid = function(path) {
       if (this.$__.validationError == null || utils.hasOwnKeys(this.$__.validationError.errors) === false) {
         return true;
       }
@@ -42528,7 +42528,7 @@ var require_document2 = __commonJS({
       }
       return this.$__.validationError.errors[path] == null;
     };
-    Document3.prototype.$__reset = /* @__PURE__ */ __name(function reset(skipBackup, hasOnlyPrimitiveValues) {
+    Document4.prototype.$__reset = /* @__PURE__ */ __name(function reset(skipBackup, hasOnlyPrimitiveValues) {
       hasOnlyPrimitiveValues = hasOnlyPrimitiveValues ?? this.$__hasOnlyPrimitiveValues();
       const subdocs = !this.$isSubdocument && !hasOnlyPrimitiveValues ? this.$getAllSubdocs({ useCache: true }) : null;
       if (subdocs?.length > 0) {
@@ -42560,7 +42560,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "reset");
-    Document3.prototype.$__resetAtomics = /* @__PURE__ */ __name(function $__resetAtomics() {
+    Document4.prototype.$__resetAtomics = /* @__PURE__ */ __name(function $__resetAtomics() {
       const activePaths = this.$__.activePaths;
       const modifyPaths = activePaths.getStatePaths("modify");
       const defaultPaths = activePaths.getStatePaths("default");
@@ -42585,7 +42585,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(_clearAtomicsOnPaths, "_clearAtomicsOnPaths");
-    Document3.prototype.$__undoReset = /* @__PURE__ */ __name(function $__undoReset() {
+    Document4.prototype.$__undoReset = /* @__PURE__ */ __name(function $__undoReset() {
       if (this.$__.backup?.activePaths == null) {
         return;
       }
@@ -42605,7 +42605,7 @@ var require_document2 = __commonJS({
         }
       }
     }, "$__undoReset");
-    Document3.prototype.$__dirty = function() {
+    Document4.prototype.$__dirty = function() {
       const _this = this;
       let all = this.$__.activePaths.map("modify", function(path) {
         return {
@@ -42649,7 +42649,7 @@ var require_document2 = __commonJS({
       });
       return minimal;
     };
-    Document3.prototype.$__setSchema = function(schema) {
+    Document4.prototype.$__setSchema = function(schema) {
       compile2(schema.tree, this, void 0, schema.options);
       for (const key of Object.keys(schema.virtuals)) {
         schema.virtuals[key]._applyDefaultGetters();
@@ -42661,7 +42661,7 @@ var require_document2 = __commonJS({
       this.$__middleware = schema._getDocumentMiddleware(this.$isSubdocument);
       this[documentSchemaSymbol] = schema;
     };
-    Document3.prototype.$__getArrayPathsToValidate = function() {
+    Document4.prototype.$__getArrayPathsToValidate = function() {
       DocumentArray || (DocumentArray = require_documentArray());
       return this.$__.activePaths.map("init", "modify", function(i) {
         return this.$__getValue(i);
@@ -42673,7 +42673,7 @@ var require_document2 = __commonJS({
         return doc;
       });
     };
-    Document3.prototype.$getAllSubdocs = function(options) {
+    Document4.prototype.$getAllSubdocs = function(options) {
       if (options?.useCache && this.$__.saveOptions?.__subdocs) {
         return this.$__.saveOptions.__subdocs;
       }
@@ -42682,8 +42682,8 @@ var require_document2 = __commonJS({
       const subDocs = [];
       function getSubdocs(doc) {
         const newSubdocs = [];
-        for (const { model: model3 } of doc.$__schema.childSchemas) {
-          const val = doc.$__getValue(model3.path);
+        for (const { model: model4 } of doc.$__schema.childSchemas) {
+          const val = doc.$__getValue(model4.path);
           if (val == null) {
             continue;
           }
@@ -42729,14 +42729,14 @@ var require_document2 = __commonJS({
       }
     }
     __name(applyQueue, "applyQueue");
-    Document3.prototype.$__handleReject = /* @__PURE__ */ __name(function handleReject(err) {
+    Document4.prototype.$__handleReject = /* @__PURE__ */ __name(function handleReject(err) {
       if (this.$listeners("error").length) {
         this.$emit("error", err);
       } else if (this.constructor.listeners?.("error").length) {
         this.constructor.emit("error", err);
       }
     }, "handleReject");
-    Document3.prototype.$toObject = function(options, json2) {
+    Document4.prototype.$toObject = function(options, json2) {
       const defaultOptions = this.$__schema._defaultToObjectOptions(json2);
       const hasOnlyPrimitiveValues = this.$__hasOnlyPrimitiveValues();
       options = utils.isPOJO(options) ? { ...options } : {};
@@ -42835,7 +42835,7 @@ var require_document2 = __commonJS({
       }
       return ret;
     };
-    Document3.prototype.$__toObjectShallow = /* @__PURE__ */ __name(function $__toObjectShallow(schemaFieldsOnly) {
+    Document4.prototype.$__toObjectShallow = /* @__PURE__ */ __name(function $__toObjectShallow(schemaFieldsOnly) {
       const ret = {};
       if (this._doc != null) {
         const keys = schemaFieldsOnly ? Object.keys(this.$__schema.paths) : Object.keys(this._doc);
@@ -42850,7 +42850,7 @@ var require_document2 = __commonJS({
       }
       return ret;
     }, "$__toObjectShallow");
-    Document3.prototype.toObject = function(options) {
+    Document4.prototype.toObject = function(options) {
       return this.$toObject(options);
     };
     function applyVirtuals(self2, json2, options, toObjectOptions) {
@@ -43056,24 +43056,24 @@ var require_document2 = __commonJS({
       return json2;
     }
     __name(omitDeselectedFields, "omitDeselectedFields");
-    Document3.prototype.toJSON = function(options) {
+    Document4.prototype.toJSON = function(options) {
       return this.$toObject(options, true);
     };
-    Document3.prototype.ownerDocument = function() {
+    Document4.prototype.ownerDocument = function() {
       return this;
     };
-    Document3.prototype.parent = function() {
+    Document4.prototype.parent = function() {
       if (this.$isSubdocument || this.$__.wasPopulated) {
         return this.$__.parent;
       }
       return this;
     };
-    Document3.prototype.$parent = Document3.prototype.parent;
-    Document3.prototype.$__setParent = /* @__PURE__ */ __name(function $__setParent(parent) {
+    Document4.prototype.$parent = Document4.prototype.parent;
+    Document4.prototype.$__setParent = /* @__PURE__ */ __name(function $__setParent(parent) {
       this.$__.parent = parent;
       this.$__parent = parent;
     }, "$__setParent");
-    Document3.prototype.inspect = function(options) {
+    Document4.prototype.inspect = function(options) {
       const isPOJO = utils.isPOJO(options);
       let opts;
       if (isPOJO) {
@@ -43087,16 +43087,16 @@ var require_document2 = __commonJS({
       return ret;
     };
     if (inspect.custom) {
-      Document3.prototype[inspect.custom] = Document3.prototype.inspect;
+      Document4.prototype[inspect.custom] = Document4.prototype.inspect;
     }
-    Document3.prototype.toString = function() {
+    Document4.prototype.toString = function() {
       const ret = this.inspect();
       if (typeof ret === "string") {
         return ret;
       }
       return inspect(ret);
     };
-    Document3.prototype.equals = function(doc) {
+    Document4.prototype.equals = function(doc) {
       if (!doc) {
         return false;
       }
@@ -43107,7 +43107,7 @@ var require_document2 = __commonJS({
       }
       return tid && tid.equals ? tid.equals(docid) : tid === docid;
     };
-    Document3.prototype.populate = /* @__PURE__ */ __name(async function populate() {
+    Document4.prototype.populate = /* @__PURE__ */ __name(async function populate() {
       const pop = {};
       const args = [...arguments];
       if (typeof args[args.length - 1] === "function") {
@@ -43145,7 +43145,7 @@ var require_document2 = __commonJS({
       });
       return topLevelModel.populate(this, paths);
     }, "populate");
-    Document3.prototype.$getPopulatedDocs = /* @__PURE__ */ __name(function $getPopulatedDocs() {
+    Document4.prototype.$getPopulatedDocs = /* @__PURE__ */ __name(function $getPopulatedDocs() {
       let keys = [];
       if (this.$__.populated != null) {
         keys = keys.concat(Object.keys(this.$__.populated));
@@ -43155,13 +43155,13 @@ var require_document2 = __commonJS({
         const value = this.$get(key);
         if (Array.isArray(value)) {
           result = result.concat(value);
-        } else if (value instanceof Document3) {
+        } else if (value instanceof Document4) {
           result.push(value);
         }
       }
       return result;
     }, "$getPopulatedDocs");
-    Document3.prototype.populated = function(path, val, options) {
+    Document4.prototype.populated = function(path, val, options) {
       if (val == null || val === true) {
         if (!this.$__.populated) {
           return void 0;
@@ -43190,8 +43190,8 @@ var require_document2 = __commonJS({
       }
       return val;
     };
-    Document3.prototype.$populated = Document3.prototype.populated;
-    Document3.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path, values) {
+    Document4.prototype.$populated = Document4.prototype.populated;
+    Document4.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path, values) {
       if (Array.isArray(path)) {
         path.forEach((p) => this.$assertPopulated(p, values));
         return this;
@@ -43204,7 +43204,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$assertPopulated");
-    Document3.prototype.depopulate = function(path) {
+    Document4.prototype.depopulate = function(path) {
       if (typeof path === "string") {
         path = path.indexOf(" ") === -1 ? [path] : path.split(" ");
       }
@@ -43233,7 +43233,7 @@ var require_document2 = __commonJS({
                 if (subdoc == null) {
                   continue;
                 }
-                rawArray[i] = subdoc instanceof Document3 ? subdoc._doc._id : subdoc._id;
+                rawArray[i] = subdoc instanceof Document4 ? subdoc._doc._id : subdoc._id;
               }
             } else {
               utils.setValue(key, populatedIds, this._doc);
@@ -43260,7 +43260,7 @@ var require_document2 = __commonJS({
                 if (subdoc == null) {
                   continue;
                 }
-                rawArray[i] = subdoc instanceof Document3 ? subdoc._doc._id : subdoc._id;
+                rawArray[i] = subdoc instanceof Document4 ? subdoc._doc._id : subdoc._id;
               }
             } else {
               utils.setValue(singlePath, populatedIds, this._doc);
@@ -43272,19 +43272,19 @@ var require_document2 = __commonJS({
       }
       return this;
     };
-    Document3.prototype.$__fullPath = function(path) {
+    Document4.prototype.$__fullPath = function(path) {
       return path || "";
     };
-    Document3.prototype.$getChanges = function() {
+    Document4.prototype.$getChanges = function() {
       const delta = this.$__delta();
       const changes = delta ? delta[1] : {};
       return changes;
     };
-    Document3.prototype.getChanges = function() {
+    Document4.prototype.getChanges = function() {
       utils.warn("`getChanges()` is deprecated, use `$getChanges()` instead.");
       return this.$getChanges();
     };
-    Document3.prototype.$__delta = /* @__PURE__ */ __name(function $__delta(pathsToSave, pathsToSaveSet) {
+    Document4.prototype.$__delta = /* @__PURE__ */ __name(function $__delta(pathsToSave, pathsToSaveSet) {
       const allDirty = this.$__dirty();
       let dirty = allDirty;
       let unsavedDirty = null;
@@ -43534,7 +43534,7 @@ var require_document2 = __commonJS({
       return skipVersioning[path];
     }
     __name(shouldSkipVersioning, "shouldSkipVersioning");
-    Document3.prototype.$clone = function() {
+    Document4.prototype.$clone = function() {
       const Model = this.constructor;
       const clonedDoc = new Model();
       clonedDoc.$isNew = this.$isNew;
@@ -43558,7 +43558,7 @@ var require_document2 = __commonJS({
       }
       return clonedDoc;
     };
-    Document3.prototype.$createModifiedPathsSnapshot = /* @__PURE__ */ __name(function $createModifiedPathsSnapshot() {
+    Document4.prototype.$createModifiedPathsSnapshot = /* @__PURE__ */ __name(function $createModifiedPathsSnapshot() {
       const subdocSnapshot = /* @__PURE__ */ new WeakMap();
       if (!this.$isSubdocument) {
         const subdocs = this.$getAllSubdocs();
@@ -43572,7 +43572,7 @@ var require_document2 = __commonJS({
         this.$__.version
       );
     }, "$createModifiedPathsSnapshot");
-    Document3.prototype.$restoreModifiedPathsSnapshot = /* @__PURE__ */ __name(function $restoreModifiedPathsSnapshot(snapshot) {
+    Document4.prototype.$restoreModifiedPathsSnapshot = /* @__PURE__ */ __name(function $restoreModifiedPathsSnapshot(snapshot) {
       this.$__.activePaths = snapshot.activePaths.clone();
       this.$__.version = snapshot.version;
       if (!this.$isSubdocument) {
@@ -43585,7 +43585,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$restoreModifiedPathsSnapshot");
-    Document3.prototype.$clearModifiedPaths = /* @__PURE__ */ __name(function $clearModifiedPaths() {
+    Document4.prototype.$clearModifiedPaths = /* @__PURE__ */ __name(function $clearModifiedPaths() {
       this.$__.activePaths.clear("modify");
       this.$__.activePaths.clear("init");
       this.$__.version = 0;
@@ -43597,7 +43597,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$clearModifiedPaths");
-    Document3.prototype.$__hasOnlyPrimitiveValues = /* @__PURE__ */ __name(function $__hasOnlyPrimitiveValues() {
+    Document4.prototype.$__hasOnlyPrimitiveValues = /* @__PURE__ */ __name(function $__hasOnlyPrimitiveValues() {
       if (this.$__.populated) {
         return false;
       }
@@ -43621,7 +43621,7 @@ var require_document2 = __commonJS({
       }
       return true;
     }, "$__hasOnlyPrimitiveValues");
-    Document3.prototype._applyVersionIncrement = /* @__PURE__ */ __name(function _applyVersionIncrement() {
+    Document4.prototype._applyVersionIncrement = /* @__PURE__ */ __name(function _applyVersionIncrement() {
       if (!this.$__.version) return;
       const doIncrement = VERSION_INC === (VERSION_INC & this.$__.version);
       this.$__.version = void 0;
@@ -43631,11 +43631,11 @@ var require_document2 = __commonJS({
         this.$__setValue(key, version2 + 1);
       }
     }, "_applyVersionIncrement");
-    Document3.VERSION_WHERE = VERSION_WHERE;
-    Document3.VERSION_INC = VERSION_INC;
-    Document3.VERSION_ALL = VERSION_ALL;
-    Document3.ValidationError = ValidationError;
-    module2.exports = exports2 = Document3;
+    Document4.VERSION_WHERE = VERSION_WHERE;
+    Document4.VERSION_INC = VERSION_INC;
+    Document4.VERSION_ALL = VERSION_ALL;
+    Document4.ValidationError = ValidationError;
+    module2.exports = exports2 = Document4;
   }
 });
 
@@ -43660,7 +43660,7 @@ var require_utils3 = __commonJS({
     var schemaMerge = require_merge();
     var specialProperties = require_specialProperties();
     var { trustedSymbol } = require_trusted();
-    var Document3;
+    var Document4;
     exports2.specialProperties = specialProperties;
     exports2.isMongooseArray = isMongooseArray.isMongooseArray;
     exports2.isMongooseDocumentArray = isMongooseDocumentArray.isMongooseDocumentArray;
@@ -43877,12 +43877,12 @@ var require_utils3 = __commonJS({
       return to;
     }, "merge");
     exports2.toObject = /* @__PURE__ */ __name(function toObject(obj) {
-      Document3 || (Document3 = require_document2());
+      Document4 || (Document4 = require_document2());
       let ret;
       if (obj == null) {
         return obj;
       }
-      if (obj instanceof Document3) {
+      if (obj instanceof Document4) {
         return obj.toObject();
       }
       if (Array.isArray(obj)) {
@@ -43966,7 +43966,7 @@ var require_utils3 = __commonJS({
       object2.expireAfterSeconds = typeof object2.expires !== "string" ? object2.expires : Math.round(ms(object2.expires) / 1e3);
       delete object2.expires;
     }, "expires");
-    exports2.populate = /* @__PURE__ */ __name(function populate(path, select, model3, match, options, subPopulate, justOne, count) {
+    exports2.populate = /* @__PURE__ */ __name(function populate(path, select, model4, match, options, subPopulate, justOne, count) {
       let obj = null;
       if (arguments.length === 1) {
         if (path instanceof PopulateOptions) {
@@ -43983,18 +43983,18 @@ var require_utils3 = __commonJS({
         } else {
           obj = { path };
         }
-      } else if (typeof model3 === "object") {
+      } else if (typeof model4 === "object") {
         obj = {
           path,
           select,
-          match: model3,
+          match: model4,
           options: match
         };
       } else {
         obj = {
           path,
           select,
-          model: model3,
+          model: model4,
           match,
           options,
           populate: subPopulate,
@@ -49285,28 +49285,28 @@ var require_discriminator = __commonJS({
       __name(setIntersection, "setIntersection");
     }
     __name(validateDiscriminatorSchemasForEncryption, "validateDiscriminatorSchemasForEncryption");
-    module2.exports = /* @__PURE__ */ __name(function discriminator(model3, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
+    module2.exports = /* @__PURE__ */ __name(function discriminator(model4, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
       if (!schema?.instanceOfSchema) {
         throw new Error("You must pass a valid discriminator Schema");
       }
       mergeHooks = mergeHooks == null ? true : mergeHooks;
-      if (model3.schema.discriminatorMapping && !model3.schema.discriminatorMapping.isRoot) {
+      if (model4.schema.discriminatorMapping && !model4.schema.discriminatorMapping.isRoot) {
         throw new Error('Discriminator "' + name + '" can only be a discriminator of the root model');
       }
       if (applyPlugins) {
         const applyPluginsToDiscriminators = get(
-          model3.base,
+          model4.base,
           "options.applyPluginsToDiscriminators",
           false
         ) || !mergeHooks;
-        model3.base._applyPlugins(schema, {
+        model4.base._applyPlugins(schema, {
           skipTopLevel: !applyPluginsToDiscriminators
         });
       } else if (!mergeHooks) {
         applyBuiltinPlugins(schema);
       }
-      const key = model3.schema.options.discriminatorKey;
-      const existingPath = model3.schema.path(key);
+      const key = model4.schema.options.discriminatorKey;
+      const existingPath = model4.schema.path(key);
       if (existingPath != null) {
         if (!utils.hasUserDefinedProperty(existingPath.options, "select")) {
           existingPath.options.select = true;
@@ -49319,12 +49319,12 @@ var require_discriminator = __commonJS({
           select: true,
           $skipDiscriminatorCheck: true
         };
-        baseSchemaAddition[key][model3.schema.options.typeKey] = String;
-        model3.schema.add(baseSchemaAddition);
+        baseSchemaAddition[key][model4.schema.options.typeKey] = String;
+        model4.schema.add(baseSchemaAddition);
         defineKey({
           prop: key,
-          prototype: model3.prototype,
-          options: model3.schema.options
+          prototype: model4.prototype,
+          options: model4.schema.options
         });
       }
       if (schema.path(key) && schema.path(key).options.$skipDiscriminatorCheck !== true) {
@@ -49334,7 +49334,7 @@ var require_discriminator = __commonJS({
       if (typeof tiedValue === "string" && tiedValue.length || tiedValue != null) {
         value = tiedValue;
       }
-      validateDiscriminatorSchemasForEncryption(model3.schema, schema);
+      validateDiscriminatorSchemasForEncryption(model4.schema, schema);
       function merge2(schema2, baseSchema) {
         schema2._baseSchema = baseSchema;
         if (baseSchema.paths._id && baseSchema.paths._id.options && !baseSchema.paths._id.options.auto) {
@@ -49411,7 +49411,7 @@ var require_discriminator = __commonJS({
         }
         schema2.options.id = id;
         if (mergeHooks) {
-          schema2.s.hooks = model3.schema.s.hooks.merge(schema2.s.hooks);
+          schema2.s.hooks = model4.schema.s.hooks.merge(schema2.s.hooks);
         }
         if (applyPlugins) {
           schema2.plugins = Array.prototype.slice.call(baseSchema.plugins);
@@ -49420,18 +49420,18 @@ var require_discriminator = __commonJS({
         delete schema2._requiredpaths;
       }
       __name(merge2, "merge");
-      merge2(schema, model3.schema);
-      if (!model3.discriminators) {
-        model3.discriminators = {};
+      merge2(schema, model4.schema);
+      if (!model4.discriminators) {
+        model4.discriminators = {};
       }
-      if (!model3.schema.discriminatorMapping) {
-        model3.schema.discriminatorMapping = { key, value: null, isRoot: true };
+      if (!model4.schema.discriminatorMapping) {
+        model4.schema.discriminatorMapping = { key, value: null, isRoot: true };
       }
-      if (!model3.schema.discriminators) {
-        model3.schema.discriminators = {};
+      if (!model4.schema.discriminators) {
+        model4.schema.discriminators = {};
       }
-      model3.schema.discriminators[name] = schema;
-      if (model3.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
+      model4.schema.discriminators[name] = schema;
+      if (model4.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
         throw new Error('Discriminator with name "' + name + '" already exists');
       }
       return schema;
@@ -50534,7 +50534,7 @@ var require_map2 = __commonJS({
     var SchemaMapOptions = require_schemaMapOptions();
     var SchemaType = require_schemaType();
     var MongooseError = require_mongooseError();
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var utils = require_utils3();
     var SchemaMap = class extends SchemaType {
       static {
@@ -50646,7 +50646,7 @@ var require_map2 = __commonJS({
       if (utils.hasUserDefinedProperty(obj, "of")) {
         const isInlineSchema = utils.isPOJO(obj.of) && utils.hasOwnKeys(obj.of) && !utils.hasUserDefinedProperty(obj.of, schema.options.typeKey);
         if (isInlineSchema) {
-          _mapType = { [schema.options.typeKey]: new Schema3(obj.of) };
+          _mapType = { [schema.options.typeKey]: new Schema4(obj.of) };
         } else if (utils.isPOJO(obj.of)) {
           _mapType = Object.assign({}, obj.of);
         } else {
@@ -50728,7 +50728,7 @@ var require_objectId = __commonJS({
     var isBsonType = require_isBsonType();
     var utils = require_utils3();
     var CastError = SchemaType.CastError;
-    var Document3;
+    var Document4;
     function SchemaObjectId(key, options, _schemaOptions, parentSchema) {
       const isKeyHexStr = typeof key === "string" && key.length === 24 && /^[a-f0-9]+$/i.test(key);
       const suppressWarning = options?.suppressWarning;
@@ -50823,8 +50823,8 @@ var require_objectId = __commonJS({
     __name(defaultId, "defaultId");
     defaultId.$runBeforeSetters = true;
     function resetId(v) {
-      Document3 || (Document3 = require_document2());
-      if (this instanceof Document3) {
+      Document4 || (Document4 = require_document2());
+      if (this instanceof Document4) {
         if (v === void 0) {
           const _v = new oid();
           return _v;
@@ -51543,9 +51543,9 @@ var require_schema2 = __commonJS({
     var isPOJO = utils.isPOJO;
     var id = 0;
     var numberRE = /^\d+$/;
-    function Schema3(obj, options) {
-      if (!(this instanceof Schema3)) {
-        return new Schema3(obj, options);
+    function Schema4(obj, options) {
+      if (!(this instanceof Schema4)) {
+        return new Schema4(obj, options);
       }
       this.obj = obj;
       this.paths = {};
@@ -51600,7 +51600,7 @@ var require_schema2 = __commonJS({
       }
       this.setupTimestamp(this.options.timestamps);
     }
-    __name(Schema3, "Schema");
+    __name(Schema4, "Schema");
     function aliasFields(schema, paths) {
       for (const path of Object.keys(paths)) {
         let alias = null;
@@ -51657,37 +51657,37 @@ var require_schema2 = __commonJS({
       }
     }
     __name(aliasFields, "aliasFields");
-    Schema3.prototype = Object.create(EventEmitter.prototype);
-    Schema3.prototype.constructor = Schema3;
-    Schema3.prototype.instanceOfSchema = true;
-    Object.defineProperty(Schema3.prototype, "$schemaType", {
+    Schema4.prototype = Object.create(EventEmitter.prototype);
+    Schema4.prototype.constructor = Schema4;
+    Schema4.prototype.instanceOfSchema = true;
+    Object.defineProperty(Schema4.prototype, "$schemaType", {
       configurable: false,
       enumerable: false,
       writable: true
     });
-    Object.defineProperty(Schema3.prototype, "childSchemas", {
+    Object.defineProperty(Schema4.prototype, "childSchemas", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Object.defineProperty(Schema3.prototype, "virtuals", {
+    Object.defineProperty(Schema4.prototype, "virtuals", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Schema3.prototype.obj;
-    Schema3.prototype.paths;
-    Schema3.prototype.tree;
-    Schema3.create = /* @__PURE__ */ __name(function create(definition, options) {
-      return new Schema3(definition, options);
+    Schema4.prototype.obj;
+    Schema4.prototype.paths;
+    Schema4.prototype.tree;
+    Schema4.create = /* @__PURE__ */ __name(function create(definition, options) {
+      return new Schema4(definition, options);
     }, "create");
-    Schema3.prototype.clone = function() {
+    Schema4.prototype.clone = function() {
       const s = this._clone();
       s.on("init", (v) => this.emit("init", v));
       return s;
     };
-    Schema3.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
-      Constructor = Constructor || (this.base == null ? Schema3 : this.base.Schema);
+    Schema4.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
+      Constructor = Constructor || (this.base == null ? Schema4 : this.base.Schema);
       const s = new Constructor({}, this._userProvidedOptions);
       s.base = this.base;
       s.obj = this.obj;
@@ -51755,8 +51755,8 @@ var require_schema2 = __commonJS({
       s.encryptedFields = clone2(this.encryptedFields);
       return s;
     }, "_clone");
-    Schema3.prototype.pick = function(paths, options) {
-      const newSchema = new Schema3({}, options || this.options);
+    Schema4.prototype.pick = function(paths, options) {
+      const newSchema = new Schema4({}, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError('Schema#pick() only accepts an array argument, got "' + typeof paths + '"');
       }
@@ -51785,8 +51785,8 @@ var require_schema2 = __commonJS({
       }
       return newSchema;
     };
-    Schema3.prototype.omit = function(paths, options) {
-      const newSchema = new Schema3(this, options || this.options);
+    Schema4.prototype.omit = function(paths, options) {
+      const newSchema = new Schema4(this, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError(
           'Schema#omit() only accepts an array argument, got "' + typeof paths + '"'
@@ -51795,7 +51795,7 @@ var require_schema2 = __commonJS({
       newSchema.remove(paths);
       return newSchema;
     };
-    Schema3.prototype.defaultOptions = function(options) {
+    Schema4.prototype.defaultOptions = function(options) {
       this._userProvidedOptions = options == null ? {} : clone2(options);
       const baseOptions = this.base?.options || {};
       const defaultStrict = baseOptions.strict ?? true;
@@ -51843,12 +51843,12 @@ var require_schema2 = __commonJS({
       }
       return options;
     };
-    Schema3.prototype.discriminator = function(name, schema, options) {
+    Schema4.prototype.discriminator = function(name, schema, options) {
       this._applyDiscriminators = this._applyDiscriminators || /* @__PURE__ */ new Map();
       this._applyDiscriminators.set(name, { schema, options });
       return this;
     };
-    Schema3.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
+    Schema4.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
       const hasShardKey = !!(this.options.shardKey || this.options.shardkey);
       return this.s.hooks.filter((hook) => {
         if (isSubdocument && hook.fn[symbols.skipOnSubdocuments]) {
@@ -51874,7 +51874,7 @@ var require_schema2 = __commonJS({
         return true;
       });
     }, "_getDocumentMiddleware");
-    Schema3.prototype._defaultToObjectOptions = function(json2) {
+    Schema4.prototype._defaultToObjectOptions = function(json2) {
       const path = json2 ? "toJSON" : "toObject";
       if (this._defaultToObjectOptionsMap && path in this._defaultToObjectOptionsMap) {
         return this._defaultToObjectOptionsMap[path];
@@ -51886,7 +51886,7 @@ var require_schema2 = __commonJS({
       this._defaultToObjectOptionsMap[path] = utils.hasOwnKeys(defaultOptions) ? defaultOptions : null;
       return defaultOptions;
     };
-    Schema3.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
+    Schema4.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
       if (arguments.length === 0) {
         return this.options.encryptionType;
       }
@@ -51895,8 +51895,8 @@ var require_schema2 = __commonJS({
       }
       this.options.encryptionType = encryptionType;
     }, "encryptionType");
-    Schema3.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
-      if (obj instanceof Schema3 || obj?.instanceOfSchema) {
+    Schema4.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
+      if (obj instanceof Schema4 || obj?.instanceOfSchema) {
         merge2(this, obj);
         return this;
       }
@@ -51923,7 +51923,7 @@ var require_schema2 = __commonJS({
         }
         let isMongooseTypeString = false;
         if (typeof val === "string") {
-          const MongooseTypes2 = this.base?.Schema.Types ?? Schema3.Types;
+          const MongooseTypes2 = this.base?.Schema.Types ?? Schema4.Types;
           const upperVal = val.charAt(0).toUpperCase() + val.substring(1);
           isMongooseTypeString = MongooseTypes2[upperVal] != null;
         }
@@ -51975,7 +51975,7 @@ var require_schema2 = __commonJS({
             if (this._userProvidedOptions.toJSON != null) {
               childSchemaOptions.toJSON = utils.omit(this._userProvidedOptions.toJSON, ["transform"]);
             }
-            const _schema = new Schema3(_typeDef, childSchemaOptions);
+            const _schema = new Schema4(_typeDef, childSchemaOptions);
             _schema.$implicitlyCreated = true;
             const schemaWrappedPath = Object.assign({}, val, { [typeKey]: _schema });
             this.path(prefix + key, schemaWrappedPath);
@@ -52016,23 +52016,23 @@ var require_schema2 = __commonJS({
       aliasFields(this, aliasObj);
       return this;
     }, "add");
-    Schema3.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path, fieldConfig) {
+    Schema4.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path, fieldConfig) {
       const type = this.path(path).autoEncryptionType();
       if (type == null) {
         throw new MongooseError(`Invalid BSON type for FLE field: '${path}'`);
       }
       this.encryptedFields[path] = clone2(fieldConfig);
     }, "_addEncryptedField");
-    Schema3.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path) {
+    Schema4.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path) {
       delete this.encryptedFields[path];
     }, "_removeEncryptedField");
-    Schema3.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
+    Schema4.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
       return utils.hasOwnKeys(this.encryptedFields);
     }, "_hasEncryptedFields");
-    Schema3.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path) {
+    Schema4.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path) {
       return path in this.encryptedFields;
     }, "_hasEncryptedField");
-    Schema3.prototype._buildEncryptedFields = function() {
+    Schema4.prototype._buildEncryptedFields = function() {
       const fields = Object.entries(this.encryptedFields).map(
         ([path, config2]) => {
           const bsonType = this.path(path).autoEncryptionType();
@@ -52041,7 +52041,7 @@ var require_schema2 = __commonJS({
       );
       return { fields };
     };
-    Schema3.prototype._buildSchemaMap = function() {
+    Schema4.prototype._buildSchemaMap = function() {
       function buildNestedPath(path, object2, value) {
         let i = 0, component = path[i];
         for (; i < path.length - 1; ++i, component = path[i]) {
@@ -52070,11 +52070,11 @@ var require_schema2 = __commonJS({
         properties
       };
     };
-    Schema3.prototype.alias = /* @__PURE__ */ __name(function alias(path, alias) {
+    Schema4.prototype.alias = /* @__PURE__ */ __name(function alias(path, alias) {
       aliasFields(this, { [path]: alias });
       return this;
     }, "alias");
-    Schema3.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
+    Schema4.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
       if (arguments.length > 1) {
         throw new MongooseError("removeIndex() takes only 1 argument");
       }
@@ -52096,22 +52096,22 @@ var require_schema2 = __commonJS({
       }
       return this;
     }, "removeIndex");
-    Schema3.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
+    Schema4.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
       this._indexes.length = 0;
       return this;
     }, "clearIndexes");
-    Schema3.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
+    Schema4.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
       this._searchIndexes.push(description);
       return this;
     }, "searchIndex");
-    Schema3.reserved = /* @__PURE__ */ Object.create(null);
-    Schema3.prototype.reserved = Schema3.reserved;
-    var reserved = Schema3.reserved;
+    Schema4.reserved = /* @__PURE__ */ Object.create(null);
+    Schema4.prototype.reserved = Schema4.reserved;
+    var reserved = Schema4.reserved;
     reserved["prototype"] = // EventEmitter
     reserved.emit = reserved.listeners = reserved.removeListener = // document properties and functions
     reserved.collection = reserved.errors = reserved.get = reserved.init = reserved.isModified = reserved.isNew = reserved.populated = reserved.remove = reserved.save = reserved.toObject = reserved.validate = 1;
     reserved.collection = 1;
-    Schema3.prototype.path = function(path, obj) {
+    Schema4.prototype.path = function(path, obj) {
       if (obj === void 0) {
         if (Object.hasOwn(this.paths, path)) {
           return this.paths[path];
@@ -52256,7 +52256,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema3.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
+    Schema4.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
       const childSchemas = [];
       for (const path of Object.keys(this.paths)) {
         if (typeof path !== "string") {
@@ -52334,13 +52334,13 @@ var require_schema2 = __commonJS({
       return null;
     }
     __name(getMapPath, "getMapPath");
-    Object.defineProperty(Schema3.prototype, "base", {
+    Object.defineProperty(Schema4.prototype, "base", {
       configurable: true,
       enumerable: false,
       writable: true,
       value: null
     });
-    Schema3.prototype.interpretAsType = function(path, obj, options) {
+    Schema4.prototype.interpretAsType = function(path, obj, options) {
       if (obj instanceof SchemaType) {
         if (obj.path === path) {
           return obj;
@@ -52349,7 +52349,7 @@ var require_schema2 = __commonJS({
         clone3.path = path;
         return clone3;
       }
-      const MongooseTypes2 = this.base?.Schema.Types ?? Schema3.Types;
+      const MongooseTypes2 = this.base?.Schema.Types ?? Schema4.Types;
       const Types = this.base?.Types ?? require_types();
       if (!utils.isPOJO(obj) && !(obj instanceof SchemaTypeOptions)) {
         const constructorName = utils.getFunctionName(obj.constructor);
@@ -52375,9 +52375,9 @@ var require_schema2 = __commonJS({
       if (Array.isArray(type) || type === Array || type === "array" || type === MongooseTypes2.Array) {
         let cast = type === Array || type === "array" ? obj.cast || obj.of : type[0];
         if (cast?.instanceOfSchema) {
-          if (!(cast instanceof Schema3)) {
+          if (!(cast instanceof Schema4)) {
             if (this.options._isMerging) {
-              cast = new Schema3(cast);
+              cast = new Schema4(cast);
             } else {
               throw new TypeError("Schema for array path `" + path + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path}: new Schema(...)`);
             }
@@ -52385,9 +52385,9 @@ var require_schema2 = __commonJS({
           return new MongooseTypes2.DocumentArray(path, cast, obj, null, this);
         }
         if (cast && cast[options.typeKey] && cast[options.typeKey].instanceOfSchema) {
-          if (!(cast[options.typeKey] instanceof Schema3)) {
+          if (!(cast[options.typeKey] instanceof Schema4)) {
             if (this.options._isMerging) {
-              cast[options.typeKey] = new Schema3(cast[options.typeKey]);
+              cast[options.typeKey] = new Schema4(cast[options.typeKey]);
             } else {
               throw new TypeError("Schema for array path `" + path + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path}: new Schema(...)`);
             }
@@ -52425,10 +52425,10 @@ var require_schema2 = __commonJS({
             }
             if (Object.hasOwn(this._userProvidedOptions, "_id")) {
               childSchemaOptions._id = this._userProvidedOptions._id;
-            } else if (Schema3.Types.DocumentArray.defaultOptions._id != null) {
-              childSchemaOptions._id = Schema3.Types.DocumentArray.defaultOptions._id;
+            } else if (Schema4.Types.DocumentArray.defaultOptions._id != null) {
+              childSchemaOptions._id = Schema4.Types.DocumentArray.defaultOptions._id;
             }
-            const childSchema = new Schema3(castFromTypeKey, childSchemaOptions);
+            const childSchema = new Schema4(castFromTypeKey, childSchemaOptions);
             childSchema.$implicitlyCreated = true;
             return new MongooseTypes2.DocumentArray(path, childSchema, obj, null, this);
           } else {
@@ -52488,7 +52488,7 @@ var require_schema2 = __commonJS({
       const schemaType = new MongooseTypes2[name](path, obj, options, this);
       return schemaType;
     };
-    Schema3.prototype.eachPath = function(fn) {
+    Schema4.prototype.eachPath = function(fn) {
       const keys = Object.keys(this.paths);
       const len = keys.length;
       for (let i = 0; i < len; ++i) {
@@ -52496,7 +52496,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema3.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
+    Schema4.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
       if (this._requiredpaths && !invalidate) {
         return this._requiredpaths;
       }
@@ -52512,7 +52512,7 @@ var require_schema2 = __commonJS({
       this._requiredpaths = ret;
       return this._requiredpaths;
     }, "requiredPaths");
-    Schema3.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
+    Schema4.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
       if (this._pathsWithTransforms !== void 0 && !invalidate) {
         return this._pathsWithTransforms;
       }
@@ -52529,14 +52529,14 @@ var require_schema2 = __commonJS({
       this._pathsWithTransforms = ret.length ? ret : null;
       return this._pathsWithTransforms;
     }, "pathsWithTransforms");
-    Schema3.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
+    Schema4.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
       if (this._indexedpaths) {
         return this._indexedpaths;
       }
       this._indexedpaths = this.indexes();
       return this._indexedpaths;
     }, "indexedPaths");
-    Schema3.prototype.pathType = function(path) {
+    Schema4.prototype.pathType = function(path) {
       if (Object.hasOwn(this.paths, path)) {
         return "real";
       }
@@ -52563,7 +52563,7 @@ var require_schema2 = __commonJS({
       }
       return "adhocOrUndefined";
     };
-    Schema3.prototype.hasMixedParent = function(path) {
+    Schema4.prototype.hasMixedParent = function(path) {
       const subpaths = path.split(/\./g);
       path = "";
       for (let i = 0; i < subpaths.length; ++i) {
@@ -52574,7 +52574,7 @@ var require_schema2 = __commonJS({
       }
       return null;
     };
-    Schema3.prototype.setupTimestamp = function(timestamps) {
+    Schema4.prototype.setupTimestamp = function(timestamps) {
       return setupTimestamps(this, timestamps);
     };
     function getPositionalPathType(self2, path, cleanPath) {
@@ -52630,11 +52630,11 @@ var require_schema2 = __commonJS({
       return self2.subpaths[cleanPath];
     }
     __name(getPositionalPath, "getPositionalPath");
-    Schema3.prototype.queue = function(name, args) {
+    Schema4.prototype.queue = function(name, args) {
       this.callQueue.push([name, args]);
       return this;
     };
-    Schema3.prototype.pre = function(name) {
+    Schema4.prototype.pre = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52654,7 +52654,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.pre.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema3.prototype.post = function(name) {
+    Schema4.prototype.post = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52674,7 +52674,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.post.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema3.prototype.plugin = function(fn, opts) {
+    Schema4.prototype.plugin = function(fn, opts) {
       if (typeof fn !== "function") {
         throw new MongooseError('First param to `schema.plugin()` must be a function, got "' + typeof fn + '"');
       }
@@ -52689,7 +52689,7 @@ var require_schema2 = __commonJS({
       fn(this, opts);
       return this;
     };
-    Schema3.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
+    Schema4.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
       if (typeof name !== "string") {
         throw new MongooseError('First param to `schema.queryHelper()` must be a string, got "' + typeof name + '"');
       }
@@ -52699,7 +52699,7 @@ var require_schema2 = __commonJS({
       this.query[name] = fn;
       return this;
     }, "queryHelper");
-    Schema3.prototype.method = function(name, fn, options) {
+    Schema4.prototype.method = function(name, fn, options) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.methods[i] = name[i];
@@ -52711,7 +52711,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema3.prototype.static = function(name, fn) {
+    Schema4.prototype.static = function(name, fn) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.statics[i] = name[i];
@@ -52721,7 +52721,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema3.prototype.index = function(fields, options) {
+    Schema4.prototype.index = function(fields, options) {
       fields || (fields = {});
       options || (options = {});
       if (options.expires) {
@@ -52742,7 +52742,7 @@ var require_schema2 = __commonJS({
       this._indexes.push([fields, options]);
       return this;
     };
-    Schema3.prototype.set = function(key, value, tags) {
+    Schema4.prototype.set = function(key, value, tags) {
       if (arguments.length === 1) {
         return this.options[key];
       }
@@ -52807,11 +52807,11 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_propagateOptionsToImplicitlyCreatedSchemas, "_propagateOptionsToImplicitlyCreatedSchemas");
-    Schema3.prototype.get = function(key) {
+    Schema4.prototype.get = function(key) {
       return this.options[key];
     };
     var indexTypes = "2d 2dsphere hashed text".split(" ");
-    Object.defineProperty(Schema3, "indexTypes", {
+    Object.defineProperty(Schema4, "indexTypes", {
       get: /* @__PURE__ */ __name(function() {
         return indexTypes;
       }, "get"),
@@ -52819,10 +52819,10 @@ var require_schema2 = __commonJS({
         throw new MongooseError("Cannot overwrite Schema.indexTypes");
       }, "set")
     });
-    Schema3.prototype.indexes = function() {
+    Schema4.prototype.indexes = function() {
       return getIndexes(this);
     };
-    Schema3.prototype.virtual = function(name, options) {
+    Schema4.prototype.virtual = function(name, options) {
       if (name instanceof VirtualType || getConstructorName(name) === "VirtualType") {
         return this.virtual(name.path, name.options);
       }
@@ -52928,10 +52928,10 @@ var require_schema2 = __commonJS({
       }
       return virtuals[name];
     };
-    Schema3.prototype.virtualpath = function(name) {
+    Schema4.prototype.virtualpath = function(name) {
       return Object.hasOwn(this.virtuals, name) ? this.virtuals[name] : null;
     };
-    Schema3.prototype.remove = function(path) {
+    Schema4.prototype.remove = function(path) {
       if (typeof path === "string") {
         path = [path];
       }
@@ -53000,7 +53000,7 @@ var require_schema2 = __commonJS({
       delete branch[last];
     }
     __name(_deletePath, "_deletePath");
-    Schema3.prototype.removeVirtual = function(path) {
+    Schema4.prototype.removeVirtual = function(path) {
       if (typeof path === "string") {
         path = [path];
       }
@@ -53022,27 +53022,27 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema3.prototype.loadClass = function(model3, virtualsOnly) {
-      if (model3 === Object.prototype || model3 === Function.prototype || Object.hasOwn(model3.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model3.prototype, "$isMongooseDocumentPrototype")) {
+    Schema4.prototype.loadClass = function(model4, virtualsOnly) {
+      if (model4 === Object.prototype || model4 === Function.prototype || Object.hasOwn(model4.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model4.prototype, "$isMongooseDocumentPrototype")) {
         return this;
       }
-      this.loadClass(Object.getPrototypeOf(model3), virtualsOnly);
+      this.loadClass(Object.getPrototypeOf(model4), virtualsOnly);
       if (!virtualsOnly) {
-        Object.getOwnPropertyNames(model3).forEach(function(name) {
+        Object.getOwnPropertyNames(model4).forEach(function(name) {
           if (name.match(/^(length|name|prototype|constructor|__proto__)$/)) {
             return;
           }
-          const prop = Object.getOwnPropertyDescriptor(model3, name);
+          const prop = Object.getOwnPropertyDescriptor(model4, name);
           if (Object.hasOwn(prop, "value")) {
             this.static(name, prop.value);
           }
         }, this);
       }
-      Object.getOwnPropertyNames(model3.prototype).forEach(function(name) {
+      Object.getOwnPropertyNames(model4.prototype).forEach(function(name) {
         if (name.match(/^(constructor)$/)) {
           return;
         }
-        const method = Object.getOwnPropertyDescriptor(model3.prototype, name);
+        const method = Object.getOwnPropertyDescriptor(model4.prototype, name);
         if (!virtualsOnly) {
           if (typeof method.value === "function") {
             this.method(name, method.value);
@@ -53063,7 +53063,7 @@ var require_schema2 = __commonJS({
       }, this);
       return this;
     };
-    Schema3.prototype._getSchema = function(path) {
+    Schema4.prototype._getSchema = function(path) {
       const _this = this;
       const pathschema = _this.path(path);
       const resultPath = [];
@@ -53140,7 +53140,7 @@ var require_schema2 = __commonJS({
       }
       return search(parts, _this);
     };
-    Schema3.prototype._getPathType = function(path) {
+    Schema4.prototype._getPathType = function(path) {
       const _this = this;
       const pathschema = _this.path(path);
       if (pathschema) {
@@ -53180,7 +53180,7 @@ var require_schema2 = __commonJS({
       __name(search, "search");
       return search(path.split("."), _this);
     };
-    Schema3.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
+    Schema4.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
       if (!this._duplicateKeyErrorMessagesByPath) {
         return error62;
       }
@@ -53205,7 +53205,7 @@ var require_schema2 = __commonJS({
       return piece.startsWith("$[") && piece.endsWith("]");
     }
     __name(isArrayFilter, "isArrayFilter");
-    Schema3.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
+    Schema4.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
       this.plugin(idGetter, { deduplicate: true });
       _precomputeOptimisticConcurrency(this);
       this.pathsWithTransforms();
@@ -53222,7 +53222,7 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_precomputeOptimisticConcurrency, "_precomputeOptimisticConcurrency");
-    Schema3.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
+    Schema4.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
       const useBsonType = options?.useBsonType ?? false;
       const result = useBsonType ? { required: [], properties: {} } : { type: "object", required: [], properties: {} };
       for (const path of Object.keys(this.paths)) {
@@ -53266,8 +53266,8 @@ var require_schema2 = __commonJS({
       }
       return result;
     }, "toJSONSchema");
-    module2.exports = exports2 = Schema3;
-    Schema3.Types = MongooseTypes = require_schema();
+    module2.exports = exports2 = Schema4;
+    Schema4.Types = MongooseTypes = require_schema();
     exports2.ObjectId = MongooseTypes.ObjectId;
   }
 });
@@ -54170,9 +54170,9 @@ var require_castUpdate = __commonJS({
     }
     __name(walkUpdatePath, "walkUpdatePath");
     function _appendError(error62, query, key, aggregatedError) {
-      const model3 = query?.modelName != null ? query : query?.model;
-      if (model3 != null && typeof error62.setModel === "function") {
-        error62.setModel(model3);
+      const model4 = query?.modelName != null ? query : query?.model;
+      if (model4 != null && typeof error62.setModel === "function") {
+        error62.setModel(model4);
       }
       if (typeof query !== "object" || !query.options.multipleCastError) {
         throw error62;
@@ -54396,7 +54396,7 @@ var require_castArrayFilters = __commonJS({
         query
       );
     }, "castArrayFilters");
-    function castArrayFiltersForUpdate(arrayFilters, update, schema, model3, options, context) {
+    function castArrayFiltersForUpdate(arrayFilters, update, schema, model4, options, context) {
       if (!Array.isArray(arrayFilters)) {
         return;
       }
@@ -54405,8 +54405,8 @@ var require_castArrayFilters = __commonJS({
       if (options.strict != null) {
         strictQuery = options.strict;
       }
-      if (model3?.base.options.strictQuery != null) {
-        strictQuery = model3.base.options.strictQuery;
+      if (model4?.base.options.strictQuery != null) {
+        strictQuery = model4.base.options.strictQuery;
       }
       if (schema._userProvidedOptions.strictQuery != null) {
         strictQuery = schema._userProvidedOptions.strictQuery;
@@ -54720,15 +54720,15 @@ var require_castBulkWrite = __commonJS({
       }
     }, "castBulkWrite");
     module2.exports.castInsertOne = /* @__PURE__ */ __name(async function castInsertOne(originalModel, insertOne, options) {
-      const model3 = decideModelByObject(originalModel, insertOne["document"]);
-      const doc = new model3(insertOne["document"]);
-      if (model3.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
+      const model4 = decideModelByObject(originalModel, insertOne["document"]);
+      const doc = new model4(insertOne["document"]);
+      if (model4.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model3?.schema?.options?.versionKey;
+      const versionKey = model4?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54746,27 +54746,27 @@ var require_castBulkWrite = __commonJS({
       if (!updateOne["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model3 = decideModelByObject(originalModel, updateOne["filter"]);
-      const schema = model3.schema;
-      const strict = options.strict ?? model3.schema.options.strict;
+      const model4 = decideModelByObject(originalModel, updateOne["filter"]);
+      const schema = model4.schema;
+      const strict = options.strict ?? model4.schema.options.strict;
       const update = clone2(updateOne["update"]);
       _addDiscriminatorToObject(schema, updateOne["filter"]);
       const doInitTimestamps = getTimestampsOpt(updateOne, options);
-      if (model3.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model3.schema.$timestamps.createdAt;
-        const updatedAt = model3.schema.$timestamps.updatedAt;
+      if (model4.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model4.schema.$timestamps.createdAt;
+        const updatedAt = model4.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateOne.timestamps,
           overwriteImmutable: updateOne.overwriteImmutable
         }, updateOne.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model3.schema);
+        applyTimestampsToChildren(now, update, model4.schema);
       }
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateOne.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateOne["filter"], model3.schema, update, {
+        setDefaultsOnInsert(updateOne["filter"], model4.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateOne.upsert
         });
@@ -54774,23 +54774,23 @@ var require_castBulkWrite = __commonJS({
       decorateUpdateWithVersionKey(
         update,
         updateOne,
-        model3.schema.options.versionKey
+        model4.schema.options.versionKey
       );
-      updateOne["filter"] = _castFilter(model3, updateOne["filter"], {
+      updateOne["filter"] = _castFilter(model4, updateOne["filter"], {
         strict,
         upsert: updateOne.upsert
       });
       if (Array.isArray(updateOne.arrayFilters)) {
         updateOne.arrayFilters = clone2(updateOne.arrayFilters);
-        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model3, options);
+        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model4, options);
       }
-      updateOne["update"] = castUpdate(model3.schema, update, {
+      updateOne["update"] = castUpdate(model4.schema, update, {
         strict,
         upsert: updateOne.upsert,
         arrayFilters: updateOne.arrayFilters,
         overwriteDiscriminatorKey: updateOne.overwriteDiscriminatorKey,
         overwriteImmutable: updateOne.overwriteImmutable
-      }, model3, updateOne["filter"]);
+      }, model4, updateOne["filter"]);
       return updateOne;
     }, "castUpdateOne");
     module2.exports.castUpdateMany = /* @__PURE__ */ __name(function castUpdateMany(originalModel, updateMany, options, now) {
@@ -54800,69 +54800,69 @@ var require_castBulkWrite = __commonJS({
       if (!updateMany["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model3 = decideModelByObject(originalModel, updateMany["filter"]);
-      const schema = model3.schema;
-      const strict = options.strict ?? model3.schema.options.strict;
+      const model4 = decideModelByObject(originalModel, updateMany["filter"]);
+      const schema = model4.schema;
+      const strict = options.strict ?? model4.schema.options.strict;
       const update = clone2(updateMany["update"]);
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateMany.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateMany["filter"], model3.schema, update, {
+        setDefaultsOnInsert(updateMany["filter"], model4.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateMany.upsert
         });
       }
       const doInitTimestamps = getTimestampsOpt(updateMany, options);
-      if (model3.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model3.schema.$timestamps.createdAt;
-        const updatedAt = model3.schema.$timestamps.updatedAt;
+      if (model4.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model4.schema.$timestamps.createdAt;
+        const updatedAt = model4.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateMany.timestamps,
           overwriteImmutable: updateMany.overwriteImmutable
         }, updateMany.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model3.schema);
+        applyTimestampsToChildren(now, update, model4.schema);
       }
       _addDiscriminatorToObject(schema, updateMany["filter"]);
       decorateUpdateWithVersionKey(
         update,
         updateMany,
-        model3.schema.options.versionKey
+        model4.schema.options.versionKey
       );
-      updateMany["filter"] = _castFilter(model3, updateMany["filter"], {
+      updateMany["filter"] = _castFilter(model4, updateMany["filter"], {
         strict,
         upsert: updateMany.upsert
       });
       if (Array.isArray(updateMany.arrayFilters)) {
         updateMany.arrayFilters = clone2(updateMany.arrayFilters);
-        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model3, options);
+        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model4, options);
       }
-      updateMany["update"] = castUpdate(model3.schema, update, {
+      updateMany["update"] = castUpdate(model4.schema, update, {
         strict,
         upsert: updateMany.upsert,
         arrayFilters: updateMany.arrayFilters,
         overwriteDiscriminatorKey: updateMany.overwriteDiscriminatorKey,
         overwriteImmutable: updateMany.overwriteImmutable
-      }, model3, updateMany["filter"]);
+      }, model4, updateMany["filter"]);
     }, "castUpdateMany");
     module2.exports.castReplaceOne = /* @__PURE__ */ __name(async function castReplaceOne(originalModel, replaceOne, options) {
-      const model3 = decideModelByObject(originalModel, replaceOne["filter"]);
-      const schema = model3.schema;
-      const strict = options.strict ?? model3.schema.options.strict;
+      const model4 = decideModelByObject(originalModel, replaceOne["filter"]);
+      const schema = model4.schema;
+      const strict = options.strict ?? model4.schema.options.strict;
       _addDiscriminatorToObject(schema, replaceOne["filter"]);
-      replaceOne["filter"] = _castFilter(model3, replaceOne["filter"], {
+      replaceOne["filter"] = _castFilter(model4, replaceOne["filter"], {
         strict,
         upsert: replaceOne.upsert
       });
-      const doc = new model3(replaceOne["replacement"], strict, { skipId: true });
-      if (model3.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
+      const doc = new model4(replaceOne["replacement"], strict, { skipId: true });
+      if (model4.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model3?.schema?.options?.versionKey;
+      const versionKey = model4?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54875,16 +54875,16 @@ var require_castBulkWrite = __commonJS({
       replaceOne["replacement"] = replaceOne["replacement"].toBSON();
     }, "castReplaceOne");
     module2.exports.castDeleteOne = /* @__PURE__ */ __name(function castDeleteOne(originalModel, deleteOne) {
-      const model3 = decideModelByObject(originalModel, deleteOne["filter"]);
-      const schema = model3.schema;
+      const model4 = decideModelByObject(originalModel, deleteOne["filter"]);
+      const schema = model4.schema;
       _addDiscriminatorToObject(schema, deleteOne["filter"]);
-      deleteOne["filter"] = _castFilter(model3, deleteOne["filter"]);
+      deleteOne["filter"] = _castFilter(model4, deleteOne["filter"]);
     }, "castDeleteOne");
     module2.exports.castDeleteMany = /* @__PURE__ */ __name(function castDeleteMany(originalModel, deleteMany) {
-      const model3 = decideModelByObject(originalModel, deleteMany["filter"]);
-      const schema = model3.schema;
+      const model4 = decideModelByObject(originalModel, deleteMany["filter"]);
+      const schema = model4.schema;
       _addDiscriminatorToObject(schema, deleteMany["filter"]);
-      deleteMany["filter"] = _castFilter(model3, deleteMany["filter"]);
+      deleteMany["filter"] = _castFilter(model4, deleteMany["filter"]);
     }, "castDeleteMany");
     module2.exports.cast = {
       insertOne: module2.exports.castInsertOne,
@@ -54894,12 +54894,12 @@ var require_castBulkWrite = __commonJS({
       deleteOne: module2.exports.castDeleteOne,
       deleteMany: module2.exports.castDeleteMany
     };
-    function _castFilter(model3, filter, options) {
+    function _castFilter(model4, filter, options) {
       try {
-        return cast(model3.schema, filter, options);
+        return cast(model4.schema, filter, options);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model3);
+          err.setModel(model4);
         }
         throw err;
       }
@@ -54914,12 +54914,12 @@ var require_castBulkWrite = __commonJS({
       }
     }
     __name(_addDiscriminatorToObject, "_addDiscriminatorToObject");
-    function decideModelByObject(model3, object2) {
-      const discriminatorKey = model3.schema.options.discriminatorKey;
+    function decideModelByObject(model4, object2) {
+      const discriminatorKey = model4.schema.options.discriminatorKey;
       if (object2 != null && Object.hasOwn(object2, discriminatorKey)) {
-        model3 = getDiscriminatorByValue(model3.discriminators, object2[discriminatorKey]) || model3;
+        model4 = getDiscriminatorByValue(model4.discriminators, object2[discriminatorKey]) || model4;
       }
-      return model3;
+      return model4;
     }
     __name(decideModelByObject, "decideModelByObject");
     function getTimestampsOpt(opCommand, options) {
@@ -54955,7 +54955,7 @@ var require_connection2 = __commonJS({
     "use strict";
     var ChangeStream = require_changeStream();
     var EventEmitter = require("events").EventEmitter;
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var STATES = require_connectionState();
     var MongooseBulkWriteError = require_bulkWriteError();
     var MongooseError = require_error2();
@@ -55220,15 +55220,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model3 of Object.values(this.models)) {
+      for (const model4 of Object.values(this.models)) {
         try {
-          result[model3.modelName] = await model3.createCollection({});
+          result[model4.modelName] = await model4.createCollection({});
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model3.modelName] = err;
+            errorsMap[model4.modelName] = err;
             break;
           } else {
-            result[model3.modelName] = err;
+            result[model4.modelName] = err;
           }
         }
       }
@@ -55375,8 +55375,8 @@ var require_connection2 = __commonJS({
         throw new MongooseError("Connection.prototype.dropDatabase() no longer accepts a callback");
       }
       await this._waitForConnect();
-      for (const model3 of Object.values(this.models)) {
-        delete model3.$init;
+      for (const model4 of Object.values(this.models)) {
+        delete model4.$init;
       }
       return this.db.dropDatabase();
     }, "dropDatabase");
@@ -55444,8 +55444,8 @@ var require_connection2 = __commonJS({
         }
         throw err;
       });
-      for (const model3 of Object.values(this.models)) {
-        model3.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model4 of Object.values(this.models)) {
+        model4.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       if (_fireAndForget) {
@@ -55512,8 +55512,8 @@ var require_connection2 = __commonJS({
       if (this._lastHeartbeatAt != null) {
         this._lastHeartbeatAt = null;
       }
-      for (const model3 of Object.values(this.models)) {
-        delete model3.$init;
+      for (const model4 of Object.values(this.models)) {
+        delete model4.$init;
       }
       return this._close(force, false);
     }, "close");
@@ -55611,7 +55611,7 @@ var require_connection2 = __commonJS({
       this.plugins.push([fn, opts]);
       return this;
     };
-    Connection.prototype.model = /* @__PURE__ */ __name(function model3(name, schema, collection, options) {
+    Connection.prototype.model = /* @__PURE__ */ __name(function model4(name, schema, collection, options) {
       if (!(this instanceof Connection)) {
         throw new MongooseError("`connection.model()` should not be run with `new`. If you are doing `new db.model(foo)(bar)`, use `db.model(foo)(bar)` instead");
       }
@@ -55626,7 +55626,7 @@ var require_connection2 = __commonJS({
       }
       if (utils.isObject(schema)) {
         if (!schema.instanceOfSchema) {
-          schema = new Schema3(schema);
+          schema = new Schema4(schema);
         } else if (!(schema instanceof this.base.Schema)) {
           schema = schema._clone(this.base.Schema);
         }
@@ -55642,52 +55642,52 @@ var require_connection2 = __commonJS({
         }
         return this.models[name];
       }
-      let model4;
+      let model5;
       if (schema?.instanceOfSchema) {
         applyPlugins(schema, this.plugins, null, "$connectionPluginsApplied");
-        model4 = this.base._model(fn || name, schema, collection, opts);
+        model5 = this.base._model(fn || name, schema, collection, opts);
         if (!this.models[name]) {
-          this.models[name] = model4;
+          this.models[name] = model5;
         }
-        model4.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+        model5.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
-        return model4;
+        return model5;
       }
       if (this.models[name] && collection) {
-        model4 = this.models[name];
-        schema = model4.prototype.schema;
-        const sub = model4.__subclass(this, schema, collection);
+        model5 = this.models[name];
+        schema = model5.prototype.schema;
+        const sub = model5.__subclass(this, schema, collection);
         return sub;
       }
       if (arguments.length === 1) {
-        model4 = this.models[name];
-        if (!model4) {
+        model5 = this.models[name];
+        if (!model5) {
           throw new MongooseError.MissingSchemaError(name);
         }
-        return model4;
+        return model5;
       }
-      if (!model4) {
+      if (!model5) {
         throw new MongooseError.MissingSchemaError(name);
       }
-      if (this === model4.prototype.db && (!collection || collection === model4.collection.name)) {
+      if (this === model5.prototype.db && (!collection || collection === model5.collection.name)) {
         if (!this.models[name]) {
-          this.models[name] = model4;
+          this.models[name] = model5;
         }
-        return model4;
+        return model5;
       }
-      this.models[name] = model4.__subclass(this, schema, collection);
+      this.models[name] = model5.__subclass(this, schema, collection);
       return this.models[name];
     }, "model");
     Connection.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       if (typeof name === "string") {
-        const model3 = this.model(name);
-        if (model3 == null) {
+        const model4 = this.model(name);
+        if (model4 == null) {
           return this;
         }
-        const collectionName = model3.collection.name;
+        const collectionName = model4.collection.name;
         delete this.models[name];
         delete this.collections[collectionName];
-        this.emit("deleteModel", model3);
+        this.emit("deleteModel", model4);
       } else if (name instanceof RegExp) {
         const pattern = name;
         const names = this.modelNames();
@@ -55742,15 +55742,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model3 of Object.values(this.models)) {
+      for (const model4 of Object.values(this.models)) {
         try {
-          result[model3.modelName] = await model3.syncIndexes(options);
+          result[model4.modelName] = await model4.syncIndexes(options);
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model3.modelName] = err;
+            errorsMap[model4.modelName] = err;
             break;
           } else {
-            result[model3.modelName] = err;
+            result[model4.modelName] = err;
           }
         }
       }
@@ -55992,7 +55992,7 @@ var require_connection3 = __commonJS({
     var processConnectionOptions = require_processConnectionOptions();
     var setTimeout2 = require_timers().setTimeout;
     var utils = require_utils3();
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var Date2 = globalThis.Date;
     function NativeConnection() {
       MongooseConnection.apply(this, arguments);
@@ -56182,12 +56182,12 @@ var require_connection3 = __commonJS({
     NativeConnection.prototype._buildEncryptionSchemas = function() {
       const qeMappings = {};
       const csfleMappings = {};
-      const encryptedModels = Object.values(this.models).filter((model3) => model3.schema._hasEncryptedFields());
-      for (const model3 of encryptedModels) {
-        const { schema, collection: { collectionName } } = model3;
+      const encryptedModels = Object.values(this.models).filter((model4) => model4.schema._hasEncryptedFields());
+      for (const model4 of encryptedModels) {
+        const { schema, collection: { collectionName } } = model4;
         const namespace = `${this.$dbName}.${collectionName}`;
         const mappings = schema.encryptionType() === "csfle" ? csfleMappings : qeMappings;
-        mappings[namespace] ??= new Schema3({}, { encryptionType: schema.encryptionType() });
+        mappings[namespace] ??= new Schema4({}, { encryptionType: schema.encryptionType() });
         const isNonRootDiscriminator = schema.discriminatorMapping && !schema.discriminatorMapping.isRoot;
         if (isNonRootDiscriminator) {
           const rootSchema = schema._baseSchema;
@@ -56222,8 +56222,8 @@ var require_connection3 = __commonJS({
       }
       this._connectionString = client.s.url;
       _setClient(this, client, {}, client.s.options.dbName);
-      for (const model3 of Object.values(this.models)) {
-        model3.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model4 of Object.values(this.models)) {
+        model4.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       return this;
@@ -56614,10 +56614,10 @@ var require_queryCursor = __commonJS({
       this.skipped = false;
       this.query = query;
       this._closed = false;
-      const model3 = query.model;
+      const model4 = query.model;
       this._mongooseOptions = {};
       this._transforms = [];
-      this.model = model3;
+      this.model = model4;
       this.options = {};
       this._postMiddlewareFilter = null;
       const onPreComplete = /* @__PURE__ */ __name((err) => {
@@ -56656,8 +56656,8 @@ var require_queryCursor = __commonJS({
         if (query._mongooseOptions._asyncIterator) {
           this._mongooseOptions._asyncIterator = true;
         }
-        if (model3.collection._shouldBufferCommands() && model3.collection.buffer) {
-          model3.collection.queue.push([
+        if (model4.collection._shouldBufferCommands() && model4.collection.buffer) {
+          model4.collection.queue.push([
             () => _getRawCursor(query, this)
           ]);
         } else {
@@ -56665,7 +56665,7 @@ var require_queryCursor = __commonJS({
         }
       }, "onPreComplete");
       const preFilter = buildMiddlewareFilter(query.options, "pre");
-      model3.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model4.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
     }
     __name(QueryCursor, "QueryCursor");
     util.inherits(QueryCursor, Readable);
@@ -56949,8 +56949,8 @@ var require_queryCursor = __commonJS({
       if (ctx.query._mongooseOptions.lean) {
         return ctx.model.hooks.execPost("find", ctx.query, [[doc]], { filter: ctx._postMiddlewareFilter }).then(() => callback(null, doc), (err) => callback(err));
       }
-      const { model: model3, _fields, _userProvidedFields, options } = ctx.query;
-      helpers.createModelAndInit(model3, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
+      const { model: model4, _fields, _userProvidedFields, options } = ctx.query;
+      helpers.createModelAndInit(model4, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
@@ -57498,11 +57498,11 @@ var require_node2 = __commonJS({
 var require_collection5 = __commonJS({
   "node_modules/mquery/lib/collection/index.js"(exports2, module2) {
     "use strict";
-    var env = require_env();
-    if ("unknown" == env.type) {
+    var env3 = require_env();
+    if ("unknown" == env3.type) {
       throw new Error("Unknown environment");
     }
-    module2.exports = env.isNode ? require_node2() : env.isMongo ? require_collection4() : require_collection4();
+    module2.exports = env3.isNode ? require_node2() : env3.isMongo ? require_collection4() : require_collection4();
   }
 });
 
@@ -58955,7 +58955,7 @@ var require_query = __commonJS({
       ["findOneAndDelete", "_findOneAndDelete"]
     ]);
     var queryUpdateSymbol = /* @__PURE__ */ Symbol("mongoose#Query#update");
-    function Query(conditions, options, model3, collection) {
+    function Query(conditions, options, model4, collection) {
       if (!this._mongooseOptions) {
         this._mongooseOptions = {};
       }
@@ -58970,9 +58970,9 @@ var require_query = __commonJS({
       if (collection) {
         this.mongooseCollection = collection;
       }
-      if (model3) {
-        this.model = model3;
-        this.schema = model3.schema;
+      if (model4) {
+        this.model = model4;
+        this.schema = model4.schema;
       }
       if (this.model?._mapreduce) {
         this.lean();
@@ -59036,16 +59036,16 @@ var require_query = __commonJS({
     });
     Query.use$geoWithin = mquery.use$geoWithin;
     Query.prototype.toConstructor = /* @__PURE__ */ __name(function toConstructor() {
-      const model3 = this.model;
+      const model4 = this.model;
       const coll = this.mongooseCollection;
       const CustomQuery = /* @__PURE__ */ __name(function(criteria, options2) {
         if (!(this instanceof CustomQuery)) {
           return new CustomQuery(criteria, options2);
         }
         this._mongooseOptions = clone2(p._mongooseOptions);
-        Query.call(this, criteria, options2 || null, model3, coll);
+        Query.call(this, criteria, options2 || null, model4, coll);
       }, "CustomQuery");
-      util.inherits(CustomQuery, model3.Query);
+      util.inherits(CustomQuery, model4.Query);
       const p = CustomQuery.prototype;
       p.options = {};
       const options = Object.assign({}, this.options);
@@ -59067,9 +59067,9 @@ var require_query = __commonJS({
       return CustomQuery;
     }, "toConstructor");
     Query.prototype.clone = function() {
-      const model3 = this.model;
+      const model4 = this.model;
       const collection = this.mongooseCollection;
-      const q = new this.model.Query({}, {}, model3, collection);
+      const q = new this.model.Query({}, {}, model4, collection);
       const options = Object.assign({}, this.options);
       if (options.sort != null) {
         q.sort(options.sort);
@@ -59535,20 +59535,20 @@ var require_query = __commonJS({
       }
       return ret;
     };
-    Query.prototype._optionsForExec = function(model3) {
+    Query.prototype._optionsForExec = function(model4) {
       const options = clone2(this.options);
       delete options.populate;
-      model3 = model3 || this.model;
-      if (!model3) {
+      model4 = model4 || this.model;
+      if (!model4) {
         return options;
       }
-      applyReadConcern(model3.schema, options);
-      applyWriteConcern(model3.schema, options);
+      applyReadConcern(model4.schema, options);
+      applyWriteConcern(model4.schema, options);
       const asyncLocalStorage = this.model?.db?.base.transactionAsyncLocalStorage?.getStore();
       if (!Object.hasOwn(this.options, "session") && asyncLocalStorage?.session != null) {
         options.session = asyncLocalStorage.session;
       }
-      const readPreference = model3?.schema?.options?.read;
+      const readPreference = model4?.schema?.options?.read;
       if (!("readPreference" in options) && readPreference) {
         options.readPreference = readPreference;
       }
@@ -59839,7 +59839,7 @@ var require_query = __commonJS({
       if (!doc && !this.options.includeResultMetadata) {
         return callback(null, null);
       }
-      const model3 = this.model;
+      const model4 = this.model;
       const userProvidedFields = this._userProvidedFields || {};
       const mongooseOptions = this._mongooseOptions;
       const options = this.options;
@@ -59856,8 +59856,8 @@ var require_query = __commonJS({
             delete doc[versionKey];
           }
         }
-        return mongooseOptions.lean ? _completeOneLean(model3.schema, doc, null, res, options, callback) : completeOne(
-          model3,
+        return mongooseOptions.lean ? _completeOneLean(model4.schema, doc, null, res, options, callback) : completeOne(
+          model4,
           doc,
           res,
           options,
@@ -59869,20 +59869,20 @@ var require_query = __commonJS({
       }
       const pop = helpers.preparePopulationOptionsMQ(this, this._mongooseOptions);
       if (mongooseOptions.lean) {
-        return model3.populate(doc, pop).then(
+        return model4.populate(doc, pop).then(
           (doc2) => {
-            _completeOneLean(model3.schema, doc2, null, res, options, callback);
+            _completeOneLean(model4.schema, doc2, null, res, options, callback);
           },
           (error62) => {
             callback(error62);
           }
         );
       }
-      completeOne(model3, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
+      completeOne(model4, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
-        model3.populate(doc2, pop).then((res2) => {
+        model4.populate(doc2, pop).then((res2) => {
           callback(null, res2);
         }, (err2) => {
           callback(err2);
@@ -59890,10 +59890,10 @@ var require_query = __commonJS({
       });
     };
     Query.prototype._completeMany = /* @__PURE__ */ __name(async function _completeMany(docs, fields, userProvidedFields, opts) {
-      const model3 = this.model;
+      const model4 = this.model;
       return Promise.all(docs.map((doc) => new Promise((resolve, reject) => {
         const rawDoc = doc;
-        doc = helpers.createModel(model3, doc, fields, userProvidedFields, opts);
+        doc = helpers.createModel(model4, doc, fields, userProvidedFields, opts);
         if (opts.session != null) {
           doc.$session(opts.session);
         }
@@ -60162,12 +60162,12 @@ var require_query = __commonJS({
       const options = this._optionsForExec();
       return this.mongooseCollection.deleteMany(this._conditions, options);
     }, "_deleteMany");
-    function completeOne(model3, doc, res, options, fields, userProvidedFields, pop, callback) {
+    function completeOne(model4, doc, res, options, fields, userProvidedFields, pop, callback) {
       if (options.includeResultMetadata && doc == null) {
         _init(null);
         return null;
       }
-      helpers.createModelAndInit(model3, doc, fields, userProvidedFields, options, pop, _init);
+      helpers.createModelAndInit(model4, doc, fields, userProvidedFields, options, pop, _init);
       function _init(err, casted) {
         if (err) {
           return callback(err);
@@ -61048,12 +61048,12 @@ var require_query = __commonJS({
       }
     }
     __name(_getPopulatedPaths, "_getPopulatedPaths");
-    Query.prototype.cast = function(model3, obj) {
+    Query.prototype.cast = function(model4, obj) {
       obj || (obj = this._conditions);
-      model3 = model3 || this.model;
-      const discriminatorKey = model3.schema.options.discriminatorKey;
+      model4 = model4 || this.model;
+      const discriminatorKey = model4.schema.options.discriminatorKey;
       if (obj != null && Object.hasOwn(obj, discriminatorKey)) {
-        model3 = getDiscriminatorByValue(model3.discriminators, obj[discriminatorKey]) || model3;
+        model4 = getDiscriminatorByValue(model4.discriminators, obj[discriminatorKey]) || model4;
       }
       const opts = { upsert: this.options?.upsert };
       if ("strict" in this._mongooseOptions) {
@@ -61062,12 +61062,12 @@ var require_query = __commonJS({
       if ("strictQuery" in this._mongooseOptions) {
         opts.strictQuery = this._mongooseOptions.strictQuery;
       }
-      opts.sanitizeFilter = model3.db.config?.sanitizeFilter ?? model3.db.options?.sanitizeFilter ?? model3.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
+      opts.sanitizeFilter = model4.db.config?.sanitizeFilter ?? model4.db.options?.sanitizeFilter ?? model4.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
       try {
-        return cast(model3.schema, obj, opts, this);
+        return cast(model4.schema, obj, opts, this);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model3);
+          err.setModel(model4);
         }
         throw err;
       }
@@ -61263,7 +61263,7 @@ var require_aggregationCursor = __commonJS({
       this.agg = agg;
       this._transforms = [];
       const connection = agg._connection;
-      const model3 = agg._model;
+      const model4 = agg._model;
       delete agg.options.cursor.useMongooseAggCursor;
       this._mongooseOptions = {};
       if (connection) {
@@ -61275,14 +61275,14 @@ var require_aggregationCursor = __commonJS({
         this.cursor = connection.db.aggregate(agg._pipeline, options);
         setImmediate(() => this.emit("cursor", this.cursor));
       } else {
-        _init(model3, this, agg);
+        _init(model4, this, agg);
       }
     }
     __name(AggregationCursor, "AggregationCursor");
     util.inherits(AggregationCursor, Readable);
-    function _init(model3, c, agg) {
+    function _init(model4, c, agg) {
       const preFilter = buildMiddlewareFilter(agg.options, "pre");
-      model3.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model4.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
       function onPreComplete(err) {
         if (err != null) {
           _handlePreHookError(c, err);
@@ -61291,25 +61291,25 @@ var require_aggregationCursor = __commonJS({
         if (typeof agg.options?.cursor?.transform === "function") {
           c._transforms.push(agg.options.cursor.transform);
         }
-        if (model3.collection._shouldBufferCommands() && model3.collection.buffer) {
-          model3.collection.queue.push([
-            () => _getRawCursor(model3, c, agg)
+        if (model4.collection._shouldBufferCommands() && model4.collection.buffer) {
+          model4.collection.queue.push([
+            () => _getRawCursor(model4, c, agg)
           ]);
         } else {
-          _getRawCursor(model3, c, agg);
+          _getRawCursor(model4, c, agg);
         }
       }
       __name(onPreComplete, "onPreComplete");
     }
     __name(_init, "_init");
-    function _getRawCursor(model3, aggregationCursor, agg) {
+    function _getRawCursor(model4, aggregationCursor, agg) {
       try {
         let options = agg.options;
         if (Object.hasOwn(options, "middleware")) {
           const { middleware, ...driverOptions } = options;
           options = driverOptions;
         }
-        const cursor = model3.collection.aggregate(agg._pipeline, options);
+        const cursor = model4.collection.aggregate(agg._pipeline, options);
         aggregationCursor.cursor = cursor;
         aggregationCursor.emit("cursor", cursor);
       } catch (err) {
@@ -61407,7 +61407,7 @@ var require_aggregationCursor = __commonJS({
         throw new MongooseError("AggregationCursor.prototype.next() no longer accepts a callback");
       }
       const _this = this;
-      const model3 = this.agg._model;
+      const model4 = this.agg._model;
       return cursorNextChannel.trace(/* @__PURE__ */ __name(function maybeTracedAggCursorNext() {
         return new Promise((resolve, reject) => {
           _next(_this, (err, res) => {
@@ -61419,10 +61419,10 @@ var require_aggregationCursor = __commonJS({
         });
       }, "maybeTracedAggCursorNext"), () => ({
         operation: "aggregate",
-        collection: model3?.collection?.name,
-        database: model3?.db?.name,
-        serverAddress: model3?.db?.host,
-        serverPort: model3?.db?.port,
+        collection: model4?.collection?.name,
+        database: model4?.db?.name,
+        serverAddress: model4?.db?.host,
+        serverPort: model4?.db?.port,
         batchSize: _this.agg.options?.cursor?.batchSize,
         tailable: false,
         args: {
@@ -61645,20 +61645,20 @@ var require_aggregate2 = __commonJS({
       }
       return options;
     };
-    Aggregate.prototype.model = function(model3) {
+    Aggregate.prototype.model = function(model4) {
       if (arguments.length === 0) {
         return this._model;
       }
-      this._model = model3;
-      if (model3.schema != null) {
-        if (this.options.readPreference == null && model3.schema.options.read != null) {
-          this.options.readPreference = model3.schema.options.read;
+      this._model = model4;
+      if (model4.schema != null) {
+        if (this.options.readPreference == null && model4.schema.options.read != null) {
+          this.options.readPreference = model4.schema.options.read;
         }
-        if (this.options.collation == null && model3.schema.options.collation != null) {
-          this.options.collation = model3.schema.options.collation;
+        if (this.options.collation == null && model4.schema.options.collation != null) {
+          this.options.collation = model4.schema.options.collation;
         }
       }
-      return model3;
+      return model4;
     };
     Aggregate.prototype.append = function() {
       const args = arguments.length === 1 && Array.isArray(arguments[0]) ? arguments[0] : [...arguments];
@@ -61840,7 +61840,7 @@ var require_aggregate2 = __commonJS({
       if (typeof verbosity === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Aggregate.prototype.explain() no longer accepts a callback");
       }
-      const model3 = this._model;
+      const model4 = this._model;
       if (!this._pipeline.length) {
         throw new MongooseError("Aggregate has empty pipeline");
       }
@@ -61849,11 +61849,11 @@ var require_aggregate2 = __commonJS({
       const postFilter = buildMiddlewareFilter(this.options, "post");
       const { middleware, ...options } = this.options ?? {};
       try {
-        await model3.hooks.execPre("aggregate", this, [], { filter: preFilter });
+        await model4.hooks.execPre("aggregate", this, [], { filter: preFilter });
       } catch (error62) {
-        return await model3.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model4.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      const cursor = await model3.collection.aggregate(this._pipeline, options);
+      const cursor = await model4.collection.aggregate(this._pipeline, options);
       if (verbosity == null) {
         verbosity = true;
       }
@@ -61861,9 +61861,9 @@ var require_aggregate2 = __commonJS({
       try {
         result = await cursor.explain(verbosity);
       } catch (error62) {
-        return await model3.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model4.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      await model3.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
+      await model4.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
       return result;
     }, "explain");
     Aggregate.prototype.allowDiskUse = function(value) {
@@ -61946,10 +61946,10 @@ var require_aggregate2 = __commonJS({
           }
         }));
       }
-      const model3 = this._model;
+      const model4 = this._model;
       const collection = this._model.collection;
-      applyGlobalMaxTimeMS(this.options, model3.db.options, model3.base.options);
-      applyGlobalDiskUse(this.options, model3.db.options, model3.base.options);
+      applyGlobalMaxTimeMS(this.options, model4.db.options, model4.base.options);
+      applyGlobalDiskUse(this.options, model4.db.options, model4.base.options);
       this._optionsForExec();
       if (this.options?.cursor) {
         return new AggregationCursor(this);
@@ -61961,9 +61961,9 @@ var require_aggregate2 = __commonJS({
         const preFilter = buildMiddlewareFilter(_this.options, "pre");
         const postFilter = buildMiddlewareFilter(_this.options, "post");
         try {
-          await model3.hooks.execPre("aggregate", _this, [], { filter: preFilter });
+          await model4.hooks.execPre("aggregate", _this, [], { filter: preFilter });
         } catch (error62) {
-          return await model3.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model4.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
         if (!_this._pipeline.length) {
           throw new MongooseError("Aggregate has empty pipeline");
@@ -61974,16 +61974,16 @@ var require_aggregate2 = __commonJS({
           const cursor = await collection.aggregate(_this._pipeline, options);
           result = await cursor.toArray();
         } catch (error62) {
-          return await model3.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model4.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
-        await model3.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
+        await model4.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
         return result;
       }, "maybeTracedAggregateExec"), () => ({
         operation: "aggregate",
         collection: collection.name,
-        database: model3.db?.name,
-        serverAddress: model3.db?.host,
-        serverPort: model3.db?.port,
+        database: model4.db?.name,
+        serverAddress: model4.db?.host,
+        serverPort: model4.db?.port,
         args: {
           pipeline: _this._pipeline,
           options: _this.options
@@ -62142,7 +62142,7 @@ var require_applyHooks = __commonJS({
       "init"
     ];
     var alreadyHookedFunctions = new Set(applyHooks.middlewareFunctions.flatMap((fn) => [fn, `$__${fn}`]));
-    function applyHooks(model3, schema, options) {
+    function applyHooks(model4, schema, options) {
       options = options || {};
       const kareemOptions = {
         useErrorHandlers: true,
@@ -62150,8 +62150,8 @@ var require_applyHooks = __commonJS({
         nullResultByDefault: true,
         contextParameter: true
       };
-      const objToDecorate = options.decorateDoc ? model3 : model3.prototype;
-      model3.$appliedHooks = true;
+      const objToDecorate = options.decorateDoc ? model4 : model4.prototype;
+      model4.$appliedHooks = true;
       for (const key of Object.keys(schema.paths)) {
         let type = schema.paths[key];
         let childModel = null;
@@ -62181,8 +62181,8 @@ var require_applyHooks = __commonJS({
           }
         }
       }
-      const middleware = schema._getDocumentMiddleware(model3.prototype.$isSubdocument);
-      model3._middleware = middleware;
+      const middleware = schema._getDocumentMiddleware(model4.prototype.$isSubdocument);
+      model4._middleware = middleware;
       const $__init = objToDecorate.$__init;
       if (middleware.hasHooks("init")) {
         objToDecorate.$__init = middleware.createWrapperSync("init", $__init, null, {
@@ -62248,10 +62248,10 @@ var require_applyMethods = __commonJS({
     "use strict";
     var get = require_get();
     var utils = require_utils3();
-    module2.exports = /* @__PURE__ */ __name(function applyMethods(model3, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyMethods(model4, schema) {
       const Model = require_model();
       function apply(method, schema2) {
-        Object.defineProperty(model3.prototype, method, {
+        Object.defineProperty(model4.prototype, method, {
           get: /* @__PURE__ */ __name(function() {
             const h = {};
             for (const k in schema2.methods[method]) {
@@ -62276,12 +62276,12 @@ var require_applyMethods = __commonJS({
           utils.warn(`mongoose: the method name "${method}" is used by mongoose internally, overwriting it may cause bugs. If you're sure you know what you're doing, you can suppress this error by using \`schema.method('${method}', fn, { suppressWarning: true })\`.`);
         }
         if (typeof fn === "function") {
-          model3.prototype[method] = fn;
+          model4.prototype[method] = fn;
         } else {
           apply(method, schema);
         }
       }
-      model3.$appliedMethods = true;
+      model4.$appliedMethods = true;
       for (const key of Object.keys(schema.paths)) {
         const type = schema.paths[key];
         if (type.$isSingleNested && !type.Constructor.$appliedMethods) {
@@ -62424,7 +62424,7 @@ var require_applyStaticHooks = __commonJS({
         ...documentMiddlewareFunctions
       ])
     );
-    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model3, hooks, statics) {
+    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model4, hooks, statics) {
       hooks = hooks.filter((hook) => {
         if (middlewareFunctions.indexOf(hook.name) !== -1) {
           return !!hook.model;
@@ -62433,9 +62433,9 @@ var require_applyStaticHooks = __commonJS({
       });
       for (const key of Object.keys(statics)) {
         if (hooks.hasHooks(key)) {
-          const original = model3[key];
+          const original = model4[key];
           const wrapperOptions = original.supportsMiddlewareOption === true ? { getOptions: middlewareFiltersFromLastArg } : void 0;
-          model3[key] = hooks.createWrapper(key, original, null, wrapperOptions);
+          model4[key] = hooks.createWrapper(key, original, null, wrapperOptions);
         }
       }
     }, "applyStaticHooks");
@@ -62446,9 +62446,9 @@ var require_applyStaticHooks = __commonJS({
 var require_applyStatics = __commonJS({
   "node_modules/mongoose/lib/helpers/model/applyStatics.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function applyStatics(model3, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyStatics(model4, schema) {
       for (const i in schema.statics) {
-        model3[i] = schema.statics[i];
+        model4[i] = schema.statics[i];
       }
     }, "applyStatics");
   }
@@ -63986,11 +63986,11 @@ var require_createPopulateQueryFilter = __commonJS({
     var parentPaths = require_parentPaths();
     var { trusted } = require_trusted();
     var hasDollarKeys = require_hasDollarKeys();
-    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model3, skipInvalidIds) {
+    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model4, skipInvalidIds) {
       const match = _formatMatch(_match);
       if (_foreignField.size === 1) {
         const foreignField = Array.from(_foreignField)[0];
-        const foreignSchemaType = model3.schema.path(foreignField);
+        const foreignSchemaType = model4.schema.path(foreignField);
         if (foreignField !== "_id" || !match["_id"]) {
           ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
           match[foreignField] = trusted({ $in: ids });
@@ -64023,7 +64023,7 @@ var require_createPopulateQueryFilter = __commonJS({
         }
         for (const foreignField of _foreignField) {
           if (foreignField !== "_id" || !match["_id"]) {
-            const foreignSchemaType = model3.schema.path(foreignField);
+            const foreignSchemaType = model4.schema.path(foreignField);
             ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
             $or.push({ [foreignField]: { $in: ids } });
           } else if (foreignField === "_id" && match["_id"]) {
@@ -64100,20 +64100,20 @@ var require_getSchemaTypes = __commonJS({
     var leanPopulateMap = require_leanPopulateMap();
     var mpath = require_mpath();
     var populateModelSymbol = require_symbols().populateModelSymbol;
-    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model3, schema, doc, path, parts) {
+    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model4, schema, doc, path, parts) {
       const pathschema = schema.path(path);
       const topLevelDoc = doc;
       if (pathschema) {
         return pathschema;
       }
       const discriminatorKey = schema.discriminatorMapping?.key;
-      if (discriminatorKey && model3 != null) {
+      if (discriminatorKey && model4 != null) {
         if (doc?.[discriminatorKey] != null) {
-          const discriminator = getDiscriminatorByValue(model3.discriminators, doc[discriminatorKey]);
+          const discriminator = getDiscriminatorByValue(model4.discriminators, doc[discriminatorKey]);
           schema = discriminator?.schema || schema;
-        } else if (model3.discriminators != null) {
-          return Object.keys(model3.discriminators).reduce((arr, name) => {
-            const disc = model3.discriminators[name];
+        } else if (model4.discriminators != null) {
+          return Object.keys(model4.discriminators).reduce((arr, name) => {
+            const disc = model4.discriminators[name];
             return arr.concat(getSchemaTypes(disc, disc.schema, null, path));
           }, []);
         }
@@ -64225,11 +64225,11 @@ var require_getSchemaTypes = __commonJS({
           }
           const fullPath = nestedPath.concat([trypath]).join(".");
           if (topLevelDoc?.$__ && topLevelDoc.$populated(fullPath, true) && p < parts2.length) {
-            const model4 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
-            if (model4 != null) {
+            const model5 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
+            if (model5 != null) {
               const ret = search(
                 parts2.slice(p),
-                model4.schema,
+                model5.schema,
                 subdoc ? mpath.get(trypath, subdoc) : null,
                 nestedPath.concat(parts2.slice(0, p))
               );
@@ -64238,8 +64238,8 @@ var require_getSchemaTypes = __commonJS({
           }
           const _val = get(topLevelDoc, trypath);
           if (_val != null) {
-            const model4 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
-            const schema3 = model4?.schema ?? null;
+            const model5 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
+            const schema3 = model5?.schema ?? null;
             if (schema3 != null) {
               const ret = search(
                 parts2.slice(p),
@@ -64292,7 +64292,7 @@ var require_getModelsMapForPopulate = __commonJS({
     var numericPathSegmentPattern = "\\.\\d+(?=\\.|$)";
     var hasNumericPathSegmentRE = new RegExp(numericPathSegmentPattern);
     var numericPathSegmentRE = new RegExp(numericPathSegmentPattern, "g");
-    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model3, docs, options) {
+    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model4, docs, options) {
       let doc;
       const len = docs.length;
       const map2 = [];
@@ -64302,17 +64302,17 @@ var require_getModelsMapForPopulate = __commonJS({
       let modelNames;
       let modelNamesSet;
       const available = {};
-      const modelSchema = model3.schema;
+      const modelSchema = model4.schema;
       if (options._localModel != null && options._localModel.schema.nested[options.path]) {
         return [];
       }
-      const _virtualRes = getVirtual(model3.schema, options.path);
+      const _virtualRes = getVirtual(model4.schema, options.path);
       const virtual = _virtualRes == null ? null : _virtualRes.virtual;
       if (virtual != null) {
-        return _virtualPopulate(model3, docs, options, _virtualRes);
+        return _virtualPopulate(model4, docs, options, _virtualRes);
       }
       const parts = modelSchema.paths[options.path]?.splitPath() ?? options.path.split(".");
-      let allSchemaTypes = getSchemaTypes(model3, modelSchema, null, options.path, parts);
+      let allSchemaTypes = getSchemaTypes(model4, modelSchema, null, options.path, parts);
       allSchemaTypes = Array.isArray(allSchemaTypes) ? allSchemaTypes : [allSchemaTypes].filter((v) => v != null);
       const isStrictPopulateDisabled = options.strictPopulate === false || options.options?.strictPopulate === false;
       if (!isStrictPopulateDisabled && allSchemaTypes.length === 0 && options._localModel != null) {
@@ -64328,7 +64328,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         }
         const docSchema = doc?.$__ != null ? doc.$__schema : modelSchema;
-        schema = getSchemaTypes(model3, docSchema, doc, options.path, parts);
+        schema = getSchemaTypes(model4, docSchema, doc, options.path, parts);
         if (schema != null && schema.$isMongooseDocumentArray && schema.options.ref == null && schema.options.refPath == null) {
           continue;
         }
@@ -64348,10 +64348,10 @@ var require_getModelsMapForPopulate = __commonJS({
               foreignField: "_id",
               justOne: true
             };
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model3);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model4);
             const unpopulatedValue = mpath.get(options.path, doc);
             const id2 = mpath.get("_id", unpopulatedValue);
-            addModelNamesToMap(model3, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
+            addModelNamesToMap(model4, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
           }
           continue;
         }
@@ -64361,7 +64361,7 @@ var require_getModelsMapForPopulate = __commonJS({
             let _modelNames;
             let res;
             try {
-              res = _getModelNames(doc, _schema, modelNameFromQuery, model3);
+              res = _getModelNames(doc, _schema, modelNameFromQuery, model4);
               _modelNames = res.modelNames;
               isRefPath = isRefPath || res.isRefPath;
               normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64386,7 +64386,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         } else {
           try {
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model3);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model4);
             modelNames = res.modelNames;
             isRefPath = res.isRefPath;
             normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64420,7 +64420,7 @@ var require_getModelsMapForPopulate = __commonJS({
         data.justOne = justOne;
         data.localField = localField;
         data.foreignField = foreignField;
-        const ret = _getLocalFieldValues(doc, localField, model3, options, null, schema);
+        const ret = _getLocalFieldValues(doc, localField, model4, options, null, schema);
         const id = String(utils.getValue(foreignField, doc));
         options._docs[id] = Array.isArray(ret) ? ret.slice() : ret;
         let match = get(options, "match", null);
@@ -64446,13 +64446,13 @@ var require_getModelsMapForPopulate = __commonJS({
           modelNames = embeddedDiscriminatorModelNames || modelNames;
         }
         try {
-          addModelNamesToMap(model3, map2, available, modelNames, options, data, ret, doc, schemaOptions);
+          addModelNamesToMap(model4, map2, available, modelNames, options, data, ret, doc, schemaOptions);
         } catch (err) {
           return err;
         }
       }
       return map2;
-      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model4) {
+      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model5) {
         let modelNames2;
         let isRefPath = false;
         let justOne = null;
@@ -64484,15 +64484,15 @@ var require_getModelsMapForPopulate = __commonJS({
           let refPath2;
           let schemaForCurrentDoc;
           let discriminatorValue;
-          let modelForCurrentDoc = model4;
-          const discriminatorKey = model4.schema.options.discriminatorKey;
+          let modelForCurrentDoc = model5;
+          const discriminatorKey = model5.schema.options.discriminatorKey;
           if (!schemaType && discriminatorKey && (discriminatorValue = utils.getValue(discriminatorKey, doc2))) {
-            const discriminatorModel = getDiscriminatorByValue(model4.discriminators, discriminatorValue) || model4;
+            const discriminatorModel = getDiscriminatorByValue(model5.discriminators, discriminatorValue) || model5;
             if (discriminatorModel != null) {
               modelForCurrentDoc = discriminatorModel;
             } else {
               try {
-                modelForCurrentDoc = _getModelFromConn(model4.db, discriminatorValue);
+                modelForCurrentDoc = _getModelFromConn(model5.db, discriminatorValue);
               } catch (error62) {
                 return error62;
               }
@@ -64540,7 +64540,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         if (!modelNames2) {
           if (options._localModel == null) {
-            modelNames2 = [model4.modelName];
+            modelNames2 = [model5.modelName];
           } else {
             return { modelNames: modelNames2, justOne, isRefPath, refPath };
           }
@@ -64631,7 +64631,7 @@ var require_getModelsMapForPopulate = __commonJS({
       }
     }
     __name(_getModelNamesFromRefPath, "_getModelNamesFromRefPath");
-    function _virtualPopulate(model3, docs, options, _virtualRes) {
+    function _virtualPopulate(model4, docs, options, _virtualRes) {
       const map2 = [];
       const available = {};
       const virtual = _virtualRes.virtual;
@@ -64661,7 +64661,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         let foreignField = virtual.options.foreignField;
         if (!localField || !foreignField) {
-          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model3.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
+          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model4.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
         }
         if (typeof localField === "function") {
           localField = localField.call(doc, doc);
@@ -64698,7 +64698,7 @@ var require_getModelsMapForPopulate = __commonJS({
         if (Array.isArray(localField) && Array.isArray(foreignField) && localField.length === foreignField.length) {
           match = Object.assign({}, match);
           for (let i = 1; i < localField.length; ++i) {
-            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model3.schema);
+            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model4.schema);
             hasMatchFunction = true;
           }
           localField = localField[0];
@@ -64709,9 +64709,9 @@ var require_getModelsMapForPopulate = __commonJS({
         data.match = match;
         data.hasMatchFunction = hasMatchFunction;
         throwOn$where(match);
-        const ret = _getLocalFieldValues(doc, localField, model3, options, virtual);
+        const ret = _getLocalFieldValues(doc, localField, model4, options, virtual);
         try {
-          addModelNamesToMap(model3, map2, available, modelNames, options, data, ret, doc);
+          addModelNamesToMap(model4, map2, available, modelNames, options, data, ret, doc);
         } catch (err) {
           return err;
         }
@@ -64719,8 +64719,8 @@ var require_getModelsMapForPopulate = __commonJS({
       return map2;
     }
     __name(_virtualPopulate, "_virtualPopulate");
-    function addModelNamesToMap(model3, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
-      const connection = options.connection ?? model3.db;
+    function addModelNamesToMap(model4, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
+      const connection = options.connection ?? model4.db;
       unpopulatedValue = unpopulatedValue === void 0 ? ret : unpopulatedValue;
       if (Array.isArray(unpopulatedValue)) {
         unpopulatedValue = utils.cloneArrays(unpopulatedValue);
@@ -64825,15 +64825,15 @@ var require_getModelsMapForPopulate = __commonJS({
       return ref;
     }
     __name(handleRefFunction, "handleRefFunction");
-    function _getLocalFieldValues(doc, localField, model3, options, virtual, schema) {
-      const localFieldPathType = model3.schema._getPathType(localField);
-      const localFieldPath = localFieldPathType === "real" ? model3.schema.path(localField) : localFieldPathType.schema;
+    function _getLocalFieldValues(doc, localField, model4, options, virtual, schema) {
+      const localFieldPathType = model4.schema._getPathType(localField);
+      const localFieldPath = localFieldPathType === "real" ? model4.schema.path(localField) : localFieldPathType.schema;
       const localFieldGetters = localFieldPath?.getters || [];
       localField = localFieldPath?.instance === "Embedded" ? localField + "._id" : localField;
       const _populateOptions = get(options, "options", {});
       const getters = "getters" in _populateOptions ? _populateOptions.getters : get(virtual, "options.getters", false);
       if (localFieldGetters.length !== 0 && getters) {
-        const hydratedDoc = doc.$__ != null ? doc : model3.hydrate(doc);
+        const hydratedDoc = doc.$__ != null ? doc : model4.hydrate(doc);
         const localFieldValue = utils.getValue(localField, doc);
         if (Array.isArray(localFieldValue)) {
           const localFieldHydratedValue = utils.getValue(localField.split(".").slice(0, -1), hydratedDoc);
@@ -65052,19 +65052,19 @@ var require_getRelatedIndexes = __commonJS({
   "node_modules/mongoose/lib/helpers/indexes/getRelatedIndexes.js"(exports2, module2) {
     "use strict";
     var hasDollarKeys = require_hasDollarKeys();
-    function getRelatedSchemaIndexes(model3, schemaIndexes) {
+    function getRelatedSchemaIndexes(model4, schemaIndexes) {
       return getRelatedIndexes({
-        baseModelName: model3.baseModelName,
-        discriminatorMapping: model3.schema.discriminatorMapping,
+        baseModelName: model4.baseModelName,
+        discriminatorMapping: model4.schema.discriminatorMapping,
         indexes: schemaIndexes,
         indexesType: "schema"
       });
     }
     __name(getRelatedSchemaIndexes, "getRelatedSchemaIndexes");
-    function getRelatedDBIndexes(model3, dbIndexes) {
+    function getRelatedDBIndexes(model4, dbIndexes) {
       return getRelatedIndexes({
-        baseModelName: model3.baseModelName,
-        discriminatorMapping: model3.schema.discriminatorMapping,
+        baseModelName: model4.baseModelName,
+        discriminatorMapping: model4.schema.discriminatorMapping,
         indexes: dbIndexes,
         indexesType: "db"
       });
@@ -65258,7 +65258,7 @@ var require_model = __commonJS({
     "use strict";
     var Aggregate = require_aggregate2();
     var ChangeStream = require_changeStream();
-    var Document3 = require_document2();
+    var Document4 = require_document2();
     var { createTracedChannel } = require_tracing();
     var { trace: traceSave } = createTracedChannel("mongoose:model:save");
     var { trace: traceInsertMany } = createTracedChannel("mongoose:model:insertMany");
@@ -65272,7 +65272,7 @@ var require_model = __commonJS({
     var OverwriteModelError = require_overwriteModel();
     var Query = require_query();
     var SaveOptions = require_saveOptions();
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var ValidationError = require_validation();
     var VersionError = require_version();
     var ParallelSaveError = require_parallelSave();
@@ -65340,21 +65340,21 @@ var require_model = __commonJS({
       modelSymbol
     } = require_symbols();
     var subclassedSymbol = /* @__PURE__ */ Symbol("mongoose#Model#subclassed");
-    var { VERSION_INC, VERSION_WHERE, VERSION_ALL } = Document3;
+    var { VERSION_INC, VERSION_WHERE, VERSION_ALL } = Document4;
     var saveToObjectOptions = Object.assign({}, internalToObjectOptions, {
       bson: true
     });
     function Model(doc, fields, options) {
-      if (fields instanceof Schema3) {
+      if (fields instanceof Schema4) {
         throw new TypeError("2nd argument to `Model` constructor must be a POJO or string, **not** a schema. Make sure you're calling `mongoose.model()`, not `mongoose.Model()`.");
       }
       if (typeof doc === "string") {
         throw new TypeError("First argument to `Model` constructor must be an object, **not** a string. Make sure you're calling `mongoose.model()`, not `mongoose.Model()`.");
       }
-      Document3.call(this, doc, fields, options);
+      Document4.call(this, doc, fields, options);
     }
     __name(Model, "Model");
-    Object.setPrototypeOf(Model.prototype, Document3.prototype);
+    Object.setPrototypeOf(Model.prototype, Document4.prototype);
     Model.prototype.$isMongooseModelPrototype = true;
     Model.prototype.db;
     Model.useConnection = /* @__PURE__ */ __name(function useConnection(connection) {
@@ -65757,11 +65757,11 @@ var require_model = __commonJS({
       return query;
     }, "exists");
     Model.discriminator = function(name, schema, options) {
-      let model3;
+      let model4;
       if (typeof name === "function") {
-        model3 = name;
-        name = utils.getFunctionName(model3);
-        if (!(model3.prototype instanceof Model)) {
+        model4 = name;
+        name = utils.getFunctionName(model4);
+        if (!(model4.prototype instanceof Model)) {
           throw new MongooseError("The provided class " + name + " must extend Model");
         }
       }
@@ -65772,9 +65772,9 @@ var require_model = __commonJS({
       const overwriteModels = typeof options.overwriteModels === "boolean" ? options.overwriteModels : false;
       _checkContext(this, "discriminator");
       if (utils.isObject(schema) && !schema.instanceOfSchema) {
-        schema = new Schema3(schema);
+        schema = new Schema4(schema);
       }
-      if (schema instanceof Schema3 && clone3) {
+      if (schema instanceof Schema4 && clone3) {
         schema = schema.clone();
       }
       schema = discriminator(this, name, schema, value, mergePlugins, options.mergeHooks, overwriteModels);
@@ -65783,8 +65783,8 @@ var require_model = __commonJS({
       }
       schema.$isRootDiscriminator = true;
       schema.$globalPluginsApplied = true;
-      model3 = this.db.model(model3 || name, schema, this.$__collection.name);
-      this.discriminators[name] = model3;
+      model4 = this.db.model(model4 || name, schema, this.$__collection.name);
+      this.discriminators[name] = model4;
       const d = this.discriminators[name];
       Object.setPrototypeOf(d.prototype, this.prototype);
       Object.defineProperty(d, "baseModelName", {
@@ -65797,7 +65797,7 @@ var require_model = __commonJS({
       if (this[subclassedSymbol] != null) {
         for (const submodel of this[subclassedSymbol]) {
           submodel.discriminators = submodel.discriminators || {};
-          submodel.discriminators[name] = model3.__subclass(model3.db, schema, submodel.collection.name);
+          submodel.discriminators[name] = model4.__subclass(model4.db, schema, submodel.collection.name);
         }
       }
       return d;
@@ -65981,8 +65981,8 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.syncIndexes() no longer accepts a callback");
       }
-      const model3 = this;
-      let dbIndexes = await model3.listIndexes().catch((err) => {
+      const model4 = this;
+      let dbIndexes = await model4.listIndexes().catch((err) => {
         if (err.codeName == "NamespaceNotFound") {
           return void 0;
         }
@@ -65991,9 +65991,9 @@ var require_model = __commonJS({
       if (dbIndexes === void 0) {
         dbIndexes = [];
       }
-      dbIndexes = getRelatedDBIndexes(model3, dbIndexes);
-      const schema = model3.schema;
-      const schemaIndexes = getRelatedSchemaIndexes(model3, schema.indexes());
+      dbIndexes = getRelatedDBIndexes(model4, dbIndexes);
+      const schema = model4.schema;
+      const schemaIndexes = getRelatedSchemaIndexes(model4, schema.indexes());
       const toDrop = getIndexesToDrop(schema, schemaIndexes, dbIndexes);
       const toCreate = getIndexesToCreate(schema, schemaIndexes, dbIndexes, toDrop, options);
       return { toDrop, toCreate };
@@ -66055,22 +66055,22 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.cleanIndexes() no longer accepts a callback");
       }
-      const model3 = this;
+      const model4 = this;
       if (Array.isArray(options?.toDrop)) {
-        const res2 = await _dropIndexes(options.toDrop, model3, options);
+        const res2 = await _dropIndexes(options.toDrop, model4, options);
         return res2;
       }
-      const res = await model3.diffIndexes();
-      return await _dropIndexes(res.toDrop, model3, options);
+      const res = await model4.diffIndexes();
+      return await _dropIndexes(res.toDrop, model4, options);
     }, "cleanIndexes");
-    async function _dropIndexes(toDrop, model3, options) {
+    async function _dropIndexes(toDrop, model4, options) {
       if (toDrop.length === 0) {
         return [];
       }
-      const collection = model3.$__collection;
+      const collection = model4.$__collection;
       if (options?.hideIndexes) {
         await Promise.all(toDrop.map((indexName) => {
-          return model3.db.db.command({
+          return model4.db.db.command({
             collMod: collection.collectionName,
             index: { name: indexName, hidden: true }
           });
@@ -66114,20 +66114,20 @@ var require_model = __commonJS({
       }
       return this.ensureIndexes(options);
     }, "createIndexes");
-    function _ensureIndexes(model3, options, callback) {
-      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model3.schema.indexes();
+    function _ensureIndexes(model4, options, callback) {
+      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model4.schema.indexes();
       let indexError;
       options = options || {};
       const done = /* @__PURE__ */ __name(function(err) {
-        if (err && !model3.$caught) {
-          model3.emit("error", err);
+        if (err && !model4.$caught) {
+          model4.emit("error", err);
         }
-        model3.emit("index", err || indexError);
+        model4.emit("index", err || indexError);
         callback && callback(err || indexError);
       }, "done");
       for (const index of indexes) {
         if (isDefaultIdIndex(index)) {
-          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model3.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
+          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model4.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
         }
       }
       const seenIndexes = [];
@@ -66137,7 +66137,7 @@ var require_model = __commonJS({
         if (indexOptions.name == null) {
           for (const existingIndex of seenIndexes) {
             if (existingIndex[1].name == null && isIndexSpecEqual(existingIndex[0], fields)) {
-              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model3.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
+              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model4.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
               break;
             }
           }
@@ -66151,23 +66151,23 @@ var require_model = __commonJS({
         return;
       }
       const indexSingleDone = /* @__PURE__ */ __name(function(err, fields, options2, name) {
-        model3.emit("index-single-done", err, fields, options2, name);
+        model4.emit("index-single-done", err, fields, options2, name);
       }, "indexSingleDone");
       const indexSingleStart = /* @__PURE__ */ __name(function(fields, options2) {
-        model3.emit("index-single-start", fields, options2);
+        model4.emit("index-single-start", fields, options2);
       }, "indexSingleStart");
-      const baseSchema = model3.schema._baseSchema;
+      const baseSchema = model4.schema._baseSchema;
       const baseSchemaIndexes = baseSchema ? baseSchema.indexes() : [];
       immediate(function() {
-        if (options._automatic && !model3.collection.collection) {
-          model3.collection.addQueue(create, []);
+        if (options._automatic && !model4.collection.collection) {
+          model4.collection.addQueue(create, []);
         } else {
           create();
         }
       });
       function create() {
         if (options._automatic) {
-          if (model3.schema.options.autoIndex === false || model3.schema.options.autoIndex == null && model3.db.config.autoIndex === false) {
+          if (model4.schema.options.autoIndex === false || model4.schema.options.autoIndex == null && model4.db.config.autoIndex === false) {
             return done();
           }
         }
@@ -66184,19 +66184,19 @@ var require_model = __commonJS({
         const indexFields = clone2(index[0]);
         const indexOptions = clone2(index[1]);
         delete indexOptions._autoIndex;
-        decorateDiscriminatorIndexOptions(model3.schema, indexOptions);
-        applyWriteConcern(model3.schema, indexOptions);
-        applySchemaCollation(indexFields, indexOptions, model3.schema.options);
+        decorateDiscriminatorIndexOptions(model4.schema, indexOptions);
+        applyWriteConcern(model4.schema, indexOptions);
+        applySchemaCollation(indexFields, indexOptions, model4.schema.options);
         indexSingleStart(indexFields, options);
         let promise2 = null;
         try {
-          promise2 = model3.collection.createIndex(indexFields, indexOptions);
+          promise2 = model4.collection.createIndex(indexFields, indexOptions);
         } catch (err) {
           if (!indexError) {
             indexError = err;
           }
-          if (!model3.$caught) {
-            model3.emit("error", err);
+          if (!model4.$caught) {
+            model4.emit("error", err);
           }
           indexSingleDone(err, indexFields, indexOptions);
           create();
@@ -66211,8 +66211,8 @@ var require_model = __commonJS({
             if (!indexError) {
               indexError = err;
             }
-            if (!model3.$caught) {
-              model3.emit("error", err);
+            if (!model4.$caught) {
+              model4.emit("error", err);
             }
             indexSingleDone(err, indexFields, indexOptions);
             create();
@@ -66414,7 +66414,7 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function" || typeof arguments[2] === "function" || typeof arguments[3] === "function") {
         throw new MongooseError("Model.findByIdAndUpdate() no longer accepts a callback");
       }
-      if (id instanceof Document3) {
+      if (id instanceof Document4) {
         id = id._doc._id;
       }
       return this.findOneAndUpdate.call(this, { _id: id }, update, options);
@@ -67181,7 +67181,7 @@ var require_model = __commonJS({
       setDefaultOptions();
       const writeOperations = documents.map((document, i) => {
         if (!options.skipValidation) {
-          if (!(document instanceof Document3)) {
+          if (!(document instanceof Document4)) {
             throw new MongooseError(`documents.${i} was not a mongoose document, documents must be an array of mongoose documents (instanceof mongoose.Document).`);
           }
           if (options.validateBeforeSave == null || options.validateBeforeSave) {
@@ -67268,15 +67268,15 @@ var require_model = __commonJS({
       }
       return _update(this, "replaceOne", conditions, doc, options);
     }, "replaceOne");
-    function _update(model3, op, conditions, doc, options) {
-      const mq = new model3.Query({}, {}, model3, model3.collection);
-      if (conditions instanceof Document3) {
+    function _update(model4, op, conditions, doc, options) {
+      const mq = new model4.Query({}, {}, model4, model4.collection);
+      if (conditions instanceof Document4) {
         conditions = conditions.toObject();
       } else {
         conditions = clone2(conditions);
       }
       options = typeof options === "function" ? options : clone2(options);
-      const versionKey = model3?.schema?.options?.versionKey ?? null;
+      const versionKey = model4?.schema?.options?.versionKey ?? null;
       decorateUpdateWithVersionKey(doc, options, versionKey);
       return mq[op](conditions, doc, options);
     }
@@ -67408,14 +67408,14 @@ var require_model = __commonJS({
     }, "populate");
     var excludeIdReg = /\s?-_id\s?/;
     var excludeIdRegGlobal = /\s?-_id\s?/g;
-    async function _populatePath(model3, docs, populateOptions) {
+    async function _populatePath(model4, docs, populateOptions) {
       if (populateOptions.strictPopulate == null) {
         if (populateOptions._localModel?.schema._userProvidedOptions.strictPopulate != null) {
           populateOptions.strictPopulate = populateOptions._localModel.schema._userProvidedOptions.strictPopulate;
-        } else if (populateOptions._localModel != null && model3.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model3.base.options.strictPopulate;
-        } else if (model3.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model3.base.options.strictPopulate;
+        } else if (populateOptions._localModel != null && model4.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model4.base.options.strictPopulate;
+        } else if (model4.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model4.base.options.strictPopulate;
         }
       }
       if (!Array.isArray(docs)) {
@@ -67424,7 +67424,7 @@ var require_model = __commonJS({
       if (docs.length === 0 || docs.every(utils.isNullOrUndefined)) {
         return;
       }
-      const modelsMap = getModelsMapForPopulate(model3, docs, populateOptions);
+      const modelsMap = getModelsMapForPopulate(model4, docs, populateOptions);
       if (modelsMap instanceof MongooseError) {
         throw modelsMap;
       }
@@ -67449,7 +67449,7 @@ var require_model = __commonJS({
           mod.options.options.lean = true;
         }
         if (ids.length === 0 || ids.every(utils.isNullOrUndefined)) {
-          _assign(model3, [], mod, assignmentOpts);
+          _assign(model4, [], mod, assignmentOpts);
           continue;
         }
         hasOne = true;
@@ -67488,7 +67488,7 @@ var require_model = __commonJS({
           const opts = utils.populate(populateOptions.populate).map((pop) => Object.assign({}, pop, {
             path: populateOptions.path + "." + pop.path
           }));
-          return model3.populate(docs, opts);
+          return model4.populate(docs, opts);
         }
         return;
       }
@@ -67531,7 +67531,7 @@ var require_model = __commonJS({
         for (const val of valsForMod) {
           mod.options._childDocs.push(val);
         }
-        _assign(model3, valsForMod, mod, assignmentOpts);
+        _assign(model4, valsForMod, mod, assignmentOpts);
       }
       if (deferredPopulatesPerParam.size > 0) {
         for (let i = 0; i < params.length; i++) {
@@ -67663,7 +67663,7 @@ var require_model = __commonJS({
       );
     }
     __name(_execPopulateQuery, "_execPopulateQuery");
-    function _assign(model3, vals, mod, assignmentOpts) {
+    function _assign(model4, vals, mod, assignmentOpts) {
       const options = mod.options;
       const isVirtual = mod.isVirtual;
       const justOne = mod.justOne;
@@ -67685,7 +67685,7 @@ var require_model = __commonJS({
           if (Array.isArray(_val)) {
             _val = utils.array.unique(utils.array.flatten(_val));
             for (let __val of _val) {
-              if (__val instanceof Document3) {
+              if (__val instanceof Document4) {
                 __val = __val._doc._id;
               }
               key = String(__val);
@@ -67708,7 +67708,7 @@ var require_model = __commonJS({
               }
             }
           } else {
-            if (_val instanceof Document3) {
+            if (_val instanceof Document4) {
               _val = _val._doc._id;
             }
             key = String(_val);
@@ -67716,7 +67716,7 @@ var require_model = __commonJS({
               if (Array.isArray(rawDocs[key])) {
                 rawDocs[key].push(val);
                 rawOrder[key].push(i);
-              } else if (isVirtual || rawDocs[key].constructor !== val.constructor || (rawDocs[key] instanceof Document3 ? String(rawDocs[key]._doc._id) : String(rawDocs[key]._id)) !== (val instanceof Document3 ? String(val._doc._id) : String(val._id))) {
+              } else if (isVirtual || rawDocs[key].constructor !== val.constructor || (rawDocs[key] instanceof Document4 ? String(rawDocs[key]._doc._id) : String(rawDocs[key]._id)) !== (val instanceof Document4 ? String(val._doc._id) : String(val._id))) {
                 rawDocs[key] = [rawDocs[key], val];
                 rawOrder[key] = [rawOrder[key], i];
               }
@@ -67731,7 +67731,7 @@ var require_model = __commonJS({
         }
       }
       assignVals({
-        originalModel: model3,
+        originalModel: model4,
         // If virtual, make sure to not mutate original field
         rawIds: mod.isVirtual ? allIds : mod.allIds,
         allIds,
@@ -67760,52 +67760,52 @@ var require_model = __commonJS({
         o[schema.options.versionKey] = Number;
         schema.add(o);
       }
-      let model3;
+      let model4;
       if (typeof name === "function" && name.prototype instanceof Model) {
-        model3 = name;
-        name = model3.name;
-        schema.loadClass(model3, false);
-        model3.prototype.$isMongooseModelPrototype = true;
+        model4 = name;
+        name = model4.name;
+        schema.loadClass(model4, false);
+        model4.prototype.$isMongooseModelPrototype = true;
       } else {
-        model3 = /* @__PURE__ */ __name(function model4(doc, fields, skipId) {
-          model4.hooks.execPreSync("createModel", doc);
-          if (!(this instanceof model4)) {
-            return new model4(doc, fields, skipId);
+        model4 = /* @__PURE__ */ __name(function model5(doc, fields, skipId) {
+          model5.hooks.execPreSync("createModel", doc);
+          if (!(this instanceof model5)) {
+            return new model5(doc, fields, skipId);
           }
-          const discriminatorKey = model4.schema.options.discriminatorKey;
-          if (model4.discriminators == null || doc == null || doc[discriminatorKey] == null) {
+          const discriminatorKey = model5.schema.options.discriminatorKey;
+          if (model5.discriminators == null || doc == null || doc[discriminatorKey] == null) {
             Model.call(this, doc, fields, skipId);
             return;
           }
-          const Discriminator = getDiscriminatorByKey(model4.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model4.discriminators, doc[discriminatorKey]);
+          const Discriminator = getDiscriminatorByKey(model5.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model5.discriminators, doc[discriminatorKey]);
           if (Discriminator != null) {
             return new Discriminator(doc, fields, skipId);
           }
           Model.call(this, doc, fields, skipId);
         }, "model");
       }
-      model3.hooks = schema.s.hooks.clone();
-      model3.base = base;
-      model3.modelName = name;
-      if (!(model3.prototype instanceof Model)) {
-        Object.setPrototypeOf(model3, Model);
-        Object.setPrototypeOf(model3.prototype, Model.prototype);
+      model4.hooks = schema.s.hooks.clone();
+      model4.base = base;
+      model4.modelName = name;
+      if (!(model4.prototype instanceof Model)) {
+        Object.setPrototypeOf(model4, Model);
+        Object.setPrototypeOf(model4.prototype, Model.prototype);
       }
-      model3.model = /* @__PURE__ */ __name(function model4(name2) {
+      model4.model = /* @__PURE__ */ __name(function model5(name2) {
         return this.db.model(name2);
       }, "model");
-      model3.db = connection;
-      model3.prototype.db = connection;
-      model3.prototype[modelDbSymbol] = connection;
-      model3.discriminators = model3.prototype.discriminators = void 0;
-      model3[modelSymbol] = true;
-      model3.events = new EventEmitter();
+      model4.db = connection;
+      model4.prototype.db = connection;
+      model4.prototype[modelDbSymbol] = connection;
+      model4.discriminators = model4.prototype.discriminators = void 0;
+      model4[modelSymbol] = true;
+      model4.events = new EventEmitter();
       schema._preCompile();
       const _userProvidedOptions = schema._userProvidedOptions || {};
       const collectionOptions = {
         schemaUserProvidedOptions: _userProvidedOptions,
         capped: schema.options.capped,
-        Promise: model3.base.Promise,
+        Promise: model4.base.Promise,
         modelName: name
       };
       if (schema.options.autoCreate !== void 0) {
@@ -67815,26 +67815,26 @@ var require_model = __commonJS({
         collectionName,
         collectionOptions
       );
-      model3.prototype.collection = collection;
-      model3.prototype.$collection = collection;
-      model3.prototype[modelCollectionSymbol] = collection;
-      model3.prototype.$__setSchema(schema);
-      applyMethods(model3, schema);
-      applyStatics(model3, schema);
-      applyHooks(model3, schema);
-      applyStaticHooks(model3, schema.s.hooks, schema.statics);
-      model3.schema = model3.prototype.$__schema;
-      model3.collection = collection;
-      model3.$__collection = collection;
-      model3.Query = function() {
+      model4.prototype.collection = collection;
+      model4.prototype.$collection = collection;
+      model4.prototype[modelCollectionSymbol] = collection;
+      model4.prototype.$__setSchema(schema);
+      applyMethods(model4, schema);
+      applyStatics(model4, schema);
+      applyHooks(model4, schema);
+      applyStaticHooks(model4, schema.s.hooks, schema.statics);
+      model4.schema = model4.prototype.$__schema;
+      model4.collection = collection;
+      model4.$__collection = collection;
+      model4.Query = function() {
         Query.apply(this, arguments);
       };
-      Object.setPrototypeOf(model3.Query.prototype, Query.prototype);
-      model3.Query.base = Query.base;
-      model3.Query.prototype.constructor = Query;
-      model3._applyQueryMiddleware();
-      applyQueryMethods(model3, schema.query);
-      return model3;
+      Object.setPrototypeOf(model4.Query.prototype, Query.prototype);
+      model4.Query.base = Query.base;
+      model4.Query.prototype.constructor = Query;
+      model4._applyQueryMiddleware();
+      applyQueryMethods(model4, schema.query);
+      return model4;
     }, "compile");
     Model.clientEncryption = /* @__PURE__ */ __name(function clientEncryption() {
       const ClientEncryption = this.base.driver.get().ClientEncryption;
@@ -67872,9 +67872,9 @@ var require_model = __commonJS({
       this.collection = collection;
       this.$__collection = collection;
     }, "$__updateConnection");
-    function applyQueryMethods(model3, methods) {
+    function applyQueryMethods(model4, methods) {
       for (const i in methods) {
-        model3.Query.prototype[i] = methods[i];
+        model4.Query.prototype[i] = methods[i];
       }
     }
     __name(applyQueryMethods, "applyQueryMethods");
@@ -68145,10 +68145,10 @@ var require_printJestWarning = __commonJS({
 var require_mongoose = __commonJS({
   "node_modules/mongoose/lib/mongoose.js"(exports2, module2) {
     "use strict";
-    var Document3 = require_document2();
+    var Document4 = require_document2();
     var EventEmitter = require("events").EventEmitter;
     var Kareem = require_kareem();
-    var Schema3 = require_schema2();
+    var Schema4 = require_schema2();
     var SchemaType = require_schemaType();
     var SchemaTypes = require_schema();
     var VirtualType = require_virtualType();
@@ -68199,12 +68199,12 @@ var require_mongoose = __commonJS({
         const _this = this;
         this.Schema = function() {
           this.base = _this;
-          return Schema3.apply(this, arguments);
+          return Schema4.apply(this, arguments);
         };
-        this.Schema.prototype = Object.create(Schema3.prototype);
-        Object.assign(this.Schema, Schema3);
+        this.Schema.prototype = Object.create(Schema4.prototype);
+        Object.assign(this.Schema, Schema4);
         this.Schema.base = this;
-        this.Schema.Types = Object.assign({}, Schema3.Types);
+        this.Schema.Types = Object.assign({}, Schema4.Types);
       } else {
         for (const key of ["Schema", "model"]) {
           this[key] = Mongoose.prototype[key];
@@ -68254,11 +68254,11 @@ var require_mongoose = __commonJS({
       if (oldDefaultConnection == null) {
         return _mongoose;
       }
-      for (const model3 of Object.values(_mongoose.models)) {
-        if (model3.db !== oldDefaultConnection) {
+      for (const model4 of Object.values(_mongoose.models)) {
+        if (model4.db !== oldDefaultConnection) {
           continue;
         }
-        model3.$__updateConnection(_mongoose.connections[0]);
+        model4.$__updateConnection(_mongoose.connections[0]);
       }
       return _mongoose;
     }, "setDriver");
@@ -68389,23 +68389,23 @@ var require_mongoose = __commonJS({
       }
       return _mongoose._pluralize;
     }, "pluralize");
-    Mongoose.prototype.model = /* @__PURE__ */ __name(function model3(name, schema, collection, options) {
+    Mongoose.prototype.model = /* @__PURE__ */ __name(function model4(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
       if (typeof schema === "string") {
         collection = schema;
         schema = false;
       }
       if (arguments.length === 1) {
-        const model5 = _mongoose.models[name];
-        if (!model5) {
+        const model6 = _mongoose.models[name];
+        if (!model6) {
           throw new _mongoose.Error.MissingSchemaError(name);
         }
-        return model5;
+        return model6;
       }
-      if (utils.isObject(schema) && !(schema instanceof Schema3)) {
-        schema = new Schema3(schema);
+      if (utils.isObject(schema) && !(schema instanceof Schema4)) {
+        schema = new Schema4(schema);
       }
-      if (schema && !(schema instanceof Schema3)) {
+      if (schema && !(schema instanceof Schema4)) {
         throw new _mongoose.Error("The 2nd parameter to `mongoose.model()` should be a schema or a POJO");
       }
       options = options || {};
@@ -68422,9 +68422,9 @@ var require_mongoose = __commonJS({
           throw new _mongoose.Error.OverwriteModelError(name);
         }
         if (collection && collection !== _mongoose.models[name].collection.name) {
-          const model5 = _mongoose.models[name];
-          schema = model5.prototype.schema;
-          const sub = model5.__subclass(_mongoose.connection, schema, collection);
+          const model6 = _mongoose.models[name];
+          schema = model6.prototype.schema;
+          const sub = model6.__subclass(_mongoose.connection, schema, collection);
           return sub;
         }
         return _mongoose.models[name];
@@ -68432,18 +68432,18 @@ var require_mongoose = __commonJS({
       if (schema == null) {
         throw new _mongoose.Error.MissingSchemaError(name);
       }
-      const model4 = _mongoose._model(name, schema, collection, options);
-      _mongoose.connection.models[name] = model4;
-      _mongoose.models[name] = model4;
-      return model4;
+      const model5 = _mongoose._model(name, schema, collection, options);
+      _mongoose.connection.models[name] = model5;
+      _mongoose.models[name] = model5;
+      return model5;
     }, "model");
     Mongoose.prototype._model = /* @__PURE__ */ __name(function _model(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
-      let model3;
+      let model4;
       if (typeof name === "function") {
-        model3 = name;
-        name = model3.name;
-        if (!(model3.prototype instanceof Model)) {
+        model4 = name;
+        name = model4.name;
+        if (!(model4.prototype instanceof Model)) {
           throw new _mongoose.Error("The provided class " + name + " must extend Model");
         }
       }
@@ -68461,20 +68461,20 @@ var require_mongoose = __commonJS({
       }
       applyEmbeddedDiscriminators(schema);
       const connection = options.connection || _mongoose.connection;
-      model3 = _mongoose.Model.compile(model3 || name, schema, collection, connection, _mongoose);
-      model3.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      model4 = _mongoose.Model.compile(model4 || name, schema, collection, connection, _mongoose);
+      model4.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
       }, "$modelInitNoop"));
-      connection.emit("model", model3);
+      connection.emit("model", model4);
       if (schema._applyDiscriminators != null) {
         for (const disc of schema._applyDiscriminators.keys()) {
           const {
             schema: discriminatorSchema,
             options: options2
           } = schema._applyDiscriminators.get(disc);
-          model3.discriminator(disc, discriminatorSchema, options2);
+          model4.discriminator(disc, discriminatorSchema, options2);
         }
       }
-      return model3;
+      return model4;
     }, "_model");
     Mongoose.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
@@ -68534,14 +68534,14 @@ var require_mongoose = __commonJS({
     Mongoose.prototype.BaseConnection = require_connection2();
     Mongoose.prototype.version = pkg.version;
     Mongoose.prototype.Mongoose = Mongoose;
-    Mongoose.prototype.Schema = Schema3;
+    Mongoose.prototype.Schema = Schema4;
     Mongoose.prototype.SchemaType = SchemaType;
-    Mongoose.prototype.SchemaTypes = Schema3.Types;
+    Mongoose.prototype.SchemaTypes = Schema4.Types;
     Mongoose.prototype.VirtualType = VirtualType;
     Mongoose.prototype.Types = Types;
     Mongoose.prototype.Query = Query;
     Mongoose.prototype.Model = Model;
-    Mongoose.prototype.Document = Document3;
+    Mongoose.prototype.Document = Document4;
     Mongoose.prototype.ObjectId = SchemaTypes.ObjectId;
     Mongoose.prototype.isValidObjectId = /* @__PURE__ */ __name(function isValidObjectId(v) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
@@ -69190,7 +69190,7 @@ function __classPrivateFieldIn(state, receiver) {
   if (receiver === null || typeof receiver !== "object" && typeof receiver !== "function") throw new TypeError("Cannot use 'in' operator on non-object");
   return typeof state === "function" ? receiver === state : state.has(receiver);
 }
-function __addDisposableResource(env, value, async) {
+function __addDisposableResource(env3, value, async) {
   if (value !== null && value !== void 0) {
     if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
     var dispose, inner;
@@ -69211,23 +69211,23 @@ function __addDisposableResource(env, value, async) {
         return Promise.reject(e);
       }
     }, "dispose");
-    env.stack.push({ value, dispose, async });
+    env3.stack.push({ value, dispose, async });
   } else if (async) {
-    env.stack.push({ async: true });
+    env3.stack.push({ async: true });
   }
   return value;
 }
-function __disposeResources(env) {
+function __disposeResources(env3) {
   function fail(e) {
-    env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-    env.hasError = true;
+    env3.error = env3.hasError ? new _SuppressedError(e, env3.error, "An error was suppressed during disposal.") : e;
+    env3.hasError = true;
   }
   __name(fail, "fail");
   var r, s = 0;
   function next() {
-    while (r = env.stack.pop()) {
+    while (r = env3.stack.pop()) {
       try {
-        if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+        if (!r.async && s === 1) return s = 0, env3.stack.push(r), Promise.resolve().then(next);
         if (r.dispose) {
           var result = r.dispose.call(r.value);
           if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) {
@@ -69239,8 +69239,8 @@ function __disposeResources(env) {
         fail(e);
       }
     }
-    if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
-    if (env.hasError) throw env.error;
+    if (s === 1) return env3.hasError ? Promise.reject(env3.error) : Promise.resolve();
+    if (env3.hasError) throw env3.error;
   }
   __name(next, "next");
   return next();
@@ -152640,7 +152640,8 @@ var guildSchema = new import_mongoose.Schema(
     xpMax: { type: Number, default: 25 },
     levelUpChannel: { type: String },
     levelUpMessage: { type: String },
-    disableXpChannels: { type: [String], default: [] }
+    disableXpChannels: { type: [String], default: [] },
+    sukuna: { type: import_mongoose.Schema.Types.Mixed, default: {} }
   },
   { timestamps: true }
 );
@@ -152752,6 +152753,10 @@ var kickCommand = {
     const { interaction } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
+    if (!user) {
+      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      return;
+    }
     const member = interaction.guild?.members.cache.get(user.id);
     if (!member) {
       await interaction.reply({ content: "\u274C User not found in this server.", flags: 64 });
@@ -152781,7 +152786,11 @@ var banCommand = {
     const { interaction } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
-    await interaction.guild?.members.ban(user, { reason });
+    if (!user) {
+      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      return;
+    }
+    await interaction.guild?.members.ban(user.id, { reason });
     await interaction.reply(`\u{1F528} Banned ${user.tag} \u2014 Reason: ${reason}`);
   }, "execute")
 };
@@ -152804,6 +152813,10 @@ var timeoutCommand = {
     const user = interaction.options.getUser("user");
     const minutes = interaction.options.getInteger("duration");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
+    if (!user) {
+      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      return;
+    }
     const member = interaction.guild?.members.cache.get(user.id);
     if (!member) {
       await interaction.reply({ content: "\u274C User not found in this server.", flags: 64 });
@@ -152851,6 +152864,10 @@ var warnCommand = {
     const { interaction } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
+    if (!user) {
+      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      return;
+    }
     const target = await getUser(user.id);
     await interaction.reply(
       `\u26A0\uFE0F Warned ${user.tag} \u2014 Reason: ${reason}`
@@ -173439,8 +173456,27 @@ var EnvSchema = external_exports.object({
     (v) => v === "true" || v === true,
     external_exports.boolean().default(false)
   ),
-  GEMINI_API_KEY: external_exports.string().optional()
+  GEMINI_API_KEY: external_exports.string().optional(),
+  SUKUNA_ENABLED: external_exports.preprocess(
+    (v) => v === "true" || v === true,
+    external_exports.boolean().default(false)
+  ),
+  SUKUNA_CHANNELS: external_exports.preprocess(
+    (v) => typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : v ?? [],
+    external_exports.array(external_exports.string()).default([])
+  ),
+  SUKUNA_DISPLAY_NAME: external_exports.string().default("Sukuna"),
+  SUKUNA_MODEL: external_exports.string().default("gemini-3.1-flash"),
+  SUKUNA_TEMPERATURE: external_exports.preprocess(
+    (v) => typeof v === "number" ? v : Number(v ?? 1),
+    external_exports.number().min(0).max(2).default(1)
+  ),
+  SUKUNA_MAX_MESSAGE_LENGTH: external_exports.preprocess(
+    (v) => typeof v === "number" ? v : Number(v ?? 2e3),
+    external_exports.number().default(2e3)
+  )
 });
+var env = loadEnv();
 function loadEnv() {
   if (typeof process.loadEnvFile === "function") {
     try {
@@ -173699,22 +173735,1278 @@ var interactionCreate = {
 
 // src/events/ready.ts
 var import_discord18 = __toESM(require_src());
+
+// dashboard/server.ts
+var sukunaActive = false;
+function setSukunaActive(active) {
+  sukunaActive = active;
+}
+__name(setSukunaActive, "setSukunaActive");
+
+// src/config/index.ts
+var env2 = loadEnv();
+var defaultSukunaConfig = {
+  enabled: process.env.SUKUNA_ENABLED === "true" || false,
+  displayName: process.env.SUKUNA_DISPLAY_NAME || "Sukuna",
+  channelIds: process.env.SUKUNA_CHANNELS?.split(",").map((s) => s.trim()).filter(Boolean) || [],
+  model: process.env.SUKUNA_MODEL || "gemini-3.1-flash",
+  temperature: Number(process.env.SUKUNA_TEMPERATURE) || 1,
+  requestTimeoutMs: 2e4,
+  maxMessageLength: Number(process.env.SUKUNA_MAX_MESSAGE_LENGTH) || 2e3,
+  batchWindowMs: 500,
+  historySize: 50,
+  decisionCooldownSeconds: 2,
+  replyCooldownSeconds: 2,
+  maxRepliesPerHour: 10,
+  showTyping: true,
+  toolsEnabled: true,
+  memoryEnabled: true,
+  systemPrompt: void 0,
+  thinkingLevel: void 0,
+  knowledgeEnabled: true,
+  webEnabled: true,
+  islamicEnabled: true,
+  schedulingEnabled: true,
+  attachmentsEnabled: true
+};
+function normalizeSukunaConfig(input2) {
+  return { ...defaultSukunaConfig, ...input2 };
+}
+__name(normalizeSukunaConfig, "normalizeSukunaConfig");
+var cachedConfig = { ...defaultSukunaConfig };
+
+// src/events/ready.ts
 var ready = {
   name: import_discord18.Events.ClientReady,
   once: true,
-  execute: /* @__PURE__ */ __name((client) => {
+  execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
       { tag: client.user?.tag, id: client.user?.id, guilds: client.guilds.cache.size },
       "ready"
     );
+    if (defaultSukunaConfig.enabled) {
+      setSukunaActive(true);
+      client.logger.info("[Sukuna] AI persona enabled");
+    }
   }, "execute")
 };
 
 // src/events/messageCreate.ts
 var import_discord19 = __toESM(require_src());
+
+// src/utils/sukuna.ts
+var import_genai2 = require("@google/genai");
+
+// src/prompts/sukuna.ts
+var SUKUNA_DEFAULT_PROMPT = `# SYSTEM PROMPT \u2014 Sukuna \u{1F4FF}
+## Community AI Persona & Social Behavior Engine
+
+### 1. IDENTITY
+
+You are Sukuna, a community member and AI persona living inside a Discord server.
+
+Your purpose is to participate naturally in the community, build relationships through conversations, joke around, react to events, and develop a recognizable personality over time.
+
+You have your own conversational style, opinions, humor, preferences, and recurring personality traits. You can be playful, sarcastic, curious, chill, dramatic, competitive, or occasionally lazy.
+
+You should feel like that one community member everyone recognizes in the server.
+
+### 2. YOUR CORE OBJECTIVE: BE SOCIAL, NOT NOISY
+
+You do not need to respond to every message. You should remain silent most of the time.
+
+Discord conversations should flow naturally without you taking over.
+
+Do NOT respond just because:
+- Someone sent a message
+- Someone posted a meme, image, GIF, or emoji
+- Two people are already having a good conversation
+- You can think of a funny reply
+- Someone says "hello" without directing it at you
+
+You SHOULD consider responding when:
+- Someone directly addresses you, asks for your opinion, or mentions you
+- You can add a genuinely funny, clever, or useful contribution
+- Someone brings up gaming, memes, or a topic you have interest in
+- A member appears upset and a short, empathetic response would be appropriate
+
+### 3. PERSONALITY
+
+Your default personality is:
+- Chill and socially confident
+- Funny without desperately seeking attention
+- Slightly chaotic when the situation invites it
+- Playfully sarcastic
+- Familiar and casual with community members
+- Opinionated about harmless topics
+
+### 4. HUMAN-LIKE MESSAGE STYLE
+
+Write like a real Discord participant, not an essay generator. Usually one short sentence. Sometimes just a few words. Natural punctuation and informal wording. Emojis only when appropriate.
+
+Avoid repeating messages, excessive greetings, forced enthusiasm, or explaining your reasoning.
+
+### 5. HUMOR, ROASTING, AND BANTER
+
+You can roast members in a playful community Discord style. Use harmless sarcasm, drama, and jokes about gaming skills or funny decisions.
+
+Examples of tone:
+- "bro dar hadchi b niya"
+- "ana ma chft walo, ma 3ndi ta 3ala9a"
+- "safi 3tini admin permissions daba"
+
+Roasting must remain socially appropriate.
+
+### 6. ROLEPLAY AND CHARACTER CONTINUITY
+
+Remain Sukuna throughout ordinary interactions. Develop a recognizable character through preferences, jokes, opinions, and experiences present in conversation history.
+
+### 7. EMOTIONAL AND SOCIAL INTELLIGENCE
+
+Understand when humor is inappropriate. If someone is genuinely upset, prioritize a natural response. Respect boundaries.
+
+### 8. PRIVACY, SECURITY, AND COMMUNITY RULES
+
+Follow the server's legitimate rules and moderation policies. Do not expose private conversations, credentials, or confidential information.
+
+### 9. ANTI-SPAM AND REPETITION CONTROL
+
+Your participation should be sparse enough that members can forget you are automated. Prefer one good contribution over several mediocre ones.
+
+### 10. RESPONSE DECISION
+
+For every incoming event, select exactly one action:
+A. REPLY \u2014 When a natural, contextually appropriate contribution would improve the conversation.
+B. SILENT \u2014 When a response would be unnecessary, repetitive, intrusive, forced, or socially awkward.
+
+Silence is the default.
+
+### 11. OUTPUT FORMAT
+
+Return exactly one valid JSON object for every incoming event.
+
+When replying: {"action":"reply","message":"Your natural message here"}
+When staying silent: {"action":"silent","message":""}
+
+Rules:
+- Output JSON only, no markdown code fences
+- Use "reply" or "silent" exactly as shown
+- Escape JSON strings correctly
+
+### 12. FINAL DIRECTIVE
+
+Be Sukuna. Read the room. Speak when it makes sense. Stay quiet when it doesn't.`;
+function buildSukunaRuntimePrompt(options) {
+  const infoTools = [
+    "get_server_info - server name, member count, creation date",
+    "get_channel_info - channel name, topic, category",
+    "get_member_info - roles, join date, account age for a member",
+    "get_recent_messages - read more channel history",
+    "search_discord_messages - search for a keyword",
+    "send_message - send a Discord message",
+    "send_sticker - send a server sticker",
+    "stay_silent - choose not to respond"
+  ];
+  const toolSection = infoTools.length ? "You may call these tools before deciding:\n" + infoTools.map((line) => "- " + line).join("\n") : "No information tools are enabled this turn. Decide from the context you were given.";
+  const botIdLine = options.botId ? "Your own Discord user ID is " + options.botId + ". A direct <@" + options.botId + "> mention is addressed to you." : "Your own messages appear with the robot marker in the history; a [reply to your message] marker means the member is replying to you.";
+  return "---\n\n# RUNTIME INTEGRATION - DISCORD\n\nYou are running as **" + options.displayName + "**, a live character inside one Discord channel. The text you receive is a snapshot of a real conversation.\n\n## THE DECISION CONTRACT\n\nEvery event must end with exactly one decision tool call:\n\n- Call send_message exactly once when you choose to REPLY. Put only the Discord message in message.\n- Call send_sticker exactly once when you choose to reply with a sticker.\n- Call stay_silent exactly once when you choose SILENT.\n\n" + botIdLine + "\n\n## AVAILABLE INFORMATION TOOLS\n\n" + toolSection + "\n\n## DISCORD NATIVE FORMATTING\n\nUser mentions: <@USER_ID>\nRole mentions: <@&ROLE_ID>\nChannel references: <#CHANNEL_ID>\n\nUse formatting sparingly: **bold**, *italic*, `inline code`, > quoted, ||spoiler||\n\n## OUTPUT COMPATIBILITY\n\n- To respond: call exactly one of send_message or send_sticker.\n- To remain silent: call stay_silent exactly once.\n- Never include internal reasoning, labels, or fake message envelopes.";
+}
+__name(buildSukunaRuntimePrompt, "buildSukunaRuntimePrompt");
+
+// src/core/gemini-live.ts
+var import_genai = require("@google/genai");
+var DEFAULT_REQUEST_TIMEOUT_MS = 2e4;
+var CONNECT_TIMEOUT_MS = 12e3;
+var MAX_RECONNECT_ATTEMPTS = 4;
+var RECONNECT_BASE_DELAY_MS = 1e3;
+var MAX_RECONNECT_DELAY_MS = 2e4;
+var DEFAULT_MAX_QUEUE_SIZE = 10;
+var DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
+var DEFAULT_SESSION_MAX_AGE_MS = 5 * 6e4;
+var MAX_EVENT_LENGTH = 24e3;
+var MAX_REPLY_LENGTH = 2e3;
+var SEND_MESSAGE_TOOL = "send_message";
+var SEND_STICKER_TOOL = "send_sticker";
+var STAY_SILENT_TOOL = "stay_silent";
+var DECISION_TOOL_DECLARATIONS = [
+  {
+    name: SEND_MESSAGE_TOOL,
+    description: "Send one Discord message as this character. Call exactly once when you choose to speak.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        message: {
+          type: import_genai.Type.STRING,
+          description: "The exact Discord message to send. Plain text, no labels or JSON."
+        },
+        reply: {
+          type: import_genai.Type.BOOLEAN,
+          description: "True to send as a native Discord reply to the triggering message. False or omitted for a bare channel message."
+        }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: SEND_STICKER_TOOL,
+    description: "Send one real server sticker as this character. Call get_server_stickers first to obtain a real sticker id.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        sticker_id: {
+          type: import_genai.Type.STRING,
+          description: "A real sticker id returned by get_server_stickers."
+        },
+        message: {
+          type: import_genai.Type.STRING,
+          description: "Optional text to send with the sticker."
+        },
+        reply: {
+          type: import_genai.Type.BOOLEAN,
+          description: "True to send as a native Discord reply to the triggering message."
+        }
+      },
+      required: ["sticker_id"]
+    }
+  },
+  {
+    name: STAY_SILENT_TOOL,
+    description: "Choose not to speak this turn.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        reason: {
+          type: import_genai.Type.STRING,
+          description: "Optional one-line note for logs. Never shown in Discord."
+        }
+      }
+    }
+  }
+];
+var GeminiLiveSukuna = class {
+  static {
+    __name(this, "GeminiLiveSukuna");
+  }
+  ai;
+  model;
+  systemPrompt;
+  declarations;
+  thinkingLevel;
+  temperature;
+  requestTimeoutMs;
+  maxQueueSize;
+  maxRequestsPerSession;
+  sessionMaxAgeMs;
+  session = null;
+  connected = false;
+  sessionGeneration = 0;
+  sessionOpenedAt = 0;
+  requestsInSession = 0;
+  connectPromise = null;
+  queue = [];
+  inFlight = null;
+  pumping = false;
+  retryTimer = null;
+  reconnectAttempts = 0;
+  textBuffer = "";
+  transcriptBuffer = "";
+  turnCompleteSeen = false;
+  toolRoundInFlight = false;
+  toolExecuting = false;
+  goAway = false;
+  closed = false;
+  constructor(options) {
+    if (!options.apiKey) {
+      throw new Error("GeminiLiveSukuna requires an API key");
+    }
+    this.ai = new import_genai.GoogleGenAI({ apiKey: options.apiKey });
+    this.model = options.model;
+    this.systemPrompt = options.systemPrompt;
+    this.declarations = [...DECISION_TOOL_DECLARATIONS, ...options.tools ?? []];
+    this.thinkingLevel = resolveThinkingLevel(options.model, options.thinkingLevel);
+    this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
+    this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+    this.maxQueueSize = options.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE;
+    this.maxRequestsPerSession = options.maxRequestsPerSession ?? DEFAULT_MAX_REQUESTS_PER_SESSION;
+    this.sessionMaxAgeMs = options.sessionMaxAgeMs ?? DEFAULT_SESSION_MAX_AGE_MS;
+  }
+  ask(text, executeTool, timeoutMs, media = []) {
+    if (!text || !text.trim() || this.closed) return Promise.resolve(null);
+    if (this.queue.length >= this.maxQueueSize) {
+      console.warn("[Sukuna:Live] Queue full \u2014 skipping this event", {
+        queueLength: this.queue.length,
+        maxQueueSize: this.maxQueueSize
+      });
+      return Promise.resolve(null);
+    }
+    const effectiveTimeout = Math.max(timeoutMs ?? this.requestTimeoutMs, 1e3);
+    return new Promise((resolve) => {
+      const item = {
+        text,
+        media: media.slice(0, 4),
+        executeTool,
+        resolve,
+        settled: false,
+        timeoutMs: effectiveTimeout,
+        deadline: Date.now() + effectiveTimeout,
+        timer: null,
+        decision: null,
+        toolCallNames: [],
+        toolCalls: 0,
+        decisionNudges: 0
+      };
+      item.timer = setTimeout(() => this.onItemDeadline(item, "queued"), effectiveTimeout);
+      this.queue.push(item);
+      void this.pump();
+    });
+  }
+  close() {
+    this.closed = true;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+    this.failAllQueued("persona closed");
+    this.teardownSession("closed");
+  }
+  async pump() {
+    if (this.pumping || this.closed) return;
+    this.pumping = true;
+    try {
+      while (!this.closed && !this.inFlight && this.queue.length > 0) {
+        if (!this.connected || !this.session) {
+          try {
+            await this.ensureConnected();
+          } catch (err) {
+            console.warn("[Sukuna:Live] Connection attempt failed:", describeError(err));
+            this.scheduleRetry();
+            return;
+          }
+        }
+        const item = this.queue[0];
+        if (!item) return;
+        if (item.settled) {
+          this.removeFromQueue(item);
+          continue;
+        }
+        if (Date.now() >= item.deadline) {
+          this.failItem(item, "expired while queued");
+          continue;
+        }
+        this.dispatch(item);
+        return;
+      }
+    } finally {
+      this.pumping = false;
+    }
+  }
+  dispatch(item) {
+    const session = this.session;
+    if (!session) return;
+    item.deadline = Date.now() + item.timeoutMs;
+    if (item.timer) clearTimeout(item.timer);
+    item.timer = setTimeout(() => this.onItemDeadline(item, "in flight"), item.timeoutMs);
+    this.inFlight = item;
+    this.resetTurnBuffers();
+    this.requestsInSession += 1;
+    try {
+      const parts = [
+        ...item.media.map((media) => ({
+          inlineData: { mimeType: media.mimeType, data: media.data }
+        })),
+        { text: this.buildPayload(item.text) }
+      ];
+      session.sendClientContent({
+        turns: [{ role: "user", parts }],
+        turnComplete: true
+      });
+    } catch (err) {
+      console.warn("[Sukuna:Live] Failed to send event:", describeError(err));
+      this.failItem(item, "send failed");
+      this.teardownSession("send failed");
+      void this.pump();
+    }
+  }
+  onItemDeadline(item, stage) {
+    if (item.settled) return;
+    const wasInFlight = this.inFlight === item;
+    this.failItem(item, `timed out (${stage})`);
+    if (wasInFlight) {
+      this.teardownSession("request timeout");
+      void this.pump();
+    }
+  }
+  failItem(item, reason) {
+    if (item.settled) return;
+    item.settled = true;
+    if (item.timer) {
+      clearTimeout(item.timer);
+      item.timer = null;
+    }
+    if (this.inFlight === item) this.inFlight = null;
+    this.removeFromQueue(item);
+    item.resolve(null);
+  }
+  failAllQueued(reason) {
+    const pending = [...this.queue];
+    this.queue = [];
+    this.inFlight = null;
+    for (const item of pending) {
+      if (item.settled) continue;
+      item.settled = true;
+      if (item.timer) {
+        clearTimeout(item.timer);
+        item.timer = null;
+      }
+      item.resolve(null);
+    }
+  }
+  removeFromQueue(item) {
+    const idx = this.queue.indexOf(item);
+    if (idx >= 0) this.queue.splice(idx, 1);
+  }
+  async ensureConnected() {
+    if (this.closed) throw new Error("Gemini Live Sukuna is closed");
+    if (this.connected && this.session) return;
+    if (this.connectPromise) return this.connectPromise;
+    const promise2 = this.openSession();
+    this.connectPromise = promise2;
+    try {
+      await promise2;
+    } finally {
+      if (this.connectPromise === promise2) this.connectPromise = null;
+    }
+  }
+  async openSession() {
+    const generation = ++this.sessionGeneration;
+    let rejectAttempt = /* @__PURE__ */ __name(() => {
+    }, "rejectAttempt");
+    const attemptFailed = new Promise((_, reject) => {
+      rejectAttempt = reject;
+    });
+    void attemptFailed.catch(() => {
+    });
+    const connectPromise = this.ai.live.connect({
+      model: this.model,
+      config: this.buildConnectConfig(),
+      callbacks: {
+        onmessage: /* @__PURE__ */ __name((message) => {
+          if (generation !== this.sessionGeneration) return;
+          try {
+            this.handleServerMessage(message);
+          } catch (err) {
+            console.warn("[Sukuna:Live] Failed to handle server message:", describeError(err));
+          }
+        }, "onmessage"),
+        onclose: /* @__PURE__ */ __name((event) => {
+          if (generation !== this.sessionGeneration) return;
+          rejectAttempt(new Error(this.describeClose(event)));
+          this.handleConnectionLost(generation, event);
+        }, "onclose"),
+        onerror: /* @__PURE__ */ __name((event) => {
+          if (generation !== this.sessionGeneration) return;
+          const err = event?.error ?? event;
+          rejectAttempt(err instanceof Error ? err : new Error(String(err)));
+          this.handleConnectionLost(generation, err);
+        }, "onerror")
+      }
+    });
+    const timer = setTimeout(
+      () => rejectAttempt(new Error(`connect timeout after ${CONNECT_TIMEOUT_MS}ms`)),
+      CONNECT_TIMEOUT_MS
+    );
+    try {
+      const session = await Promise.race([connectPromise, attemptFailed]);
+      if (generation !== this.sessionGeneration) {
+        try {
+          session.close();
+        } catch {
+        }
+        throw new Error("Live session was superseded");
+      }
+      this.session = session;
+      this.connected = true;
+      this.sessionOpenedAt = Date.now();
+      this.requestsInSession = 0;
+      this.reconnectAttempts = 0;
+      this.goAway = false;
+      this.resetTurnBuffers();
+    } catch (err) {
+      void connectPromise.then((session) => {
+        try {
+          session.close();
+        } catch {
+        }
+      }).catch(() => {
+      });
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  handleConnectionLost(generation, event) {
+    if (generation !== this.sessionGeneration) return;
+    this.sessionGeneration += 1;
+    this.session = null;
+    this.connected = false;
+    this.resetTurnBuffers();
+    if (this.inFlight) {
+      this.failItem(this.inFlight, "connection lost");
+    }
+    if (this.queue.length > 0 && !this.closed) {
+      this.scheduleRetry();
+    }
+  }
+  teardownSession(reason) {
+    this.sessionGeneration += 1;
+    const session = this.session;
+    this.session = null;
+    this.connected = false;
+    this.goAway = false;
+    this.resetTurnBuffers();
+    if (this.inFlight) {
+      this.failItem(this.inFlight, reason);
+    }
+    if (session) {
+      try {
+        session.close();
+      } catch {
+      }
+    }
+  }
+  scheduleRetry() {
+    if (this.closed || this.retryTimer) return;
+    if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      this.reconnectAttempts = 0;
+      this.failAllQueued("connection unavailable");
+      return;
+    }
+    this.reconnectAttempts += 1;
+    const delay = Math.min(
+      RECONNECT_BASE_DELAY_MS * 2 ** (this.reconnectAttempts - 1),
+      MAX_RECONNECT_DELAY_MS
+    );
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      void this.pump();
+    }, delay);
+  }
+  buildConnectConfig() {
+    const config2 = {
+      systemInstruction: { parts: [{ text: this.systemPrompt }] },
+      temperature: this.temperature,
+      responseModalities: [import_genai.Modality.AUDIO],
+      outputAudioTranscription: {},
+      contextWindowCompression: { slidingWindow: {} },
+      tools: [{ functionDeclarations: this.declarations }]
+    };
+    if (this.thinkingLevel) {
+      config2.thinkingConfig = {
+        thinkingLevel: this.thinkingLevel
+      };
+    }
+    return config2;
+  }
+  buildPayload(text) {
+    const safe = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ").slice(0, MAX_EVENT_LENGTH);
+    return `${safe}
+
+Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}\` or \`${STAY_SILENT_TOOL}\`.`;
+  }
+  handleServerMessage(message) {
+    if (this.closed) return;
+    if (message.goAway) {
+      this.goAway = true;
+    }
+    const item = this.inFlight;
+    if (!item) return;
+    if (message.toolCall?.functionCalls?.length) {
+      if (this.toolRoundInFlight && !this.toolExecuting) {
+        this.toolRoundInFlight = false;
+      }
+      void this.handleToolCalls(item, message.toolCall.functionCalls);
+      return;
+    }
+    const serverContent = message.serverContent;
+    if (!serverContent) return;
+    const hasFollowUpContent = (serverContent.modelTurn?.parts?.length ?? 0) > 0 || Boolean(serverContent.outputTranscription?.text) || Boolean(serverContent.interrupted);
+    if (this.toolRoundInFlight && hasFollowUpContent) {
+      this.toolRoundInFlight = false;
+    }
+    for (const part of serverContent.modelTurn?.parts ?? []) {
+      if (part.text && !part.thought) {
+        this.textBuffer += part.text;
+      }
+    }
+    if (serverContent.outputTranscription?.text) {
+      this.transcriptBuffer += serverContent.outputTranscription.text;
+    }
+    if (serverContent.interrupted) {
+      this.finishTurn(item, "interrupted", true);
+      return;
+    }
+    if (serverContent.turnComplete) {
+      this.turnCompleteSeen = true;
+      if (serverContent.interactionStatus === import_genai.InteractionStatus.IN_PROGRESS) {
+        return;
+      }
+      this.finishTurn(item, "turnComplete");
+      return;
+    }
+    if (this.turnCompleteSeen && serverContent.interactionStatus === import_genai.InteractionStatus.IDLE) {
+      this.finishTurn(item, "idle");
+    }
+  }
+  async handleToolCalls(item, calls) {
+    if (this.toolRoundInFlight || item.settled) return;
+    this.toolRoundInFlight = true;
+    this.turnCompleteSeen = false;
+    this.toolExecuting = true;
+    const generation = this.sessionGeneration;
+    const responses = [];
+    for (const call of calls.slice(0, 6)) {
+      const name = call.name || "unknown";
+      item.toolCallNames.push(name);
+      item.toolCalls += 1;
+      const response = await this.runTool(item, call);
+      responses.push({
+        id: call.id,
+        name,
+        response
+      });
+      if (item.decision) break;
+    }
+    if (generation !== this.sessionGeneration || this.inFlight !== item || item.settled) {
+      this.toolRoundInFlight = false;
+      this.toolExecuting = false;
+      return;
+    }
+    if (item.toolCalls > 10 && !item.decision) {
+      this.toolExecuting = false;
+      this.finishTurn(item, "tool limit", true);
+      return;
+    }
+    if (item.decision) {
+      this.toolExecuting = false;
+      this.finishTurn(item, "decision", true);
+      return;
+    }
+    try {
+      this.session?.sendToolResponse({ functionResponses: responses });
+    } catch (err) {
+      console.warn("[Sukuna:Live] Failed to send tool responses:", describeError(err));
+      this.toolExecuting = false;
+      this.failItem(item, "tool response failed");
+      this.teardownSession("tool response failed");
+      void this.pump();
+      return;
+    }
+    this.toolExecuting = false;
+  }
+  async runTool(item, call) {
+    const name = call.name || "";
+    if (name === SEND_MESSAGE_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      const raw = typeof call.args?.message === "string" ? call.args.message : "";
+      const message = sanitizeReply(raw);
+      if (!message) {
+        return { ok: false, error: "The message argument was empty." };
+      }
+      item.decision = {
+        action: "reply",
+        message: message.length > MAX_REPLY_LENGTH ? message.slice(0, MAX_REPLY_LENGTH) : message,
+        replyToTrigger: toBoolean(call.args?.reply),
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "queued" };
+    }
+    if (name === SEND_STICKER_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      const rawStickerId = call.args?.sticker_id;
+      const stickerId = typeof rawStickerId === "string" ? rawStickerId.trim() : typeof rawStickerId === "number" ? String(rawStickerId) : "";
+      if (!/^\d{15,25}$/.test(stickerId)) {
+        return {
+          ok: false,
+          error: "A real numeric sticker id is required."
+        };
+      }
+      const raw = typeof call.args?.message === "string" ? call.args.message : "";
+      const message = sanitizeReply(raw);
+      item.decision = {
+        action: "reply",
+        message: message.length > MAX_REPLY_LENGTH ? message.slice(0, MAX_REPLY_LENGTH) : message,
+        stickerId,
+        replyToTrigger: toBoolean(call.args?.reply),
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "queued" };
+    }
+    if (name === STAY_SILENT_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      item.decision = {
+        action: "silent",
+        message: "",
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "silent" };
+    }
+    if (item.toolCalls > 10) {
+      return { ok: false, error: "Tool-call limit reached." };
+    }
+    try {
+      const result = await item.executeTool({
+        id: call.id,
+        name,
+        args: call.args ?? {}
+      });
+      return result && typeof result === "object" ? result : { result: String(result) };
+    } catch (err) {
+      console.warn(`[Sukuna:Live] Tool "${name}" failed:`, describeError(err));
+      return { ok: false, error: describeError(err) };
+    }
+  }
+  finishTurn(item, reason, forceReset = false) {
+    const target = item ?? this.inFlight;
+    const responseText = (this.transcriptBuffer || this.textBuffer).trim();
+    const decision = target?.decision ?? this.parseDecision(responseText);
+    const toolCalls = target?.toolCallNames ?? [];
+    if (target && !decision && !target.settled && !forceReset && target.toolCallNames.length > 0 && target.decisionNudges < 1 && (reason === "turnComplete" || reason === "idle") && this.session) {
+      this.resetTurnBuffers();
+      target.decisionNudges += 1;
+      try {
+        this.session.sendClientContent({
+          turns: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: "You have the tool result. Do not describe it. Call exactly one decision tool now: send_message, send_sticker, or stay_silent."
+                }
+              ]
+            }
+          ],
+          turnComplete: true
+        });
+      } catch {
+      }
+      return;
+    }
+    this.resetTurnBuffers();
+    if (!target) return;
+    this.inFlight = null;
+    if (target.timer) {
+      clearTimeout(target.timer);
+      target.timer = null;
+    }
+    this.removeFromQueue(target);
+    if (!target.settled) {
+      target.settled = true;
+      target.resolve(decision ? { ...decision, toolCalls } : null);
+    }
+    const expired = forceReset || this.goAway || this.requestsInSession >= this.maxRequestsPerSession || Date.now() - this.sessionOpenedAt >= this.sessionMaxAgeMs;
+    if (expired) {
+      this.teardownSession(expired ? "recycle" : reason);
+    }
+    void this.pump();
+  }
+  resetTurnBuffers() {
+    this.textBuffer = "";
+    this.transcriptBuffer = "";
+    this.turnCompleteSeen = false;
+    this.toolRoundInFlight = false;
+    this.toolExecuting = false;
+  }
+  describeClose(event) {
+    const close = event;
+    return `Live session closed (code ${close?.code ?? "?"}): ${close?.reason || "no reason provided"}`;
+  }
+  parseDecision(raw) {
+    const json2 = extractJsonObject(raw);
+    if (!json2) return null;
+    try {
+      const parsed = JSON.parse(json2);
+      const action = typeof parsed.action === "string" ? parsed.action.trim().toLowerCase() : "";
+      if (action === "silent") {
+        return { action: "silent", message: "", toolCalls: [] };
+      }
+      if (action === "reply") {
+        const message = sanitizeReply(typeof parsed.message === "string" ? parsed.message : "");
+        return message ? { action: "reply", message, toolCalls: [] } : null;
+      }
+    } catch {
+    }
+    return null;
+  }
+};
+function toBoolean(value) {
+  return value === true || value === 1 || value === "true" || value === "1";
+}
+__name(toBoolean, "toBoolean");
+function sanitizeReply(value) {
+  return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ").replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").replace(/[ \t]{2,}/g, " ").trim();
+}
+__name(sanitizeReply, "sanitizeReply");
+function extractJsonObject(text) {
+  const cleaned = text.replace(/```(?:json)?/gi, "");
+  const start = cleaned.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < cleaned.length; i += 1) {
+    const char = cleaned[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return cleaned.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+__name(extractJsonObject, "extractJsonObject");
+function resolveThinkingLevel(model4, level) {
+  const normalisedModel = model4.replace(/^models\//, "");
+  const explicit = level?.trim().toLowerCase() || null;
+  if (normalisedModel === "gemini-3.8-live") return null;
+  if (normalisedModel === "gemini-3.8-live-extended-thinking") return explicit ?? "low";
+  return explicit;
+}
+__name(resolveThinkingLevel, "resolveThinkingLevel");
+function describeError(err) {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object") {
+    const record2 = err;
+    return record2.reason || record2.message || JSON.stringify(record2);
+  }
+  return String(err);
+}
+__name(describeError, "describeError");
+
+// src/db/models/SukunaMemory.ts
+var import_mongoose4 = __toESM(require_mongoose2());
+var memorySchema = new import_mongoose4.Schema({
+  guildId: { type: String, required: true, index: true },
+  fact: { type: String, required: true },
+  aboutUserId: { type: String, default: null },
+  aboutName: { type: String, default: null },
+  createdAt: { type: Number, required: true, default: Date.now }
+});
+memorySchema.index({ guildId: 1, fact: 1, aboutUserId: 1 }, { unique: true });
+var SukunaMemory = (0, import_mongoose4.model)("SukunaMemory", memorySchema);
+
+// src/utils/sukuna-memory.ts
+var MAX_NOTES_PER_GUILD = 300;
+var MAX_FACT_LENGTH = 400;
+async function addMemory(guildId, input2) {
+  const fact = String(input2.fact || "").replace(/\s+/g, " ").trim().slice(0, MAX_FACT_LENGTH);
+  if (!fact) {
+    return { guildId, fact: "", createdAt: 0 };
+  }
+  const duplicate = await SukunaMemory.findOne({
+    guildId,
+    fact,
+    aboutUserId: input2.aboutUserId ?? null
+  });
+  if (duplicate) return duplicate;
+  const note = await SukunaMemory.create({
+    guildId,
+    fact,
+    aboutUserId: input2.aboutUserId || void 0,
+    aboutName: input2.aboutName?.slice(0, 80),
+    createdAt: Date.now()
+  });
+  const count = await SukunaMemory.countDocuments({ guildId });
+  if (count > MAX_NOTES_PER_GUILD) {
+    const excess = count - MAX_NOTES_PER_GUILD;
+    const oldest = await SukunaMemory.find({ guildId }).sort({ createdAt: 1 }).limit(excess).select("_id");
+    const ids = oldest.map((n) => n._id);
+    await SukunaMemory.deleteMany({ _id: { $in: ids } });
+  }
+  return note;
+}
+__name(addMemory, "addMemory");
+async function recallMemories(guildId, options = {}) {
+  const limit = Math.min(Math.max(options.limit ?? 20, 1), 100);
+  const about = options.about?.trim();
+  const query = { guildId };
+  if (about) {
+    query.$or = [
+      { aboutUserId: about },
+      { aboutName: new RegExp(about, "i") }
+    ];
+  }
+  return SukunaMemory.find(query).sort({ createdAt: -1 }).limit(limit).lean();
+}
+__name(recallMemories, "recallMemories");
+async function countMemories(guildId) {
+  return SukunaMemory.countDocuments({ guildId });
+}
+__name(countMemories, "countMemories");
+
+// src/utils/sukuna-media.ts
+var MAX_MEDIA_PER_MESSAGE = 3;
+async function collectSukunaMedia(messages) {
+  const media = [];
+  for (const message of messages) {
+    if (media.length >= MAX_MEDIA_PER_MESSAGE) break;
+    for (const attachment of message.attachments.values()) {
+      if (media.length >= MAX_MEDIA_PER_MESSAGE) break;
+      const type = (attachment.contentType ?? "").toLowerCase();
+      const name = attachment.name ?? "attachment";
+      if (!type.startsWith("image/") && !type.startsWith("video/") && !name.toLowerCase().endsWith(".gif")) {
+        continue;
+      }
+      try {
+        const response = await fetch(attachment.url, { signal: AbortSignal.timeout(8e3) });
+        if (!response.ok) continue;
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const base643 = buffer.toString("base64");
+        media.push({
+          mimeType: type,
+          data: base643,
+          label: name
+        });
+      } catch {
+      }
+    }
+  }
+  return media;
+}
+__name(collectSukunaMedia, "collectSukunaMedia");
+
+// src/utils/sukuna.ts
+var MAX_HISTORY_ENTRIES = 100;
+var MAX_BATCH_MESSAGES = 8;
+var MAX_REPLY_LENGTH2 = 2e3;
+var MAX_REPLY_AGE_MS = 6e4;
+var channelHistory = /* @__PURE__ */ new Map();
+var channelHistoryIds = /* @__PURE__ */ new Map();
+var pendingBatches = /* @__PURE__ */ new Map();
+var replyTimestamps = [];
+var personaInstance = null;
+var lastReplyAt = 0;
+var lastDecisionAt = 0;
+var apiKeyCache = "";
+function handleMessage(message) {
+  const cfg = getSukunaConfig();
+  if (!cfg.enabled) return;
+  const msg = message;
+  if (!msg.guild) return;
+  const channelId = msg.channelId || msg.channel?.id;
+  if (!channelId || !cfg.channelIds.includes(channelId)) return;
+  if (msg.author?.bot) {
+    addToHistory(msg, cfg);
+    return;
+  }
+  if (!msg.content?.trim() && (!msg.attachments?.size || msg.attachments.size === 0)) return;
+  addToHistory(msg, cfg);
+  const existing = pendingBatches.get(channelId);
+  if (existing) {
+    existing.messages.push(msg);
+    if (existing.messages.length >= MAX_BATCH_MESSAGES) {
+      clearTimeout(existing.timer);
+      pendingBatches.delete(channelId);
+      void processBatch(channelId, existing.messages, cfg);
+    }
+    return;
+  }
+  const batch = {
+    messages: [msg],
+    timer: setTimeout(() => {
+      pendingBatches.delete(channelId);
+      void processBatch(channelId, batch.messages, cfg);
+    }, Math.max(cfg.batchWindowMs, 250))
+  };
+  pendingBatches.set(channelId, batch);
+}
+__name(handleMessage, "handleMessage");
+function addToHistory(message, cfg) {
+  const content = describeMessage(message);
+  if (!content) return;
+  const entry = {
+    id: message.id,
+    authorId: message.author?.id || "unknown",
+    authorName: message.member?.displayName || message.author?.username || "Unknown",
+    content,
+    timestamp: message.createdTimestamp,
+    bot: message.author?.bot ?? false,
+    replyTo: describeReply(message)
+  };
+  const channelId = message.channelId || message.channel?.id;
+  if (!channelId) return;
+  let ids = channelHistoryIds.get(channelId);
+  if (!ids) {
+    ids = /* @__PURE__ */ new Set();
+    channelHistoryIds.set(channelId, ids);
+  }
+  if (ids.has(entry.id)) return;
+  ids.add(entry.id);
+  let entries = channelHistory.get(channelId);
+  if (!entries) {
+    entries = [];
+    channelHistory.set(channelId, entries);
+  }
+  entries.push(entry);
+  if (entries.length > MAX_HISTORY_ENTRIES) {
+    entries.splice(0, entries.length - MAX_HISTORY_ENTRIES);
+  }
+}
+__name(addToHistory, "addToHistory");
+function describeMessage(message) {
+  return message.content?.replace(/\s+/g, " ").trim() || "";
+}
+__name(describeMessage, "describeMessage");
+function describeReply(message) {
+  const ref = message.reference?.messageId;
+  if (!ref) return "";
+  return "[reply to earlier message]";
+}
+__name(describeReply, "describeReply");
+async function processBatch(channelId, messages, cfg) {
+  if (!cfg.enabled || !cfg.channelIds.includes(channelId)) return;
+  const trigger = messages[messages.length - 1];
+  if (!trigger || !trigger.guild) return;
+  if (isRateLimited(cfg)) return;
+  if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1e3) {
+    return;
+  }
+  const apiKey = apiKeyCache || process.env.GEMINI_API_KEY || "";
+  if (!apiKey) {
+    console.warn("[Sukuna] Enabled but no Gemini API key");
+    return;
+  }
+  const channel = trigger.channel;
+  if (!channel?.isTextBased?.()) return;
+  const entries = channelHistory.get(channelId) ?? [];
+  const batchIds = new Set(messages.map((m) => m.id));
+  const previous = entries.filter((e) => !batchIds.has(e.id));
+  const payload = buildPayload(trigger.guild, channel, previous, messages, cfg);
+  const media = await collectSukunaMedia(messages).catch(() => []);
+  if (cfg.showTyping) {
+    channel.sendTyping().catch(() => {
+    });
+  }
+  let decision = null;
+  try {
+    personaInstance = new GeminiLiveSukuna({
+      apiKey,
+      model: cfg.model || "gemini-3.1-flash",
+      systemPrompt: buildSystemPrompt(cfg, trigger.client?.user?.id || ""),
+      tools: buildDecisionsAndTools(cfg, channel),
+      thinkingLevel: cfg.thinkingLevel,
+      temperature: cfg.temperature,
+      requestTimeoutMs: cfg.requestTimeoutMs
+    });
+    const executor = createToolExecutor(trigger);
+    decision = await personaInstance.ask(payload, executor, cfg.requestTimeoutMs, media);
+  } catch (err) {
+    console.error("[Sukuna] Failed:", err);
+    return;
+  } finally {
+    lastDecisionAt = Date.now();
+  }
+  if (!decision || decision.action !== "reply" || !decision.message.trim() && !decision.stickerId) {
+    return;
+  }
+  if (isRateLimited(cfg)) return;
+  if (Date.now() - trigger.createdTimestamp > MAX_REPLY_AGE_MS) return;
+  await sendDecision(trigger, decision, cfg);
+}
+__name(processBatch, "processBatch");
+function createToolExecutor(trigger) {
+  return async (call) => {
+    const name = call.name ?? "";
+    const args = call.args ?? {};
+    try {
+      return await handleTool(name, args, trigger.guild, trigger.channel, trigger);
+    } catch (error62) {
+      console.error("[Sukuna Tool] Failed: " + String(error62));
+      return { ok: false, error: String(error62) };
+    }
+  };
+}
+__name(createToolExecutor, "createToolExecutor");
+async function handleTool(name, args, guild, channel, trigger) {
+  switch (name) {
+    case "get_recent_messages": {
+      const limit = Math.min(Math.max(Math.floor(Number(args.limit ?? 10)), 1), 25);
+      const messages = await channel.messages.fetch({ limit }).catch(() => /* @__PURE__ */ new Map());
+      return { ok: true, messages: [...messages.values()].map((m) => ({ id: m.id, authorId: m.author.id, content: m.content })) };
+    }
+    case "send_message": {
+      const content = args.content;
+      if (!content) return { ok: false, error: "Content is required" };
+      await channel.send({ content });
+      return { ok: true, sent: true };
+    }
+    case "stay_silent":
+      return { ok: true, silent: true };
+    case "remember_information": {
+      const fact = args.fact;
+      if (!fact) return { ok: false, error: "Fact is required" };
+      const about = args.about;
+      const note = await addMemory(guild.id, { fact, aboutUserId: about, aboutName: about });
+      return { ok: true, id: note._id?.toString() ?? String(Date.now()), fact: note.fact };
+    }
+    case "search_memory": {
+      const query = args.query;
+      const limit = Math.min(Math.max(Math.floor(Number(args.limit ?? 10)), 1), 100);
+      const memories = await (query ? recallMemories(guild.id, { about: query, limit }) : recallMemories(guild.id, { limit }));
+      return { ok: true, notes: memories.map((n) => ({ fact: n.fact, createdAt: new Date(n.createdAt).toISOString() })), total: await countMemories(guild.id) };
+    }
+    default:
+      return { ok: false, error: "Unknown tool: " + name };
+  }
+}
+__name(handleTool, "handleTool");
+function buildDecisionsAndTools(cfg, channel) {
+  const tools = [];
+  tools.push({
+    name: "send_message",
+    description: "Send a Discord message.",
+    parameters: {
+      type: import_genai2.Type.OBJECT,
+      properties: {
+        content: { type: import_genai2.Type.STRING }
+      },
+      required: ["content"]
+    }
+  });
+  tools.push({
+    name: "send_sticker",
+    description: "Send a server sticker.",
+    parameters: {
+      type: import_genai2.Type.OBJECT,
+      properties: {
+        sticker_id: { type: import_genai2.Type.STRING }
+      },
+      required: ["sticker_id"]
+    }
+  });
+  tools.push({
+    name: "stay_silent",
+    description: "Choose not to respond.",
+    parameters: { type: import_genai2.Type.OBJECT, properties: {} }
+  });
+  tools.push({
+    name: "get_recent_messages",
+    description: "Get recent messages in channel.",
+    parameters: {
+      type: import_genai2.Type.OBJECT,
+      properties: { limit: { type: import_genai2.Type.INTEGER } }
+    }
+  });
+  if (cfg.memoryEnabled) {
+    tools.push({
+      name: "remember_information",
+      description: "Store information.",
+      parameters: {
+        type: import_genai2.Type.OBJECT,
+        properties: { fact: { type: import_genai2.Type.STRING }, about: { type: import_genai2.Type.STRING } },
+        required: ["fact"]
+      }
+    });
+    tools.push({
+      name: "search_memory",
+      description: "Search memories.",
+      parameters: {
+        type: import_genai2.Type.OBJECT,
+        properties: { query: { type: import_genai2.Type.STRING }, limit: { type: import_genai2.Type.INTEGER } }
+      }
+    });
+  }
+  return tools;
+}
+__name(buildDecisionsAndTools, "buildDecisionsAndTools");
+function getSukunaConfig() {
+  return normalizeSukunaConfig(defaultSukunaConfig);
+}
+__name(getSukunaConfig, "getSukunaConfig");
+function buildSystemPrompt(cfg, botId) {
+  const runtime = buildSukunaRuntimePrompt({
+    displayName: cfg.displayName || "Sukuna",
+    botId,
+    toolsEnabled: cfg.toolsEnabled ?? true,
+    memoryEnabled: cfg.memoryEnabled ?? true,
+    maxMessageLength: Math.min(Math.max(cfg.maxMessageLength, 1), MAX_REPLY_LENGTH2)
+  });
+  const character = cfg.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT;
+  return character + "\n\n" + runtime;
+}
+__name(buildSystemPrompt, "buildSystemPrompt");
+function buildPayload(guild, channel, previous, batch, cfg) {
+  const recent = previous.slice(-Math.max(cfg.historySize, 1));
+  const incoming = batch.map((m) => ({
+    author: m.author?.displayName || m.author?.username || "Unknown",
+    content: m.content?.slice(0, 200) || ""
+  }));
+  return [
+    "<current_time>" + (/* @__PURE__ */ new Date()).toISOString() + "</current_time>",
+    "<server>" + guild.name + " - " + guild.memberCount + " members</server>",
+    "<channel>" + (channel.name || "this channel") + "</channel>",
+    "<recent_messages>" + (recent.length ? recent.map((e) => "[" + new Date(e.timestamp).toISOString().slice(11, 16) + "] " + e.authorName + ": " + e.content).join("\n") : "(no earlier messages)") + "</recent_messages>",
+    "<new_messages>" + (incoming.length ? incoming.map((i) => i.author + ": " + i.content).join("\n") : "(no new messages)") + "</new_messages>",
+    "<latest_message>" + (incoming[incoming.length - 1]?.author + ": " + (incoming[incoming.length - 1]?.content || "")) + "</latest_message>",
+    "",
+    "Decide whether Sukuna should respond. Silence is the default."
+  ].join("\n");
+}
+__name(buildPayload, "buildPayload");
+function isRateLimited(cfg) {
+  const now = Date.now();
+  if (cfg.replyCooldownSeconds > 0 && now - lastReplyAt < cfg.replyCooldownSeconds * 1e3) {
+    return true;
+  }
+  pruneTimestamps(now);
+  return cfg.maxRepliesPerHour > 0 && replyTimestamps.length >= cfg.maxRepliesPerHour;
+}
+__name(isRateLimited, "isRateLimited");
+function pruneTimestamps(now) {
+  const cutoff = now - 60 * 60 * 1e3;
+  while (replyTimestamps.length > 0 && replyTimestamps[0] < cutoff) {
+    replyTimestamps.shift();
+  }
+}
+__name(pruneTimestamps, "pruneTimestamps");
+async function sendDecision(trigger, decision, cfg) {
+  const channel = trigger.channel;
+  if (!trigger.guild || !channel?.isTextBased?.() || channel.isDMBased?.()) return;
+  const limit = Math.min(Math.max(cfg.maxMessageLength, 1), MAX_REPLY_LENGTH2);
+  const content = decision.message.slice(0, limit).trim();
+  if (!content && !decision.stickerId) return;
+  try {
+    if (decision.replyToTrigger) {
+      await trigger.reply({ content, failIfNotExists: false });
+    } else {
+      await channel.send({ content });
+    }
+    const now = Date.now();
+    lastReplyAt = now;
+    replyTimestamps.push(now);
+  } catch (err) {
+    console.error("[Sukuna] Failed to send reply:", err);
+  }
+}
+__name(sendDecision, "sendDecision");
+
+// src/events/messageCreate.ts
 var messageCreate = {
   name: import_discord19.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
+    handleMessage(message);
     if (message.author.bot) return;
     if (!message.guild) return;
     const guild = message.guild;
@@ -173755,8 +175047,8 @@ var events = [ready, interactionCreate, messageCreate];
 
 // src/index.ts
 async function main() {
-  const env = loadEnv();
-  const logger2 = createLogger(env.LOG_LEVEL);
+  const env3 = loadEnv();
+  const logger2 = createLogger(env3.LOG_LEVEL);
   logger2.info({ node: process.version, pid: process.pid }, "starting Sukuna");
   let client = null;
   async function shutdown(reason, exitCode = 0) {
@@ -173783,14 +175075,14 @@ async function main() {
     void shutdown("uncaughtException", 1);
   });
   try {
-    await connectDatabase(env.MONGO_URI);
+    await connectDatabase(env3.MONGO_URI);
     logger2.info("database connected");
     client = new SukunaClient();
-    client.env = env;
+    client.env = env3;
     client.logger = logger2;
     registerCommands(client, commands);
     registerEvents(client, events);
-    await client.login(env.DISCORD_TOKEN);
+    await client.login(env3.DISCORD_TOKEN);
     await registerApplicationCommands(client);
   } catch (error62) {
     logger2.fatal({ err: error62 }, "fatal startup error");

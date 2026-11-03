@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../core/commands.js';
+import type { Command } from '../../core/commands.js';
 
 export const clearCommand: Command = {
   data: new SlashCommandBuilder()

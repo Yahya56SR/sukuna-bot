@@ -10,6 +10,7 @@ export interface IGuild extends Document {
   levelUpChannel?: string;
   levelUpMessage?: string;
   disableXpChannels: string[];
+  sukuna?: any;
   updatedAt: Date;
 }
 
@@ -24,6 +25,7 @@ const guildSchema = new Schema<IGuild>(
     levelUpChannel: { type: String },
     levelUpMessage: { type: String },
     disableXpChannels: { type: [String], default: [] },
+    sukuna: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true },
 );
@@ -32,4 +34,12 @@ export const Guild = model<IGuild>("Guild", guildSchema);
 
 export async function readGuildConfig(guildId: string) {
   return Guild.findOne({ guildId }).lean();
+}
+
+export function getGuildId(): string {
+  return process.env.DEV_GUILD_ID || '';
+}
+
+export async function updateGuildConfig(guildId: string, updates: Partial<IGuild>): Promise<IGuild | null> {
+  return Guild.findOneAndUpdate({ guildId }, updates, { upsert: true, new: true }).lean();
 }

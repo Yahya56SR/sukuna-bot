@@ -1,0 +1,179 @@
+/* Sukuna Dashboard Styles */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  padding: 20px 0;
+  border-bottom: 1px solid #333;
+  margin-bottom: 30px;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  color: #4fc3f7;
+}
+
+#status {
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: 8px;
+}
+
+main section {
+  background: #16213e;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #333;
+}
+
+main section h2 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  color: #4fc3f7;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+.field {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.field input[type="text"],
+.field input[type="range"],
+.field select,
+.field textarea {
+  background: #0f3460;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.9rem;
+  color: #eee;
+}
+
+.field input[type="text"],
+.field input[type="range"],
+.field textarea {
+  width: 100%;
+}
+
+.field input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.range-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.range-container input {
+  flex: 1;
+}
+
+#channel-list {
+  background: #0f3460;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  min-height: 60px;
+}
+
+.channel-item {
+  padding: 8px;
+  border-bottom: 1px solid #222;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+#channel-list:last-child .channel-item {
+  border-bottom: none;
+}
+
+#test-result {
+  margin-top: 12px;
+  padding: 12px;
+  background: #0f0f23;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  min-height: 60px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#test-result.success {
+  border-left: 4px solid #4caf50;
+}
+
+#test-result.error {
+  border-left: 4px solid #f44336;
+}
+
+footer {
+  padding-top: 20px;
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+#save-btn {
+  background: #4fc3f7;
+  color: #1a1a2e;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#save-btn:hover {
+  background: #38b4d3;
+}
+
+#last-saved {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.saved {
+  color: #4caf50;
+}
+
+/* Dark mode friendly colors */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0a0a1a;
+  }
+  main section {
+    background: #16213e;
+  }
+}

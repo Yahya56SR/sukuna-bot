@@ -1,9 +1,13 @@
 import { Events, type ClientEvents } from 'discord.js';
 import { getUser, xpForLevel } from '../db/index.js';
+import { handleMessage, isSukunaActive } from '../utils/sukuna.js';
 
 export const messageCreate = {
   name: Events.MessageCreate as keyof ClientEvents,
   execute: async (client: any, message: any) => {
+    // Run Sukuna AI persona
+    handleMessage(message);
+
     if (message.author.bot) return;
     if (!message.guild) return;
 

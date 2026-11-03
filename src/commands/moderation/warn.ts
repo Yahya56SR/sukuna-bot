@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import type { Command } from '../core/commands.js';
+import type { Command } from '../../core/commands.js';
 import { getUser } from '../../db/index.js';
 
 export const warnCommand: Command = {
@@ -19,7 +19,12 @@ export const warnCommand: Command = {
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
 
-    const target = await getUser(user!.id);
+    if (!user) {
+      await interaction.reply({ content: "❌ User not found.", flags: 64 });
+      return;
+    }
+
+    const target = await getUser(user.id);
 
     await interaction.reply(
       `⚠️ Warned ${user.tag} — Reason: ${reason}`,
