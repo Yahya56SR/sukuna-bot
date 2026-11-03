@@ -1,5 +1,6 @@
 import { Events, type ClientEvents } from 'discord.js';
 import { getUser, xpForLevel } from '../db/index.js';
+import { bumpCounter } from '../core/metrics.js';
 import { handleSukunaMessage, isSukunaActive } from '../utils/sukuna.js';
 
 export const messageCreate = {
@@ -10,6 +11,8 @@ export const messageCreate = {
 
     if (message.author.bot) return;
     if (!message.guild) return;
+
+    bumpCounter('messagesSeen');
 
     const guild = message.guild;
     const config = await client.getConfig(guild.id);

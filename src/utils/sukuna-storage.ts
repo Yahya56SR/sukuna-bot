@@ -126,6 +126,12 @@ export async function listAnnouncements(guildId: string, limit = 20): Promise<IA
   return SukunaAnnouncement.find({ guildId }).sort({ createdAt: -1 }).limit(limit).lean();
 }
 
+export function deleteAnnouncement(guildId: string, entryId: string): Promise<boolean> {
+  return SukunaAnnouncement.deleteOne({ guildId, _id: entryId }).then(
+    (result) => result.deletedCount === 1,
+  );
+}
+
 export function getServerRules(guildId: string): Promise<IServerRule | null> {
   return SukunaRules.findOne({ guildId }).lean();
 }

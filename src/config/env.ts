@@ -34,6 +34,15 @@ const EnvSchema = z.object({
     (v) => typeof v === 'number' ? v : Number(v ?? 2000),
     z.number().default(2000),
   ),
+  DASHBOARD_ENABLED: z.preprocess(
+    (v) => v === "true" || v === true,
+    z.boolean().default(false),
+  ),
+  DASHBOARD_TOKEN: z.preprocess(
+    // Treat an empty value in .env as "not set" so a generated token is used.
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(8).optional(),
+  ),
 });
 
 export interface Env {
@@ -52,6 +61,8 @@ export interface Env {
   SUKUNA_MODEL: string;
   SUKUNA_TEMPERATURE: number;
   SUKUNA_MAX_MESSAGE_LENGTH: number;
+  DASHBOARD_ENABLED: boolean;
+  DASHBOARD_TOKEN?: string;
 }
 
 export const env = loadEnv();

@@ -1,33 +1,179 @@
 /**
- * Local web dashboard for Sukuna AI persona configuration.
+ * Sukuna web dashboard.
  *
- * The dashboard runs inside the bot process on http://127.0.0.1:3001
- * and allows administrators to configure the AI persona settings.
+ * A dependency-free HTTP server that runs inside the bot process. It exposes:
+ *   - a token-protected JSON API over the live discord.js client, MongoDB and
+ *     the Gemini persona;
+ *   - the single-page control panel under /dashboard.
+ *
+ * Design constraints:
+ *   - must survive esbuild bundling into one CJS file (no Express, no ESM-only
+ *     dependencies);
+ *   - binds 0.0.0.0 because bot-hosting.net routes to $SERVER_PORT, so every API
+ *     request is authenticated with a signed HttpOnly session cookie.
  */
 
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import type { Guild } from 'discord.js';
+import { z } from 'zod';
 
-const DASHBOARD_PORT = Number(process.env.SERVER_PORT) || 3001;
+import type { SukunaClient } from '../src/core/client.js';
+import { mongoose } from '../src/db/index.js';
+import {
+  defaultSukunaConfig,
+  getSukunaConfig,
+  resetSukunaConfig,
+  saveSukunaConfig,
+  sukunaConfigPatchSchema,
+  type SukunaConfig,
+} from '../src/config/index.js';
+import { readGuildConfig, updateGuildConfig } from '../src/db/models/Guild.js';
+import { User } from '../src/db/models/User.js';
+import { SukunaMemory } from '../src/db/models/SukunaMemory.js';
+import { clearMemories, countMemories } from '../src/utils/sukuna-memory.js';
+import {
+  cancelScheduledMessage,
+  countScheduled,
+  createAnnouncement,
+  createFaqEntry,
+  createScheduledMessage,
+  createServerEvent,
+  deleteAnnouncement,
+  deleteFaqEntry,
+  getServerRules,
+  listAnnouncements,
+  listFaq,
+  listServerEvents,
+  SukunaAnnouncement,
+  SukunaFaq,
+  SukunaScheduled,
+  updateFaqEntry,
+  upsertServerRules,
+} from '../src/utils/sukuna-storage.js';
+import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../src/prompts/sukuna.js';
+import { GeminiStreamSukuna } from '../src/core/gemini-stream.js';
+import { getActivity, getCounters, recordActivity, type ActivityKind } from '../src/core/metrics.js';
+
+/* ------------------------------------------------------------------ */
+/* Constants                                                          */
+/* ------------------------------------------------------------------ */
+
 const DASHBOARD_HOST = '0.0.0.0';
+const DEFAULT_PORT = 3001;
+const SESSION_COOKIE = 'sukuna_dash';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_BODY_BYTES = 1_000_000;
+const DASHBOARD_DIR = resolveDashboardDir();
 
+const SESSION_SECRET = crypto.randomBytes(32);
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+const ALLOWED_MODULES = ['economy', 'leveling', 'fun', 'music', 'tickets', 'ai'] as const;
+const USER_SORT_FIELDS = ['totalXp', 'balance', 'level', 'xp', 'createdAt'] as const;
+const ACTIVITY_KINDS: Array<ActivityKind | 'all'> = ['all', 'system', 'command', 'ai', 'error', 'log'];
+
+/**
+ * Suggestions only. The persona model field is free-form so a newly released
+ * Gemini model can be used without shipping a dashboard update.
+ */
+const SUGGESTED_MODELS = [
+  { id: 'gemini-3.1-flash', label: 'Gemini 3.1 Flash' },
+  { id: 'gemini-3.1-pro', label: 'Gemini 3.1 Pro' },
+  { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+  { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+];
+
+const STATIC_FILES: Record<string, { file: string; type: string }> = {
+  '/': { file: 'index.html', type: 'text/html; charset=utf-8' },
+  '/index.html': { file: 'index.html', type: 'text/html; charset=utf-8' },
+  '/styles.css': { file: 'styles.css', type: 'text/css; charset=utf-8' },
+  '/app.js': { file: 'app.js', type: 'application/javascript; charset=utf-8' },
+};
+
+/* ------------------------------------------------------------------ */
+/* Static assets                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The HTML/CSS/JS assets are not bundled, so find the `dashboard` folder both
+ * when running from the repo root (production bundle) and from src/ (tsx dev).
+ */
+function resolveDashboardDir(): string {
+  const candidates = [path.join(process.cwd(), 'dashboard')];
+  const here = typeof __dirname === 'string' ? __dirname : '';
+  if (here) candidates.push(path.join(here, 'dashboard'), path.join(here, '..', 'dashboard'));
+  for (const dir of candidates) {
+    try {
+      if (fs.existsSync(path.join(dir, 'index.html'))) return dir;
+    } catch {
+      /* keep looking */
+    }
+  }
+  return candidates[0];
+}
+
+const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0b0d12"/><path d="M20 18h24v8H30c-4 0-6 2-6 5s2 5 6 5h4c7 0 11 4 11 10 0 7-5 11-14 11H16v-8h15c4 0 6-2 6-5s-2-5-6-5h-4c-7 0-11-4-11-10 0-7 5-11 14-11z" fill="#e5484d"/></svg>`;
+
+/* ------------------------------------------------------------------ */
+/* State                                                              */
+/* ------------------------------------------------------------------ */
+
+let server: http.Server | null = null;
+let clientRef: SukunaClient | null = null;
+let accessToken = '';
+let tokenSource: 'environment' | 'generated' = 'generated';
 let sukunaActive = false;
 
-export function startDashboard(): void {
-  const server = http.createServer(handleRequest);
+/* ------------------------------------------------------------------ */
+/* Lifecycle                                                          */
+/* ------------------------------------------------------------------ */
 
-  server.listen(DASHBOARD_PORT, DASHBOARD_HOST, () => {
-    console.log('[Sukuna Dashboard] Listening on http://' + DASHBOARD_HOST + ':' + DASHBOARD_PORT);
+export function startDashboard(client: SukunaClient): void {
+  clientRef = client;
+  if (server) return;
+
+  const port = Number(process.env.SERVER_PORT) || DEFAULT_PORT;
+  const configuredToken = process.env.DASHBOARD_TOKEN?.trim();
+  if (configuredToken) {
+    accessToken = configuredToken;
+    tokenSource = 'environment';
+  } else {
+    accessToken = crypto.randomBytes(18).toString('base64url');
+    tokenSource = 'generated';
+  }
+
+  server = http.createServer((req, res) => {
+    void handleRequest(req, res).catch((error: unknown) => {
+      console.error('[Dashboard] Unhandled request error:', error);
+      if (!res.headersSent) sendJson(res, 500, { error: 'Internal Server Error' });
+      else res.end();
+    });
   });
 
-  server.on('error', (err: any) => {
-    console.error('[Sukuna Dashboard] Server error:', err.message);
+  server.listen(port, DASHBOARD_HOST, () => {
+    console.log('[Dashboard] Listening on http://' + DASHBOARD_HOST + ':' + port);
+    if (tokenSource === 'generated') {
+      console.log('');
+      console.log('  ┌────────────────────────────────────────────────────────────┐');
+      console.log('  │  Dashboard access token (set DASHBOARD_TOKEN to override)  │');
+      console.log('  └────────────────────────────────────────────────────────────┘');
+      console.log('  ' + accessToken);
+      console.log('');
+    } else {
+      console.log('[Dashboard] Using access token from DASHBOARD_TOKEN');
+    }
   });
 
-  // Handle graceful shutdown
-  process.once('SIGTERM', () => server.close(() => {}));
-  process.once('SIGINT', () => server.close(() => {}));
+  server.on('error', (error: Error) => {
+    console.error('[Dashboard] Server error:', error.message);
+  });
+
+  process.once('SIGTERM', () => server?.close());
+  process.once('SIGINT', () => server?.close());
 }
 
 export function setSukunaActive(active: boolean): void {
@@ -38,63 +184,1232 @@ export function isSukunaActive(): boolean {
   return sukunaActive;
 }
 
-async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const pathname = req.url?.split('?')[0] || '/';
+/* ------------------------------------------------------------------ */
+/* Router                                                             */
+/* ------------------------------------------------------------------ */
 
-  try {
-    if (pathname === '/' || pathname === '/index.html') {
-      const html = await readDashboardHtml();
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(html);
-      return;
-    }
+class HttpError extends Error {
+  readonly status: number;
+  readonly details?: unknown;
 
-    if (pathname === '/styles.css') {
-      const css = await readDashboardCss();
-      res.writeHead(200, { 'Content-Type': 'text/css; charset=utf-8' });
-      res.end(css);
-      return;
-    }
-
-    if (pathname === '/app.js') {
-      const js = await readDashboardJs();
-      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
-      res.end(js);
-      return;
-    }
-
-    if (pathname === '/api/status') {
-      const status = {
-        sukuna: sukunaActive,
-        uptime: process.uptime(),
-        totalReplies: 0,
-      };
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(status));
-      return;
-    }
-
-    // 404
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found');
-  } catch (error) {
-    console.error('[Dashboard] Error handling request:', error);
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Internal Server Error');
+  constructor(status: number, message: string, details?: unknown) {
+    super(message);
+    this.status = status;
+    this.details = details;
   }
 }
 
-async function readDashboardHtml(): Promise<string> {
-  const filePath = path.join(process.cwd(), 'dashboard', 'index.html');
-  return fs.promises.readFile(filePath, 'utf-8');
+async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  applySecurityHeaders(res);
+
+  const url = new URL(req.url ?? '/', 'http://localhost');
+  const pathname = url.pathname;
+  const method = req.method ?? 'GET';
+
+  try {
+    if (pathname === '/favicon.svg' || pathname === '/favicon.ico') {
+      res.writeHead(200, {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=86400',
+      });
+      res.end(FAVICON_SVG);
+      return;
+    }
+
+    if (pathname === '/api/health') {
+      sendJson(res, 200, {
+        ok: true,
+        name: 'sukuna-dashboard',
+        uptimeSeconds: Math.round(process.uptime()),
+      });
+      return;
+    }
+
+    if (method === 'GET' && STATIC_FILES[pathname]) {
+      await serveStatic(res, STATIC_FILES[pathname]);
+      return;
+    }
+
+    if (!pathname.startsWith('/api/')) {
+      sendText(res, 404, 'Not Found');
+      return;
+    }
+
+    if (pathname === '/api/auth/session' && method === 'GET') {
+      sendJson(res, 200, { authenticated: isAuthed(req), tokenSource });
+      return;
+    }
+
+    if (pathname === '/api/auth/login' && method === 'POST') {
+      await handleLogin(req, res);
+      return;
+    }
+
+    if (pathname === '/api/auth/logout' && method === 'POST') {
+      res.setHeader(
+        'Set-Cookie',
+        SESSION_COOKIE + '=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0',
+      );
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+
+    if (!isAuthed(req)) {
+      throw new HttpError(401, 'Authentication required');
+    }
+
+    await routeApi(req, res, pathname, method, url);
+  } catch (error) {
+    if (error instanceof HttpError) {
+      sendJson(res, error.status, {
+        error: error.message,
+        ...(error.details ? { details: error.details } : {}),
+      });
+      return;
+    }
+    if (isDatabaseError(error)) {
+      console.error('[Dashboard] Database error:', error);
+      recordActivity('error', 'Dashboard database error', { level: 'error' });
+      sendJson(res, 503, { error: 'The database is not reachable. Try again in a moment.' });
+      return;
+    }
+    console.error('[Dashboard] API error:', error);
+    recordActivity('error', 'Dashboard API error', { level: 'error' });
+    sendJson(res, 500, { error: 'Internal Server Error' });
+  }
 }
 
-async function readDashboardCss(): Promise<string> {
-  const filePath = path.join(process.cwd(), 'dashboard', 'styles.css');
-  return fs.promises.readFile(filePath, 'utf-8');
+async function routeApi(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  pathname: string,
+  method: string,
+  url: URL,
+): Promise<void> {
+  const client = clientRef;
+  if (!client) throw new HttpError(503, 'Bot client is not ready');
+
+  const parts = pathname.split('/').filter(Boolean); // ['api', 'guilds', id, ...]
+  const resource = parts[1];
+  const guildId = parts[2];
+  const sub = parts[3];
+  const subId = parts[4];
+
+  if (resource === 'overview' && method === 'GET') return sendOverview(client, res);
+  if (resource === 'activity' && method === 'GET') return sendActivity(res, url);
+  if (resource === 'commands' && method === 'GET') return sendCommands(client, res);
+
+  if (resource === 'config') {
+    if (method === 'GET') return sendConfig(res);
+    if (method === 'PUT' || method === 'POST') return updateConfig(req, res);
+    if (method === 'DELETE') return resetConfig(res);
+  }
+
+  if (resource === 'persona') {
+    // /api/persona/<action> — the action is the third segment, not a guild id.
+    if (guildId === 'test' && method === 'POST') return testPersona(req, res);
+    if (guildId === 'prompt' && method === 'GET') return sendPersonaPrompt(client, res);
+  }
+
+  if (resource === 'guilds') {
+    if (!guildId && method === 'GET') return sendGuilds(client, res);
+    if (!guildId) throw new HttpError(404, 'Not found');
+
+    const guild = resolveGuild(client, guildId);
+
+    if (!sub && method === 'GET') return sendGuildDetail(client, guild, res);
+    if (!sub && (method === 'PATCH' || method === 'PUT')) return updateGuild(client, guild, req, res);
+    if (!sub && method === 'DELETE') throw new HttpError(405, 'Guilds cannot be deleted');
+
+    if (sub === 'channels' && method === 'GET') {
+      return sendJson(res, 200, { channels: serializeChannels(guild) });
+    }
+
+    if (sub === 'memories') {
+      if (!subId && method === 'GET') return listMemories(guild, url, res);
+      if (!subId && method === 'DELETE') return clearGuildMemories(guild, res);
+      if (subId && method === 'DELETE') return deleteMemory(guild, subId, res);
+    }
+
+    if (sub === 'rules') {
+      if (method === 'GET') return sendRules(guild, res);
+      if (method === 'PUT' || method === 'POST') return saveRules(guild, req, res);
+    }
+
+    if (sub === 'faq') {
+      if (!subId && method === 'GET') return sendFaq(guild, res);
+      if (!subId && method === 'POST') return addFaq(guild, req, res);
+      if (subId && (method === 'PATCH' || method === 'PUT')) return editFaq(guild, subId, req, res);
+      if (subId && method === 'DELETE') return removeFaq(guild, subId, res);
+    }
+
+    if (sub === 'announcements') {
+      if (!subId && method === 'GET') return sendAnnouncements(guild, res);
+      if (!subId && method === 'POST') return addAnnouncement(guild, req, res);
+      if (subId && method === 'DELETE') return removeAnnouncement(guild, subId, res);
+    }
+
+    if (sub === 'scheduled') {
+      if (!subId && method === 'GET') return sendScheduled(guild, res);
+      if (!subId && method === 'POST') return addScheduled(guild, req, res);
+      if (subId && method === 'DELETE') return removeScheduled(guild, subId, res);
+    }
+
+    if (sub === 'events') {
+      if (!subId && method === 'GET') return sendEvents(guild, res);
+      if (!subId && method === 'POST') return addEvent(guild, req, res);
+    }
+  }
+
+  if (resource === 'users') {
+    if (!guildId && method === 'GET') return sendUsers(client, url, res);
+    if (guildId && method === 'PATCH') return updateUserDoc(guildId, req, res);
+  }
+
+  throw new HttpError(404, 'Not found');
 }
 
-async function readDashboardJs(): Promise<string> {
-  const filePath = path.join(process.cwd(), 'dashboard', 'app.js');
-  return fs.promises.readFile(filePath, 'utf-8');
+/* ------------------------------------------------------------------ */
+/* Auth                                                               */
+/* ------------------------------------------------------------------ */
+
+async function handleLogin(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const ip = req.socket.remoteAddress ?? 'unknown';
+  const now = Date.now();
+  const attempt = loginAttempts.get(ip);
+  if (attempt && attempt.resetAt > now && attempt.count >= 10) {
+    throw new HttpError(429, 'Too many login attempts. Try again in a few minutes.');
+  }
+  if (!attempt || attempt.resetAt <= now) {
+    loginAttempts.set(ip, { count: 0, resetAt: now + 15 * 60 * 1000 });
+  }
+
+  const body = await readJson(req);
+  const token = typeof body.token === 'string' ? body.token.trim() : '';
+  if (!token || !accessToken || !safeEqual(token, accessToken)) {
+    const current = loginAttempts.get(ip)!;
+    current.count += 1;
+    throw new HttpError(401, 'Invalid access token');
+  }
+
+  loginAttempts.delete(ip);
+  const secure = isHttps(req) ? '; Secure' : '';
+  res.setHeader(
+    'Set-Cookie',
+    SESSION_COOKIE +
+      '=' +
+      createSession() +
+      '; Path=/; HttpOnly; SameSite=Strict; Max-Age=' +
+      Math.floor(SESSION_TTL_MS / 1000) +
+      secure,
+  );
+  sendJson(res, 200, { ok: true });
+}
+
+function createSession(): string {
+  const exp = Date.now() + SESSION_TTL_MS;
+  const payload = Buffer.from(JSON.stringify({ exp })).toString('base64url');
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  return payload + '.' + signature;
+}
+
+function verifySession(value: string): boolean {
+  const dot = value.indexOf('.');
+  if (dot <= 0 || dot === value.length - 1) return false;
+  const payload = value.slice(0, dot);
+  const signature = value.slice(dot + 1);
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  if (!safeEqual(signature, expected)) return false;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { exp?: unknown };
+    return typeof data.exp === 'number' && data.exp > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function isAuthed(req: http.IncomingMessage): boolean {
+  const cookie = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+  if (cookie && verifySession(cookie)) return true;
+
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    return safeEqual(header.slice(7).trim(), accessToken);
+  }
+  return false;
+}
+
+function parseCookies(header?: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (!header) return cookies;
+  for (const part of header.split(';')) {
+    const index = part.indexOf('=');
+    if (index < 0) continue;
+    const key = part.slice(0, index).trim();
+    const value = part.slice(index + 1).trim();
+    if (!key) continue;
+    try {
+      cookies[key] = decodeURIComponent(value);
+    } catch {
+      cookies[key] = value;
+    }
+  }
+  return cookies;
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
+}
+
+function isHttps(req: http.IncomingMessage): boolean {
+  return req.headers['x-forwarded-proto'] === 'https';
+}
+
+/* ------------------------------------------------------------------ */
+/* API: overview / activity / commands                                */
+/* ------------------------------------------------------------------ */
+
+function sendOverview(client: SukunaClient, res: http.ServerResponse): void {
+  const user = client.user;
+  const guilds = [...client.guilds.cache.values()];
+  const memory = process.memoryUsage();
+  const config = getSukunaConfig();
+
+  sendJson(res, 200, {
+    bot: user
+      ? {
+          id: user.id,
+          tag: user.tag,
+          username: user.username,
+          avatar: user.displayAvatarURL({ size: 128, extension: 'png' }),
+          createdAt: user.createdTimestamp,
+        }
+      : null,
+    uptimeMs: Date.now() - client.startedAt,
+    processUptimeMs: Math.round(process.uptime() * 1000),
+    ping: client.ws.ping,
+    guilds: guilds.length,
+    members: guilds.reduce((total, guild) => total + guild.memberCount, 0),
+    channels: guilds.reduce((total, guild) => total + guild.channels.cache.size, 0),
+    commands: client.commands.size,
+    memory: {
+      rss: memory.rss,
+      heapUsed: memory.heapUsed,
+      heapTotal: memory.heapTotal,
+    },
+    runtime: {
+      node: process.version,
+      platform: process.platform,
+      arch: process.arch,
+      pid: process.pid,
+    },
+    database: {
+      state: dbState(),
+      name: mongoose.connection.name ?? null,
+    },
+    persona: {
+      enabled: config.enabled,
+      displayName: config.displayName,
+      model: config.model,
+      temperature: config.temperature,
+      channels: config.channelIds.length,
+      hasApiKey: Boolean(process.env.GEMINI_API_KEY),
+    },
+    counters: getCounters(),
+    dashboard: {
+      tokenSource,
+      host: DASHBOARD_HOST,
+      port: Number(process.env.SERVER_PORT) || DEFAULT_PORT,
+    },
+  });
+}
+
+function sendActivity(res: http.ServerResponse, url: URL): void {
+  const limit = Number(url.searchParams.get('limit')) || 100;
+  const requested = url.searchParams.get('kind') ?? 'all';
+  const kind = (ACTIVITY_KINDS as string[]).includes(requested)
+    ? (requested as ActivityKind | 'all')
+    : 'all';
+
+  sendJson(res, 200, {
+    events: getActivity(limit, kind),
+    counters: getCounters(),
+  });
+}
+
+function sendCommands(client: SukunaClient, res: http.ServerResponse): void {
+  const commands = [...client.commands.values()].map((command) => ({
+    name: command.data.name,
+    description: (command.data as { description?: string }).description ?? '',
+    category: command.category,
+    cooldownSeconds: command.cooldownSeconds ?? 1,
+    premiumOnly: command.premiumOnly ?? false,
+    allowWhenDisabled: command.allowWhenDisabled ?? false,
+    userPermissions: (command.userPermissions ?? []).map(permissionLabel),
+    botPermissions: (command.botPermissions ?? []).map(permissionLabel),
+    options: serializeCommandOptions(command.data),
+  }));
+
+  commands.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+  sendJson(res, 200, { commands });
+}
+
+function serializeCommandOptions(data: unknown): Array<{ name: string; description: string; required: boolean; type: string }> {
+  const json = (data as { toJSON?: () => { options?: unknown[] } }).toJSON?.();
+  const options = json?.options;
+  if (!Array.isArray(options)) return [];
+  return options
+    .filter((option): option is Record<string, unknown> => Boolean(option) && typeof option === 'object')
+    .map((option) => ({
+      name: String(option.name ?? ''),
+      description: String(option.description ?? ''),
+      required: Boolean(option.required),
+      type: optionTypeName(Number(option.type)),
+    }));
+}
+
+function optionTypeName(type: number): string {
+  const names: Record<number, string> = {
+    3: 'string',
+    4: 'integer',
+    5: 'boolean',
+    6: 'user',
+    7: 'channel',
+    8: 'role',
+    9: 'mentionable',
+    10: 'number',
+    11: 'attachment',
+  };
+  return names[type] ?? 'option';
+}
+
+function permissionLabel(permission: unknown): string {
+  if (typeof permission === 'bigint') return permission.toString();
+  return String(permission);
+}
+
+/* ------------------------------------------------------------------ */
+/* API: persona configuration                                         */
+/* ------------------------------------------------------------------ */
+
+function sendConfig(res: http.ServerResponse): void {
+  sendJson(res, 200, {
+    config: getSukunaConfig(),
+    defaults: { ...defaultSukunaConfig, systemPrompt: '', thinkingLevel: null },
+    models: SUGGESTED_MODELS,
+    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+  });
+}
+
+async function updateConfig(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req);
+  const parsed = sukunaConfigPatchSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new HttpError(400, 'Invalid configuration', parsed.error.flatten());
+  }
+
+  const patch = { ...parsed.data } as Record<string, unknown>;
+  if (patch.systemPrompt === null) patch.systemPrompt = undefined;
+  if (patch.thinkingLevel === null) patch.thinkingLevel = undefined;
+
+  const saved = await persistOrFail(() => saveSukunaConfig(patch as Partial<SukunaConfig>));
+  setSukunaActive(saved.enabled);
+  recordActivity('system', 'Persona configuration saved', {
+    level: 'success',
+    meta: { model: saved.model, enabled: saved.enabled },
+  });
+  sendJson(res, 200, { config: saved });
+}
+
+async function resetConfig(res: http.ServerResponse): Promise<void> {
+  const config = await persistOrFail(() => resetSukunaConfig());
+  setSukunaActive(config.enabled);
+  recordActivity('system', 'Persona configuration reset to defaults', { level: 'warn' });
+  sendJson(res, 200, { config });
+}
+
+/** Turns a database failure into a clear 503 instead of a generic 500. */
+async function persistOrFail<T>(task: () => Promise<T>): Promise<T> {
+  try {
+    return await task();
+  } catch (error) {
+    console.error('[Dashboard] Config persistence failed:', error);
+    throw new HttpError(503, 'Could not save settings: the database is not reachable.');
+  }
+}
+
+function sendPersonaPrompt(client: SukunaClient, res: http.ServerResponse): void {
+  const config = getSukunaConfig();
+  const runtime = buildRuntimePrompt(config, client.user?.id);
+  sendJson(res, 200, {
+    defaultPrompt: SUKUNA_DEFAULT_PROMPT,
+    systemPrompt: config.systemPrompt ?? '',
+    runtimePrompt: runtime,
+    effectivePrompt: (config.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT) + '\n\n' + runtime,
+  });
+}
+
+async function testPersona(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const body = await readJson(req);
+  const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
+  if (!prompt) throw new HttpError(400, 'A test prompt is required');
+  if (prompt.length > 4000) throw new HttpError(400, 'Test prompt is too long (max 4000 characters)');
+
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new HttpError(400, 'GEMINI_API_KEY is not configured on the bot host');
+  }
+
+  const config = getSukunaConfig();
+  const systemPrompt =
+    (config.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT) + '\n\n' + buildRuntimePrompt(config, clientRef?.user?.id);
+
+  const streamer = new GeminiStreamSukuna({
+    apiKey,
+    model: config.model,
+    systemPrompt,
+    temperature: config.temperature,
+    requestTimeoutMs: config.requestTimeoutMs,
+  });
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    Math.min(Math.max(config.requestTimeoutMs, 5000), 60000),
+  );
+  const startedAt = Date.now();
+  let response = '';
+  try {
+    response = await streamer.stream(prompt, () => {}, controller.signal);
+  } catch (error) {
+    throw new HttpError(
+      502,
+      'Gemini request failed: ' + (error instanceof Error ? error.message : 'unknown error'),
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const elapsedMs = Date.now() - startedAt;
+  if (!response.trim()) {
+    throw new HttpError(502, 'Gemini returned an empty response');
+  }
+
+  recordActivity('ai', 'Persona test succeeded', {
+    level: 'success',
+    meta: { model: config.model, ms: elapsedMs, chars: response.length },
+  });
+  sendJson(res, 200, { response: response.slice(0, 10000), model: config.model, elapsedMs });
+}
+
+function buildRuntimePrompt(config: SukunaConfig, botId?: string): string {
+  return buildSukunaRuntimePrompt({
+    displayName: config.displayName || 'Sukuna',
+    botId,
+    toolsEnabled: config.toolsEnabled ?? true,
+    memoryEnabled: config.memoryEnabled ?? true,
+    maxMessageLength: Math.min(config.maxMessageLength || 2000, 2000),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: guilds                                                         */
+/* ------------------------------------------------------------------ */
+
+function resolveGuild(client: SukunaClient, guildId: string): Guild {
+  if (!/^\d{5,25}$/.test(guildId)) throw new HttpError(400, 'Invalid guild id');
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) throw new HttpError(404, 'Guild not found (has the bot been removed?)');
+  return guild;
+}
+
+function sendGuilds(client: SukunaClient, res: http.ServerResponse): void {
+  const guilds = [...client.guilds.cache.values()]
+    .map(serializeGuild)
+    .sort((a, b) => b.members - a.members || a.name.localeCompare(b.name));
+  sendJson(res, 200, { guilds });
+}
+
+async function sendGuildDetail(
+  client: SukunaClient,
+  guild: Guild,
+  res: http.ServerResponse,
+): Promise<void> {
+  const row = await readGuildConfig(guild.id);
+  const [memoryCount, faqCount, announcementCount, scheduledCount] = await Promise.all([
+    countMemories(guild.id),
+    SukunaFaq.countDocuments({ guildId: guild.id }),
+    SukunaAnnouncement.countDocuments({ guildId: guild.id }),
+    countScheduled(guild.id),
+  ]);
+
+  sendJson(res, 200, {
+    guild: serializeGuild(guild),
+    config: serializeGuildConfig(row),
+    channels: serializeChannels(guild),
+    counts: {
+      memories: memoryCount,
+      faq: faqCount,
+      announcements: announcementCount,
+      scheduled: scheduledCount,
+    },
+  });
+}
+
+const guildPatchSchema = z
+  .object({
+    modules: z.record(z.string().min(1).max(40), z.boolean()).optional(),
+    xpEnabled: z.boolean().optional(),
+    xpCooldown: z.number().int().min(0).max(3600).optional(),
+    xpMin: z.number().int().min(1).max(1000).optional(),
+    xpMax: z.number().int().min(1).max(1000).optional(),
+    levelUpChannel: z.string().regex(/^\d{5,25}$/).nullable().optional(),
+    levelUpMessage: z.string().max(500).nullable().optional(),
+    disableXpChannels: z.array(z.string().regex(/^\d{5,25}$/)).max(200).optional(),
+  })
+  .strict();
+
+async function updateGuild(
+  client: SukunaClient,
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = guildPatchSchema.safeParse(await readJson(req));
+  if (!parsed.success) {
+    throw new HttpError(400, 'Invalid guild settings', parsed.error.flatten());
+  }
+  const data = parsed.data;
+  const current = await readGuildConfig(guild.id);
+  const updates: Record<string, unknown> = {};
+
+  if (data.modules) {
+    const merged = normalizeModules(current?.modules);
+    for (const key of ALLOWED_MODULES) {
+      if (data.modules[key] !== undefined) merged[key] = data.modules[key];
+    }
+    updates.modules = merged;
+  }
+
+  if (data.xpEnabled !== undefined) updates.xpEnabled = data.xpEnabled;
+  if (data.xpCooldown !== undefined) updates.xpCooldown = data.xpCooldown;
+
+  const nextMin = data.xpMin ?? current?.xpMin ?? 15;
+  const nextMax = data.xpMax ?? current?.xpMax ?? 25;
+  if (nextMin > nextMax) throw new HttpError(400, 'Minimum XP cannot exceed maximum XP');
+  if (data.xpMin !== undefined) updates.xpMin = data.xpMin;
+  if (data.xpMax !== undefined) updates.xpMax = data.xpMax;
+
+  if (data.levelUpChannel !== undefined) {
+    if (data.levelUpChannel && !guild.channels.cache.has(data.levelUpChannel)) {
+      throw new HttpError(400, 'Level-up channel does not exist in this guild');
+    }
+    updates.levelUpChannel = data.levelUpChannel;
+  }
+  if (data.levelUpMessage !== undefined) updates.levelUpMessage = data.levelUpMessage;
+  if (data.disableXpChannels !== undefined) updates.disableXpChannels = data.disableXpChannels;
+
+  if (Object.keys(updates).length === 0) throw new HttpError(400, 'No changes supplied');
+
+  await updateGuildConfig(guild.id, updates);
+  const fresh = await readGuildConfig(guild.id);
+  client.cacheSettings(guild.id, fresh ?? { modules: {} }, Date.now());
+
+  recordActivity('system', 'Guild settings updated: ' + guild.name, {
+    level: 'success',
+    meta: { guildId: guild.id },
+  });
+
+  sendJson(res, 200, {
+    guild: serializeGuild(guild),
+    config: serializeGuildConfig(fresh),
+    channels: serializeChannels(guild),
+  });
+}
+
+function serializeGuild(guild: Guild) {
+  return {
+    id: guild.id,
+    name: guild.name,
+    icon: guild.iconURL({ size: 128, extension: 'png' }),
+    description: guild.description ?? null,
+    members: guild.memberCount,
+    ownerId: guild.ownerId,
+    channels: guild.channels.cache.size,
+    roles: guild.roles.cache.size,
+    boosts: guild.premiumSubscriptionCount ?? 0,
+    boostTier: guild.premiumTier,
+    createdAt: guild.createdTimestamp,
+    joinedAt: guild.joinedTimestamp,
+  };
+}
+
+function serializeChannels(guild: Guild) {
+  return [...guild.channels.cache.values()]
+    .filter((channel) => channel.isTextBased())
+    .map((channel) => {
+      const anyChannel = channel as unknown as {
+        id: string;
+        name: string;
+        type: number;
+        parentId: string | null;
+        rawPosition: number;
+        nsfw?: boolean;
+      };
+      return {
+        id: anyChannel.id,
+        name: anyChannel.name,
+        type: anyChannel.type,
+        parentId: anyChannel.parentId ?? null,
+        position: anyChannel.rawPosition ?? 0,
+        nsfw: Boolean(anyChannel.nsfw),
+      };
+    })
+    .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name));
+}
+
+function serializeGuildConfig(
+  row:
+    | {
+        modules?: unknown;
+        xpEnabled?: boolean;
+        xpCooldown?: number;
+        xpMin?: number;
+        xpMax?: number;
+        levelUpChannel?: string | null;
+        levelUpMessage?: string | null;
+        disableXpChannels?: string[];
+        updatedAt?: unknown;
+      }
+    | null
+    | undefined,
+) {
+  return {
+    modules: normalizeModules(row?.modules),
+    xpEnabled: row?.xpEnabled ?? true,
+    xpCooldown: row?.xpCooldown ?? 60,
+    xpMin: row?.xpMin ?? 15,
+    xpMax: row?.xpMax ?? 25,
+    levelUpChannel: row?.levelUpChannel ?? null,
+    levelUpMessage: row?.levelUpMessage ?? null,
+    disableXpChannels: Array.isArray(row?.disableXpChannels) ? row.disableXpChannels : [],
+    updatedAt: row?.updatedAt ?? null,
+  };
+}
+
+function normalizeModules(value: unknown): Record<string, boolean> {
+  if (!value) return {};
+  if (value instanceof Map) return Object.fromEntries(value as Map<string, boolean>);
+  if (typeof value === 'object') {
+    const result: Record<string, boolean> = {};
+    for (const [key, enabled] of Object.entries(value as Record<string, unknown>)) {
+      result[key] = Boolean(enabled);
+    }
+    return result;
+  }
+  return {};
+}
+
+/* ------------------------------------------------------------------ */
+/* API: memories / rules / FAQ / announcements / scheduling           */
+/* ------------------------------------------------------------------ */
+
+async function listMemories(guild: Guild, url: URL, res: http.ServerResponse): Promise<void> {
+  const query = url.searchParams.get('q')?.trim() ?? '';
+  const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 100, 1), 300);
+  const filter: Record<string, unknown> = { guildId: guild.id };
+  if (query) {
+    const pattern = new RegExp(escapeRegex(query), 'i');
+    filter.$or = [{ fact: pattern }, { aboutName: pattern }, { aboutUserId: query }];
+  }
+
+  const [memories, total] = await Promise.all([
+    SukunaMemory.find(filter).sort({ createdAt: -1 }).limit(limit).lean(),
+    countMemories(guild.id),
+  ]);
+
+  sendJson(res, 200, {
+    memories: memories.map((memory) => ({
+      id: String(memory._id),
+      fact: memory.fact,
+      aboutUserId: memory.aboutUserId ?? null,
+      aboutName: memory.aboutName ?? null,
+      createdAt: memory.createdAt,
+    })),
+    total,
+    max: 300,
+  });
+}
+
+async function deleteMemory(guild: Guild, memoryId: string, res: http.ServerResponse): Promise<void> {
+  requireObjectId(memoryId);
+  const deleted = await SukunaMemory.findOneAndDelete({ _id: memoryId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, 'Memory not found');
+  recordActivity('system', 'Memory deleted', { meta: { guildId: guild.id } });
+  sendJson(res, 200, { ok: true });
+}
+
+async function clearGuildMemories(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const deleted = await clearMemories(guild.id);
+  recordActivity('system', 'Cleared ' + deleted + ' memories', {
+    level: 'warn',
+    meta: { guildId: guild.id },
+  });
+  sendJson(res, 200, { ok: true, deleted });
+}
+
+const rulesSchema = z
+  .object({ rules: z.array(z.string().trim().min(1).max(500)).max(100) })
+  .strict();
+
+async function sendRules(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const row = await getServerRules(guild.id);
+  sendJson(res, 200, {
+    rules: row?.rules ?? [],
+    updatedAt: (row as { updatedAt?: number } | null)?.updatedAt ?? null,
+  });
+}
+
+async function saveRules(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = rulesSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid rules', parsed.error.flatten());
+  const rules = parsed.data.rules.map((rule) => rule.trim()).filter(Boolean);
+  await upsertServerRules(guild.id, rules);
+  recordActivity('system', 'Server rules updated', {
+    level: 'success',
+    meta: { guildId: guild.id, count: rules.length },
+  });
+  sendJson(res, 200, { rules });
+}
+
+const faqCreateSchema = z
+  .object({
+    question: z.string().trim().min(1).max(300),
+    answer: z.string().trim().min(1).max(4000),
+    tags: z.array(z.string().trim().min(1).max(40)).max(10).optional(),
+  })
+  .strict();
+
+const faqUpdateSchema = z
+  .object({
+    question: z.string().trim().min(1).max(300).optional(),
+    answer: z.string().trim().min(1).max(4000).optional(),
+    tags: z.array(z.string().trim().min(1).max(40)).max(10).optional(),
+  })
+  .strict();
+
+async function sendFaq(guild: Guild, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, { entries: await listFaq(guild.id) });
+}
+
+async function addFaq(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = faqCreateSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid FAQ entry', parsed.error.flatten());
+  const entry = await createFaqEntry(guild.id, parsed.data);
+  recordActivity('system', 'FAQ entry created', {
+    level: 'success',
+    meta: { guildId: guild.id },
+  });
+  sendJson(res, 201, { entry: toPlainObject(entry) });
+}
+
+async function editFaq(
+  guild: Guild,
+  entryId: string,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  requireObjectId(entryId);
+  const parsed = faqUpdateSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid FAQ update', parsed.error.flatten());
+  if (Object.keys(parsed.data).length === 0) throw new HttpError(400, 'No changes supplied');
+  const updated = await updateFaqEntry(guild.id, entryId, parsed.data);
+  if (!updated) throw new HttpError(404, 'FAQ entry not found');
+  sendJson(res, 200, { ok: true });
+}
+
+async function removeFaq(
+  guild: Guild,
+  entryId: string,
+  res: http.ServerResponse,
+): Promise<void> {
+  requireObjectId(entryId);
+  const deleted = await deleteFaqEntry(guild.id, entryId);
+  if (!deleted) throw new HttpError(404, 'FAQ entry not found');
+  sendJson(res, 200, { ok: true });
+}
+
+const announcementSchema = z
+  .object({ title: z.string().trim().min(1).max(200), content: z.string().trim().min(1).max(4000) })
+  .strict();
+
+async function sendAnnouncements(guild: Guild, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, { announcements: await listAnnouncements(guild.id, 50) });
+}
+
+async function addAnnouncement(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = announcementSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid announcement', parsed.error.flatten());
+  const entry = await createAnnouncement(guild.id, parsed.data);
+  recordActivity('system', 'Announcement created', {
+    level: 'success',
+    meta: { guildId: guild.id },
+  });
+  sendJson(res, 201, { announcement: toPlainObject(entry) });
+}
+
+async function removeAnnouncement(
+  guild: Guild,
+  entryId: string,
+  res: http.ServerResponse,
+): Promise<void> {
+  requireObjectId(entryId);
+  const deleted = await deleteAnnouncement(guild.id, entryId);
+  if (!deleted) throw new HttpError(404, 'Announcement not found');
+  sendJson(res, 200, { ok: true });
+}
+
+const scheduledSchema = z
+  .object({
+    channelId: z.string().regex(/^\d{5,25}$/),
+    content: z.string().trim().min(1).max(2000),
+    scheduledAt: z.union([z.string().min(1), z.number()]),
+  })
+  .strict();
+
+async function sendScheduled(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const [scheduled, pending] = await Promise.all([
+    SukunaScheduled.find({ guildId: guild.id }).sort({ scheduledAt: 1 }).limit(100).lean(),
+    countScheduled(guild.id),
+  ]);
+  sendJson(res, 200, {
+    scheduled: scheduled.map((entry) => ({
+      id: String(entry._id),
+      channelId: entry.channelId,
+      content: entry.content,
+      scheduledAt: entry.scheduledAt,
+      sentAt: entry.sentAt ?? null,
+      createdAt: entry.createdAt,
+    })),
+    pending,
+  });
+}
+
+async function addScheduled(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = scheduledSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid scheduled message', parsed.error.flatten());
+
+  const channel = guild.channels.cache.get(parsed.data.channelId);
+  if (!channel || !channel.isTextBased()) {
+    throw new HttpError(400, 'Channel is not a text channel in this guild');
+  }
+
+  const scheduledAt =
+    typeof parsed.data.scheduledAt === 'number'
+      ? parsed.data.scheduledAt
+      : Date.parse(parsed.data.scheduledAt);
+  if (!Number.isFinite(scheduledAt) || scheduledAt <= 0) {
+    throw new HttpError(400, 'Invalid scheduled time');
+  }
+
+  const entry = await createScheduledMessage(guild.id, {
+    channelId: parsed.data.channelId,
+    content: parsed.data.content,
+    scheduledAt,
+  });
+  recordActivity('system', 'Message scheduled', {
+    level: 'success',
+    meta: { guildId: guild.id, channelId: parsed.data.channelId },
+  });
+  sendJson(res, 201, { scheduled: toPlainObject(entry) });
+}
+
+async function removeScheduled(
+  guild: Guild,
+  entryId: string,
+  res: http.ServerResponse,
+): Promise<void> {
+  requireObjectId(entryId);
+  const deleted = await cancelScheduledMessage(guild.id, entryId);
+  if (!deleted) throw new HttpError(404, 'Scheduled message not found');
+  sendJson(res, 200, { ok: true });
+}
+
+const eventSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    description: z.string().trim().max(4000).optional(),
+    startsAt: z.union([z.string().min(1), z.number()]),
+    endsAt: z.union([z.string().min(1), z.number()]).optional(),
+    pinned: z.boolean().optional(),
+  })
+  .strict();
+
+async function sendEvents(guild: Guild, res: http.ServerResponse): Promise<void> {
+  sendJson(res, 200, { events: await listServerEvents(guild.id) });
+}
+
+async function addEvent(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = eventSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid event', parsed.error.flatten());
+
+  const startsAt = toTimestamp(parsed.data.startsAt);
+  const endsAt = parsed.data.endsAt !== undefined ? toTimestamp(parsed.data.endsAt) : undefined;
+  if (endsAt !== undefined && endsAt < startsAt) {
+    throw new HttpError(400, 'Event end must be after its start');
+  }
+
+  const entry = await createServerEvent(guild.id, {
+    title: parsed.data.title,
+    description: parsed.data.description,
+    startsAt,
+    endsAt,
+    pinned: parsed.data.pinned,
+  });
+  recordActivity('system', 'Server event created', {
+    level: 'success',
+    meta: { guildId: guild.id },
+  });
+  sendJson(res, 201, { event: toPlainObject(entry) });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: users                                                          */
+/* ------------------------------------------------------------------ */
+
+async function sendUsers(client: SukunaClient, url: URL, res: http.ServerResponse): Promise<void> {
+  const requestedSort = url.searchParams.get('sort');
+  const sort = (USER_SORT_FIELDS as readonly string[]).includes(requestedSort ?? '')
+    ? (requestedSort as (typeof USER_SORT_FIELDS)[number])
+    : 'totalXp';
+  const order = url.searchParams.get('order') === 'asc' ? 1 : -1;
+  const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 25, 1), 100);
+  const page = Math.max(Number(url.searchParams.get('page')) || 1, 1);
+  const search = (url.searchParams.get('q') ?? '').trim();
+
+  const filter: Record<string, unknown> = {};
+  if (search) {
+    if (/^\d{5,25}$/.test(search)) {
+      filter.userId = { $regex: '^' + escapeRegex(search) };
+    } else {
+      filter.userId = { $regex: escapeRegex(search), $options: 'i' };
+    }
+  }
+
+  const [docs, total] = await Promise.all([
+    User.find(filter)
+      .sort({ [sort]: order })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    User.countDocuments(filter),
+  ]);
+
+  const users = docs.map((doc, index) => {
+    const cached = client.users.cache.get(doc.userId);
+    return {
+      userId: doc.userId,
+      username: cached?.username ?? null,
+      tag: cached?.tag ?? null,
+      avatar: cached?.displayAvatarURL({ size: 64, extension: 'png' }) ?? null,
+      balance: doc.balance ?? 0,
+      bank: doc.bank ?? 0,
+      bankLimit: doc.bankLimit ?? 0,
+      xp: doc.xp ?? 0,
+      level: doc.level ?? 0,
+      totalXp: doc.totalXp ?? 0,
+      lastDaily: doc.lastDaily ?? null,
+      lastWork: doc.lastWork ?? null,
+      createdAt: doc.createdAt ?? null,
+      position: (page - 1) * limit + index + 1,
+    };
+  });
+
+  sendJson(res, 200, {
+    users,
+    total,
+    page,
+    limit,
+    pages: Math.max(Math.ceil(total / limit), 1),
+    sort,
+    order: order === 1 ? 'asc' : 'desc',
+  });
+}
+
+const userPatchSchema = z
+  .object({
+    balance: z.number().int().min(0).max(1e15).optional(),
+    bank: z.number().int().min(0).max(1e15).optional(),
+    bankLimit: z.number().int().min(0).max(1e15).optional(),
+    xp: z.number().int().min(0).max(1e15).optional(),
+    level: z.number().int().min(0).max(100000).optional(),
+    totalXp: z.number().int().min(0).max(1e15).optional(),
+  })
+  .strict();
+
+async function updateUserDoc(
+  userId: string,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  if (!/^\d{5,25}$/.test(userId)) throw new HttpError(400, 'Invalid user id');
+  const parsed = userPatchSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid user update', parsed.error.flatten());
+  if (Object.keys(parsed.data).length === 0) throw new HttpError(400, 'No changes supplied');
+
+  const updated = await User.findOneAndUpdate({ userId }, { $set: parsed.data }, { new: true }).lean();
+  if (!updated) throw new HttpError(404, 'User not found');
+
+  recordActivity('system', 'User economy record updated', {
+    level: 'warn',
+    meta: { userId, fields: Object.keys(parsed.data).join(',') },
+  });
+  sendJson(res, 200, { user: updated });
+}
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function applySecurityHeaders(res: http.ServerResponse): void {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: https://cdn.discordapp.com; connect-src 'self'; " +
+      "frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+  );
+}
+
+async function serveStatic(
+  res: http.ServerResponse,
+  entry: { file: string; type: string },
+): Promise<void> {
+  const filePath = path.join(DASHBOARD_DIR, entry.file);
+  try {
+    const content = await fs.promises.readFile(filePath);
+    res.writeHead(200, {
+      'Content-Type': entry.type,
+      'Cache-Control': 'no-store',
+    });
+    res.end(content);
+  } catch {
+    res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Dashboard assets are missing. Expected ' + filePath);
+  }
+}
+
+function sendJson(res: http.ServerResponse, status: number, payload: unknown): void {
+  if (res.writableEnded) return;
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function sendText(res: http.ServerResponse, status: number, text: string): void {
+  if (res.writableEnded) return;
+  res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end(text);
+}
+
+function readJson(req: http.IncomingMessage): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    if (req.method === 'GET' || req.method === 'HEAD') return resolve({});
+
+    let size = 0;
+    const chunks: Buffer[] = [];
+
+    req.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        reject(new HttpError(413, 'Request body too large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+
+    req.on('end', () => {
+      if (chunks.length === 0) return resolve({});
+      try {
+        const parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          reject(new HttpError(400, 'Request body must be a JSON object'));
+          return;
+        }
+        resolve(parsed as Record<string, unknown>);
+      } catch {
+        reject(new HttpError(400, 'Invalid JSON body'));
+      }
+    });
+
+    req.on('error', (error) => reject(new HttpError(400, 'Could not read request body: ' + error.message)));
+  });
+}
+
+function dbState(): string {
+  const names = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  return names[mongoose.connection.readyState] ?? 'unknown';
+}
+
+function isDatabaseError(error: unknown): boolean {
+  if (mongoose.connection.readyState !== 1) return true;
+  if (!error || typeof error !== 'object') return false;
+  const name = (error as { name?: string }).name ?? '';
+  const message = (error as { message?: string }).message ?? '';
+  return (
+    error instanceof mongoose.Error ||
+    name.includes('Mongo') ||
+    /buffering timed out|connection .*closed|ECONNREFUSED|ENOTFOUND/i.test(message)
+  );
+}
+
+function requireObjectId(id: string): void {
+  if (!mongoose.isValidObjectId(id)) throw new HttpError(400, 'Invalid record id');
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function toTimestamp(value: string | number): number {
+  const timestamp = typeof value === 'number' ? value : Date.parse(value);
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    throw new HttpError(400, 'Invalid date value');
+  }
+  return timestamp;
+}
+
+function toPlainObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object') return {};
+  const candidate = value as { toObject?: () => Record<string, unknown> };
+  return typeof candidate.toObject === 'function' ? candidate.toObject() : (value as Record<string, unknown>);
 }

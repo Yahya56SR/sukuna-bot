@@ -50,7 +50,7 @@ export class SukunaClient extends Client {
   private async loadConfig(guildId: string): Promise<any> {
     try {
       const row = await readGuildConfig(guildId);
-      const config = row?.modules ?? { modules: {} };
+      const config = row ?? { modules: {} };
       this.cacheSettings(guildId, config, row?.updatedAt?.getTime?.() ?? Date.now());
       return config;
     } catch (error) {

@@ -1,6 +1,7 @@
 import { Events, type ClientEvents } from 'discord.js';
 import { takeCooldown } from '../core/cooldowns.js';
 import { newErrorId, UserFacingError } from '../core/errors.js';
+import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
 
 export const interactionCreate = {
@@ -73,7 +74,22 @@ export const interactionCreate = {
         settings: config,
         premium,
       });
+
+      bumpCounter('commandsRun');
+      recordActivity('command', '/' + command.data.name + ' used', {
+        level: 'success',
+        meta: {
+          command: command.data.name,
+          guildId,
+          userId: interaction.user.id,
+        },
+      });
     } catch (error) {
+      bumpCounter('errors');
+      recordActivity('error', '/' + command.data.name + ' failed', {
+        level: 'error',
+        meta: { command: command.data.name, guildId, userId: interaction.user.id, errorId },
+      });
       client.logger.error(
         {
           err: error,

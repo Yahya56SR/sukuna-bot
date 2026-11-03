@@ -1,6 +1,7 @@
 import { connectDatabase, disconnectDatabase } from './db/index.js';
 import { commands } from './commands/index.js';
 import { loadEnv } from './config/env.js';
+import { hydrateSukunaConfig } from './config/index.js';
 import { stopSettingsPoller } from './config/settings.js';
 import { SukunaClient } from './core/client.js';
 import { registerCommands } from './core/commands.js';
@@ -47,6 +48,9 @@ async function main(): Promise<void> {
   try {
     await connectDatabase(env.MONGO_URI);
     logger.info("database connected");
+
+    await hydrateSukunaConfig();
+    logger.info("runtime configuration hydrated");
 
     client = new SukunaClient();
     client.env = env;

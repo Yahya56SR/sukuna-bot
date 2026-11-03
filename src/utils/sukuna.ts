@@ -7,9 +7,10 @@
  */
 
 import type { TextChannel, Guild, Message, Client } from 'discord.js';
-import { normalizeSukunaConfig, type SukunaConfig, defaultSukunaConfig } from '../config/index.js';
+import { getSukunaConfig as readSukunaConfig, type SukunaConfig } from '../config/index.js';
 import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../prompts/sukuna.js';
 import { GeminiStreamSukuna } from '../core/gemini-stream.js';
+import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { addMemory, countMemories, recallMemories } from './sukuna-memory.js';
 import { collectSukunaMedia } from './sukuna-media.js';
 
@@ -71,7 +72,7 @@ function closeSukuna(): void {
  * Check if Sukuna is active.
  */
 function isSukunaActive(): boolean {
-  return true;
+  return readSukunaConfig().enabled;
 }
 
 /**
@@ -126,7 +127,7 @@ function describeMessage(message: Message): string {
 }
 
 function getSukunaConfig(): SukunaConfig {
-  return normalizeSukunaConfig(defaultSukunaConfig);
+  return readSukunaConfig();
 }
 
 async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
@@ -198,6 +199,11 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     lastDecisionAt = Date.now();
   } catch (err) {
     console.error('[Sukuna] Stream failed:', err);
+    bumpCounter('errors');
+    recordActivity('error', 'AI reply failed', {
+      level: 'error',
+      meta: { guildId: message.guildId, channelId: message.channelId },
+    });
     return;
   }
 
@@ -217,6 +223,17 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   const now = Date.now();
   lastReplyAt = now;
   replyTimestamps.push(now);
+  bumpCounter('aiReplies');
+
+  recordActivity('ai', 'Replied in #' + ((message.channel as TextChannel).name || 'channel'), {
+    level: 'success',
+    meta: {
+      guildId: message.guildId,
+      channelId: message.channelId,
+      chars: fullResponse.length,
+      model: cfg.model,
+    },
+  });
 
   addHistoryEntry(message.channelId, {
     id: state.msg.id,

@@ -155,6 +155,35 @@ The command handler auto-loads all files from `src/commands/`.
 - Sensitive responses are ephemeral
 - Cooldowns prevent spam
 
+## 🖥️ Dashboard
+
+The bot serves a token-protected control panel on `$SERVER_PORT` (fallback `3001`).
+It starts when `DASHBOARD_ENABLED=true`, `SUKUNA_ENABLED=true`, or when the persona
+was enabled from the panel itself.
+
+```bash
+# .env
+DASHBOARD_ENABLED=true
+DASHBOARD_TOKEN=some-long-private-token   # omit to get a generated token in the console
+```
+
+Open `http://<host>:<port>/` and paste the token to unlock. The session is a signed
+HttpOnly cookie; `Authorization: Bearer <token>` also works for scripting.
+
+What you can do from it:
+
+- **Overview** – guild/member counts, uptime, ping, memory, DB state, live counters
+- **Guilds** – per-server modules, XP/level-up settings, memories, rules, FAQ,
+  announcements, scheduled messages
+- **Persona** – enable/disable, model, temperature, system prompt, activation
+  channels, rate limits, and a sandbox that runs one real Gemini call
+- **Economy** – search/sort user balances and levels, edit records
+- **Commands / Activity / System** – command registry, live in-memory log feed,
+  runtime and security details
+
+Changes made in the dashboard are persisted in MongoDB (`bot_configs` for the
+persona, `guilds` for per-server settings) and apply without a restart.
+
 ## 📜 Scripts
 
 | Script | Description |
@@ -175,7 +204,7 @@ The command handler auto-loads all files from `src/commands/`.
 - [ ] Music (Lavalink integration)
 - [ ] Giveaways, Starboard, Reminders
 - [ ] Anti-nuke & Automod
-- [ ] Web dashboard
+- [x] Web dashboard
 
 ---
 
