@@ -52,6 +52,8 @@ Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
 **10. `@discordjs/voice` is pinned to 0.18.0**
 0.19+ statically requires the native `@snazzah/davey` addon (DAVE/E2EE), which cannot be bundled and cannot be installed on bot-hosting.net. Do not bump it without a plan for native deps. `prism-media` is bundled; `opusscript`, `tweetnacl` and `ffmpeg-static` stay runtime-resolved (the last one is external-only and never called).
 
+`@discordjs/voice` ships ESM and calls `createRequire(import.meta.url)` at load time. In CJS output esbuild turns `import.meta` into `{}`, which crashed the bundle with `ERR_INVALID_ARG_VALUE` on the host. `scripts/bundle-bot.mjs` now injects `var __importMetaUrl = require("node:url").pathToFileURL(__filename).href;` in the banner and maps `import.meta.url` to it via `define` — keep both together when touching the banner.
+
 ## File locations
 - Entry: `src/index.ts`
 - Client: `src/core/client.ts` (`SukunaClient` extends `discord.js.Client`)
