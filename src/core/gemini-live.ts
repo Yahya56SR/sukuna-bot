@@ -160,8 +160,6 @@ export class GeminiLiveSukuna {
   private readonly maxQueueSize: number;
   private readonly maxRequestsPerSession: number;
   private readonly sessionMaxAgeMs: number;
-  /** Native-audio Live models reject `TEXT`; they stay on audio + transcription. */
-  private readonly audioOnlyModel: boolean;
 
   private session: Session | null = null;
   private connected = false;
@@ -183,6 +181,7 @@ export class GeminiLiveSukuna {
   private toolExecuting = false;
   private goAway = false;
   private closed = false;
+  private loggedUnsupportedConfig = false;
 
   constructor(options: GeminiLiveSukunaOptions) {
     if (!options.apiKey) {
@@ -200,7 +199,6 @@ export class GeminiLiveSukuna {
     this.model = options.model;
     this.systemPrompt = options.systemPrompt;
     this.declarations = [...DECISION_TOOL_DECLARATIONS, ...(options.tools ?? [])];
-    this.audioOnlyModel = /native-audio/i.test(options.model);
     this.thinkingLevel = resolveThinkingLevel(options.model, options.thinkingLevel);
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
     this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
@@ -528,16 +526,17 @@ export class GeminiLiveSukuna {
     const config: LiveConnectConfig = {
       systemInstruction: { parts: [{ text: this.systemPrompt }] },
       temperature: this.temperature,
-      // Discord is a text surface, so ask for text tokens. Only native-audio
-      // models (which reject TEXT) fall back to audio + transcription.
-      responseModalities: [this.audioOnlyModel ? Modality.AUDIO : Modality.TEXT],
+      // TEXT-only output is rejected by the 3.8 Live models (the server closes
+      // the session with code 1007 "response modalities (TEXT) is not
+      // supported"), so request audio and read the transcript instead.
+      // Verified against the l7aj-bot persona, which uses the same models.
+      responseModalities: [Modality.AUDIO],
+      outputAudioTranscription: {},
+      // Bound server-side conversation history; this client also recycles the
+      // socket periodically because every event is an independent request.
       contextWindowCompression: { slidingWindow: {} },
       tools: [{ functionDeclarations: this.declarations }],
     };
-
-    if (this.audioOnlyModel) {
-      config.outputAudioTranscription = {};
-    }
 
     if (this.thinkingLevel) {
       config.thinkingConfig = {
@@ -605,6 +604,9 @@ export class GeminiLiveSukuna {
     if (serverContent.turnComplete) {
       this.turnCompleteSeen = true;
 
+      // A tool round is still running: the turnComplete for the tool-call turn
+      // can arrive after the tool response. Wait for the follow-up generation.
+      if (this.toolRoundInFlight) return;
       if (serverContent.interactionStatus === InteractionStatus.IN_PROGRESS) {
         return;
       }
@@ -837,7 +839,19 @@ export class GeminiLiveSukuna {
 
   private describeClose(event: unknown): string {
     const close = event as { code?: number; reason?: string } | undefined;
-    return `Live session closed (code ${close?.code ?? '?'}): ${close?.reason || 'no reason provided'}`;
+    const reason = close?.reason || 'no reason provided';
+    const message = `Live session closed (code ${close?.code ?? '?'}): ${reason}`;
+
+    if (!this.loggedUnsupportedConfig && /not supported/i.test(reason)) {
+      this.loggedUnsupportedConfig = true;
+      console.error(
+        '[Sukuna:Live] The model rejected the session configuration. Use a Live-capable model ' +
+          '(e.g. gemini-3.8-live) and request AUDIO output — TEXT response modalities are not ' +
+          `supported by the 3.8 Live models. Server said: ${reason}`,
+      );
+    }
+
+    return message;
   }
 
   private parseDecision(raw: string): SukunaDecision | null {
@@ -961,7 +975,6 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
 
   const ai = new GoogleGenAI({ apiKey: options.apiKey });
   const timeoutMs = Math.max(options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS, 1_000);
-  const audioOnly = /native-audio/i.test(options.model);
 
   let session: Session | null = null;
   let settled = false;
@@ -993,12 +1006,13 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
 
     const config: LiveConnectConfig = {
       systemInstruction: { parts: [{ text: options.systemPrompt }] },
-      responseModalities: [audioOnly ? Modality.AUDIO : Modality.TEXT],
+      // Live 3.8 models reject TEXT; audio + transcription is the supported way.
+      responseModalities: [Modality.AUDIO],
+      outputAudioTranscription: {},
       temperature: Math.min(Math.max(options.temperature ?? 1, 0), 2),
       // Same decision contract as production, so the test exercises the real path.
       tools: [{ functionDeclarations: DECISION_TOOL_DECLARATIONS }],
     };
-    if (audioOnly) config.outputAudioTranscription = {};
 
     ai.live
       .connect({
@@ -1023,7 +1037,7 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
             for (const part of message.serverContent?.modelTurn?.parts ?? []) {
               if (part.text && !(part as { thought?: boolean }).thought) collected += part.text;
             }
-            if (audioOnly && message.serverContent?.outputTranscription?.text) {
+            if (message.serverContent?.outputTranscription?.text) {
               collected += message.serverContent.outputTranscription.text;
             }
             if (message.serverContent?.turnComplete) finish(null);

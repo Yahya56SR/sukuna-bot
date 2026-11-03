@@ -38,6 +38,9 @@ Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
 **7. Slash commands registered at startup**
 `registerApplicationCommands()` runs after `client.login()`. Set `DEV_GUILD_ID` for instant per-guild registration during dev; omit for global (takes up to 1 hour to propagate).
 
+**8. Live 3.8 models reject `responseModalities: [TEXT]`**
+`gemini-3.8-live` / `-extended-thinking` close the socket with code 1007 ("The requested combination of response modalities (TEXT) is not supported"). Always request `Modality.AUDIO` with `outputAudioTranscription: {}` and read `serverContent.outputTranscription` (see l7aj-bot, which runs the same models in production). Also: `gemini-3.8-live` must NOT receive `thinkingConfig`, while the extended-thinking model requires a `thinkingLevel`.
+
 ## File locations
 - Entry: `src/index.ts`
 - Client: `src/core/client.ts` (`SukunaClient` extends `discord.js.Client`)

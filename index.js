@@ -174414,8 +174414,6 @@ var GeminiLiveSukuna = class {
   maxQueueSize;
   maxRequestsPerSession;
   sessionMaxAgeMs;
-  /** Native-audio Live models reject `TEXT`; they stay on audio + transcription. */
-  audioOnlyModel;
   session = null;
   connected = false;
   sessionGeneration = 0;
@@ -174434,6 +174432,7 @@ var GeminiLiveSukuna = class {
   toolExecuting = false;
   goAway = false;
   closed = false;
+  loggedUnsupportedConfig = false;
   constructor(options) {
     if (!options.apiKey) {
       throw new Error("GeminiLiveSukuna requires an API key");
@@ -174447,7 +174446,6 @@ var GeminiLiveSukuna = class {
     this.model = options.model;
     this.systemPrompt = options.systemPrompt;
     this.declarations = [...DECISION_TOOL_DECLARATIONS, ...options.tools ?? []];
-    this.audioOnlyModel = /native-audio/i.test(options.model);
     this.thinkingLevel = resolveThinkingLevel(options.model, options.thinkingLevel);
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
     this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
@@ -174720,15 +174718,17 @@ var GeminiLiveSukuna = class {
     const config2 = {
       systemInstruction: { parts: [{ text: this.systemPrompt }] },
       temperature: this.temperature,
-      // Discord is a text surface, so ask for text tokens. Only native-audio
-      // models (which reject TEXT) fall back to audio + transcription.
-      responseModalities: [this.audioOnlyModel ? import_genai.Modality.AUDIO : import_genai.Modality.TEXT],
+      // TEXT-only output is rejected by the 3.8 Live models (the server closes
+      // the session with code 1007 "response modalities (TEXT) is not
+      // supported"), so request audio and read the transcript instead.
+      // Verified against the l7aj-bot persona, which uses the same models.
+      responseModalities: [import_genai.Modality.AUDIO],
+      outputAudioTranscription: {},
+      // Bound server-side conversation history; this client also recycles the
+      // socket periodically because every event is an independent request.
       contextWindowCompression: { slidingWindow: {} },
       tools: [{ functionDeclarations: this.declarations }]
     };
-    if (this.audioOnlyModel) {
-      config2.outputAudioTranscription = {};
-    }
     if (this.thinkingLevel) {
       config2.thinkingConfig = {
         thinkingLevel: this.thinkingLevel
@@ -174776,6 +174776,7 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
     }
     if (serverContent.turnComplete) {
       this.turnCompleteSeen = true;
+      if (this.toolRoundInFlight) return;
       if (serverContent.interactionStatus === import_genai.InteractionStatus.IN_PROGRESS) {
         return;
       }
@@ -174953,7 +174954,15 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
   }
   describeClose(event) {
     const close = event;
-    return `Live session closed (code ${close?.code ?? "?"}): ${close?.reason || "no reason provided"}`;
+    const reason = close?.reason || "no reason provided";
+    const message = `Live session closed (code ${close?.code ?? "?"}): ${reason}`;
+    if (!this.loggedUnsupportedConfig && /not supported/i.test(reason)) {
+      this.loggedUnsupportedConfig = true;
+      console.error(
+        `[Sukuna:Live] The model rejected the session configuration. Use a Live-capable model (e.g. gemini-3.8-live) and request AUDIO output \u2014 TEXT response modalities are not supported by the 3.8 Live models. Server said: ${reason}`
+      );
+    }
+    return message;
   }
   parseDecision(raw) {
     const json2 = extractJsonObject(raw);
@@ -175032,7 +175041,6 @@ async function generateLiveText(options) {
   if (!options.apiKey) throw new Error("generateLiveText requires an API key");
   const ai = new import_genai.GoogleGenAI({ apiKey: options.apiKey });
   const timeoutMs = Math.max(options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS, 1e3);
-  const audioOnly = /native-audio/i.test(options.model);
   let session = null;
   let settled = false;
   let collected = "";
@@ -175058,12 +175066,13 @@ async function generateLiveText(options) {
     }, timeoutMs);
     const config2 = {
       systemInstruction: { parts: [{ text: options.systemPrompt }] },
-      responseModalities: [audioOnly ? import_genai.Modality.AUDIO : import_genai.Modality.TEXT],
+      // Live 3.8 models reject TEXT; audio + transcription is the supported way.
+      responseModalities: [import_genai.Modality.AUDIO],
+      outputAudioTranscription: {},
       temperature: Math.min(Math.max(options.temperature ?? 1, 0), 2),
       // Same decision contract as production, so the test exercises the real path.
       tools: [{ functionDeclarations: DECISION_TOOL_DECLARATIONS }]
     };
-    if (audioOnly) config2.outputAudioTranscription = {};
     ai.live.connect({
       model: options.model,
       config: config2,
@@ -175085,7 +175094,7 @@ async function generateLiveText(options) {
           for (const part of message.serverContent?.modelTurn?.parts ?? []) {
             if (part.text && !part.thought) collected += part.text;
           }
-          if (audioOnly && message.serverContent?.outputTranscription?.text) {
+          if (message.serverContent?.outputTranscription?.text) {
             collected += message.serverContent.outputTranscription.text;
           }
           if (message.serverContent?.turnComplete) finish(null);
@@ -176674,11 +176683,16 @@ async function processMessage(message, cfg) {
       model: cfg.model
     }
   });
+  const sticker = decision.stickerId ? message.guild?.stickers.cache.get(decision.stickerId) ?? null : null;
+  const historyContent = [
+    decision.message.slice(0, MAX_REPLY_LENGTH2).trim(),
+    sticker ? `[sticker: ${sticker.name} (id: ${sticker.id})]` : ""
+  ].filter(Boolean).join(" ").trim() || "[reply]";
   addHistoryEntry(message.channelId, {
     id: sent.id,
     authorId: message.client.user?.id || "unknown",
     authorName: cfg.displayName || "Sukuna",
-    content: decision.message.slice(0, MAX_REPLY_LENGTH2).trim(),
+    content: historyContent,
     timestamp: now,
     bot: true
   });
@@ -176687,29 +176701,27 @@ __name(processMessage, "processMessage");
 async function deliverDecision(message, channel, decision, cfg) {
   const maxLength = Math.min(cfg.maxMessageLength || MAX_REPLY_LENGTH2, MAX_REPLY_LENGTH2);
   const content = decision.message.slice(0, maxLength).trim();
-  const stickerId = decision.stickerId;
-  if (stickerId) {
-    const sticker = message.guild?.stickers.cache.get(stickerId);
-    if (sticker) {
-      try {
-        return await channel.send({
-          content: content || void 0,
-          stickers: [sticker.id]
-        });
-      } catch (error62) {
-        console.warn("[Sukuna] Sticker send failed, falling back to text:", error62);
-      }
-    }
+  const requestedSticker = decision.stickerId?.trim() ?? "";
+  const sticker = requestedSticker && /^\d{15,25}$/.test(requestedSticker) ? message.guild?.stickers.cache.get(requestedSticker) ?? null : null;
+  if (requestedSticker && !sticker) {
+    console.warn("[Sukuna] Ignoring unknown sticker id:", requestedSticker);
   }
-  if (!content) return null;
-  if (decision.replyToTrigger) {
-    const reply = await message.reply({ content, failIfNotExists: false }).catch(() => null);
-    if (reply) return reply;
-  }
-  return channel.send({ content }).catch((error62) => {
+  if (!content && !sticker) return null;
+  const allowedMentions = {
+    parse: ["users"],
+    repliedUser: Boolean(decision.replyToTrigger)
+  };
+  const payload = {
+    content: content || void 0,
+    allowedMentions,
+    ...sticker ? { stickers: [sticker.id] } : {}
+  };
+  try {
+    return decision.replyToTrigger ? await message.reply({ ...payload, failIfNotExists: false }) : await channel.send(payload);
+  } catch (error62) {
     console.error("[Sukuna] Send failed:", error62);
     return null;
-  });
+  }
 }
 __name(deliverDecision, "deliverDecision");
 function buildSystemPrompt(cfg, botId) {

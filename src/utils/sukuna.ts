@@ -257,11 +257,23 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     },
   });
 
+  const sticker = decision.stickerId
+    ? message.guild?.stickers.cache.get(decision.stickerId) ?? null
+    : null;
+  const historyContent =
+    [
+      decision.message.slice(0, MAX_REPLY_LENGTH).trim(),
+      sticker ? `[sticker: ${sticker.name} (id: ${sticker.id})]` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || '[reply]';
+
   addHistoryEntry(message.channelId, {
     id: sent.id,
     authorId: message.client.user?.id || 'unknown',
     authorName: cfg.displayName || 'Sukuna',
-    content: decision.message.slice(0, MAX_REPLY_LENGTH).trim(),
+    content: historyContent,
     timestamp: now,
     bot: true,
   });
@@ -279,34 +291,39 @@ async function deliverDecision(
   const maxLength = Math.min(cfg.maxMessageLength || MAX_REPLY_LENGTH, MAX_REPLY_LENGTH);
   const content = decision.message.slice(0, maxLength).trim();
 
-  const stickerId = decision.stickerId;
-  if (stickerId) {
-    const sticker = message.guild?.stickers.cache.get(stickerId);
-    if (sticker) {
-      try {
-        return await channel.send({
-          content: content || undefined,
-          stickers: [sticker.id],
-        });
-      } catch (error) {
-        console.warn('[Sukuna] Sticker send failed, falling back to text:', error);
-      }
-    }
+  const requestedSticker = decision.stickerId?.trim() ?? '';
+  const sticker =
+    requestedSticker && /^\d{15,25}$/.test(requestedSticker)
+      ? message.guild?.stickers.cache.get(requestedSticker) ?? null
+      : null;
+
+  if (requestedSticker && !sticker) {
+    console.warn('[Sukuna] Ignoring unknown sticker id:', requestedSticker);
   }
 
-  if (!content) return null;
+  if (!content && !sticker) return null;
 
-  if (decision.replyToTrigger) {
-    const reply = await message
-      .reply({ content, failIfNotExists: false })
-      .catch(() => null);
-    if (reply) return reply;
-  }
+  // Users may be pinged through <@ID> markup, but roles, @everyone and @here
+  // stay silent. A native reply notifies the trigger author when chosen.
+  const allowedMentions = {
+    parse: ['users'] as const,
+    repliedUser: Boolean(decision.replyToTrigger),
+  };
 
-  return channel.send({ content }).catch((error) => {
+  const payload = {
+    content: content || undefined,
+    allowedMentions,
+    ...(sticker ? { stickers: [sticker.id] } : {}),
+  };
+
+  try {
+    return decision.replyToTrigger
+      ? await message.reply({ ...payload, failIfNotExists: false })
+      : await channel.send(payload);
+  } catch (error) {
     console.error('[Sukuna] Send failed:', error);
     return null;
-  });
+  }
 }
 
 function buildSystemPrompt(cfg: SukunaConfig, botId: string): string {
