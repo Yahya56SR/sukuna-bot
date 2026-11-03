@@ -150696,7 +150696,7 @@ var require_transport = __commonJS({
       stream.flushSync();
     }
     __name(flush, "flush");
-    function transport2(fullOptions) {
+    function transport(fullOptions) {
       const { pipeline, targets, levels, dedupe, worker = {}, caller = getCallers(), sync = false } = fullOptions;
       const options = {
         ...fullOptions.options
@@ -150776,8 +150776,8 @@ var require_transport = __commonJS({
       }
       __name(fixTarget, "fixTarget");
     }
-    __name(transport2, "transport");
-    module2.exports = transport2;
+    __name(transport, "transport");
+    module2.exports = transport;
   }
 });
 
@@ -150809,7 +150809,7 @@ var require_tools = __commonJS({
       msgPrefixSym
     } = require_symbols8();
     var { isMainThread } = require("worker_threads");
-    var transport2 = require_transport();
+    var transport = require_transport();
     var [nodeMajor] = process.versions.node.split(".").map((v) => Number(v));
     var asJsonChan = diagChan.tracingChannel("pino_asJson");
     var asString = nodeMajor >= 25 ? (str) => JSON.stringify(str) : _asString;
@@ -151057,7 +151057,7 @@ var require_tools = __commonJS({
           if (opts.customLevels) {
             customLevels = opts.useOnlyCustomLevels ? opts.customLevels : Object.assign({}, opts.levels, opts.customLevels);
           }
-          stream = transport2({ caller, ...opts.transport, levels: customLevels });
+          stream = transport({ caller, ...opts.transport, levels: customLevels });
         }
         opts = Object.assign({}, defaultOptions, opts);
         opts.serializers = Object.assign(/* @__PURE__ */ Object.create(null), defaultOptions.serializers, opts.serializers);
@@ -173569,22 +173569,11 @@ __name(registerEvents, "registerEvents");
 
 // src/core/logger.ts
 var import_pino = __toESM(require_pino());
-var isProduction = process.env.NODE_ENV === "production";
-var transport = isProduction ? void 0 : {
-  target: "pino-pretty",
-  options: { colorize: true, singleLine: true }
-};
-var logger = (0, import_pino.default)(
-  {
-    level: process.env.LOG_LEVEL || "info"
-  },
-  transport ? import_pino.default.transport(transport) : void 0
-);
+var logger = (0, import_pino.default)({
+  level: process.env.LOG_LEVEL || "info"
+});
 function createLogger(level) {
-  return (0, import_pino.default)(
-    { level },
-    transport ? import_pino.default.transport(transport) : void 0
-  );
+  return (0, import_pino.default)({ level });
 }
 __name(createLogger, "createLogger");
 

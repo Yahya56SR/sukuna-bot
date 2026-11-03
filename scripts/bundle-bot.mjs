@@ -13,7 +13,6 @@ const EXTERNALS = [
   "erlpack",
   "@discordjs/opus",
   "sodium-native",
-  "pino-pretty",
 ];
 
 const MAX_BUNDLE_BYTES = 20 * 1024 * 1024;
