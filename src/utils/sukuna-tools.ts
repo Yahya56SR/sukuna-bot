@@ -10,6 +10,7 @@ import { Type, type FunctionDeclaration } from '@google/genai';
 import { PermissionFlagsBits } from 'discord.js';
 import type {
   Client,
+  DMChannel,
   Guild,
   GuildMember,
   Message,
@@ -30,8 +31,9 @@ const dmPerUser = new Map<string, number>();
 
 export interface SukunaToolContext {
   client: Client;
-  guild: Guild;
-  channel: TextChannel;
+  /** Null during a DM when the member shares no server with the bot. */
+  guild: Guild | null;
+  channel: TextChannel | DMChannel;
   trigger?: Message | null;
 }
 
@@ -174,6 +176,10 @@ async function handleTool(
 
   switch (name) {
     case 'get_server_info':
+      if (!guild) {
+        return { ok: false, error: 'You are in a direct message, so there is no server context here.' };
+      }
+
       return {
         ok: true,
         name: guild.name,
@@ -184,8 +190,18 @@ async function handleTool(
       };
 
     case 'get_channel_info':
+      if (channel.isDMBased()) {
+        return {
+          ok: true,
+          kind: 'dm',
+          with: trigger?.author.tag ?? null,
+          id: channel.id,
+        };
+      }
+
       return {
         ok: true,
+        kind: 'channel',
         id: channel.id,
         name: channel.name,
         topic: channel.topic ?? null,
@@ -195,8 +211,15 @@ async function handleTool(
       };
 
     case 'get_member_info': {
+      if (!guild) {
+        return { ok: false, error: 'Member details need a shared server; this DM has none.' };
+      }
+
       const raw = typeof args.user === 'string' ? args.user : '';
-      const member = (raw ? await resolveMember(guild, raw) : null) ?? trigger?.member ?? null;
+      const member =
+        (raw ? await resolveMember(guild, raw) : null) ??
+        trigger?.member ??
+        (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
       if (!member) return { ok: false, error: 'Member not found.' };
 
       return {
@@ -254,6 +277,10 @@ async function handleTool(
     }
 
     case 'get_server_stickers': {
+      if (!guild) {
+        return { ok: false, error: 'Stickers belong to a server, and this DM has none.' };
+      }
+
       const stickers = [...guild.stickers.cache.values()].slice(0, 25).map((sticker) => ({
         id: sticker.id,
         name: sticker.name,
@@ -263,6 +290,16 @@ async function handleTool(
     }
 
     case 'send_dm': {
+      if (channel.isDMBased()) {
+        return {
+          ok: false,
+          error: 'You are already in a private DM with this member — just answer with send_message.',
+        };
+      }
+      if (!guild) {
+        return { ok: false, error: 'Direct messages need a shared server, and this turn has none.' };
+      }
+
       const text = typeof args.message === 'string' ? args.message.trim() : '';
       if (!text) return { ok: false, error: 'The message argument is required.' };
 
@@ -318,11 +355,18 @@ async function handleTool(
     }
 
     case 'remember_information': {
+      if (!guild) {
+        return { ok: false, error: 'Memory is stored per server, and this DM has no shared server.' };
+      }
+
       const fact = typeof args.fact === 'string' ? args.fact.trim() : '';
       if (!fact) return { ok: false, error: 'Fact is required' };
 
       const rawAbout = typeof args.about === 'string' ? args.about.trim() : '';
-      const member = rawAbout ? await resolveMember(guild, rawAbout) : trigger?.member ?? null;
+      const member = rawAbout
+        ? await resolveMember(guild, rawAbout)
+        : trigger?.member ??
+          (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
       const aboutName = member?.displayName ?? (rawAbout || undefined);
 
       const note = await addMemory(guild.id, {
@@ -334,6 +378,10 @@ async function handleTool(
     }
 
     case 'search_memory': {
+      if (!guild) {
+        return { ok: false, error: 'Memory is stored per server, and this DM has no shared server.' };
+      }
+
       const query = typeof args.query === 'string' ? args.query.trim() : '';
       const limit = clampInt(args.limit, 1, 100, 10);
       const memories = await searchMemories(guild.id, query, limit);

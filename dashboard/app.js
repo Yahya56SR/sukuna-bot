@@ -1243,6 +1243,7 @@ function personaHtml() {
     '<div class="card pad">' +
     '<p class="eyebrow">Behavior</p><h2 style="font-size:16px;margin:0 0 6px">Conversation tools</h2>' +
     switchRow('showTyping', 'Typing indicator', 'Show typing before a reply', config.showTyping) +
+    switchRow('dmEnabled', 'Private DMs', 'Also answer direct messages sent to the bot', config.dmEnabled) +
     switchRow('memoryEnabled', 'Long-term memory', 'Store and recall facts about the server', config.memoryEnabled) +
     switchRow('toolsEnabled', 'Information tools', 'Let the persona inspect server context', config.toolsEnabled) +
     switchRow('knowledgeEnabled', 'Community knowledge', 'Rules, FAQ and announcements', config.knowledgeEnabled) +
@@ -1362,6 +1363,7 @@ async function savePersona(form) {
     thinkingLevel: String(data.get('thinkingLevel') || '') || null,
     systemPrompt: String(data.get('systemPrompt') || '').trim() || null,
     showTyping: data.get('showTyping') === 'on',
+    dmEnabled: data.get('dmEnabled') === 'on',
     memoryEnabled: data.get('memoryEnabled') === 'on',
     toolsEnabled: data.get('toolsEnabled') === 'on',
     knowledgeEnabled: data.get('knowledgeEnabled') === 'on',

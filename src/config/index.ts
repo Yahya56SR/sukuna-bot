@@ -22,6 +22,8 @@ const LEGACY_DISPLAY_NAMES = new Set(['Sukuna']);
 
 export interface SukunaConfig {
   enabled: boolean;
+  /** Reply to private DMs sent to the bot, not only to the enabled channels. */
+  dmEnabled: boolean;
   displayName: string;
   channelIds: string[];
   model: string;
@@ -47,6 +49,7 @@ export interface SukunaConfig {
 
 export const defaultSukunaConfig: SukunaConfig = {
   enabled: process.env.SUKUNA_ENABLED === 'true' || false,
+  dmEnabled: process.env.SUKUNA_DM_ENABLED !== 'false',
   displayName: process.env.SUKUNA_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
   channelIds: process.env.SUKUNA_CHANNELS?.split(',').map((s) => s.trim()).filter(Boolean) || [],
   model: process.env.SUKUNA_MODEL || 'gemini-3.8-live',
@@ -72,6 +75,7 @@ export const defaultSukunaConfig: SukunaConfig = {
 
 export function normalizeSukunaConfig(input: Partial<SukunaConfig>): SukunaConfig {
   const merged: SukunaConfig = { ...defaultSukunaConfig, ...input };
+  merged.dmEnabled = merged.dmEnabled !== false;
   merged.temperature = clamp(Number(merged.temperature) || 0, 0, 2);
   merged.maxMessageLength = Math.round(clamp(Number(merged.maxMessageLength) || 2000, 100, 4000));
   merged.requestTimeoutMs = Math.round(clamp(Number(merged.requestTimeoutMs) || 20000, 1000, 120000));
@@ -105,6 +109,7 @@ function clamp(value: number, min: number, max: number): number {
 export const sukunaConfigPatchSchema = z
   .object({
     enabled: z.boolean().optional(),
+    dmEnabled: z.boolean().optional(),
     displayName: z.string().trim().min(1).max(64).optional(),
     channelIds: z.array(z.string().regex(/^\d{5,25}$/)).max(200).optional(),
     model: z.string().trim().min(1).max(100).optional(),

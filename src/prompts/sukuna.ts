@@ -164,6 +164,14 @@ export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string 
       '- After send_dm, still end the turn with exactly one decision tool (usually stay_silent).'
     : '';
 
+  const privateDmSection =
+    '\n\n## PRIVATE DM TURNS\n\n' +
+    'Some events arrive as a private DM instead of a channel message; they start with <dm_with>.\n\n' +
+    '- Only that member reads your answer. Same character, same voice, no audience.\n' +
+    '- There is no server context there: get_server_info, get_server_stickers and the memory tools may report that they are unavailable in DMs.\n' +
+    '- Stickers cannot be sent in DMs; answer with send_message.\n' +
+    "- Never replay what you learned in a DM inside a public channel, and never repeat one member's private message to anyone else.";
+
   const botIdLine = options.botId
     ? 'Your own Discord user ID is ' + options.botId + '. A direct <@' + options.botId + '> mention is addressed to you.'
     : 'Your own messages appear with the robot marker in the history; a [reply to your message] marker means the member is replying to you.';
@@ -178,7 +186,7 @@ export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string 
     '- Call stay_silent exactly once when you choose SILENT.\n\n' +
     botIdLine + '\n\n' +
     '## AVAILABLE INFORMATION TOOLS\n\n' +
-    toolSection + dmSection + '\n\n' +
+    toolSection + dmSection + privateDmSection + '\n\n' +
     '## DISCORD NATIVE FORMATTING\n\n' +
     'User mentions: <@USER_ID>\n' +
     'Role mentions: <@&ROLE_ID>\n' +

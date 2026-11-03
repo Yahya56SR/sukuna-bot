@@ -6,10 +6,12 @@
  * `GeminiLiveSukuna`. `generateContent` is never used.
  *
  * One Discord message = one Live turn that must end in a decision:
- * `send_message`, `send_sticker` or `stay_silent`.
+ * `send_message`, `send_sticker` or `stay_silent`. Messages arrive from the
+ * enabled channels and from private DMs (when `dmEnabled` is on).
  */
 
-import type { Client, Guild, Message, TextChannel } from 'discord.js';
+import { ChannelType } from 'discord.js';
+import type { Client, DMChannel, Guild, GuildMember, Message, TextChannel } from 'discord.js';
 import {
   DEFAULT_DISPLAY_NAME,
   getSukunaConfig as readSukunaConfig,
@@ -27,6 +29,15 @@ import { collectSukunaMedia } from './sukuna-media.js';
 
 const MAX_REPLY_LENGTH = 2000;
 
+/** A channel the persona can post in. */
+type PersonaChannel = TextChannel | DMChannel;
+
+/**
+ * Where a turn comes from. DMs get their own Live client so a private
+ * conversation can never share server-side session context with a channel.
+ */
+type PersonaSurface = 'channel' | 'dm';
+
 /** Flatten and shorten text for console logging. */
 function preview(text: string, max = 600): string {
   const flat = text.replace(/\s+/g, ' ').trim();
@@ -43,15 +54,24 @@ function logPersona(event: string, data?: Record<string, unknown>): void {
 const channelHistory = new Map<string, HistoryEntry[]>();
 const channelHistoryIds = new Map<string, Set<string>>();
 
-// Rate limiting state
-let lastReplyAt = 0;
-let lastDecisionAt = 0;
-const replyTimestamps: number[] = [];
+interface RateState {
+  lastDecisionAt: number;
+  lastReplyAt: number;
+  replyTimestamps: number[];
+}
+
+// Rate limiting is tracked per surface so a busy channel cannot mute the DMs.
+const channelRate: RateState = { lastDecisionAt: 0, lastReplyAt: 0, replyTimestamps: [] };
+const dmRate: RateState = { lastDecisionAt: 0, lastReplyAt: 0, replyTimestamps: [] };
+
 let apiKeyCache = '';
 
-// One persistent Live session per configuration; recreated when config changes.
-let liveClient: GeminiLiveSukuna | null = null;
-let liveSignature = '';
+// One persistent Live session per configuration and surface; recreated when
+// the configuration changes.
+const liveClients: Record<PersonaSurface, { client: GeminiLiveSukuna | null; signature: string }> = {
+  channel: { client: null, signature: '' },
+  dm: { client: null, signature: '' },
+};
 
 interface HistoryEntry {
   id: string;
@@ -68,8 +88,22 @@ interface HistoryEntry {
 function handleMessage(message: Message): void {
   const cfg = getSukunaConfig();
   if (!cfg.enabled) return;
+
+  // Private DMs: everything the member sends to the bot directly. Group DMs are
+  // skipped — they are not a private conversation with the persona.
+  if (message.channel.isDMBased()) {
+    if (!cfg.dmEnabled) return;
+    if (message.channel.type !== ChannelType.DM) return;
+    if (message.author.bot) return;
+    if (!message.content?.trim() && message.attachments.size === 0) return;
+
+    addToHistory(message, cfg);
+    void processMessage(message, cfg);
+    return;
+  }
+
   if (!message.guild) return;
-  if (!message.channel.isTextBased() || message.channel.isDMBased()) return;
+  if (!message.channel.isTextBased()) return;
 
   const channelId = message.channelId;
   if (!cfg.channelIds.includes(channelId)) return;
@@ -92,9 +126,11 @@ function handleMessage(message: Message): void {
  */
 function closeSukuna(): void {
   logPersona('closing Live session');
-  liveClient?.close();
-  liveClient = null;
-  liveSignature = '';
+  for (const surface of Object.keys(liveClients) as PersonaSurface[]) {
+    liveClients[surface].client?.close();
+    liveClients[surface].client = null;
+    liveClients[surface].signature = '';
+  }
   channelHistory.clear();
   channelHistoryIds.clear();
 }
@@ -162,9 +198,14 @@ function getSukunaConfig(): SukunaConfig {
 }
 
 /**
- * Reuse one Live session while the persona configuration is unchanged.
+ * Reuse one Live session per surface while the persona configuration is unchanged.
  */
-function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): GeminiLiveSukuna | null {
+function getLiveClient(
+  cfg: SukunaConfig,
+  apiKey: string,
+  botId: string,
+  surface: PersonaSurface,
+): GeminiLiveSukuna | null {
   const systemPrompt = buildSystemPrompt(cfg, botId);
   const tools = cfg.toolsEnabled === false ? [] : buildSukunaToolDeclarations(cfg);
   const signature = [
@@ -177,14 +218,15 @@ function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): Gemini
     systemPrompt,
   ].join('|');
 
-  if (liveClient && liveSignature === signature) return liveClient;
+  const slot = liveClients[surface];
+  if (slot.client && slot.signature === signature) return slot.client;
 
-  liveClient?.close();
-  liveClient = null;
-  liveSignature = '';
+  slot.client?.close();
+  slot.client = null;
+  slot.signature = '';
 
   try {
-    liveClient = new GeminiLiveSukuna({
+    slot.client = new GeminiLiveSukuna({
       apiKey,
       model: cfg.model,
       systemPrompt,
@@ -193,8 +235,9 @@ function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): Gemini
       temperature: cfg.temperature,
       requestTimeoutMs: cfg.requestTimeoutMs,
     });
-    liveSignature = signature;
+    slot.signature = signature;
     logPersona('live client created', {
+      surface,
       model: cfg.model,
       tools: tools.length,
       thinkingLevel: cfg.thinkingLevel ?? '(model default)',
@@ -206,23 +249,29 @@ function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): Gemini
     return null;
   }
 
-  return liveClient;
+  return slot.client;
 }
 
 async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
-  const channelName = (message.channel as TextChannel).name || message.channelId;
+  const isDm = message.channel.isDMBased();
+  const surface: PersonaSurface = isDm ? 'dm' : 'channel';
+  const rate = isDm ? dmRate : channelRate;
+  const channel = message.channel as PersonaChannel;
+  const channelName = isDm ? 'DM' : (channel as TextChannel).name || message.channelId;
 
-  if (isRateLimited(cfg)) {
+  if (isRateLimited(cfg, rate)) {
     logPersona('skipped — reply rate limit', {
+      surface,
       channel: channelName,
       replyCooldownSeconds: cfg.replyCooldownSeconds,
       maxRepliesPerHour: cfg.maxRepliesPerHour,
-      repliesLastHour: replyTimestamps.length,
+      repliesLastHour: rate.replyTimestamps.length,
     });
     return;
   }
-  if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1000) {
+  if (cfg.decisionCooldownSeconds > 0 && Date.now() - rate.lastDecisionAt < cfg.decisionCooldownSeconds * 1000) {
     logPersona('skipped — decision cooldown', {
+      surface,
       channel: channelName,
       decisionCooldownSeconds: cfg.decisionCooldownSeconds,
     });
@@ -235,11 +284,11 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     return;
   }
 
-  const guild = message.guild;
-  if (!guild) return;
-  const channel = message.channel as TextChannel;
+  // In a DM there is no guild: fall back to a server the member shares with the
+  // bot (memory scope and guild tools), or to none at all.
+  const guild = message.guild ?? (isDm ? resolveHomeGuild(message) : null);
 
-  const live = getLiveClient(cfg, apiKey, message.client.user?.id || '');
+  const live = getLiveClient(cfg, apiKey, message.client.user?.id || '', surface);
   if (!live) return;
 
   const executeTool = createSukunaToolExecutor({
@@ -254,10 +303,18 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     media = await collectSukunaMedia([message]).catch(() => []);
   }
 
-  const payload = buildPayload(guild, channel, channelHistory.get(message.channelId) ?? [], message);
+  const history = channelHistory.get(message.channelId) ?? [];
+  let payload: string;
+  if (isDm) {
+    payload = buildDmPayload(message, history, guild);
+  } else {
+    if (!guild) return;
+    payload = buildPayload(guild, channel as TextChannel, history, message);
+  }
 
   logPersona('incoming', {
-    guild: guild.name,
+    surface,
+    guild: guild?.name ?? null,
     channel: channelName,
     author: message.author.tag,
     attachments: message.attachments.size,
@@ -285,7 +342,7 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   }
 
   const elapsedMs = Date.now() - startedAt;
-  lastDecisionAt = Date.now();
+  rate.lastDecisionAt = Date.now();
 
   if (!decision) {
     logPersona('stayed silent — no decision', {
@@ -327,11 +384,11 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
   }
 
   const now = Date.now();
-  lastReplyAt = now;
-  replyTimestamps.push(now);
+  rate.lastReplyAt = now;
+  rate.replyTimestamps.push(now);
   bumpCounter('aiReplies');
 
-  recordActivity('ai', 'Replied in #' + (channel.name || 'channel'), {
+  recordActivity('ai', isDm ? 'Replied in DMs' : 'Replied in #' + channelName, {
     level: 'success',
     meta: {
       guildId: message.guildId,
@@ -341,9 +398,10 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     },
   });
 
-  const sticker = decision.stickerId
-    ? message.guild?.stickers.cache.get(decision.stickerId) ?? null
-    : null;
+  const sticker =
+    !isDm && decision.stickerId && guild
+      ? guild.stickers.cache.get(decision.stickerId) ?? null
+      : null;
   const historyContent =
     [
       decision.message.slice(0, MAX_REPLY_LENGTH).trim(),
@@ -410,42 +468,53 @@ async function speakReplyInVoice(
  */
 async function deliverDecision(
   message: Message,
-  channel: TextChannel,
+  channel: PersonaChannel,
   decision: SukunaDecision,
   cfg: SukunaConfig,
 ): Promise<Message | null> {
+  const isDm = channel.isDMBased();
   const maxLength = Math.min(cfg.maxMessageLength || MAX_REPLY_LENGTH, MAX_REPLY_LENGTH);
   const content = decision.message.slice(0, maxLength).trim();
 
   const requestedSticker = decision.stickerId?.trim() ?? '';
+  if (requestedSticker && isDm) {
+    console.warn('[Sukuna] Stickers are unavailable in DMs — sending the text only');
+  }
+
   const sticker =
-    requestedSticker && /^\d{15,25}$/.test(requestedSticker)
+    !isDm && requestedSticker && /^\d{15,25}$/.test(requestedSticker)
       ? message.guild?.stickers.cache.get(requestedSticker) ?? null
       : null;
 
-  if (requestedSticker && !sticker) {
+  if (!isDm && requestedSticker && !sticker) {
     console.warn('[Sukuna] Ignoring unknown sticker id:', requestedSticker);
   }
 
   if (!content && !sticker) return null;
 
-  // Users may be pinged through <@ID> markup, but roles, @everyone and @here
-  // stay silent. A native reply notifies the trigger author when chosen.
-  const allowedMentions = {
-    parse: ['users'] as const,
-    repliedUser: Boolean(decision.replyToTrigger),
-  };
-
-  const payload = {
-    content: content || undefined,
-    allowedMentions,
-    ...(sticker ? { stickers: [sticker.id] } : {}),
-  };
-
   try {
+    if (isDm) {
+      // Only one member can read this, so nothing needs mention parsing.
+      return await (channel as DMChannel).send({
+        content: content || undefined,
+        allowedMentions: { parse: [] },
+      });
+    }
+
+    // Users may be pinged through <@ID> markup, but roles, @everyone and @here
+    // stay silent. A native reply notifies the trigger author when chosen.
+    const payload = {
+      content: content || undefined,
+      allowedMentions: {
+        parse: ['users'] as const,
+        repliedUser: Boolean(decision.replyToTrigger),
+      },
+      ...(sticker ? { stickers: [sticker.id] } : {}),
+    };
+
     return decision.replyToTrigger
       ? await message.reply({ ...payload, failIfNotExists: false })
-      : await channel.send(payload);
+      : await (channel as TextChannel).send(payload);
   } catch (error) {
     console.error('[Sukuna] Send failed:', error);
     return null;
@@ -477,19 +546,54 @@ function buildPayload(guild: Guild, channel: TextChannel, history: HistoryEntry[
   ].join('\n');
 }
 
-function isRateLimited(cfg: SukunaConfig): boolean {
-  const now = Date.now();
-  if (cfg.replyCooldownSeconds > 0 && now - lastReplyAt < cfg.replyCooldownSeconds * 1000) {
-    return true;
-  }
-  pruneTimestamps(now);
-  return cfg.maxRepliesPerHour > 0 && replyTimestamps.length >= cfg.maxRepliesPerHour;
+/**
+ * DM turns carry no server/channel context: just the member and the private
+ * conversation. The shared server is only a hint (memory scope + guild tools).
+ */
+function buildDmPayload(trigger: Message, history: HistoryEntry[], guild: Guild | null): string {
+  const recent = history.slice(-50);
+  return [
+    '<current_time>' + new Date().toISOString() + '</current_time>',
+    '<dm_with>' +
+      trigger.author.displayName +
+      ' (@' +
+      trigger.author.username +
+      ', id ' +
+      trigger.author.id +
+      ')</dm_with>',
+    '<shared_server>' + (guild ? guild.name : 'none') + '</shared_server>',
+    '<recent_messages>' + (recent.length ? recent.map((e) => '[' + new Date(e.timestamp).toISOString().slice(11, 16) + '] ' + e.authorName + ': ' + e.content).join('\n') : '(no earlier messages)') + '</recent_messages>',
+    '<latest_message>' + (trigger.author.displayName + ': ' + (trigger.content || '(empty)')) + '</latest_message>',
+    '',
+    'This is a private direct message, not a channel: only this member will read your answer.',
+    'Respond naturally in the DM. Silence is acceptable if nothing needs saying.',
+  ].join('\n');
 }
 
-function pruneTimestamps(now: number): void {
+/**
+ * First server the DM author shares with the bot, used to scope memory and the
+ * guild tools. Never used to reveal that server's private context.
+ */
+function resolveHomeGuild(message: Message): Guild | null {
+  for (const guild of message.client.guilds.cache.values()) {
+    if (guild.members.cache.has(message.author.id)) return guild;
+  }
+  return null;
+}
+
+function isRateLimited(cfg: SukunaConfig, state: RateState): boolean {
+  const now = Date.now();
+  if (cfg.replyCooldownSeconds > 0 && now - state.lastReplyAt < cfg.replyCooldownSeconds * 1000) {
+    return true;
+  }
+  pruneTimestamps(state, now);
+  return cfg.maxRepliesPerHour > 0 && state.replyTimestamps.length >= cfg.maxRepliesPerHour;
+}
+
+function pruneTimestamps(state: RateState, now: number): void {
   const cutoff = now - 60 * 60 * 1000;
-  while (replyTimestamps.length > 0 && replyTimestamps[0] < cutoff) {
-    replyTimestamps.shift();
+  while (state.replyTimestamps.length > 0 && state.replyTimestamps[0] < cutoff) {
+    state.replyTimestamps.shift();
   }
 }
 
