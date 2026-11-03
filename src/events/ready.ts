@@ -2,6 +2,8 @@ import { Events, type ClientEvents } from 'discord.js';
 import { startDashboard, setSukunaActive } from '../../dashboard/server.js';
 import { getSukunaConfig } from '../config/index.js';
 import { recordActivity } from '../core/metrics.js';
+import { startLiveLeaderboard } from '../utils/liveLeaderboard.js';
+import { startVoiceTracking } from './voiceStateUpdate.js';
 
 export const ready = {
   name: Events.ClientReady as keyof ClientEvents,
@@ -38,5 +40,11 @@ export const ready = {
     } else {
       client.logger.info('[Sukuna] AI persona disabled');
     }
+
+    // XP/level system background work: voice minutes and the self-updating
+    // leaderboard. Both are no-ops until a guild configures them.
+    startVoiceTracking(client);
+    startLiveLeaderboard(client);
+    client.logger.info('[Levels] Voice tracking and live leaderboard scheduler started');
   },
 };

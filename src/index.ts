@@ -10,6 +10,8 @@ import { createLogger } from './core/logger.js';
 import { events } from './events/index.js';
 import { registerApplicationCommands } from './core/commands.js';
 import { closeSukuna } from './utils/sukuna.js';
+import { stopLiveLeaderboard } from './utils/liveLeaderboard.js';
+import { stopVoiceTracking } from './events/voiceStateUpdate.js';
 
 async function main(): Promise<void> {
   const env = loadEnv();
@@ -22,6 +24,8 @@ async function main(): Promise<void> {
     logger.info({ reason, exitCode }, "shutting down");
 
     closeSukuna();
+    stopVoiceTracking();
+    stopLiveLeaderboard();
     await shutdownVoiceSafely();
 
     if (client) {

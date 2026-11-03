@@ -54,6 +54,13 @@ Discord requires DAVE/E2EE negotiation on voice connections; 0.18 has no DAVE su
 
 `@discordjs/voice` ships ESM and calls `createRequire(import.meta.url)` at load time. In CJS output esbuild turns `import.meta` into `{}`, which crashed the bundle with `ERR_INVALID_ARG_VALUE` on the host. `scripts/bundle-bot.mjs` now injects `var __importMetaUrl = require("node:url").pathToFileURL(__filename).href;` in the banner and maps `import.meta.url` to it via `define` — keep both together when touching the banner.
 
+**11. XP is global; level settings are per guild**
+`User.xp` / `User.totalXp` store one total per user (no per-guild split) so the dashboard's global `/api/users` economy/levels view keeps working. `xp` is mirrored to `totalXp` and `level` is always re-derived from the total (`levelFromXp`), never trusted from the row — a stale level would swallow every future level-up. Reads go through `effectiveXp(doc)` = `max(xp, totalXp)` so legacy rows still rank. Everything else (rates, cooldown, no-XP channels, exclusive channel, ignore-bots, level reward roles, live leaderboard) lives on the `Guild` document and is normalised by `readLevelSettings()`.
+- XP is awarded by `src/events/messageCreate.ts` (cooldown cached in `client.xpCooldowns` + persisted in `User.lastMessageAt`) and `src/events/voiceStateUpdate.ts` (one-minute tick; `startVoiceTracking`/`startLiveLeaderboard` are started in `ready.ts` and stopped in `src/index.ts`).
+- `src/handlers/levelUp.ts` implements exclusive reward tiers (`resolveLevelRoles`): grant the highest reached tier, then remove lower ones, and never remove the role being granted.
+- `src/utils/rankcard.ts` uses `@napi-rs/canvas`, which is native and therefore in `EXTERNALS` (host runs `npm install`). It is imported lazily through `src/utils/canvas-runtime.ts`; if the addon is missing the commands fall back to `src/utils/rankEmbeds.ts`. Fonts: `assets/fonts` is committed (Noto Latin/Arabic/CJK/…), larger scripts and the colour emoji face download once into gitignored `data/fonts`.
+- XP commands are gated by the `leveling` module; `/levels` and `/xp` need `ManageGuild`.
+
 ## File locations
 - Entry: `src/index.ts`
 - Client: `src/core/client.ts` (`SukunaClient` extends `discord.js.Client`)
@@ -63,6 +70,7 @@ Discord requires DAVE/E2EE negotiation on voice connections; 0.18 has no DAVE su
 - DB: `src/db/index.ts` + `src/db/models/*.ts`
 - AI persona: `src/utils/sukuna.ts`, `src/core/gemini-live.ts`, `src/utils/sukuna-tools.ts`, `src/utils/sukuna-memory.ts`, `src/prompts/sukuna.ts`
 - Voice: `src/voice/manager.ts` (connections/queue), `src/voice/conversation.ts` (duplex Live call), `src/voice/speech.ts` (TTS turn), `src/voice/pcm.ts` (resamplers), `/voice` in `src/commands/core/voice.ts`
+- Leveling: `src/utils/level.ts` (MEE6 math), `src/utils/levelSettings.ts`, `src/db/utils.ts` (XP API), `src/handlers/levelUp.ts`, `src/utils/{rankcard,rankEmbeds,canvas-runtime,fonts}.ts`, `src/utils/liveLeaderboard.ts`, commands in `src/commands/leveling/`
 - Dashboard: `dashboard/server.ts` + `dashboard/{index.html,styles.css,app.js}`
 - Bundle script: `scripts/bundle-bot.mjs`
 

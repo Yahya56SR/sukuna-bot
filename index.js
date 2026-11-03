@@ -2861,16 +2861,16 @@ var require_bson = __commonJS({
       const objectStack = [
         { object: object2, ignoreUndefined: ignoreUndefined ?? false, exit: false }
       ];
-      const path2 = /* @__PURE__ */ new Set();
+      const path3 = /* @__PURE__ */ new Set();
       let total = 0;
       while (objectStack.length > 0) {
         const frame = objectStack.pop();
         if (frame.exit) {
-          path2.delete(frame.object);
+          path3.delete(frame.object);
           continue;
         }
         const { object: obj, ignoreUndefined: frameIgnoreUndefined } = frame;
-        path2.add(obj);
+        path3.add(obj);
         frame.exit = true;
         objectStack.push(frame);
         total += 5;
@@ -2883,22 +2883,22 @@ var require_bson = __commonJS({
         if (isObjArray) {
           const array2 = target;
           for (let i = 0; i < array2.length; i++) {
-            total += calculateElementSize(i.toString(), array2[i], serializeFunctions, true, frameIgnoreUndefined, objectStack, path2);
+            total += calculateElementSize(i.toString(), array2[i], serializeFunctions, true, frameIgnoreUndefined, objectStack, path3);
           }
         } else if (isObjMap) {
           for (const [key, value] of target) {
-            total += calculateElementSize(key, value, serializeFunctions, false, frameIgnoreUndefined, objectStack, path2);
+            total += calculateElementSize(key, value, serializeFunctions, false, frameIgnoreUndefined, objectStack, path3);
           }
         } else {
           for (const key of Object.keys(target)) {
-            total += calculateElementSize(key, target[key], serializeFunctions, false, frameIgnoreUndefined, objectStack, path2);
+            total += calculateElementSize(key, target[key], serializeFunctions, false, frameIgnoreUndefined, objectStack, path3);
           }
         }
       }
       return total;
     }
     __name(internalCalculateObjectSize, "internalCalculateObjectSize");
-    function calculateElementSize(name, value, serializeFunctions = false, isArray = false, ignoreUndefined = false, objectStack, path2) {
+    function calculateElementSize(name, value, serializeFunctions = false, isArray = false, ignoreUndefined = false, objectStack, path3) {
       if (typeof value?.toBSON === "function") {
         value = value.toBSON();
       }
@@ -2940,7 +2940,7 @@ var require_bson = __commonJS({
             return ByteUtils.utf8ByteLength(name) + 1 + (4 + 1);
           } else if (value._bsontype === "Code") {
             if (value.scope != null && Object.keys(value.scope).length > 0) {
-              if (path2.has(value.scope)) {
+              if (path3.has(value.scope)) {
                 throw new BSONError("Cannot convert circular structure to BSON");
               }
               objectStack.push({ object: value.scope, ignoreUndefined, exit: false });
@@ -2972,7 +2972,7 @@ var require_bson = __commonJS({
           } else if (value._bsontype === "BSONRegExp") {
             return ByteUtils.utf8ByteLength(name) + 1 + 1 + ByteUtils.utf8ByteLength(value.pattern) + 1 + ByteUtils.utf8ByteLength(value.options) + 1;
           } else {
-            if (path2.has(value)) {
+            if (path3.has(value)) {
               throw new BSONError("Cannot convert circular structure to BSON");
             }
             objectStack.push({ object: value, ignoreUndefined, exit: false });
@@ -3918,8 +3918,8 @@ var require_bson = __commonJS({
       };
     }
     __name(makeFrame, "makeFrame");
-    function serializeInto(buffer2, object2, checkKeys, startingIndex, serializeFunctions, ignoreUndefined, path2) {
-      if (path2 == null) {
+    function serializeInto(buffer2, object2, checkKeys, startingIndex, serializeFunctions, ignoreUndefined, path3) {
+      if (path3 == null) {
         if (object2 == null) {
           buffer2[0] = 5;
           buffer2[1] = 0;
@@ -3938,9 +3938,9 @@ var require_bson = __commonJS({
         } else if (isDate(object2) || isRegExp(object2) || isUint8Array(object2) || isAnyArrayBuffer(object2)) {
           throw new BSONError(`date, regexp, typedarray, and arraybuffer cannot be BSON documents`);
         }
-        path2 = /* @__PURE__ */ new Set();
+        path3 = /* @__PURE__ */ new Set();
       }
-      path2.add(object2);
+      path3.add(object2);
       let currentFrame = makeFrame(object2, startingIndex, null, null, checkKeys, ignoreUndefined);
       let index = startingIndex + 4;
       while (currentFrame !== null) {
@@ -3955,7 +3955,7 @@ var require_bson = __commonJS({
             if (frame.codeSizeIndex !== null) {
               NumberUtils.setInt32LE(buffer2, frame.codeSizeIndex, index - frame.codeSizeIndex);
             }
-            path2.delete(frame.sourceObject);
+            path3.delete(frame.sourceObject);
             currentFrame = frame.prev;
             continue;
           }
@@ -3968,7 +3968,7 @@ var require_bson = __commonJS({
             if (frame.codeSizeIndex !== null) {
               NumberUtils.setInt32LE(buffer2, frame.codeSizeIndex, index - frame.codeSizeIndex);
             }
-            path2.delete(frame.sourceObject);
+            path3.delete(frame.sourceObject);
             currentFrame = frame.prev;
             continue;
           }
@@ -3982,7 +3982,7 @@ var require_bson = __commonJS({
             if (frame.codeSizeIndex !== null) {
               NumberUtils.setInt32LE(buffer2, frame.codeSizeIndex, index - frame.codeSizeIndex);
             }
-            path2.delete(frame.sourceObject);
+            path3.delete(frame.sourceObject);
             currentFrame = frame.prev;
             continue;
           }
@@ -4028,7 +4028,7 @@ var require_bson = __commonJS({
           } else if (value instanceof RegExp || isRegExp(value)) {
             index = serializeRegExp(buffer2, key, value, index);
           } else {
-            if (path2.has(value)) {
+            if (path3.has(value)) {
               throw new BSONError("Cannot convert circular structure to BSON");
             }
             const nestedIsArray = Array.isArray(value);
@@ -4036,7 +4036,7 @@ var require_bson = __commonJS({
             index += ByteUtils.encodeUTF8Into(buffer2, key, index);
             buffer2[index++] = 0;
             const nestedStartIndex = index;
-            path2.add(value);
+            path3.add(value);
             currentFrame = makeFrame(value, nestedStartIndex, null, frame, frame.checkKeys, frame.ignoreUndefined);
             index += 4;
           }
@@ -4067,10 +4067,10 @@ var require_bson = __commonJS({
               buffer2[index + 4 + codeSize - 1] = 0;
               index = index + codeSize + 4;
               const scope = codeValue.scope;
-              if (path2.has(scope)) {
+              if (path3.has(scope)) {
                 throw new BSONError("Cannot convert circular structure to BSON");
               }
-              path2.add(scope);
+              path3.add(scope);
               currentFrame = makeFrame(scope, index, codeTotalSizeIndex, frame, frame.checkKeys, frame.ignoreUndefined);
               index += 4;
             } else {
@@ -4093,7 +4093,7 @@ var require_bson = __commonJS({
             buffer2[index++] = BSON_DATA_OBJECT;
             index += ByteUtils.encodeUTF8Into(buffer2, key, index);
             buffer2[index++] = 0;
-            path2.add(orderedValues);
+            path3.add(orderedValues);
             currentFrame = makeFrame(orderedValues, index, null, frame, false, true);
             index += 4;
           } else if (tag === "BSONRegExp") {
@@ -9580,18 +9580,18 @@ var require_aggregate = __commonJS({
       static {
         __name(this, "AggregateOperation");
       }
-      constructor(ns, pipeline2, options) {
+      constructor(ns, pipeline3, options) {
         super(void 0, { ...options, dbName: ns.db });
         this.SERVER_COMMAND_RESPONSE_TYPE = responses_1.CursorResponse;
         this.options = { ...options };
         this.target = ns.collection || exports2.DB_AGGREGATE_COLLECTION;
-        this.pipeline = pipeline2;
+        this.pipeline = pipeline3;
         this.hasWriteStage = false;
         if (typeof options?.out === "string") {
           this.pipeline = this.pipeline.concat({ $out: options.out });
           this.hasWriteStage = true;
-        } else if (pipeline2.length > 0) {
-          const finalStage = pipeline2[pipeline2.length - 1];
+        } else if (pipeline3.length > 0) {
+          const finalStage = pipeline3[pipeline3.length - 1];
           if (finalStage.$out || finalStage.$merge) {
             this.hasWriteStage = true;
           }
@@ -14268,9 +14268,9 @@ var require_aggregation_cursor = __commonJS({
         __name(this, "AggregationCursor");
       }
       /** @internal */
-      constructor(client, namespace, pipeline2 = [], options = {}) {
+      constructor(client, namespace, pipeline3 = [], options = {}) {
         super(client, namespace, options);
-        this.pipeline = pipeline2;
+        this.pipeline = pipeline3;
         this.aggregateOptions = options;
         const lastStage = this.pipeline[this.pipeline.length - 1];
         if (this.cursorOptions.timeoutMS != null && this.cursorOptions.timeoutMode === abstract_cursor_1.CursorTimeoutMode.ITERATION && (lastStage?.$merge != null || lastStage?.$out != null))
@@ -15229,8 +15229,8 @@ var require_list_search_indexes_cursor = __commonJS({
       }
       /** @internal */
       constructor({ fullNamespace: ns, client }, name, options = {}) {
-        const pipeline2 = name == null ? [{ $listSearchIndexes: {} }] : [{ $listSearchIndexes: { name } }];
-        super(client, ns, pipeline2, options);
+        const pipeline3 = name == null ? [{ $listSearchIndexes: {} }] : [{ $listSearchIndexes: { name } }];
+        super(client, ns, pipeline3, options);
       }
     };
     exports2.ListSearchIndexesCursor = ListSearchIndexesCursor;
@@ -16154,16 +16154,16 @@ var require_collection2 = __commonJS({
        * @see https://www.mongodb.com/docs/manual/reference/operator/query/centerSphere/#op._S_centerSphere
        */
       async countDocuments(filter = {}, options = {}) {
-        const pipeline2 = [];
-        pipeline2.push({ $match: filter });
+        const pipeline3 = [];
+        pipeline3.push({ $match: filter });
         if (typeof options.skip === "number") {
-          pipeline2.push({ $skip: options.skip });
+          pipeline3.push({ $skip: options.skip });
         }
         if (typeof options.limit === "number") {
-          pipeline2.push({ $limit: options.limit });
+          pipeline3.push({ $limit: options.limit });
         }
-        pipeline2.push({ $group: { _id: 1, n: { $sum: 1 } } });
-        const cursor = this.aggregate(pipeline2, options);
+        pipeline3.push({ $group: { _id: 1, n: { $sum: 1 } } });
+        const cursor = this.aggregate(pipeline3, options);
         const doc = await cursor.next();
         await cursor.close();
         return doc?.n ?? 0;
@@ -16195,11 +16195,11 @@ var require_collection2 = __commonJS({
        * @param pipeline - An array of aggregation pipelines to execute
        * @param options - Optional settings for the command
        */
-      aggregate(pipeline2 = [], options) {
-        if (!Array.isArray(pipeline2)) {
+      aggregate(pipeline3 = [], options) {
+        if (!Array.isArray(pipeline3)) {
           throw new error_1.MongoInvalidArgumentError('Argument "pipeline" must be an array of aggregation stages');
         }
-        return new aggregation_cursor_1.AggregationCursor(this.client, this.s.namespace, pipeline2, (0, utils_1.resolveOptions)(this, options));
+        return new aggregation_cursor_1.AggregationCursor(this.client, this.s.namespace, pipeline3, (0, utils_1.resolveOptions)(this, options));
       }
       /**
        * Create a new Change Stream, watching for new changes (insertions, updates, replacements, deletions, and invalidations) in this collection.
@@ -16292,12 +16292,12 @@ var require_collection2 = __commonJS({
        * @typeParam TLocal - Type of the data being detected by the change stream
        * @typeParam TChange - Type of the whole change stream document emitted
        */
-      watch(pipeline2 = [], options = {}) {
-        if (!Array.isArray(pipeline2)) {
-          options = pipeline2;
-          pipeline2 = [];
+      watch(pipeline3 = [], options = {}) {
+        if (!Array.isArray(pipeline3)) {
+          options = pipeline3;
+          pipeline3 = [];
         }
-        return new change_stream_1.ChangeStream(this, pipeline2, (0, utils_1.resolveOptions)(this, options));
+        return new change_stream_1.ChangeStream(this, pipeline3, (0, utils_1.resolveOptions)(this, options));
       }
       /**
        * Initiate an Out of order batch write operation. All operations will be buffered into insert/update/remove commands executed out of order.
@@ -16407,9 +16407,9 @@ var require_change_stream_cursor = __commonJS({
       static {
         __name(this, "ChangeStreamCursor");
       }
-      constructor(client, namespace, pipeline2 = [], options = {}) {
+      constructor(client, namespace, pipeline3 = [], options = {}) {
         super(client, namespace, { ...options, tailable: true, awaitData: true });
-        this.pipeline = pipeline2;
+        this.pipeline = pipeline3;
         this.changeStreamCursorOptions = options;
         this._resumeToken = null;
         this.startAtOperationTime = options.startAtOperationTime ?? null;
@@ -17248,8 +17248,8 @@ var require_db = __commonJS({
        * @param pipeline - An array of aggregation stages to be executed
        * @param options - Optional settings for the command
        */
-      aggregate(pipeline2 = [], options) {
-        return new aggregation_cursor_1.AggregationCursor(this.client, this.s.namespace, pipeline2, (0, utils_1.resolveOptions)(this, options));
+      aggregate(pipeline3 = [], options) {
+        return new aggregation_cursor_1.AggregationCursor(this.client, this.s.namespace, pipeline3, (0, utils_1.resolveOptions)(this, options));
       }
       /** Return the Admin db instance */
       admin() {
@@ -17434,12 +17434,12 @@ var require_db = __commonJS({
        * @typeParam TSchema - Type of the data being detected by the change stream
        * @typeParam TChange - Type of the whole change stream document emitted
        */
-      watch(pipeline2 = [], options = {}) {
-        if (!Array.isArray(pipeline2)) {
-          options = pipeline2;
-          pipeline2 = [];
+      watch(pipeline3 = [], options = {}) {
+        if (!Array.isArray(pipeline3)) {
+          options = pipeline3;
+          pipeline3 = [];
         }
-        return new change_stream_1.ChangeStream(this, pipeline2, (0, utils_1.resolveOptions)(this, options));
+        return new change_stream_1.ChangeStream(this, pipeline3, (0, utils_1.resolveOptions)(this, options));
       }
       /**
        * A low level cursor API providing basic driver functionality:
@@ -19933,14 +19933,14 @@ var require_url_state_machine = __commonJS({
     }
     __name(trimTabAndNewline, "trimTabAndNewline");
     function shortenPath(url2) {
-      const { path: path2 } = url2;
-      if (path2.length === 0) {
+      const { path: path3 } = url2;
+      if (path3.length === 0) {
         return;
       }
-      if (url2.scheme === "file" && path2.length === 1 && isNormalizedWindowsDriveLetter(path2[0])) {
+      if (url2.scheme === "file" && path3.length === 1 && isNormalizedWindowsDriveLetter(path3[0])) {
         return;
       }
-      path2.pop();
+      path3.pop();
     }
     __name(shortenPath, "shortenPath");
     function includesCredentials(url2) {
@@ -22724,7 +22724,7 @@ var require_state_machine = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.StateMachine = void 0;
-    var fs2 = require("fs/promises");
+    var fs3 = require("fs/promises");
     var net = require("net");
     var process3 = require("process");
     var tls = require("tls");
@@ -23054,11 +23054,11 @@ var require_state_machine = __commonJS({
           options.secureContext = tlsOptions.secureContext;
         }
         if (tlsOptions.tlsCertificateKeyFile) {
-          const cert = await fs2.readFile(tlsOptions.tlsCertificateKeyFile);
+          const cert = await fs3.readFile(tlsOptions.tlsCertificateKeyFile);
           options.cert = options.key = cert;
         }
         if (tlsOptions.tlsCAFile) {
-          options.ca = await fs2.readFile(tlsOptions.tlsCAFile);
+          options.ca = await fs3.readFile(tlsOptions.tlsCAFile);
         }
         if (tlsOptions.tlsCertificateKeyFilePassword) {
           options.passphrase = tlsOptions.tlsCertificateKeyFilePassword;
@@ -23486,7 +23486,7 @@ var require_client_encryption = __commonJS({
        */
       async removeKeyAltName(_id, keyAltName) {
         const { db: dbName, collection: collectionName } = utils_1.MongoDBCollectionNamespace.fromString(this._keyVaultNamespace);
-        const pipeline2 = [
+        const pipeline3 = [
           {
             $set: {
               keyAltNames: {
@@ -23508,7 +23508,7 @@ var require_client_encryption = __commonJS({
             }
           }
         ];
-        const value = await this._keyVaultClient.db(dbName).collection(collectionName).findOneAndUpdate({ _id }, pipeline2, {
+        const value = await this._keyVaultClient.db(dbName).collection(collectionName).findOneAndUpdate({ _id }, pipeline3, {
           writeConcern: { w: "majority" },
           returnDocument: "before",
           timeoutMS: this._timeoutMS
@@ -29396,7 +29396,7 @@ var require_token_machine_workflow = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.tokenMachineCallback = void 0;
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var process3 = require("process");
     var error_1 = require_error();
     var TOKEN_MISSING_ERROR = "OIDC_TOKEN_FILE must be set in the environment.";
@@ -29405,7 +29405,7 @@ var require_token_machine_workflow = __commonJS({
       if (!tokenFile) {
         throw new error_1.MongoAWSError(TOKEN_MISSING_ERROR);
       }
-      const token = await fs2.promises.readFile(tokenFile, "utf8");
+      const token = await fs3.promises.readFile(tokenFile, "utf8");
       return { accessToken: token };
     }, "tokenMachineCallback");
     exports2.tokenMachineCallback = tokenMachineCallback;
@@ -32362,12 +32362,12 @@ var require_mongo_client = __commonJS({
        * @typeParam TSchema - Type of the data being detected by the change stream
        * @typeParam TChange - Type of the whole change stream document emitted
        */
-      watch(pipeline2 = [], options = {}) {
-        if (!Array.isArray(pipeline2)) {
-          options = pipeline2;
-          pipeline2 = [];
+      watch(pipeline3 = [], options = {}) {
+        if (!Array.isArray(pipeline3)) {
+          options = pipeline3;
+          pipeline3 = [];
         }
-        return new change_stream_1.ChangeStream(this, pipeline2, (0, utils_1.resolveOptions)(this, options));
+        return new change_stream_1.ChangeStream(this, pipeline3, (0, utils_1.resolveOptions)(this, options));
       }
     };
     exports2.MongoClient = MongoClient;
@@ -32445,9 +32445,9 @@ var require_change_stream = __commonJS({
        * @param parent - The parent object that created this change stream
        * @param pipeline - An array of {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation-pipeline/|aggregation pipeline stages} through which to pass change stream documents
        */
-      constructor(parent, pipeline2 = [], options = {}) {
+      constructor(parent, pipeline3 = [], options = {}) {
         super();
-        this.pipeline = pipeline2;
+        this.pipeline = pipeline3;
         this.options = { ...options };
         let serverSelectionTimeoutMS;
         delete this.options.writeConcern;
@@ -32661,12 +32661,12 @@ var require_change_stream = __commonJS({
         if (this.type === CHANGE_DOMAIN_TYPES.CLUSTER) {
           changeStreamStageOptions.allChangesForCluster = true;
         }
-        const pipeline2 = [{ $changeStream: changeStreamStageOptions }, ...this.pipeline];
+        const pipeline3 = [{ $changeStream: changeStreamStageOptions }, ...this.pipeline];
         const client = this.type === CHANGE_DOMAIN_TYPES.CLUSTER ? this.parent : this.type === CHANGE_DOMAIN_TYPES.DATABASE ? this.parent.client : this.type === CHANGE_DOMAIN_TYPES.COLLECTION ? this.parent.client : null;
         if (client == null) {
           throw new error_1.MongoRuntimeError(`Changestream type should only be one of cluster, database, collection. Found ${this.type.toString()}`);
         }
-        const changeStreamCursor = new change_stream_cursor_1.ChangeStreamCursor(client, this.namespace, pipeline2, {
+        const changeStreamCursor = new change_stream_cursor_1.ChangeStreamCursor(client, this.namespace, pipeline3, {
           ...options,
           timeoutContext: this.timeoutContext ? new abstract_cursor_1.CursorTimeoutContext(this.timeoutContext, this.contextOwner) : void 0
         });
@@ -34772,12 +34772,12 @@ var require_changeStream = __commonJS({
       static {
         __name(this, "ChangeStream");
       }
-      constructor(changeStreamPromise, pipeline2, options) {
+      constructor(changeStreamPromise, pipeline3, options) {
         super();
         this.driverChangeStream = null;
         this.closed = false;
         this.bindedEvents = false;
-        this.pipeline = pipeline2;
+        this.pipeline = pipeline3;
         this.options = options;
         this.errored = false;
         if (options?.hydrate && !options.model) {
@@ -35338,8 +35338,8 @@ var require_pathTrie = __commonJS({
       constructor(paths) {
         this.root = new PathTrieNode();
         if (paths != null) {
-          for (const path2 of paths) {
-            this.add(path2);
+          for (const path3 of paths) {
+            this.add(path3);
           }
         }
       }
@@ -35348,13 +35348,13 @@ var require_pathTrie = __commonJS({
        *
        * @param {string} path
        */
-      add(path2) {
-        if (path2.indexOf(".") === -1) {
-          this._addSegment(this.root, path2).terminal = true;
+      add(path3) {
+        if (path3.indexOf(".") === -1) {
+          this._addSegment(this.root, path3).terminal = true;
           return;
         }
         let node2 = this.root;
-        for (const segment of path2.split(".")) {
+        for (const segment of path3.split(".")) {
           node2 = this._addSegment(node2, segment);
         }
         node2.terminal = true;
@@ -35386,8 +35386,8 @@ var require_pathTrie = __commonJS({
        *
        * @param {string|string[]} path
        */
-      matchesPathOrAncestor(path2) {
-        return this._walk(path2) === true;
+      matchesPathOrAncestor(path3) {
+        return this._walk(path3) === true;
       }
       /**
        * Check if `path`, any of its ancestor paths, or any of its descendant paths
@@ -35399,8 +35399,8 @@ var require_pathTrie = __commonJS({
        *
        * @param {string|string[]} path
        */
-      overlapsPath(path2) {
-        return this._walk(path2) !== false;
+      overlapsPath(path3) {
+        return this._walk(path3) !== false;
       }
       /**
        * Walk `path` through the trie. `path` is assumed to be pre-split - if the
@@ -35411,10 +35411,10 @@ var require_pathTrie = __commonJS({
        *
        * @param {string|string[]} path
        */
-      _walk(path2) {
-        if (typeof path2 === "string") {
+      _walk(path3) {
+        if (typeof path3 === "string") {
           const next = [];
-          const literal2 = this.root.children.get(path2);
+          const literal2 = this.root.children.get(path3);
           if (literal2 != null) {
             if (literal2.terminal) {
               return true;
@@ -35431,7 +35431,7 @@ var require_pathTrie = __commonJS({
           return next.length === 0 ? false : next;
         }
         let nodes = [this.root];
-        for (const segment of path2) {
+        for (const segment of path3) {
           const next = [];
           const isNumericSegment = numericSegmentRegex.test(segment);
           for (const node2 of nodes) {
@@ -35500,13 +35500,13 @@ var require_cast = __commonJS({
       static {
         __name(this, "CastError");
       }
-      constructor(type, value, path2, reason, schemaType) {
+      constructor(type, value, path3, reason, schemaType) {
         if (arguments.length > 0) {
           const valueType = getValueType(value);
           const messageFormat = getMessageFormat(schemaType);
-          const msg = formatMessage(null, type, value, path2, messageFormat, valueType, reason);
+          const msg = formatMessage(null, type, value, path3, messageFormat, valueType, reason);
           super(msg);
-          this.init(type, value, path2, reason, schemaType);
+          this.init(type, value, path3, reason, schemaType);
         } else {
           super(formatMessage());
         }
@@ -35526,12 +35526,12 @@ var require_cast = __commonJS({
       /*!
        * ignore
        */
-      init(type, value, path2, reason, schemaType) {
+      init(type, value, path3, reason, schemaType) {
         this.stringValue = getStringValue(value);
         this.messageFormat = getMessageFormat(schemaType);
         this.kind = type;
         this.value = value;
-        this.path = path2;
+        this.path = path3;
         this.reason = reason;
         this.valueType = getValueType(value);
       }
@@ -35598,20 +35598,20 @@ var require_cast = __commonJS({
       }
     }
     __name(getMessageFormat, "getMessageFormat");
-    function formatMessage(model6, kind, value, path2, messageFormat, valueType, reason) {
+    function formatMessage(model6, kind, value, path3, messageFormat, valueType, reason) {
       if (typeof messageFormat === "string") {
         const stringValue = getStringValue(value);
-        let ret = messageFormat.replace("{KIND}", kind).replace("{VALUE}", stringValue).replace("{PATH}", path2);
+        let ret = messageFormat.replace("{KIND}", kind).replace("{VALUE}", stringValue).replace("{PATH}", path3);
         if (model6 != null) {
           ret = ret.replace("{MODEL}", model6.modelName);
         }
         return ret;
       } else if (typeof messageFormat === "function") {
-        return messageFormat(value, path2, model6, kind);
+        return messageFormat(value, path3, model6, kind);
       } else {
         const stringValue = getStringValue(value);
         const valueTypeMsg = valueType ? " (type " + valueType + ")" : "";
-        let ret = "Cast to " + kind + " failed for value " + stringValue + valueTypeMsg + ' at path "' + path2 + '"';
+        let ret = "Cast to " + kind + " failed for value " + stringValue + valueTypeMsg + ' at path "' + path3 + '"';
         if (model6 != null) {
           ret += ' for model "' + model6.modelName + '"';
         }
@@ -35717,15 +35717,15 @@ var require_validation = __commonJS({
       * @param {string|Error} error
       * @api private
       */
-      addError(path2, error62) {
+      addError(path3, error62) {
         if (error62 instanceof _ValidationError) {
           const { errors } = error62;
           for (const errorPath of Object.keys(errors)) {
-            this.addError(`${path2}.${errorPath}`, errors[errorPath]);
+            this.addError(`${path3}.${errorPath}`, errors[errorPath]);
           }
           return;
         }
-        this.errors[path2] = error62;
+        this.errors[path3] = error62;
         this.message = this._message + ": " + combinePathErrors(this);
       }
     };
@@ -36057,11 +36057,11 @@ var require_strict = __commonJS({
       static {
         __name(this, "StrictModeError");
       }
-      constructor(path2, msg, immutable) {
-        msg = msg || "Field `" + path2 + "` is not in schema and strict mode is set to throw.";
+      constructor(path3, msg, immutable) {
+        msg = msg || "Field `" + path3 + "` is not in schema and strict mode is set to throw.";
         super(msg);
         this.isImmutableError = !!immutable;
-        this.path = path2;
+        this.path = path3;
       }
     };
     Object.defineProperty(StrictModeError.prototype, "name", {
@@ -36080,10 +36080,10 @@ var require_strictPopulate = __commonJS({
       static {
         __name(this, "StrictPopulateError");
       }
-      constructor(path2, msg) {
-        msg = msg || "Cannot populate path `" + path2 + "` because it is not in your schema. Set the `strictPopulate` option to false to override.";
+      constructor(path3, msg) {
+        msg = msg || "Cannot populate path `" + path3 + "` because it is not in your schema. Set the `strictPopulate` option to false to override.";
         super(msg);
-        this.path = path2;
+        this.path = path3;
       }
     };
     Object.defineProperty(StrictPopulateError.prototype, "name", {
@@ -36171,7 +36171,7 @@ var require_boolean = __commonJS({
   "node_modules/mongoose/lib/cast/boolean.js"(exports2, module2) {
     "use strict";
     var CastError = require_cast();
-    module2.exports = /* @__PURE__ */ __name(function castBoolean(value, path2) {
+    module2.exports = /* @__PURE__ */ __name(function castBoolean(value, path3) {
       if (module2.exports.convertToTrue.has(value)) {
         return true;
       }
@@ -36181,7 +36181,7 @@ var require_boolean = __commonJS({
       if (value == null) {
         return value;
       }
-      throw new CastError("boolean", value, path2);
+      throw new CastError("boolean", value, path3);
     }, "castBoolean");
     module2.exports.convertToTrue = /* @__PURE__ */ new Set([true, "true", 1, "1", "yes"]);
     module2.exports.convertToFalse = /* @__PURE__ */ new Set([false, "false", 0, "0", "no"]);
@@ -36194,8 +36194,8 @@ var require_exists = __commonJS({
     "use strict";
     var castBoolean = require_boolean();
     module2.exports = function(val) {
-      const path2 = this?.path ?? null;
-      return castBoolean(val, path2);
+      const path3 = this?.path ?? null;
+      return castBoolean(val, path3);
     };
   }
 });
@@ -36236,7 +36236,7 @@ var require_handleImmutable = __commonJS({
         delete schematype.$immutableSetter;
       }
     };
-    function createImmutableSetter(path2, immutable) {
+    function createImmutableSetter(path3, immutable) {
       return /* @__PURE__ */ __name(function immutableSetter(v, _priorVal, _doc, options) {
         if (this == null || this.$__ == null) {
           return v;
@@ -36251,9 +36251,9 @@ var require_handleImmutable = __commonJS({
         if (!_immutable) {
           return v;
         }
-        const _value = this.$__.priorDoc != null ? this.$__.priorDoc.$__getValue(path2) : this.$__getValue(path2);
+        const _value = this.$__.priorDoc != null ? this.$__.priorDoc.$__getValue(path3) : this.$__getValue(path3);
         if (this.$__.strictMode === "throw" && v !== _value) {
-          throw new StrictModeError(path2, "Path `" + path2 + "` is immutable and strict mode is set to throw.", true);
+          throw new StrictModeError(path3, "Path `" + path3 + "` is immutable and strict mode is set to throw.", true);
         }
         return _value;
       }, "immutableSetter");
@@ -36462,7 +36462,7 @@ var require_lib4 = __commonJS({
   "node_modules/mpath/lib/index.js"(exports2) {
     var stringToParts = require_stringToParts();
     var ignoreProperties = ["__proto__", "constructor", "prototype"];
-    exports2.get = function(path2, o, special, map2) {
+    exports2.get = function(path3, o, special, map2) {
       var lookup;
       if ("function" == typeof special) {
         if (special.length < 2) {
@@ -36474,7 +36474,7 @@ var require_lib4 = __commonJS({
         }
       }
       map2 || (map2 = K);
-      var parts = "string" == typeof path2 ? stringToParts(path2) : path2;
+      var parts = "string" == typeof path3 ? stringToParts(path3) : path3;
       if (!Array.isArray(parts)) {
         throw new TypeError("Invalid `path`. Must be either string or array");
       }
@@ -36500,8 +36500,8 @@ var require_lib4 = __commonJS({
       }
       return map2(obj);
     };
-    exports2.has = function(path2, o) {
-      var parts = typeof path2 === "string" ? stringToParts(path2) : path2;
+    exports2.has = function(path3, o) {
+      var parts = typeof path3 === "string" ? stringToParts(path3) : path3;
       if (!Array.isArray(parts)) {
         throw new TypeError("Invalid `path`. Must be either string or array");
       }
@@ -36518,8 +36518,8 @@ var require_lib4 = __commonJS({
       }
       return true;
     };
-    exports2.unset = function(path2, o) {
-      var parts = typeof path2 === "string" ? stringToParts(path2) : path2;
+    exports2.unset = function(path3, o) {
+      var parts = typeof path3 === "string" ? stringToParts(path3) : path3;
       if (!Array.isArray(parts)) {
         throw new TypeError("Invalid `path`. Must be either string or array");
       }
@@ -36543,7 +36543,7 @@ var require_lib4 = __commonJS({
       }
       return true;
     };
-    exports2.set = function(path2, val, o, special, map2, _copying) {
+    exports2.set = function(path3, val, o, special, map2, _copying) {
       var lookup;
       if ("function" == typeof special) {
         if (special.length < 2) {
@@ -36555,7 +36555,7 @@ var require_lib4 = __commonJS({
         }
       }
       map2 || (map2 = K);
-      var parts = "string" == typeof path2 ? stringToParts(path2) : path2;
+      var parts = "string" == typeof path3 ? stringToParts(path3) : path3;
       if (!Array.isArray(parts)) {
         throw new TypeError("Invalid `path`. Must be either string or array");
       }
@@ -36568,7 +36568,7 @@ var require_lib4 = __commonJS({
           return;
         }
       }
-      var copy = _copying || /\$/.test(path2) && _copying !== false, obj = o, part;
+      var copy = _copying || /\$/.test(path3) && _copying !== false, obj = o, part;
       for (var i = 0, len = parts.length - 1; i < len; ++i) {
         part = parts[i];
         if ("$" == part) {
@@ -36744,33 +36744,33 @@ var require_stateMachine = __commonJS({
     var StateMachine = module2.exports = exports2 = /* @__PURE__ */ __name(function StateMachine2() {
     }, "StateMachine");
     StateMachine.ctor = function() {
-      const states = [...arguments];
+      const states2 = [...arguments];
       const ctor = /* @__PURE__ */ __name(function() {
         this.paths = {};
         this.states = {};
       }, "ctor");
       ctor.prototype = new StateMachine();
       ctor.prototype.constructor = ctor;
-      ctor.prototype.stateNames = states;
-      states.forEach(function(state) {
-        ctor.prototype[state] = function(path2) {
-          this._changeState(path2, state);
+      ctor.prototype.stateNames = states2;
+      states2.forEach(function(state) {
+        ctor.prototype[state] = function(path3) {
+          this._changeState(path3, state);
         };
       });
       return ctor;
     };
-    StateMachine.prototype._changeState = /* @__PURE__ */ __name(function _changeState(path2, nextState) {
-      const prevState = this.paths[path2];
+    StateMachine.prototype._changeState = /* @__PURE__ */ __name(function _changeState(path3, nextState) {
+      const prevState = this.paths[path3];
       if (prevState === nextState) {
         return;
       }
       if (prevState !== void 0) {
         const prevBucket = this.states[prevState];
-        if (prevBucket) delete prevBucket[path2];
+        if (prevBucket) delete prevBucket[path3];
       }
-      this.paths[path2] = nextState;
+      this.paths[path3] = nextState;
       this.states[nextState] = this.states[nextState] || {};
-      this.states[nextState][path2] = true;
+      this.states[nextState][path3] = true;
     }, "_changeState");
     StateMachine.prototype.clearAllExcept = /* @__PURE__ */ __name(function clearAllExcept(state) {
       const bucket = this.states[state];
@@ -36781,8 +36781,8 @@ var require_stateMachine = __commonJS({
         return;
       }
       this.paths = {};
-      for (const path2 of keys) {
-        this.paths[path2] = state;
+      for (const path3 of keys) {
+        this.paths[path3] = state;
       }
       this.states = {
         [state]: this.states[state]
@@ -36802,13 +36802,13 @@ var require_stateMachine = __commonJS({
         delete this.paths[keys[i]];
       }
     }, "clear");
-    StateMachine.prototype.clearPath = /* @__PURE__ */ __name(function clearPath(path2) {
-      const state = this.paths[path2];
+    StateMachine.prototype.clearPath = /* @__PURE__ */ __name(function clearPath(path3) {
+      const state = this.paths[path3];
       if (!state) {
         return;
       }
-      delete this.paths[path2];
-      delete this.states[state][path2];
+      delete this.paths[path3];
+      delete this.states[state][path3];
     }, "clearPath");
     StateMachine.prototype.getStatePaths = /* @__PURE__ */ __name(function getStatePaths(state) {
       if (this.states[state] != null) {
@@ -36828,18 +36828,18 @@ var require_stateMachine = __commonJS({
     }, "some");
     StateMachine.prototype._iter = /* @__PURE__ */ __name(function _iter(iterMethod) {
       return function() {
-        let states = [...arguments];
-        const callback = states.pop();
-        if (!states.length) states = this.stateNames;
+        let states2 = [...arguments];
+        const callback = states2.pop();
+        if (!states2.length) states2 = this.stateNames;
         const _this = this;
-        const paths = states.reduce(function(paths2, state) {
+        const paths = states2.reduce(function(paths2, state) {
           if (_this.states[state] == null) {
             return paths2;
           }
           return paths2.concat(Object.keys(_this.states[state]));
         }, []);
-        return paths[iterMethod](function(path2, i, paths2) {
-          return callback(path2, i, paths2);
+        return paths[iterMethod](function(path3, i, paths2) {
+          return callback(path3, i, paths2);
         });
       };
     }, "_iter");
@@ -36914,10 +36914,10 @@ var require_buffer = __commonJS({
         val = 0;
       }
       let encoding;
-      let path2;
+      let path3;
       let doc;
       if (Array.isArray(encode3)) {
-        path2 = encode3[0];
+        path3 = encode3[0];
         doc = encode3[1];
       } else {
         encoding = encode3;
@@ -36930,7 +36930,7 @@ var require_buffer = __commonJS({
       }
       utils.decorate(buf, MongooseBuffer.mixin);
       buf.isMongooseBuffer = true;
-      buf[MongooseBuffer.pathSymbol] = path2;
+      buf[MongooseBuffer.pathSymbol] = path3;
       buf[parentSymbol] = doc;
       buf._subtype = 0;
       return buf;
@@ -37102,7 +37102,7 @@ var require_mixed = __commonJS({
     var symbols = require_symbols2();
     var isObject2 = require_isObject();
     var utils = require_utils3();
-    function SchemaMixed(path2, options, _schemaOptions, parentSchema) {
+    function SchemaMixed(path3, options, _schemaOptions, parentSchema) {
       if (options?.default) {
         const def = options.default;
         if (Array.isArray(def) && def.length === 0) {
@@ -37113,7 +37113,7 @@ var require_mixed = __commonJS({
           };
         }
       }
-      SchemaType.call(this, path2, options, "Mixed", parentSchema);
+      SchemaType.call(this, path3, options, "Mixed", parentSchema);
       this[symbols.schemaMixedSymbol] = true;
     }
     __name(SchemaMixed, "SchemaMixed");
@@ -37166,10 +37166,10 @@ var require_objectExpected = __commonJS({
       static {
         __name(this, "ObjectExpectedError");
       }
-      constructor(path2, val) {
+      constructor(path3, val) {
         const typeDescription = Array.isArray(val) ? "array" : "primitive value";
-        super("Tried to set nested object field `" + path2 + `\` to ${typeDescription} \`` + val + "`");
-        this.path = path2;
+        super("Tried to set nested object field `" + path3 + `\` to ${typeDescription} \`` + val + "`");
+        this.path = path3;
       }
     };
     Object.defineProperty(ObjectExpectedError.prototype, "name", {
@@ -37282,9 +37282,9 @@ var require_applyDefaults = __commonJS({
         if (typeof type.defaultValue === "function" && !type.defaultValue.$runBeforeSetters) {
           hasPostSetterDefaults = true;
         }
-        const path2 = type.splitPath();
-        const len = path2.length;
-        if (path2[len - 1] === "$*") {
+        const path3 = type.splitPath();
+        const len = path3.length;
+        if (path3[len - 1] === "$*") {
           continue;
         }
         let included = false;
@@ -37339,7 +37339,7 @@ var require_applyDefaults = __commonJS({
           if (doc_ == null) {
             break;
           }
-          const piece = path2[j];
+          const piece = path3[j];
           curPath = curPath.length ? curPath + "." + piece : piece;
           if (exclude === true) {
             if (curPath in fields) {
@@ -37432,7 +37432,7 @@ var require_applyDefaults = __commonJS({
 var require_cleanModifiedSubpaths = __commonJS({
   "node_modules/mongoose/lib/helpers/document/cleanModifiedSubpaths.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function cleanModifiedSubpaths(doc, path2, options) {
+    module2.exports = /* @__PURE__ */ __name(function cleanModifiedSubpaths(doc, path3, options) {
       options = options || {};
       const skipDocArrays = options.skipDocArrays;
       let deleted = 0;
@@ -37446,7 +37446,7 @@ var require_cleanModifiedSubpaths = __commonJS({
             continue;
           }
         }
-        if (modifiedPath.startsWith(path2 + ".")) {
+        if (modifiedPath.startsWith(path3 + ".")) {
           doc.$__.activePaths.clearPath(modifiedPath);
           ++deleted;
           if (doc.$isSubdocument) {
@@ -37456,12 +37456,12 @@ var require_cleanModifiedSubpaths = __commonJS({
       }
       return deleted;
     }, "cleanModifiedSubpaths");
-    function cleanParent(doc, path2, seen = /* @__PURE__ */ new Set()) {
+    function cleanParent(doc, path3, seen = /* @__PURE__ */ new Set()) {
       if (seen.has(doc)) {
         throw new Error("Infinite subdocument loop: subdoc with _id " + doc._id + " is a parent of itself");
       }
       const parent = doc.$parent();
-      const newPath = doc.$__pathRelativeToParent(void 0, false) + "." + path2;
+      const newPath = doc.$__pathRelativeToParent(void 0, false) + "." + path3;
       parent.$__.activePaths.clearPath(newPath);
       if (parent.$isSubdocument) {
         cleanParent(parent, newPath, seen);
@@ -37475,12 +37475,12 @@ var require_cleanModifiedSubpaths = __commonJS({
 var require_isInPathsToSave = __commonJS({
   "node_modules/mongoose/lib/helpers/document/isInPathsToSave.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function isInPathsToSave(path2, pathsToSaveSet, pathsToSave) {
-      if (pathsToSaveSet.has(path2)) {
+    module2.exports = /* @__PURE__ */ __name(function isInPathsToSave(path3, pathsToSaveSet, pathsToSave) {
+      if (pathsToSaveSet.has(path3)) {
         return true;
       }
       for (const pathToSave of pathsToSave) {
-        if (path2.slice(0, pathToSave.length) === pathToSave && path2.charAt(pathToSave.length) === ".") {
+        if (path3.slice(0, pathToSave.length) === pathToSave && path3.charAt(pathToSave.length) === ".") {
           return true;
         }
       }
@@ -37525,7 +37525,7 @@ var require_compile = __commonJS({
     __name(compile2, "compile");
     function defineKey({ prop, subprops, prototype, prefix, options }) {
       Document5 = Document5 || require_document2();
-      const path2 = (prefix ? prefix + "." : "") + prop;
+      const path3 = (prefix ? prefix + "." : "") + prop;
       prefix = prefix || "";
       const useGetOptions = prefix ? Object.freeze({}) : noDottedPathGetOptions;
       if (subprops) {
@@ -37540,12 +37540,12 @@ var require_compile = __commonJS({
             if (!this.$__.getters) {
               this.$__.getters = {};
             }
-            if (!this.$__.getters[path2]) {
+            if (!this.$__.getters[path3]) {
               const nested = Object.create(Document5.prototype, getOwnPropertyDescriptors(this));
               if (!prefix) {
                 nested.$__[scopeSymbol] = this;
               }
-              nested.$__.nestedPath = path2;
+              nested.$__.nestedPath = path3;
               Object.defineProperty(nested, "schema", {
                 enumerable: false,
                 configurable: true,
@@ -37569,7 +37569,7 @@ var require_compile = __commonJS({
                 configurable: true,
                 writable: false,
                 value: /* @__PURE__ */ __name(function() {
-                  return clone2(_this.get(path2, null, {
+                  return clone2(_this.get(path3, null, {
                     virtuals: this && this.schema && this.schema.options && this.schema.options.toObject && this.schema.options.toObject.virtuals || null
                   }));
                 }, "value")
@@ -37579,7 +37579,7 @@ var require_compile = __commonJS({
                 configurable: true,
                 writable: false,
                 value: /* @__PURE__ */ __name(function() {
-                  return _this.get(path2, null, {
+                  return _this.get(path3, null, {
                     virtuals: this?.schema?.options?.toObject?.virtuals || null
                   });
                 }, "value")
@@ -37589,7 +37589,7 @@ var require_compile = __commonJS({
                 configurable: true,
                 writable: false,
                 value: /* @__PURE__ */ __name(function() {
-                  return _this.get(path2, null, {
+                  return _this.get(path3, null, {
                     virtuals: this?.schema?.options?.toJSON?.virtuals || null
                   });
                 }, "value")
@@ -37605,7 +37605,7 @@ var require_compile = __commonJS({
                 configurable: true,
                 writable: false,
                 value: /* @__PURE__ */ __name(function() {
-                  return Object.keys(this.get(path2, null, _isEmptyOptions) || {}).length === 0;
+                  return Object.keys(this.get(path3, null, _isEmptyOptions) || {}).length === 0;
                 }, "value")
               });
               Object.defineProperty(nested, "$__parent", {
@@ -37614,10 +37614,10 @@ var require_compile = __commonJS({
                 writable: false,
                 value: this
               });
-              compile2(subprops, nested, path2, options);
-              this.$__.getters[path2] = nested;
+              compile2(subprops, nested, path3, options);
+              this.$__.getters[path3] = nested;
             }
-            return this.$__.getters[path2];
+            return this.$__.getters[path3];
           }, "get"),
           set: /* @__PURE__ */ __name(function(v) {
             if (v?.$__isNested) {
@@ -37626,7 +37626,7 @@ var require_compile = __commonJS({
               v = v.$toObject(internalToObjectOptions);
             }
             const doc = this.$__[scopeSymbol] || this;
-            doc.$set(path2, v);
+            doc.$set(path3, v);
           }, "set")
         });
       } else {
@@ -37636,13 +37636,13 @@ var require_compile = __commonJS({
           get: /* @__PURE__ */ __name(function() {
             return this[getSymbol].call(
               this.$__[scopeSymbol] || this,
-              path2,
+              path3,
               null,
               useGetOptions
             );
           }, "get"),
           set: /* @__PURE__ */ __name(function(v) {
-            this.$set.call(this.$__[scopeSymbol] || this, path2, v);
+            this.$set.call(this.$__[scopeSymbol] || this, path3, v);
           }, "set")
         });
       }
@@ -37705,21 +37705,21 @@ var require_getDiscriminatorByKey = __commonJS({
 var require_get = __commonJS({
   "node_modules/mongoose/lib/helpers/get.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function get(obj, path2, def) {
+    module2.exports = /* @__PURE__ */ __name(function get(obj, path3, def) {
       let parts;
       let isPathArray = false;
-      if (typeof path2 === "string") {
-        if (path2.indexOf(".") === -1) {
-          const _v = getProperty(obj, path2);
+      if (typeof path3 === "string") {
+        if (path3.indexOf(".") === -1) {
+          const _v = getProperty(obj, path3);
           if (_v == null) {
             return def;
           }
           return _v;
         }
-        parts = path2.split(".");
+        parts = path3.split(".");
       } else {
         isPathArray = true;
-        parts = path2;
+        parts = path3;
         if (parts.length === 1) {
           const _v = getProperty(obj, parts[0]);
           if (_v == null) {
@@ -37728,7 +37728,7 @@ var require_get = __commonJS({
           return _v;
         }
       }
-      let rest = path2;
+      let rest = path3;
       let cur = obj;
       for (const part of parts) {
         if (cur == null) {
@@ -37807,10 +37807,10 @@ var require_getEmbeddedDiscriminatorPath = __commonJS({
     var getDiscriminatorByKey = require_getDiscriminatorByKey();
     var get = require_get();
     var getSchemaDiscriminatorByValue = require_getSchemaDiscriminatorByValue();
-    module2.exports = /* @__PURE__ */ __name(function getEmbeddedDiscriminatorPath(doc, path2, options) {
+    module2.exports = /* @__PURE__ */ __name(function getEmbeddedDiscriminatorPath(doc, path3, options) {
       options = options || {};
       const typeOnly = options.typeOnly;
-      const parts = Array.isArray(path2) ? path2 : path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+      const parts = Array.isArray(path3) ? path3 : path3.indexOf(".") === -1 ? [path3] : path3.split(".");
       let schemaType = null;
       let type = "adhocOrUndefined";
       const schema = getSchemaDiscriminatorByValue(doc.schema, doc.get(doc.schema.options.discriminatorKey)) || doc.schema;
@@ -37845,12 +37845,12 @@ var require_getKeysInSchemaOrder = __commonJS({
   "node_modules/mongoose/lib/helpers/schema/getKeysInSchemaOrder.js"(exports2, module2) {
     "use strict";
     var get = require_get();
-    module2.exports = /* @__PURE__ */ __name(function getKeysInSchemaOrder(schema, val, path2) {
+    module2.exports = /* @__PURE__ */ __name(function getKeysInSchemaOrder(schema, val, path3) {
       const valKeys = Object.keys(val);
       if (valKeys.length <= 1) {
         return valKeys;
       }
-      const schemaKeys = path2 != null ? Object.keys(get(schema.tree, path2, {})) : Object.keys(schema.tree);
+      const schemaKeys = path3 != null ? Object.keys(get(schema.tree, path3, {})) : Object.keys(schema.tree);
       const remaining = new Set(valKeys);
       const keys = [];
       for (const key of schemaKeys) {
@@ -37973,26 +37973,26 @@ var require_isPathExcluded = __commonJS({
   "node_modules/mongoose/lib/helpers/projection/isPathExcluded.js"(exports2, module2) {
     "use strict";
     var isDefiningProjection = require_isDefiningProjection();
-    module2.exports = /* @__PURE__ */ __name(function isPathExcluded(projection, path2) {
+    module2.exports = /* @__PURE__ */ __name(function isPathExcluded(projection, path3) {
       if (projection == null) {
         return false;
       }
-      if (path2 === "_id") {
+      if (path3 === "_id") {
         return projection._id === 0;
       }
       const paths = Object.keys(projection);
       let type = null;
       for (const _path of paths) {
         if (isDefiningProjection(projection[_path])) {
-          type = projection[path2] === 1 ? "inclusive" : "exclusive";
+          type = projection[path3] === 1 ? "inclusive" : "exclusive";
           break;
         }
       }
       if (type === "inclusive") {
-        return projection[path2] !== 1;
+        return projection[path3] !== 1;
       }
       if (type === "exclusive") {
-        return projection[path2] === 0;
+        return projection[path3] === 0;
       }
       return false;
     }, "isPathExcluded");
@@ -38013,8 +38013,8 @@ var require_markArraySubdocsPopulated = __commonJS({
         if (item.isVirtual) {
           continue;
         }
-        const path2 = item.path;
-        const pieces = path2.split(".");
+        const path3 = item.path;
+        const pieces = path3.split(".");
         for (let i = 0; i < pieces.length - 1; ++i) {
           const subpath = pieces.slice(0, i + 1).join(".");
           const rest = pieces.slice(i + 1).join(".");
@@ -38071,11 +38071,11 @@ var require_parentPaths = __commonJS({
   "node_modules/mongoose/lib/helpers/path/parentPaths.js"(exports2, module2) {
     "use strict";
     var dotRE = /\./g;
-    module2.exports = /* @__PURE__ */ __name(function parentPaths(path2) {
-      if (path2.indexOf(".") === -1) {
-        return [path2];
+    module2.exports = /* @__PURE__ */ __name(function parentPaths(path3) {
+      if (path3.indexOf(".") === -1) {
+        return [path3];
       }
-      const pieces = path2.split(dotRE);
+      const pieces = path3.split(dotRE);
       const len = pieces.length;
       const ret = new Array(len);
       let cur = "";
@@ -38092,9 +38092,9 @@ var require_parentPaths = __commonJS({
 var require_checkEmbeddedDiscriminatorKeyProjection = __commonJS({
   "node_modules/mongoose/lib/helpers/discriminator/checkEmbeddedDiscriminatorKeyProjection.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function checkEmbeddedDiscriminatorKeyProjection(userProjection, path2, schema, selected, addedPaths) {
-      const userProjectedInPath = Object.keys(userProjection).reduce((cur, key) => cur || key.startsWith(path2 + "."), false);
-      const _discriminatorKey = path2 + "." + schema.options.discriminatorKey;
+    module2.exports = /* @__PURE__ */ __name(function checkEmbeddedDiscriminatorKeyProjection(userProjection, path3, schema, selected, addedPaths) {
+      const userProjectedInPath = Object.keys(userProjection).reduce((cur, key) => cur || key.startsWith(path3 + "."), false);
+      const _discriminatorKey = path3 + "." + schema.options.discriminatorKey;
       if (!userProjectedInPath && addedPaths.length === 1 && addedPaths[0] === _discriminatorKey) {
         selected.splice(selected.indexOf(_discriminatorKey), 1);
       }
@@ -38126,8 +38126,8 @@ var require_getDiscriminatorByValue = __commonJS({
 var require_isPathSelectedInclusive = __commonJS({
   "node_modules/mongoose/lib/helpers/projection/isPathSelectedInclusive.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function isPathSelectedInclusive(fields, path2) {
-      const chunks = path2.split(".");
+    module2.exports = /* @__PURE__ */ __name(function isPathSelectedInclusive(fields, path3) {
+      const chunks = path3.split(".");
       let cur = "";
       for (let i = 0; i < chunks.length; ++i) {
         cur += cur.length ? "." + chunks[i] : chunks[i];
@@ -38160,13 +38160,13 @@ var require_queryHelpers = __commonJS({
       }
       const session = query?.options?.session || null;
       if (session != null) {
-        pop.forEach((path2) => {
-          if (path2.options == null) {
-            path2.options = { session };
+        pop.forEach((path3) => {
+          if (path3.options == null) {
+            path3.options = { session };
             return;
           }
-          if (!("session" in path2.options)) {
-            path2.options.session = session;
+          if (!("session" in path3.options)) {
+            path3.options.session = session;
           }
         });
       }
@@ -38263,13 +38263,13 @@ var require_queryHelpers = __commonJS({
           exclude = !field;
           break;
         }
-        for (const path2 of minusPaths) {
-          const type = schema.path(path2);
+        for (const path3 of minusPaths) {
+          const type = schema.path(path3);
           if (!type?.selected || exclude !== false) {
-            fields[path2] = 0;
+            fields[path3] = 0;
             exclude = true;
           } else if (type?.selected && exclude === false) {
-            minusPathsToSkip.add(path2);
+            minusPathsToSkip.add(path3);
           }
         }
       }
@@ -38324,29 +38324,29 @@ var require_queryHelpers = __commonJS({
         }
         stack.push(schema2);
         const addedPaths = [];
-        schema2.eachPath(function(path2, type) {
-          if (prefix) path2 = prefix + "." + path2;
-          if (type.$isSchemaMap || path2.endsWith(".$*")) {
-            const plusPath = "+" + path2;
+        schema2.eachPath(function(path3, type) {
+          if (prefix) path3 = prefix + "." + path3;
+          if (type.$isSchemaMap || path3.endsWith(".$*")) {
+            const plusPath = "+" + path3;
             const hasPlusPath = fields && plusPath in fields;
             if (type.options?.select === false && !hasPlusPath) {
-              excluded.push(path2);
+              excluded.push(path3);
             }
             return;
           }
-          let addedPath = analyzePath(path2, type);
+          let addedPath = analyzePath(path3, type);
           if (addedPath == null && !Array.isArray(type) && type.$isMongooseArray && !type.$isMongooseDocumentArray) {
-            addedPath = analyzePath(path2, type.embeddedSchemaType);
+            addedPath = analyzePath(path3, type.embeddedSchemaType);
           }
           if (addedPath != null) {
             addedPaths.push(addedPath);
           }
           if (type.schema) {
-            const _addedPaths = analyzeSchema(type.schema, path2);
+            const _addedPaths = analyzeSchema(type.schema, path3);
             if (exclude === false) {
               checkEmbeddedDiscriminatorKeyProjection(
                 fields,
-                path2,
+                path3,
                 type.schema,
                 selected,
                 _addedPaths
@@ -38358,39 +38358,39 @@ var require_queryHelpers = __commonJS({
         return addedPaths;
       }
       __name(analyzeSchema, "analyzeSchema");
-      function analyzePath(path2, type) {
+      function analyzePath(path3, type) {
         if (fields == null) {
           return;
         }
         if (typeof type.selected !== "boolean") {
           return;
         }
-        if (type.selected === false && fields[path2]) {
+        if (type.selected === false && fields[path3]) {
           if (sanitizeProjection) {
-            fields[path2] = 0;
+            fields[path3] = 0;
           }
           return;
         }
-        if (!exclude && type.selected && path2 === schema.options.discriminatorKey && fields[path2] != null && !fields[path2]) {
-          delete fields[path2];
+        if (!exclude && type.selected && path3 === schema.options.discriminatorKey && fields[path3] != null && !fields[path3]) {
+          delete fields[path3];
           return;
         }
-        if (exclude === false && type.selected && fields[path2] != null && !fields[path2]) {
-          delete fields[path2];
+        if (exclude === false && type.selected && fields[path3] != null && !fields[path3]) {
+          delete fields[path3];
           return;
         }
-        const plusPath = "+" + path2;
+        const plusPath = "+" + path3;
         const hasPlusPath = fields && plusPath in fields;
         if (hasPlusPath) {
           delete fields[plusPath];
-          if (exclude === false && keys.length > 1 && !~keys.indexOf(path2) && !sanitizeProjection) {
-            fields[path2] = 1;
+          if (exclude === false && keys.length > 1 && !~keys.indexOf(path3) && !sanitizeProjection) {
+            fields[path3] = 1;
           } else if (exclude == null && sanitizeProjection && type.selected === false) {
-            fields[path2] = 0;
+            fields[path3] = 0;
           }
           return;
         }
-        const pieces = path2.split(".");
+        const pieces = path3.split(".");
         let cur = "";
         for (let i = 0; i < pieces.length; ++i) {
           cur += cur.length ? "." + pieces[i] : pieces[i];
@@ -38408,14 +38408,14 @@ var require_queryHelpers = __commonJS({
             }
           }
         }
-        (type.selected ? selected : excluded).push(path2);
-        return path2;
+        (type.selected ? selected : excluded).push(path3);
+        return path3;
       }
       __name(analyzePath, "analyzePath");
-      function hasExcludedAncestor(fields2, path2) {
+      function hasExcludedAncestor(fields2, path3) {
         let i = -1;
-        while ((i = path2.indexOf(".", i + 1)) !== -1) {
-          const ancestor = fields2[path2.slice(0, i)];
+        while ((i = path3.indexOf(".", i + 1)) !== -1) {
+          const ancestor = fields2[path3.slice(0, i)];
           if (ancestor != null && !ancestor) {
             return true;
           }
@@ -38429,7 +38429,7 @@ var require_queryHelpers = __commonJS({
         option.options || (option.options = {});
         if (Array.isArray(val?.virtuals)) {
           val = Object.assign({}, val);
-          val.virtuals = val.virtuals.filter((path2) => typeof path2 === "string" && path2.startsWith(option.path + ".")).map((path2) => path2.slice(option.path.length + 1));
+          val.virtuals = val.virtuals.filter((path3) => typeof path3 === "string" && path3.startsWith(option.path + ".")).map((path3) => path3.slice(option.path.length + 1));
         }
         option.options.lean = val;
       };
@@ -38594,11 +38594,11 @@ var require_subdocument = __commonJS({
       }
       return await this.$__save(options);
     }, "save");
-    Subdocument.prototype.$__fullPath = function(path2) {
+    Subdocument.prototype.$__fullPath = function(path3) {
       if (!this.$__.fullPath) {
         this.ownerDocument();
       }
-      return path2 ? this.$__.fullPath + "." + path2 : this.$__.fullPath;
+      return path3 ? this.$__.fullPath + "." + path3 : this.$__.fullPath;
     };
     Subdocument.prototype.$__pathRelativeToParent = function(p) {
       if (p == null) {
@@ -38618,18 +38618,18 @@ var require_subdocument = __commonJS({
       }
       await this._execDocumentPostHooks("save", options);
     }, "$__save");
-    Subdocument.prototype.$isValid = function(path2) {
+    Subdocument.prototype.$isValid = function(path3) {
       const parent = this.$parent();
-      const fullPath = this.$__pathRelativeToParent(path2);
+      const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
         return parent.$isValid(fullPath);
       }
-      return Document5.prototype.$isValid.call(this, path2);
+      return Document5.prototype.$isValid.call(this, path3);
     };
-    Subdocument.prototype.markModified = function(path2) {
-      Document5.prototype.markModified.call(this, path2);
+    Subdocument.prototype.markModified = function(path3) {
+      Document5.prototype.markModified.call(this, path3);
       const parent = this.$parent();
-      const fullPath = this.$__pathRelativeToParent(path2);
+      const fullPath = this.$__pathRelativeToParent(path3);
       if (parent == null || fullPath == null) {
         return;
       }
@@ -38652,18 +38652,18 @@ var require_subdocument = __commonJS({
       }
       return Document5.prototype.isModified.call(this, paths, options, modifiedPaths);
     };
-    Subdocument.prototype.$markValid = function(path2) {
-      Document5.prototype.$markValid.call(this, path2);
+    Subdocument.prototype.$markValid = function(path3) {
+      Document5.prototype.$markValid.call(this, path3);
       const parent = this.$parent();
-      const fullPath = this.$__pathRelativeToParent(path2);
+      const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
         parent.$markValid(fullPath);
       }
     };
-    Subdocument.prototype.invalidate = function(path2, err, val) {
-      Document5.prototype.invalidate.call(this, path2, err, val);
+    Subdocument.prototype.invalidate = function(path3, err, val) {
+      Document5.prototype.invalidate.call(this, path3, err, val);
       const parent = this.$parent();
-      const fullPath = this.$__pathRelativeToParent(path2);
+      const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
         parent.invalidate(fullPath, err, val);
       } else if (err.kind === "cast" || err.name === "CastError" || fullPath == null) {
@@ -38671,10 +38671,10 @@ var require_subdocument = __commonJS({
       }
       return this.ownerDocument().$__.validationError;
     };
-    Subdocument.prototype.$ignore = function(path2) {
-      Document5.prototype.$ignore.call(this, path2);
+    Subdocument.prototype.$ignore = function(path3) {
+      Document5.prototype.$ignore.call(this, path3);
       const parent = this.$parent();
-      const fullPath = this.$__pathRelativeToParent(path2);
+      const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
         parent.$ignore(fullPath);
       }
@@ -38842,7 +38842,7 @@ var require_arraySubdocument = __commonJS({
       }
       this.__parentArray.pull({ _id });
     };
-    ArraySubdocument.prototype.$__fullPath = function(path2, skipIndex) {
+    ArraySubdocument.prototype.$__fullPath = function(path3, skipIndex) {
       if (this.__index == null) {
         return null;
       }
@@ -38850,21 +38850,21 @@ var require_arraySubdocument = __commonJS({
         this.ownerDocument();
       }
       if (skipIndex) {
-        return path2 ? this.$__.fullPath + "." + path2 : this.$__.fullPath;
+        return path3 ? this.$__.fullPath + "." + path3 : this.$__.fullPath;
       }
-      return path2 ? this.$__.fullPath + "." + this.__index + "." + path2 : this.$__.fullPath + "." + this.__index;
+      return path3 ? this.$__.fullPath + "." + this.__index + "." + path3 : this.$__.fullPath + "." + this.__index;
     };
-    ArraySubdocument.prototype.$__pathRelativeToParent = function(path2, skipIndex) {
+    ArraySubdocument.prototype.$__pathRelativeToParent = function(path3, skipIndex) {
       if (this.__index == null || !this.__parentArray?.$path) {
         return null;
       }
       if (skipIndex) {
-        return path2 == null ? this.__parentArray.$path() : this.__parentArray.$path() + "." + path2;
+        return path3 == null ? this.__parentArray.$path() : this.__parentArray.$path() + "." + path3;
       }
-      if (path2 == null) {
+      if (path3 == null) {
         return this.__parentArray.$path() + "." + this.__index;
       }
-      return this.__parentArray.$path() + "." + this.__index + "." + path2;
+      return this.__parentArray.$path() + "." + this.__index + "." + path3;
     };
     ArraySubdocument.prototype.$parent = function() {
       return this[documentArrayParent];
@@ -39197,9 +39197,9 @@ var require_methods = __commonJS({
                   if (v == null || v.$__ == null) {
                     return ret;
                   }
-                  Object.keys(v.$__.activePaths.getStatePaths("default")).forEach((path2) => {
-                    mpath.unset(path2, ret);
-                    _minimizePath(ret, path2);
+                  Object.keys(v.$__.activePaths.getStatePaths("default")).forEach((path3) => {
+                    mpath.unset(path3, ret);
+                    _minimizePath(ret, path3);
                   });
                   return ret;
                 }, "transform"),
@@ -39754,8 +39754,8 @@ var require_methods = __commonJS({
     function _depopulateIfNecessary(arr, docs) {
       const ref = arr == null ? null : arr[arraySchemaSymbol]?.embeddedSchemaType?.options?.ref || null;
       const parentDoc = arr[arrayParentSymbol];
-      const path2 = arr[arrayPathSymbol];
-      if (!ref || !parentDoc.populated(path2)) {
+      const path3 = arr[arrayPathSymbol];
+      if (!ref || !parentDoc.populated(path3)) {
         return;
       }
       for (const doc of docs) {
@@ -39763,7 +39763,7 @@ var require_methods = __commonJS({
           continue;
         }
         if (typeof doc !== "object" || doc instanceof String || doc instanceof Number || doc instanceof Buffer || utils.isMongooseType(doc)) {
-          parentDoc.depopulate(path2);
+          parentDoc.depopulate(path3);
           break;
         }
       }
@@ -40201,12 +40201,12 @@ var require_methods2 = __commonJS({
       const parent = arr[arrayParentSymbol];
       if (!parent || parent.$__.populated == null) return;
       const populatedPaths = Object.keys(parent.$__.populated).filter((p) => p.startsWith(arr[arrayPathSymbol] + "."));
-      for (const path2 of populatedPaths) {
-        const remnant = path2.slice((arr[arrayPathSymbol] + ".").length);
-        if (!Array.isArray(parent.$__.populated[path2].value)) {
+      for (const path3 of populatedPaths) {
+        const remnant = path3.slice((arr[arrayPathSymbol] + ".").length);
+        if (!Array.isArray(parent.$__.populated[path3].value)) {
           continue;
         }
-        parent.$__.populated[path2].value = arr.map((val) => val.$populated(remnant));
+        parent.$__.populated[path3].value = arr.map((val) => val.$populated(remnant));
       }
     }
     __name(_updateParentPopulated, "_updateParentPopulated");
@@ -40226,28 +40226,28 @@ var require_documentArray = __commonJS({
     var arraySchemaSymbol = require_symbols().arraySchemaSymbol;
     var _basePush = Array.prototype.push;
     var numberRE = /^\d+$/;
-    function MongooseDocumentArray(values, path2, doc, schematype) {
+    function MongooseDocumentArray(values, path3, doc, schematype) {
       const __array = [];
       const internals = {
         [arrayAtomicsSymbol]: {},
         [arrayAtomicsBackupSymbol]: void 0,
-        [arrayPathSymbol]: path2,
+        [arrayPathSymbol]: path3,
         [arraySchemaSymbol]: void 0,
         [arrayParentSymbol]: void 0
       };
       if (Array.isArray(values)) {
-        if (values[arrayPathSymbol] === path2 && values[arrayParentSymbol] === doc) {
+        if (values[arrayPathSymbol] === path3 && values[arrayParentSymbol] === doc) {
           internals[arrayAtomicsSymbol] = Object.assign({}, values[arrayAtomicsSymbol]);
         }
         values.forEach((v) => {
           _basePush.call(__array, v);
         });
       }
-      internals[arrayPathSymbol] = path2;
+      internals[arrayPathSymbol] = path3;
       internals.__array = __array;
       if (doc?.$__) {
         internals[arrayParentSymbol] = doc;
-        internals[arraySchemaSymbol] = doc.$__schema.path(path2);
+        internals[arraySchemaSymbol] = doc.$__schema.path(path3);
         while (internals[arraySchemaSymbol] != null && internals[arraySchemaSymbol].$isMongooseArray && !internals[arraySchemaSymbol].$isMongooseDocumentArray) {
           internals[arraySchemaSymbol] = internals[arraySchemaSymbol].embeddedSchemaType;
         }
@@ -40400,8 +40400,8 @@ var require_document2 = __commonJS({
         this.$__.strictMode = schema.options.strict;
       }
       const requiredPaths = schema.requiredPaths();
-      for (const path2 of requiredPaths) {
-        this.$__.activePaths.require(path2);
+      for (const path3 of requiredPaths) {
+        this.$__.activePaths.require(path3);
       }
       let exclude = null;
       if (utils.isPOJO(fields) && utils.hasOwnKeys(fields)) {
@@ -40524,17 +40524,17 @@ var require_document2 = __commonJS({
         this.$__.op = value;
       }, "set")
     });
-    function $applyDefaultsToNested(val, path2, doc) {
+    function $applyDefaultsToNested(val, path3, doc) {
       if (val == null) {
         return;
       }
       const paths = Object.keys(doc.$__schema.paths);
       const plen = paths.length;
-      const pathPieces = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+      const pathPieces = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
       for (let i = 0; i < plen; ++i) {
         let curPath = "";
         const p = paths[i];
-        if (!p.startsWith(path2 + ".")) {
+        if (!p.startsWith(path3 + ".")) {
           continue;
         }
         const type = doc.$__schema.paths[p];
@@ -40559,7 +40559,7 @@ var require_document2 = __commonJS({
                 cur[piece] = def;
               }
             } catch (err) {
-              doc.invalidate(path2 + "." + curPath, err);
+              doc.invalidate(path3 + "." + curPath, err);
               break;
             }
             break;
@@ -40585,8 +40585,8 @@ var require_document2 = __commonJS({
         if (p.includes("$*")) {
           continue;
         }
-        const path2 = this.$__schema.paths[p].splitPath();
-        const len = path2.length;
+        const path3 = this.$__schema.paths[p].splitPath();
+        const len = path3.length;
         if (len === 1) {
           continue;
         }
@@ -40595,7 +40595,7 @@ var require_document2 = __commonJS({
         let doc_ = doc;
         let included = false;
         for (let i = 0; i < len; ++i) {
-          const piece = path2[i];
+          const piece = path3[i];
           if (!curPath.length) {
             curPath = piece;
           } else {
@@ -40684,7 +40684,7 @@ var require_document2 = __commonJS({
       const keys = Object.keys(obj);
       const len = keys.length;
       let schemaType;
-      let path2;
+      let path3;
       let i;
       const strict = self2.$__.strictMode;
       const docSchema = self2.$__schema;
@@ -40694,15 +40694,15 @@ var require_document2 = __commonJS({
         if (specialProperties.has(i)) {
           continue;
         }
-        path2 = prefix ? prefix + i : i;
-        schemaType = docSchema.path(path2);
-        if (docSchema.$isRootDiscriminator && !self2.$__isSelected(path2)) {
+        path3 = prefix ? prefix + i : i;
+        schemaType = docSchema.path(path3);
+        if (docSchema.$isRootDiscriminator && !self2.$__isSelected(path3)) {
           continue;
         }
         const value = obj[i];
-        if (!schemaType && strictRead && docSchema.pathType(path2) === "adhocOrUndefined") {
+        if (!schemaType && strictRead && docSchema.pathType(path3) === "adhocOrUndefined") {
           if (strictRead === "throw") {
-            throw new StrictModeError(path2, "Field `" + path2 + "` is not in schema and strictRead is set to throw.");
+            throw new StrictModeError(path3, "Field `" + path3 + "` is not in schema and strictRead is set to throw.");
           } else if (strictRead === true) {
             continue;
           }
@@ -40719,10 +40719,10 @@ var require_document2 = __commonJS({
               self2[i] = doc[i];
             }
           }
-          init(self2, value, doc[i], opts, path2 + ".");
+          init(self2, value, doc[i], opts, path3 + ".");
         } else if (!schemaType) {
           if (strictRead === "throw") {
-            throw new StrictModeError(path2, "Field `" + path2 + "` is not in schema and strictRead is set to throw.");
+            throw new StrictModeError(path3, "Field `" + path3 + "` is not in schema and strictRead is set to throw.");
           } else if (strictRead === true) {
             continue;
           }
@@ -40762,16 +40762,16 @@ var require_document2 = __commonJS({
             } else if (schemaType && opts.hydratedPopulatedDocs) {
               doc[i] = schemaType.cast(value, self2, true, void 0, { hydratedPopulatedDocs: true });
               if (doc[i]?.$__?.wasPopulated) {
-                self2.$populated(path2, doc[i].$__.wasPopulated.value, doc[i].$__.wasPopulated.options);
+                self2.$populated(path3, doc[i].$__.wasPopulated.value, doc[i].$__.wasPopulated.options);
               } else if (Array.isArray(doc[i]) && doc[i].length && doc[i][0]?.$__?.wasPopulated) {
-                self2.$populated(path2, doc[i].map((populatedDoc) => populatedDoc?.$__?.wasPopulated?.value).filter((val) => val != null), doc[i][0].$__.wasPopulated.options);
+                self2.$populated(path3, doc[i].map((populatedDoc) => populatedDoc?.$__?.wasPopulated?.value).filter((val) => val != null), doc[i][0].$__.wasPopulated.options);
               }
             } else {
               doc[i] = value;
             }
           }
-          if (!self2.$isModified(path2)) {
-            self2.$__.activePaths.init(path2);
+          if (!self2.$isModified(path3)) {
+            self2.$__.activePaths.init(path3);
           }
         }
       }
@@ -40865,7 +40865,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "overwrite");
-    Document5.prototype.$set = /* @__PURE__ */ __name(function $set(path2, val, type, options) {
+    Document5.prototype.$set = /* @__PURE__ */ __name(function $set(path3, val, type, options) {
       if (utils.isPOJO(type)) {
         options = type;
         type = void 0;
@@ -40883,23 +40883,23 @@ var require_document2 = __commonJS({
       let strict = userSpecifiedStrict ? options.strict : this.$__.strictMode;
       if (adhoc) {
         adhocs = this.$__.adhocPaths || (this.$__.adhocPaths = {});
-        adhocs[path2] = this.$__schema.interpretAsType(path2, type, this.$__schema.options);
+        adhocs[path3] = this.$__schema.interpretAsType(path3, type, this.$__schema.options);
       }
-      if (path2 == null) {
-        [path2, val] = [val, path2];
-      } else if (typeof path2 !== "string") {
-        if (path2 instanceof Document5) {
-          if (path2.$__isNested) {
-            path2 = path2.toObject();
+      if (path3 == null) {
+        [path3, val] = [val, path3];
+      } else if (typeof path3 !== "string") {
+        if (path3 instanceof Document5) {
+          if (path3.$__isNested) {
+            path3 = path3.toObject();
           } else {
-            path2 = path2.$__schema === this.$__schema ? applyVirtuals(path2, { ...path2._doc }) : path2._doc;
+            path3 = path3.$__schema === this.$__schema ? applyVirtuals(path3, { ...path3._doc }) : path3._doc;
           }
         }
-        if (path2 == null) {
-          [path2, val] = [val, path2];
+        if (path3 == null) {
+          [path3, val] = [val, path3];
         }
         prefix = val ? val + "." : "";
-        keys = getKeysInSchemaOrder(this.$__schema, path2);
+        keys = getKeysInSchemaOrder(this.$__schema, path3);
         const len = keys.length;
         const _skipMinimizeTopLevel = options?._skipMinimizeTopLevel || false;
         if (len === 0 && _skipMinimizeTopLevel) {
@@ -40916,7 +40916,7 @@ var require_document2 = __commonJS({
           key = keys[i2];
           const pathName = prefix ? prefix + key : key;
           pathtype = this.$__schema.pathType(pathName);
-          const valForKey = path2[key];
+          const valForKey = path3[key];
           if (type === true && !prefix && valForKey != null && pathtype === "nested" && this._doc[key] != null) {
             delete this._doc[key];
           }
@@ -40961,15 +40961,15 @@ var require_document2 = __commonJS({
         this._doc = Object.assign(orderedDoc, this._doc);
         return this;
       }
-      let pathType = this.$__schema.pathType(path2);
+      let pathType = this.$__schema.pathType(path3);
       let parts = null;
       if (pathType === "adhocOrUndefined") {
-        parts = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+        parts = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
         pathType = getEmbeddedDiscriminatorPath(this, parts, { typeOnly: true });
       }
       if (pathType === "adhocOrUndefined" && !userSpecifiedStrict) {
         if (parts == null) {
-          parts = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+          parts = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
         }
         const subdocStrict = getSubdocumentStrictValue(this.$__schema, parts);
         if (subdocStrict !== void 0) {
@@ -40977,48 +40977,48 @@ var require_document2 = __commonJS({
         }
       }
       val = handleSpreadDoc(val, true);
-      const priorVal = this.$__.priorDoc != null ? this.$__.priorDoc.$__getValue(path2) : constructing ? void 0 : this.$__getValue(path2);
+      const priorVal = this.$__.priorDoc != null ? this.$__.priorDoc.$__getValue(path3) : constructing ? void 0 : this.$__getValue(path3);
       if (pathType === "nested" && val) {
         if (typeof val === "object" && val != null) {
           val = toObjectRecursive(val, internalToObjectOptions);
           if (val == null) {
-            this.invalidate(path2, new MongooseError.CastError("Object", val, path2));
+            this.invalidate(path3, new MongooseError.CastError("Object", val, path3));
             return this;
           }
-          const wasModified = this.$isModified(path2);
-          const hasInitialVal = this.$__.savedState != null && Object.hasOwn(this.$__.savedState, path2);
-          if (this.$__.savedState != null && !this.$isNew && !Object.hasOwn(this.$__.savedState, path2)) {
-            const initialVal = this.$__getValue(path2);
-            this.$__.savedState[path2] = initialVal;
+          const wasModified = this.$isModified(path3);
+          const hasInitialVal = this.$__.savedState != null && Object.hasOwn(this.$__.savedState, path3);
+          if (this.$__.savedState != null && !this.$isNew && !Object.hasOwn(this.$__.savedState, path3)) {
+            const initialVal = this.$__getValue(path3);
+            this.$__.savedState[path3] = initialVal;
             const keys3 = Object.keys(initialVal || {});
             for (const key2 of keys3) {
-              this.$__.savedState[path2 + "." + key2] = initialVal[key2];
+              this.$__.savedState[path3 + "." + key2] = initialVal[key2];
             }
           }
           if (!merge2) {
-            this.$__setValue(path2, null);
-            cleanModifiedSubpaths(this, path2);
+            this.$__setValue(path3, null);
+            cleanModifiedSubpaths(this, path3);
           } else {
-            return this.$set(val, path2, constructing, options);
+            return this.$set(val, path3, constructing, options);
           }
-          const keys2 = getKeysInSchemaOrder(this.$__schema, val, path2);
-          this.$__setValue(path2, {});
+          const keys2 = getKeysInSchemaOrder(this.$__schema, val, path3);
+          this.$__setValue(path3, {});
           for (const key2 of keys2) {
-            this.$set(path2 + "." + key2, val[key2], constructing, { ...options, _skipMarkModified: true });
+            this.$set(path3 + "." + key2, val[key2], constructing, { ...options, _skipMarkModified: true });
           }
-          if (priorVal != null && (!wasModified || hasInitialVal) && utils.deepEqual(hasInitialVal ? this.$__.savedState[path2] : priorVal, val)) {
-            this.unmarkModified(path2);
+          if (priorVal != null && (!wasModified || hasInitialVal) && utils.deepEqual(hasInitialVal ? this.$__.savedState[path3] : priorVal, val)) {
+            this.unmarkModified(path3);
           } else {
-            this.markModified(path2);
+            this.markModified(path3);
           }
           return this;
         }
-        this.invalidate(path2, new MongooseError.CastError("Object", val, path2));
+        this.invalidate(path3, new MongooseError.CastError("Object", val, path3));
         return this;
       }
       let schema;
       if (parts == null) {
-        parts = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+        parts = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
       }
       if (typeof this.$__schema.aliases[parts[0]] === "string") {
         parts[0] = this.$__schema.aliases[parts[0]];
@@ -41028,7 +41028,7 @@ var require_document2 = __commonJS({
         for (i = 0; i < parts.length; ++i) {
           const subpath = parts.slice(0, i + 1).join(".");
           if (i + 1 < parts.length && this.$__schema.pathType(subpath) === "virtual") {
-            mpath.set(path2, val, this);
+            mpath.set(path3, val, this);
             return this;
           }
           schema = this.$__schema.path(subpath);
@@ -41045,20 +41045,20 @@ var require_document2 = __commonJS({
           }
         }
         if (schema == null) {
-          schema = getEmbeddedDiscriminatorPath(this, path2);
+          schema = getEmbeddedDiscriminatorPath(this, path3);
         }
         if (!mixed && !schema) {
           if (strict === "throw") {
-            throw new StrictModeError(path2);
+            throw new StrictModeError(path3);
           }
           return this;
         }
       } else if (pathType === "virtual") {
-        schema = this.$__schema.virtualpath(path2);
+        schema = this.$__schema.virtualpath(path3);
         schema.applySetters(val, this);
         return this;
       } else {
-        schema = this.$__path(path2);
+        schema = this.$__path(path3);
       }
       let cur = this._doc;
       let curPath = "";
@@ -41075,7 +41075,7 @@ var require_document2 = __commonJS({
       }
       let pathToMark;
       if (parts.length <= 1) {
-        pathToMark = path2;
+        pathToMark = path3;
       } else {
         const len = parts.length;
         for (i = 0; i < len; ++i) {
@@ -41086,18 +41086,18 @@ var require_document2 = __commonJS({
           }
         }
         if (!pathToMark) {
-          pathToMark = path2;
+          pathToMark = path3;
         }
       }
       if (!schema) {
-        this.$__set(pathToMark, path2, options, constructing, parts, schema, val, priorVal);
+        this.$__set(pathToMark, path3, options, constructing, parts, schema, val, priorVal);
         if (pathType === "nested" && val == null) {
-          cleanModifiedSubpaths(this, path2);
+          cleanModifiedSubpaths(this, path3);
         }
         return this;
       }
       if (schema.$isSingleNested || schema.$isMongooseArray) {
-        _markValidSubpaths(this, path2);
+        _markValidSubpaths(this, path3);
       }
       if (val != null && merge2 && schema.$isSingleNested) {
         if (val instanceof Document5) {
@@ -41105,7 +41105,7 @@ var require_document2 = __commonJS({
         }
         const keys2 = Object.keys(val);
         for (const key2 of keys2) {
-          this.$set(path2 + "." + key2, val[key2], constructing, options);
+          this.$set(path3 + "." + key2, val[key2], constructing, options);
         }
         return this;
       }
@@ -41126,10 +41126,10 @@ var require_document2 = __commonJS({
             return false;
           }
           if (typeof refPath === "function" && !refPath[modelSymbol]) {
-            let fullPath = path2;
+            let fullPath = path3;
             const fullPathWithIndexes = this.$__fullPathWithIndexes?.();
             if (fullPathWithIndexes?.length) {
-              fullPath = fullPathWithIndexes + "." + path2;
+              fullPath = fullPathWithIndexes + "." + path3;
             }
             refPath = refPath.call(this, this, fullPath);
           }
@@ -41142,7 +41142,7 @@ var require_document2 = __commonJS({
         let didPopulate = false;
         if (refMatches && val instanceof Document5 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
           const unpopulatedValue = schema?.$isSingleNested ? schema.cast(val, this) : val._doc._id;
-          this.$populated(path2, unpopulatedValue, { [populateModelSymbol]: val.constructor });
+          this.$populated(path3, unpopulatedValue, { [populateModelSymbol]: val.constructor });
           val.$__.wasPopulated = { value: unpopulatedValue };
           didPopulate = true;
         }
@@ -41150,7 +41150,7 @@ var require_document2 = __commonJS({
         const typeKey = this.$__schema.options.typeKey;
         if (schema.options && Array.isArray(schema.options[typeKey]) && schema.options[typeKey].length && schema.options[typeKey][0] && schema.options[typeKey][0].ref && _isManuallyPopulatedArray(val, schema.options[typeKey][0].ref)) {
           popOpts = { [populateModelSymbol]: val[0].constructor };
-          this.$populated(path2, val.map(function(v) {
+          this.$populated(path3, val.map(function(v) {
             return v._doc._id;
           }), popOpts);
           for (const doc of val) {
@@ -41160,20 +41160,20 @@ var require_document2 = __commonJS({
         }
         if (!refMatches || !schema.$isSingleNested || !val.$__) {
           let setterContext = this;
-          if (this.$__schema.singleNestedPaths[path2] != null && parts.length > 1) {
+          if (this.$__schema.singleNestedPaths[path3] != null && parts.length > 1) {
             setterContext = getDeepestSubdocumentForPath(this, parts, this.schema);
           }
           if (options?.overwriteImmutable) {
-            val = schema.applySetters(val, setterContext, false, priorVal, { path: path2, overwriteImmutable: true });
+            val = schema.applySetters(val, setterContext, false, priorVal, { path: path3, overwriteImmutable: true });
           } else {
-            val = schema.applySetters(val, setterContext, false, priorVal, { path: path2 });
+            val = schema.applySetters(val, setterContext, false, priorVal, { path: path3 });
           }
         }
         if (Array.isArray(val) && !Array.isArray(schema) && schema.$isMongooseDocumentArray && val.length !== 0 && val[0]?.$__?.populated != null) {
           const populatedPaths = Object.keys(val[0].$__.populated);
           for (const populatedPath of populatedPaths) {
             this.$populated(
-              path2 + "." + populatedPath,
+              path3 + "." + populatedPath,
               val.map((v) => v.$populated(populatedPath)),
               val[0].$__.populated[populatedPath].options
             );
@@ -41181,34 +41181,34 @@ var require_document2 = __commonJS({
           didPopulate = true;
         }
         if (!didPopulate && this.$__.populated) {
-          if (Array.isArray(val) && this.$__.populated[path2]) {
+          if (Array.isArray(val) && this.$__.populated[path3]) {
             for (let i2 = 0; i2 < val.length; ++i2) {
               if (val[i2] instanceof Document5) {
                 val.set(i2, val[i2]._doc._id, true);
               }
             }
           }
-          delete this.$__.populated[path2];
+          delete this.$__.populated[path3];
         }
         if (val != null && schema.$isSingleNested) {
           _checkImmutableSubpaths(val, schema, priorVal);
         }
-        this.$markValid(path2);
+        this.$markValid(path3);
       } catch (e) {
         if (e instanceof MongooseError.StrictModeError && e.isImmutableError) {
-          this.invalidate(path2, e);
+          this.invalidate(path3, e);
         } else if (e instanceof MongooseError.CastError) {
           this.invalidate(e.path, e);
           if (e.$originalErrorPath) {
             this.invalidate(
-              path2,
-              new MongooseError.CastError(schema.instance, val, path2, e.$originalErrorPath)
+              path3,
+              new MongooseError.CastError(schema.instance, val, path3, e.$originalErrorPath)
             );
           }
         } else {
           this.invalidate(
-            path2,
-            new MongooseError.CastError(schema.instance, val, path2, e)
+            path3,
+            new MongooseError.CastError(schema.instance, val, path3, e)
           );
         }
         shouldSet = false;
@@ -41219,20 +41219,20 @@ var require_document2 = __commonJS({
         if (!constructing) {
           const doc = this.$isSubdocument ? this.ownerDocument() : this;
           savedState = doc.$__.savedState;
-          savedStatePath = this.$isSubdocument ? this.$__.fullPath + "." + path2 : path2;
+          savedStatePath = this.$isSubdocument ? this.$__.fullPath + "." + path3 : path3;
           doc.$__saveInitialState(savedStatePath);
         }
-        this.$__set(pathToMark, path2, options, constructing, parts, schema, val, priorVal);
+        this.$__set(pathToMark, path3, options, constructing, parts, schema, val, priorVal);
         const isInTransaction = !!this.$__.session?.transaction;
         const isModifiedWithinTransaction = this.$__.session && this.$__.session[sessionNewDocuments] && this.$__.session[sessionNewDocuments].has(this) && this.$__.session[sessionNewDocuments].get(this).modifiedPaths && !this.$__.session[sessionNewDocuments].get(this).modifiedPaths.has(savedStatePath);
         if (savedState != null && Object.hasOwn(savedState, savedStatePath) && (!isInTransaction || isModifiedWithinTransaction) && utils.deepEqual(val, savedState[savedStatePath])) {
-          this.unmarkModified(path2);
+          this.unmarkModified(path3);
         }
       }
-      if (schema.$isSingleNested && (this.isDirectModified(path2) || val == null)) {
-        cleanModifiedSubpaths(this, path2);
+      if (schema.$isSingleNested && (this.isDirectModified(path3) || val == null)) {
+        cleanModifiedSubpaths(this, path3);
       } else if (schema.$isSchemaMap && val == null) {
-        cleanModifiedSubpaths(this, path2);
+        cleanModifiedSubpaths(this, path3);
       }
       return this;
     }, "$set");
@@ -41259,39 +41259,39 @@ var require_document2 = __commonJS({
     }
     __name(_isManuallyPopulatedArray, "_isManuallyPopulatedArray");
     Document5.prototype.set = Document5.prototype.$set;
-    Document5.prototype.$__shouldModify = function(pathToMark, path2, options, constructing, parts, schema, val, priorVal) {
+    Document5.prototype.$__shouldModify = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
       if (options?._skipMarkModified) {
         return false;
       }
       if (this.$isNew) {
         return true;
       }
-      if (path2 in this.$__.activePaths.getStatePaths("modify")) {
+      if (path3 in this.$__.activePaths.getStatePaths("modify")) {
         return true;
       }
-      if (val === void 0 && !this.$__isSelected(path2)) {
+      if (val === void 0 && !this.$__isSelected(path3)) {
         return true;
       }
-      if (val === void 0 && path2 in this.$__.activePaths.getStatePaths("default")) {
+      if (val === void 0 && path3 in this.$__.activePaths.getStatePaths("default")) {
         return false;
       }
-      if (this.$populated(path2) && val instanceof Document5 && deepEqual(val._doc._id, priorVal)) {
+      if (this.$populated(path3) && val instanceof Document5 && deepEqual(val._doc._id, priorVal)) {
         return false;
       }
-      if (!deepEqual(val, priorVal !== void 0 ? priorVal : utils.getValue(path2, this))) {
+      if (!deepEqual(val, priorVal !== void 0 ? priorVal : utils.getValue(path3, this))) {
         return true;
       }
-      if (!constructing && val !== null && val !== void 0 && path2 in this.$__.activePaths.getStatePaths("default") && deepEqual(val, schema.getDefault(this, constructing))) {
+      if (!constructing && val !== null && val !== void 0 && path3 in this.$__.activePaths.getStatePaths("default") && deepEqual(val, schema.getDefault(this, constructing))) {
         return true;
       }
       return false;
     };
-    Document5.prototype.$__set = function(pathToMark, path2, options, constructing, parts, schema, val, priorVal) {
+    Document5.prototype.$__set = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
       Embedded = Embedded || require_arraySubdocument();
-      const shouldModify = this.$isNew && !options?._skipMarkModified ? true : this.$__shouldModify(pathToMark, path2, options, constructing, parts, schema, val, priorVal);
+      const shouldModify = this.$isNew && !options?._skipMarkModified ? true : this.$__shouldModify(pathToMark, path3, options, constructing, parts, schema, val, priorVal);
       if (shouldModify) {
-        if (this.$__.primitiveAtomics?.[path2]) {
-          delete this.$__.primitiveAtomics[path2];
+        if (this.$__.primitiveAtomics?.[path3]) {
+          delete this.$__.primitiveAtomics[path3];
           if (utils.hasOwnKeys(this.$__.primitiveAtomics) === false) {
             delete this.$__.primitiveAtomics;
           }
@@ -41371,34 +41371,34 @@ var require_document2 = __commonJS({
         }
       }
     };
-    Document5.prototype.$__getValue = function(path2) {
-      if (typeof path2 !== "string" && !Array.isArray(path2)) {
+    Document5.prototype.$__getValue = function(path3) {
+      if (typeof path3 !== "string" && !Array.isArray(path3)) {
         throw new TypeError(
-          `Invalid \`path\`. Must be either string or array. Got "${path2}" (type ${typeof path2})`
+          `Invalid \`path\`. Must be either string or array. Got "${path3}" (type ${typeof path3})`
         );
       }
-      return utils.getValue(path2, this._doc);
+      return utils.getValue(path3, this._doc);
     };
-    Document5.prototype.$inc = /* @__PURE__ */ __name(function $inc(path2, val) {
+    Document5.prototype.$inc = /* @__PURE__ */ __name(function $inc(path3, val) {
       if (val == null) {
         val = 1;
       }
-      if (Array.isArray(path2)) {
-        path2.forEach((p) => this.$inc(p, val));
+      if (Array.isArray(path3)) {
+        path3.forEach((p) => this.$inc(p, val));
         return this;
       }
-      const schemaType = this.$__path(path2);
+      const schemaType = this.$__path(path3);
       if (schemaType == null) {
         if (this.$__.strictMode === "throw") {
-          throw new StrictModeError(path2);
+          throw new StrictModeError(path3);
         } else if (this.$__.strictMode === true) {
           return this;
         }
       } else if (schemaType.instance !== "Number") {
-        this.invalidate(path2, new MongooseError.CastError(schemaType.instance, val, path2));
+        this.invalidate(path3, new MongooseError.CastError(schemaType.instance, val, path3));
         return this;
       }
-      const currentValue = this.$__getValue(path2) || 0;
+      const currentValue = this.$__getValue(path3) || 0;
       let shouldSet = false;
       let valToSet = null;
       let valToInc = val;
@@ -41408,46 +41408,46 @@ var require_document2 = __commonJS({
         valToInc = valToSet - currentValue;
         shouldSet = true;
       } catch (err) {
-        this.invalidate(path2, new MongooseError.CastError("number", val, path2, err));
+        this.invalidate(path3, new MongooseError.CastError("number", val, path3, err));
       }
       if (shouldSet) {
         this.$__.primitiveAtomics = this.$__.primitiveAtomics || {};
-        if (this.$__.primitiveAtomics[path2] == null) {
-          this.$__.primitiveAtomics[path2] = { $inc: valToInc };
+        if (this.$__.primitiveAtomics[path3] == null) {
+          this.$__.primitiveAtomics[path3] = { $inc: valToInc };
         } else {
-          this.$__.primitiveAtomics[path2].$inc += valToInc;
+          this.$__.primitiveAtomics[path3].$inc += valToInc;
         }
-        this.markModified(path2);
-        this.$__setValue(path2, valToSet);
+        this.markModified(path3);
+        this.$__setValue(path3, valToSet);
       }
       return this;
     }, "$inc");
-    Document5.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path2, val) {
-      if (Array.isArray(path2) && path2.length === 1) {
-        this._doc[path2[0]] = val;
+    Document5.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path3, val) {
+      if (Array.isArray(path3) && path3.length === 1) {
+        this._doc[path3[0]] = val;
         return this;
       }
-      utils.setValue(path2, val, this._doc);
+      utils.setValue(path3, val, this._doc);
       return this;
     }, "$__setValue");
-    Document5.prototype.get = function(path2, type, options) {
+    Document5.prototype.get = function(path3, type, options) {
       let adhoc;
       if (options == null) {
         options = {};
       }
       if (type) {
-        adhoc = this.$__schema.interpretAsType(path2, type, this.$__schema.options);
+        adhoc = this.$__schema.interpretAsType(path3, type, this.$__schema.options);
       }
       const noDottedPath = options.noDottedPath;
-      let schema = noDottedPath ? Object.hasOwn(this.$__schema.paths, path2) ? this.$__schema.paths[path2] : void 0 : this.$__path(path2);
+      let schema = noDottedPath ? Object.hasOwn(this.$__schema.paths, path3) ? this.$__schema.paths[path3] : void 0 : this.$__path(path3);
       if (schema == null) {
-        schema = this.$__schema.virtualpath(path2);
+        schema = this.$__schema.virtualpath(path3);
         if (schema != null) {
           return schema.applyGetters(void 0, this);
         }
       }
       if (noDottedPath) {
-        let obj2 = Object.hasOwn(this._doc, path2) ? this._doc[path2] : void 0;
+        let obj2 = Object.hasOwn(this._doc, path3) ? this._doc[path3] : void 0;
         if (adhoc) {
           obj2 = adhoc.cast(obj2);
         }
@@ -41457,14 +41457,14 @@ var require_document2 = __commonJS({
         return obj2;
       }
       if (schema?.instance === "Mixed") {
-        const virtual = this.$__schema.virtualpath(path2);
+        const virtual = this.$__schema.virtualpath(path3);
         if (virtual != null) {
           schema = virtual;
         }
       }
-      const hasDot = path2.indexOf(".") !== -1;
+      const hasDot = path3.indexOf(".") !== -1;
       let obj = this._doc;
-      const pieces = hasDot ? path2.split(".") : [path2];
+      const pieces = hasDot ? path3.split(".") : [path3];
       if (typeof this.$__schema.aliases[pieces[0]] === "string") {
         pieces[0] = this.$__schema.aliases[pieces[0]];
       }
@@ -41490,32 +41490,32 @@ var require_document2 = __commonJS({
       }
       if (schema != null && options.getters !== false) {
         obj = schema.applyGetters(obj, this);
-      } else if (Object.hasOwn(this.$__schema.nested, path2) && options.virtuals) {
-        return applyVirtuals(this, clone2(obj) || {}, { path: path2 });
+      } else if (Object.hasOwn(this.$__schema.nested, path3) && options.virtuals) {
+        return applyVirtuals(this, clone2(obj) || {}, { path: path3 });
       }
       return obj;
     };
     Document5.prototype[getSymbol] = Document5.prototype.get;
     Document5.prototype.$get = Document5.prototype.get;
-    Document5.prototype.$__path = function(path2) {
+    Document5.prototype.$__path = function(path3) {
       const adhocs = this.$__.adhocPaths;
-      const adhocType = adhocs && Object.hasOwn(adhocs, path2) ? adhocs[path2] : null;
+      const adhocType = adhocs && Object.hasOwn(adhocs, path3) ? adhocs[path3] : null;
       if (adhocType) {
         return adhocType;
       }
-      return this.$__schema.path(path2);
+      return this.$__schema.path(path3);
     };
-    Document5.prototype.markModified = function(path2, scope) {
-      this.$__saveInitialState(path2);
-      this.$__.activePaths.modify(path2);
+    Document5.prototype.markModified = function(path3, scope) {
+      this.$__saveInitialState(path3);
+      this.$__.activePaths.modify(path3);
       if (scope != null && !this.$isSubdocument) {
         this.$__.pathsToScopes = this.$__pathsToScopes || {};
-        this.$__.pathsToScopes[path2] = scope;
+        this.$__.pathsToScopes[path3] = scope;
       }
     };
-    Document5.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path2) {
+    Document5.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path3) {
       const savedState = this.$__.savedState;
-      const savedStatePath = path2;
+      const savedStatePath = path3;
       if (savedState != null) {
         const firstDot = savedStatePath.indexOf(".");
         const topLevelPath = firstDot === -1 ? savedStatePath : savedStatePath.slice(0, firstDot);
@@ -41524,19 +41524,19 @@ var require_document2 = __commonJS({
         }
       }
     }, "$__saveInitialState");
-    Document5.prototype.unmarkModified = function(path2) {
-      this.$__.activePaths.init(path2);
+    Document5.prototype.unmarkModified = function(path3) {
+      this.$__.activePaths.init(path3);
       if (this.$__.pathsToScopes != null) {
-        delete this.$__.pathsToScopes[path2];
+        delete this.$__.pathsToScopes[path3];
       }
     };
-    Document5.prototype.$ignore = function(path2) {
-      this.$__.activePaths.ignore(path2);
+    Document5.prototype.$ignore = function(path3) {
+      this.$__.activePaths.ignore(path3);
     };
     Document5.prototype.directModifiedPaths = function() {
       return Object.keys(this.$__.activePaths.getStatePaths("modify"));
     };
-    Document5.prototype.$isEmpty = function(path2) {
+    Document5.prototype.$isEmpty = function(path3) {
       const isEmptyOptions = {
         minimize: true,
         virtuals: false,
@@ -41544,7 +41544,7 @@ var require_document2 = __commonJS({
         transform: false
       };
       if (arguments.length !== 0) {
-        const v = this.$get(path2);
+        const v = this.$get(path3);
         if (v == null) {
           return true;
         }
@@ -41581,8 +41581,8 @@ var require_document2 = __commonJS({
       let j = 0;
       const len = directModifiedPaths.length;
       for (i = 0; i < len; ++i) {
-        const path2 = directModifiedPaths[i];
-        const parts = parentPaths(path2);
+        const path3 = directModifiedPaths[i];
+        const parts = parentPaths(path3);
         const pLen = parts.length;
         for (j = 0; j < pLen; ++j) {
           result.add(parts[j]);
@@ -41591,7 +41591,7 @@ var require_document2 = __commonJS({
           continue;
         }
         let ii = 0;
-        let cur = this.$get(path2);
+        let cur = this.$get(path3);
         if (typeof cur === "object" && cur !== null) {
           if (cur._doc) {
             cur = cur._doc;
@@ -41599,7 +41599,7 @@ var require_document2 = __commonJS({
           const len2 = cur.length;
           if (Array.isArray(cur)) {
             for (ii = 0; ii < len2; ++ii) {
-              const subPath = path2 + "." + ii;
+              const subPath = path3 + "." + ii;
               if (!result.has(subPath)) {
                 result.add(subPath);
                 if (cur[ii] != null && cur[ii].$__) {
@@ -41617,7 +41617,7 @@ var require_document2 = __commonJS({
             let ii2 = 0;
             const len3 = keys.length;
             for (ii2 = 0; ii2 < len3; ++ii2) {
-              result.add(path2 + "." + keys[ii2]);
+              result.add(path3 + "." + keys[ii2]);
             }
           }
         }
@@ -41635,28 +41635,28 @@ var require_document2 = __commonJS({
         if (typeof paths === "string") {
           paths = paths.indexOf(" ") === -1 ? [paths] : paths.split(" ");
         }
-        for (const path2 of paths) {
-          if (directModifiedPathsObj[path2] != null) {
+        for (const path3 of paths) {
+          if (directModifiedPathsObj[path3] != null) {
             return true;
           }
         }
         const modified = modifiedPaths || this[documentModifiedPaths]();
-        const isModifiedChild = paths.some(function(path2) {
-          return !!~modified.indexOf(path2);
+        const isModifiedChild = paths.some(function(path3) {
+          return !!~modified.indexOf(path3);
         });
         let directModifiedPaths = Object.keys(directModifiedPathsObj);
         if (ignoreAtomics) {
-          directModifiedPaths = directModifiedPaths.filter((path2) => {
-            const value = this.$__getValue(path2);
+          directModifiedPaths = directModifiedPaths.filter((path3) => {
+            const value = this.$__getValue(path3);
             if (value?.[arrayAtomicsSymbol] != null && value[arrayAtomicsSymbol].$set === void 0) {
               return false;
             }
             return true;
           });
         }
-        return isModifiedChild || paths.some(function(path2) {
+        return isModifiedChild || paths.some(function(path3) {
           return directModifiedPaths.some(function(mod3) {
-            return mod3 === path2 || path2.startsWith(mod3 + ".");
+            return mod3 === path3 || path3.startsWith(mod3 + ".");
           });
         });
       }
@@ -41664,18 +41664,18 @@ var require_document2 = __commonJS({
     };
     Document5.prototype.$isModified = Document5.prototype.isModified;
     Document5.prototype[documentIsModified] = Document5.prototype.isModified;
-    Document5.prototype.$isDefault = function(path2) {
-      if (path2 == null) {
+    Document5.prototype.$isDefault = function(path3) {
+      if (path3 == null) {
         return this.$__.activePaths.some("default");
       }
-      if (typeof path2 === "string" && path2.indexOf(" ") === -1) {
-        return Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path2);
+      if (typeof path3 === "string" && path3.indexOf(" ") === -1) {
+        return Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path3);
       }
-      let paths = path2;
+      let paths = path3;
       if (!Array.isArray(paths)) {
         paths = paths.split(" ");
       }
-      return paths.some((path3) => Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path3));
+      return paths.some((path4) => Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path4));
     };
     Document5.prototype.$isDeleted = function(val) {
       if (arguments.length === 0) {
@@ -41684,16 +41684,16 @@ var require_document2 = __commonJS({
       this.$__.isDeleted = !!val;
       return this;
     };
-    Document5.prototype.isDirectModified = function(path2) {
-      if (path2 == null) {
+    Document5.prototype.isDirectModified = function(path3) {
+      if (path3 == null) {
         return this.$__.activePaths.some("modify");
       }
-      if (typeof path2 === "string" && path2.indexOf(" ") === -1) {
-        const res = Object.hasOwn(this.$__.activePaths.getStatePaths("modify"), path2);
-        if (res || path2.indexOf(".") === -1) {
+      if (typeof path3 === "string" && path3.indexOf(" ") === -1) {
+        const res = Object.hasOwn(this.$__.activePaths.getStatePaths("modify"), path3);
+        if (res || path3.indexOf(".") === -1) {
           return res;
         }
-        const pieces = path2.split(".");
+        const pieces = path3.split(".");
         for (let i = 0; i < pieces.length - 1; ++i) {
           const subpath = pieces.slice(0, i + 1).join(".");
           const subdoc = this.$get(subpath);
@@ -41703,40 +41703,40 @@ var require_document2 = __commonJS({
         }
         return false;
       }
-      let paths = path2;
+      let paths = path3;
       if (typeof paths === "string") {
         paths = paths.split(" ");
       }
-      return paths.some((path3) => this.isDirectModified(path3));
+      return paths.some((path4) => this.isDirectModified(path4));
     };
-    Document5.prototype.isInit = function(path2) {
-      if (path2 == null) {
+    Document5.prototype.isInit = function(path3) {
+      if (path3 == null) {
         return this.$__.activePaths.some("init");
       }
-      if (typeof path2 === "string" && path2.indexOf(" ") === -1) {
-        return Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path2);
+      if (typeof path3 === "string" && path3.indexOf(" ") === -1) {
+        return Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path3);
       }
-      let paths = path2;
+      let paths = path3;
       if (!Array.isArray(paths)) {
         paths = paths.split(" ");
       }
-      return paths.some((path3) => Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path3));
+      return paths.some((path4) => Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path4));
     };
-    Document5.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path2) {
+    Document5.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path3) {
       if (this.$__.selected == null) {
         return true;
       }
-      if (!path2) {
+      if (!path3) {
         return false;
       }
-      if (path2 === "_id") {
+      if (path3 === "_id") {
         return this.$__.selected._id !== 0;
       }
-      if (path2.indexOf(" ") !== -1) {
-        path2 = path2.split(" ");
+      if (path3.indexOf(" ") !== -1) {
+        path3 = path3.split(" ");
       }
-      if (Array.isArray(path2)) {
-        return path2.some((p) => this.$__isSelected(p));
+      if (Array.isArray(path3)) {
+        return path3.some((p) => this.$__isSelected(p));
       }
       const index = _getProjectionIndex(this);
       const paths = index.paths;
@@ -41747,14 +41747,14 @@ var require_document2 = __commonJS({
       if (inclusive === null) {
         return true;
       }
-      if (path2 in this.$__.selected) {
+      if (path3 in this.$__.selected) {
         return inclusive;
       }
-      const pathHasDot = path2.indexOf(".") !== -1;
+      const pathHasDot = path3.indexOf(".") !== -1;
       if (!index.hasNestedKey) {
         if (pathHasDot) {
-          for (let dot = path2.indexOf("."); dot !== -1; dot = path2.indexOf(".", dot + 1)) {
-            const ancestor = path2.slice(0, dot);
+          for (let dot = path3.indexOf("."); dot !== -1; dot = path3.indexOf(".", dot + 1)) {
+            const ancestor = path3.slice(0, dot);
             if (ancestor !== "_id" && Object.hasOwn(this.$__.selected, ancestor)) {
               return inclusive;
             }
@@ -41766,10 +41766,10 @@ var require_document2 = __commonJS({
         if (cur === "_id") {
           continue;
         }
-        if (cur.charAt(path2.length) === "." && cur.slice(0, path2.length) === path2) {
-          return inclusive || cur !== path2 + ".";
+        if (cur.charAt(path3.length) === "." && cur.slice(0, path3.length) === path3) {
+          return inclusive || cur !== path3 + ".";
         }
-        if (pathHasDot && path2.charAt(cur.length) === "." && path2.slice(0, cur.length) === cur) {
+        if (pathHasDot && path3.charAt(cur.length) === "." && path3.slice(0, cur.length) === cur) {
           return inclusive;
         }
       }
@@ -41803,18 +41803,18 @@ var require_document2 = __commonJS({
     }
     __name(_getProjectionIndex, "_getProjectionIndex");
     Document5.prototype.$__isSelected = Document5.prototype.isSelected;
-    Document5.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path2) {
+    Document5.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path3) {
       if (this.$__.selected == null) {
         return true;
       }
-      if (path2 === "_id") {
+      if (path3 === "_id") {
         return this.$__.selected._id !== 0;
       }
-      if (path2.indexOf(" ") !== -1) {
-        path2 = path2.split(" ");
+      if (path3.indexOf(" ") !== -1) {
+        path3 = path3.split(" ");
       }
-      if (Array.isArray(path2)) {
-        return path2.some((p) => this.isDirectSelected(p));
+      if (Array.isArray(path3)) {
+        return path3.some((p) => this.isDirectSelected(p));
       }
       const index = _getProjectionIndex(this);
       if (index.onlyId) {
@@ -41823,7 +41823,7 @@ var require_document2 = __commonJS({
       if (index.inclusive === null) {
         return true;
       }
-      if (Object.hasOwn(this.$__.selected, path2)) {
+      if (Object.hasOwn(this.$__.selected, path3)) {
         return index.inclusive;
       }
       return !index.inclusive;
@@ -41895,7 +41895,7 @@ var require_document2 = __commonJS({
           [paths, doValidateOptionsByPath] = _getAllPathsToValidate(this);
         } else {
           const pathDetails = _getPathsToValidate(this, pathsToValidate, pathsToSkip);
-          paths = shouldValidateModifiedOnly ? pathDetails[0].filter((path2) => this.$isModified(path2)) : pathDetails[0];
+          paths = shouldValidateModifiedOnly ? pathDetails[0].filter((path3) => this.$isModified(path3)) : pathDetails[0];
           doValidateOptionsByPath = pathDetails[1];
         }
         if (typeof pathsToValidate === "string") {
@@ -41914,40 +41914,40 @@ var require_document2 = __commonJS({
         const pathsToSave = Array.isArray(this.$__.saveOptions?.pathsToSave) ? new Set(this.$__.saveOptions.pathsToSave) : null;
         const promises = [];
         for (let i = 0; i < paths.length; ++i) {
-          const path2 = paths[i];
-          if (pathsToSave != null && !pathsToSave.has(path2)) {
+          const path3 = paths[i];
+          if (pathsToSave != null && !pathsToSave.has(path3)) {
             promises.push(Promise.resolve(null));
             continue;
           }
-          if (path2 == null || validated[path2]) {
+          if (path3 == null || validated[path3]) {
             promises.push(Promise.resolve(null));
             continue;
           }
-          validated[path2] = true;
-          const schemaType = _this.$__schema.path(path2);
+          validated[path3] = true;
+          const schemaType = _this.$__schema.path(path3);
           if (!schemaType) {
             promises.push(Promise.resolve(null));
             continue;
           }
-          if (!_this.$isValid(path2)) {
+          if (!_this.$isValid(path3)) {
             promises.push(Promise.resolve(null));
             continue;
           }
-          if (schemaType[schemaMixedSymbol] != null && path2 !== schemaType.path) {
+          if (schemaType[schemaMixedSymbol] != null && path3 !== schemaType.path) {
             promises.push(Promise.resolve(null));
             continue;
           }
-          let val = _this.$__getValue(path2);
+          let val = _this.$__getValue(path3);
           let pop;
-          if (pop = _this.$populated(path2)) {
+          if (pop = _this.$populated(path3)) {
             val = pop;
           } else if (val?.$__?.wasPopulated) {
             val = val._doc._id;
           }
-          const scope = _this.$__.pathsToScopes != null && path2 in _this.$__.pathsToScopes ? _this.$__.pathsToScopes[path2] : _this;
+          const scope = _this.$__.pathsToScopes != null && path3 in _this.$__.pathsToScopes ? _this.$__.pathsToScopes[path3] : _this;
           const doValidateOptions = {
-            ...doValidateOptionsByPath[path2],
-            path: path2,
+            ...doValidateOptionsByPath[path3],
+            path: path3,
             validateAllPaths,
             _nestedValidate: true
           };
@@ -42021,33 +42021,33 @@ var require_document2 = __commonJS({
     __name(_completeValidate, "_completeValidate");
     function _getAllPathsToValidate(doc) {
       const paths = Object.keys(doc.$__schema.paths).filter(
-        (path2) => path2.charAt(path2.length - 1) !== "*" || path2.charAt(path2.length - 2) !== "$" || path2.charAt(path2.length - 3) !== "."
+        (path3) => path3.charAt(path3.length - 1) !== "*" || path3.charAt(path3.length - 2) !== "$" || path3.charAt(path3.length - 3) !== "."
       );
       const doValidateOptionsByPath = {};
       for (let i = 0; i < paths.length; ++i) {
-        const path2 = paths[i];
-        const schemaType = doc.$__schema.path(path2);
+        const path3 = paths[i];
+        const schemaType = doc.$__schema.path(path3);
         if (schemaType == null) {
           continue;
         }
-        const val = doc.$__getValue(path2);
+        const val = doc.$__getValue(path3);
         if (!val) {
           continue;
         }
         if (schemaType.$isSchemaMap) {
           for (const key of val.keys()) {
-            paths.push(path2 + "." + key);
+            paths.push(path3 + "." + key);
           }
         } else if (schemaType.$isMongooseDocumentArray) {
           if (schemaType.embeddedSchemaType?.validators.length) {
             for (let j = 0; j < val.length; ++j) {
-              const elementPath = path2 + "." + j;
+              const elementPath = path3 + "." + j;
               paths.push(elementPath);
               doValidateOptionsByPath[elementPath] = { skipSubdocumentValidation: true, index: j };
             }
           }
         } else if (schemaType.$isMongooseArray) {
-          _pushNestedArrayPaths(val, paths, path2);
+          _pushNestedArrayPaths(val, paths, path3);
         }
       }
       return [paths, doValidateOptionsByPath];
@@ -42066,36 +42066,36 @@ var require_document2 = __commonJS({
       const requireStates = activeStates.require;
       if (requireStates != null) {
         let modifiedPaths2 = null;
-        for (const path2 in requireStates) {
-          const isOwnPath = Object.hasOwn(schemaPaths, path2);
-          const type = isOwnPath ? schemaPaths[path2] : schema.path(path2);
+        for (const path3 in requireStates) {
+          const isOwnPath = Object.hasOwn(schemaPaths, path3);
+          const type = isOwnPath ? schemaPaths[path3] : schema.path(path3);
           if (typeof type?.originalRequiredValue === "function") {
             const cachedRequired2 = doc.$__.cachedRequired ?? (doc.$__.cachedRequired = {});
             try {
-              cachedRequired2[path2] = type.originalRequiredValue.call(doc, doc);
+              cachedRequired2[path3] = type.originalRequiredValue.call(doc, doc);
             } catch (err) {
-              doc.invalidate(path2, err);
+              doc.invalidate(path3, err);
             }
           }
-          if (!doc.$__isSelected(path2)) {
+          if (!doc.$__isSelected(path3)) {
             modifiedPaths2 ??= doc.modifiedPaths();
-            if (!doc.$isModified(path2, null, modifiedPaths2)) {
+            if (!doc.$isModified(path3, null, modifiedPaths2)) {
               continue;
             }
           }
-          if (path2.charCodeAt(path2.length - 1) === STAR_CHAR_CODE && path2.endsWith(".$*")) {
+          if (path3.charCodeAt(path3.length - 1) === STAR_CHAR_CODE && path3.endsWith(".$*")) {
             continue;
           }
           const cachedRequired = doc.$__.cachedRequired;
-          if (cachedRequired != null && path2 in cachedRequired && !cachedRequired[path2]) {
+          if (cachedRequired != null && path3 in cachedRequired && !cachedRequired[path3]) {
             continue;
           }
-          if (!isOwnPath && type != null && Object.hasOwn(singleNestedPaths, path2)) {
+          if (!isOwnPath && type != null && Object.hasOwn(singleNestedPaths, path3)) {
             continue;
           }
-          paths.add(path2);
+          paths.add(path3);
           if (type != null && type.schema != null) {
-            covered[path2] = true;
+            covered[path3] = true;
           }
         }
       }
@@ -42104,38 +42104,38 @@ var require_document2 = __commonJS({
         if (statePaths == null) {
           continue;
         }
-        for (const path2 in statePaths) {
-          if (path2.charCodeAt(path2.length - 1) === STAR_CHAR_CODE && path2.endsWith(".$*")) {
+        for (const path3 in statePaths) {
+          if (path3.charCodeAt(path3.length - 1) === STAR_CHAR_CODE && path3.endsWith(".$*")) {
             continue;
           }
-          const isOwnPath = Object.hasOwn(schemaPaths, path2);
-          const type = isOwnPath ? schemaPaths[path2] : schema.path(path2);
-          if (type != null && (_hasNothingToValidate(type) || !isOwnPath && Object.hasOwn(singleNestedPaths, path2))) {
+          const isOwnPath = Object.hasOwn(schemaPaths, path3);
+          const type = isOwnPath ? schemaPaths[path3] : schema.path(path3);
+          if (type != null && (_hasNothingToValidate(type) || !isOwnPath && Object.hasOwn(singleNestedPaths, path3))) {
             continue;
           }
-          if (type?.[schemaMixedSymbol] != null && path2 !== type.path) {
+          if (type?.[schemaMixedSymbol] != null && path3 !== type.path) {
             continue;
           }
-          paths.add(path2);
+          paths.add(path3);
           if (type != null && type.schema != null) {
-            covered[path2] = true;
+            covered[path3] = true;
           }
         }
       }
       if (paths.size === 0 && doc.$__hasOnlyPrimitiveValues()) {
         return [[], doValidateOptions];
       }
-      for (const path2 of paths) {
-        if (!schema.nested[path2]) {
+      for (const path3 of paths) {
+        if (!schema.nested[path3]) {
           continue;
         }
-        paths.delete(path2);
-        const value = doc.$__getValue(path2);
+        paths.delete(path3);
+        const value = doc.$__getValue(path3);
         if (value == null || Array.isArray(value)) {
           continue;
         }
         for (const key of Object.keys(value)) {
-          const child = path2 + "." + key;
+          const child = path3 + "." + key;
           paths.add(child);
           if (Object.hasOwn(schemaPaths, child) && schemaPaths[child].schema != null) {
             covered[child] = true;
@@ -42144,51 +42144,51 @@ var require_document2 = __commonJS({
       }
       const modifiedPaths = doc.modifiedPaths();
       const pathsWithSchemaTypes = Object.entries(schemaPaths);
-      for (const path2 of Object.keys(schemaPaths)) {
-        const schemaType = schemaPaths[path2];
+      for (const path3 of Object.keys(schemaPaths)) {
+        const schemaType = schemaPaths[path3];
         if (!schemaType.$isSchemaMap || !schemaType.$__schemaType.$isMongooseDocumentArray) {
           continue;
         }
-        const val = doc.$get(path2);
+        const val = doc.$get(path3);
         if (val == null) {
           continue;
         }
         for (const key of val.keys()) {
-          const mapValuePath = path2 + "." + key;
+          const mapValuePath = path3 + "." + key;
           if (modifiedPaths.includes(mapValuePath)) {
             pathsWithSchemaTypes.push([mapValuePath, schemaType.$__schemaType]);
           }
         }
       }
-      for (const [path2, schemaType] of pathsWithSchemaTypes) {
+      for (const [path3, schemaType] of pathsWithSchemaTypes) {
         let subdocs;
         if (schemaType.$isSingleNested) {
-          const subdoc = doc.$get(path2);
+          const subdoc = doc.$get(path3);
           if (subdoc == null) {
             continue;
           }
           subdocs = [subdoc];
         } else if (schemaType.$isMongooseDocumentArray) {
-          subdocs = doc.$get(path2);
+          subdocs = doc.$get(path3);
           if (!subdocs?.length) {
             continue;
           }
-          if (modifiedPaths.includes(path2) && (schemaType.validators.length > 0 || covered[path2] === true)) {
-            if (covered[path2] !== true && !Object.hasOwn(activeStates.modify, path2)) {
-              doValidateOptions[path2] = { skipSchemaValidators: true };
+          if (modifiedPaths.includes(path3) && (schemaType.validators.length > 0 || covered[path3] === true)) {
+            if (covered[path3] !== true && !Object.hasOwn(activeStates.modify, path3)) {
+              doValidateOptions[path3] = { skipSchemaValidators: true };
             }
-            paths.add(path2);
-            covered[path2] = true;
+            paths.add(path3);
+            covered[path3] = true;
           }
         } else {
           continue;
         }
-        const arrayCoversElements = schemaType.$isMongooseDocumentArray && covered[path2] === true;
+        const arrayCoversElements = schemaType.$isMongooseDocumentArray && covered[path3] === true;
         for (const subdoc of subdocs) {
           if (subdoc == null || !subdoc.$basePath) {
             continue;
           }
-          const fullPathToSubdoc = schemaType.$isMongooseDocumentArray ? path2 + "." + subdoc.__index : subdoc.$__pathRelativeToParent();
+          const fullPathToSubdoc = schemaType.$isMongooseDocumentArray ? path3 + "." + subdoc.__index : subdoc.$__pathRelativeToParent();
           const subdocParent = subdoc.$parent();
           if (subdocParent == null) {
             throw new Error("Cannot validate subdocument that does not have a parent");
@@ -42198,7 +42198,7 @@ var require_document2 = __commonJS({
             for (const modifiedPath of subdoc.modifiedPaths({ includeChildren: true })) {
               paths.delete(fullPathToSubdoc + "." + modifiedPath);
             }
-            if (path2 !== schemaType.path && Object.hasOwn(activeStates.modify, fullPathToSubdoc)) {
+            if (path3 !== schemaType.path && Object.hasOwn(activeStates.modify, fullPathToSubdoc)) {
               doValidateOptions[fullPathToSubdoc] = { skipSchemaValidators: false };
             }
           }
@@ -42212,7 +42212,7 @@ var require_document2 = __commonJS({
               paths.delete(fullPathToSubdoc + "." + modifiedPath);
             }
           }
-          if (!arrayCoversElements && covered[path2] !== true) {
+          if (!arrayCoversElements && covered[path3] !== true) {
             paths.add(fullPathToSubdoc);
           }
           covered[fullPathToSubdoc] = true;
@@ -42230,17 +42230,17 @@ var require_document2 = __commonJS({
         paths = _handlePathsToSkip(paths, pathsToSkip);
       }
       _addArrayPathsToValidate(doc, paths, doValidateOptions);
-      for (const path2 of paths) {
-        const _pathType = schema.path(path2);
+      for (const path3 of paths) {
+        const _pathType = schema.path(path3);
         if (!_pathType || !_pathType.$isSchemaMap) {
           continue;
         }
-        const val = doc.$__getValue(path2);
+        const val = doc.$__getValue(path3);
         if (val == null) {
           continue;
         }
         for (const key of val.keys()) {
-          paths.add(path2 + "." + key);
+          paths.add(path3 + "." + key);
         }
       }
       return [Array.from(paths), doValidateOptions];
@@ -42258,8 +42258,8 @@ var require_document2 = __commonJS({
     }
     __name(_hasNothingToValidate, "_hasNothingToValidate");
     function _addArrayPathsToValidate(doc, paths, doValidateOptions) {
-      for (const path2 of paths) {
-        const _pathType = doc.$__schema.path(path2);
+      for (const path3 of paths) {
+        const _pathType = doc.$__schema.path(path3);
         if (!_pathType) {
           continue;
         }
@@ -42274,14 +42274,14 @@ var require_document2 = __commonJS({
         _pathType.embeddedSchemaType.validators.length === 0) {
           continue;
         }
-        const val = doc.$__getValue(path2);
+        const val = doc.$__getValue(path3);
         if (_pathType.$isMongooseDocumentArray) {
           const numElements = val?.length ?? 0;
           for (let j = 0; j < numElements; ++j) {
-            const elementPath = path2 + "." + j;
+            const elementPath = path3 + "." + j;
             paths.add(elementPath);
             doValidateOptions[elementPath] = {
-              ...doValidateOptions[path2],
+              ...doValidateOptions[path3],
               ...doValidateOptions[elementPath],
               skipSubdocumentValidation: true,
               index: j
@@ -42289,21 +42289,21 @@ var require_document2 = __commonJS({
           }
           continue;
         }
-        _pushNestedArrayPaths(val, paths, path2);
+        _pushNestedArrayPaths(val, paths, path3);
       }
     }
     __name(_addArrayPathsToValidate, "_addArrayPathsToValidate");
-    function _pushNestedArrayPaths(val, paths, path2) {
+    function _pushNestedArrayPaths(val, paths, path3) {
       if (val != null) {
         const numElements = val.length;
         for (let j = 0; j < numElements; ++j) {
           if (Array.isArray(val[j])) {
-            _pushNestedArrayPaths(val[j], paths, path2 + "." + j);
+            _pushNestedArrayPaths(val[j], paths, path3 + "." + j);
           } else {
             if (Array.isArray(paths)) {
-              paths.push(path2 + "." + j);
+              paths.push(path3 + "." + j);
             } else {
-              paths.add(path2 + "." + j);
+              paths.add(path3 + "." + j);
             }
           }
         }
@@ -42321,31 +42321,31 @@ var require_document2 = __commonJS({
     function _handlePathsToValidate(paths, pathsToValidate) {
       const _pathsToValidate = new Set(pathsToValidate);
       const parentPaths2 = /* @__PURE__ */ new Map([]);
-      for (const path2 of pathsToValidate) {
-        if (path2.indexOf(".") === -1) {
+      for (const path3 of pathsToValidate) {
+        if (path3.indexOf(".") === -1) {
           continue;
         }
-        const pieces = path2.split(".");
+        const pieces = path3.split(".");
         let cur = pieces[0];
         for (let i = 1; i < pieces.length; ++i) {
-          parentPaths2.set(cur, path2);
+          parentPaths2.set(cur, path3);
           cur = cur + "." + pieces[i];
         }
       }
       const ret = /* @__PURE__ */ new Set();
-      for (const path2 of paths) {
+      for (const path3 of paths) {
         let isUnderPathToValidate = false;
-        let index = path2.length;
-        while ((index = path2.lastIndexOf(".", index - 1)) !== -1) {
-          if (_pathsToValidate.has(path2.slice(0, index))) {
+        let index = path3.length;
+        while ((index = path3.lastIndexOf(".", index - 1)) !== -1) {
+          if (_pathsToValidate.has(path3.slice(0, index))) {
             isUnderPathToValidate = true;
             break;
           }
         }
-        if (_pathsToValidate.has(path2) || isUnderPathToValidate) {
-          ret.add(path2);
-        } else if (parentPaths2.has(path2)) {
-          ret.add(parentPaths2.get(path2));
+        if (_pathsToValidate.has(path3) || isUnderPathToValidate) {
+          ret.add(path3);
+        } else if (parentPaths2.has(path3)) {
+          ret.add(parentPaths2.get(path3));
         }
       }
       return ret;
@@ -42353,9 +42353,9 @@ var require_document2 = __commonJS({
     __name(_handlePathsToValidate, "_handlePathsToValidate");
     function _handlePathsToSkip(paths, pathsToSkip) {
       pathsToSkip = new Set(pathsToSkip);
-      for (const path2 of paths) {
-        if (pathsToSkip.has(path2)) {
-          paths.delete(path2);
+      for (const path3 of paths) {
+        if (pathsToSkip.has(path3)) {
+          paths.delete(path3);
         }
       }
       return paths;
@@ -42400,29 +42400,29 @@ var require_document2 = __commonJS({
         [paths, doValidateOptionsByPath] = _getAllPathsToValidate(this);
       } else {
         const pathDetails = _getPathsToValidate(this, pathsToValidate, pathsToSkip);
-        paths = shouldValidateModifiedOnly ? pathDetails[0].filter((path2) => this.$isModified(path2)) : pathDetails[0];
+        paths = shouldValidateModifiedOnly ? pathDetails[0].filter((path3) => this.$isModified(path3)) : pathDetails[0];
         doValidateOptionsByPath = pathDetails[1];
       }
       const validating = {};
       for (let i = 0, len = paths.length; i < len; ++i) {
-        const path2 = paths[i];
-        if (validating[path2]) {
+        const path3 = paths[i];
+        if (validating[path3]) {
           continue;
         }
-        validating[path2] = true;
-        const p = _this.$__schema.path(path2);
+        validating[path3] = true;
+        const p = _this.$__schema.path(path3);
         if (!p) {
           continue;
         }
-        if (!_this.$isValid(path2)) {
+        if (!_this.$isValid(path3)) {
           continue;
         }
-        const val = _this.$__getValue(path2);
-        const pathOptions = doValidateOptionsByPath[path2];
+        const val = _this.$__getValue(path3);
+        const pathOptions = doValidateOptionsByPath[path3];
         const err2 = p.doValidateSync(val, _this, {
           ...pathOptions != null && typeof pathOptions === "object" ? pathOptions : null,
           skipSchemaValidators: typeof pathOptions === "object" ? pathOptions.skipSchemaValidators : pathOptions,
-          path: path2,
+          path: path3,
           validateModifiedOnly: shouldValidateModifiedOnly,
           validateAllPaths,
           _nestedValidate: true
@@ -42432,7 +42432,7 @@ var require_document2 = __commonJS({
           if (isSubdoc && err2 instanceof ValidationError) {
             continue;
           }
-          _this.invalidate(path2, err2, void 0, true);
+          _this.invalidate(path3, err2, void 0, true);
         }
       }
       const err = _this.$__.validationError;
@@ -42448,16 +42448,16 @@ var require_document2 = __commonJS({
       }
       return err;
     };
-    Document5.prototype.invalidate = function(path2, err, val, kind) {
+    Document5.prototype.invalidate = function(path3, err, val, kind) {
       if (!this.$__.validationError) {
         this.$__.validationError = new ValidationError(this);
       }
-      if (this.$__.validationError.errors[path2]) {
+      if (this.$__.validationError.errors[path3]) {
         return;
       }
       if (!err || typeof err === "string") {
         err = new ValidatorError({
-          path: path2,
+          path: path3,
           message: err,
           type: kind || "user defined",
           value: val
@@ -42472,25 +42472,25 @@ var require_document2 = __commonJS({
           err.setModel(owner.constructor);
         }
       }
-      this.$__.validationError.addError(path2, err);
+      this.$__.validationError.addError(path3, err);
       return this.$__.validationError;
     };
-    Document5.prototype.$markValid = function(path2) {
-      if (!this.$__.validationError?.errors[path2]) {
+    Document5.prototype.$markValid = function(path3) {
+      if (!this.$__.validationError?.errors[path3]) {
         return;
       }
-      delete this.$__.validationError.errors[path2];
+      delete this.$__.validationError.errors[path3];
       if (utils.hasOwnKeys(this.$__.validationError.errors) === false) {
         this.$__.validationError = null;
       }
     };
-    function _markValidSubpaths(doc, path2) {
+    function _markValidSubpaths(doc, path3) {
       if (!doc.$__.validationError) {
         return;
       }
       const keys = Object.keys(doc.$__.validationError.errors);
       for (const key of keys) {
-        if (key.startsWith(path2 + ".")) {
+        if (key.startsWith(path3 + ".")) {
           delete doc.$__.validationError.errors[key];
         }
       }
@@ -42505,29 +42505,29 @@ var require_document2 = __commonJS({
         return;
       }
       for (const key of Object.keys(schema.paths)) {
-        const path2 = schema.paths[key];
-        if (path2.$immutableSetter == null) {
+        const path3 = schema.paths[key];
+        if (path3.$immutableSetter == null) {
           continue;
         }
         const oldVal = priorVal == null ? void 0 : priorVal.$__getValue(key);
-        path2.$immutableSetter.call(subdoc, oldVal);
+        path3.$immutableSetter.call(subdoc, oldVal);
       }
     }
     __name(_checkImmutableSubpaths, "_checkImmutableSubpaths");
-    Document5.prototype.$isValid = function(path2) {
+    Document5.prototype.$isValid = function(path3) {
       if (this.$__.validationError == null || utils.hasOwnKeys(this.$__.validationError.errors) === false) {
         return true;
       }
-      if (path2 == null) {
+      if (path3 == null) {
         return false;
       }
-      if (path2.indexOf(" ") !== -1) {
-        path2 = path2.split(" ");
+      if (path3.indexOf(" ") !== -1) {
+        path3 = path3.split(" ");
       }
-      if (Array.isArray(path2)) {
-        return path2.some((p) => this.$__.validationError.errors[p] == null);
+      if (Array.isArray(path3)) {
+        return path3.some((p) => this.$__.validationError.errors[p] == null);
       }
-      return this.$__.validationError.errors[path2] == null;
+      return this.$__.validationError.errors[path3] == null;
     };
     Document5.prototype.$__reset = /* @__PURE__ */ __name(function reset(skipBackup, hasOnlyPrimitiveValues) {
       hasOnlyPrimitiveValues = hasOnlyPrimitiveValues ?? this.$__hasOnlyPrimitiveValues();
@@ -42556,8 +42556,8 @@ var require_document2 = __commonJS({
       if (this.$errors) {
         this.$errors = void 0;
       }
-      for (const path2 of this.$__schema.requiredPaths()) {
-        this.$__.activePaths.require(path2);
+      for (const path3 of this.$__schema.requiredPaths()) {
+        this.$__.activePaths.require(path3);
       }
       return this;
     }, "reset");
@@ -42608,21 +42608,21 @@ var require_document2 = __commonJS({
     }, "$__undoReset");
     Document5.prototype.$__dirty = function() {
       const _this = this;
-      let all = this.$__.activePaths.map("modify", function(path2) {
+      let all = this.$__.activePaths.map("modify", function(path3) {
         return {
-          path: path2,
-          value: _this.$__getValue(path2),
-          schema: _this.$__path(path2)
+          path: path3,
+          value: _this.$__getValue(path3),
+          schema: _this.$__path(path3)
         };
       });
-      all = all.concat(this.$__.activePaths.map("default", function(path2) {
-        if (path2 === "_id" || _this.$__getValue(path2) == null) {
+      all = all.concat(this.$__.activePaths.map("default", function(path3) {
+        if (path3 === "_id" || _this.$__getValue(path3) == null) {
           return;
         }
         return {
-          path: path2,
-          value: _this.$__getValue(path2),
-          schema: _this.$__path(path2)
+          path: path3,
+          value: _this.$__getValue(path3),
+          schema: _this.$__path(path3)
         };
       }));
       const allPaths = new Map(all.filter((el) => el != null).map((el) => [el.path, el.value]));
@@ -42777,15 +42777,15 @@ var require_document2 = __commonJS({
         ret = this.$__toObjectShallow(schemaFieldsOnly);
       } else if (schemaFieldsOnly) {
         ret = {};
-        for (const path2 of Object.keys(this.$__schema.paths)) {
-          const value = this.$__getValue(path2);
+        for (const path3 of Object.keys(this.$__schema.paths)) {
+          const value = this.$__getValue(path3);
           if (value === void 0) {
             continue;
           }
-          let pathToSet = path2;
+          let pathToSet = path3;
           let objToSet = ret;
-          if (path2.indexOf(".") !== -1) {
-            const segments = path2.split(".");
+          if (path3.indexOf(".") !== -1) {
+            const segments = path3.split(".");
             pathToSet = segments[segments.length - 1];
             for (let i = 0; i < segments.length - 1; ++i) {
               objToSet[segments[i]] = objToSet[segments[i]] ?? {};
@@ -42860,7 +42860,7 @@ var require_document2 = __commonJS({
       const paths = Object.keys(virtuals);
       let i = paths.length;
       const numPaths = i;
-      let path2;
+      let path3;
       let assignPath;
       let cur = self2._doc;
       let v;
@@ -42881,22 +42881,22 @@ var require_document2 = __commonJS({
         return json2;
       }
       for (i = 0; i < numPaths; ++i) {
-        path2 = paths[i];
-        if (virtualsToApply != null && !virtualsToApply.has(path2)) {
+        path3 = paths[i];
+        if (virtualsToApply != null && !virtualsToApply.has(path3)) {
           continue;
         }
-        if (!aliases && Object.hasOwn(schema.aliases, path2)) {
+        if (!aliases && Object.hasOwn(schema.aliases, path3)) {
           continue;
         }
-        assignPath = path2;
+        assignPath = path3;
         if (options.path != null) {
-          if (!path2.startsWith(options.path + ".")) {
+          if (!path3.startsWith(options.path + ".")) {
             continue;
           }
-          assignPath = path2.substring(options.path.length + 1);
+          assignPath = path3.substring(options.path.length + 1);
         }
-        if (assignPath.indexOf(".") === -1 && assignPath === path2) {
-          v = virtuals[path2].applyGetters(void 0, self2);
+        if (assignPath.indexOf(".") === -1 && assignPath === path3) {
+          v = virtuals[path3].applyGetters(void 0, self2);
           if (v === void 0) {
             continue;
           }
@@ -42905,7 +42905,7 @@ var require_document2 = __commonJS({
           continue;
         }
         const parts = assignPath.split(".");
-        v = clone2(self2.get(path2), options);
+        v = clone2(self2.get(path3), options);
         if (v === void 0) {
           continue;
         }
@@ -42924,37 +42924,37 @@ var require_document2 = __commonJS({
       const schema = self2.$__schema;
       const paths = Object.keys(schema.paths);
       let i = paths.length;
-      let path2;
+      let path3;
       let cur = self2._doc;
       let v;
       if (!cur) {
         return json2;
       }
       while (i--) {
-        path2 = paths[i];
-        const schemaType = schema.paths[path2];
+        path3 = paths[i];
+        const schemaType = schema.paths[path3];
         if (!schemaType.getters?.length && !schemaType.embeddedSchemaType?.getters?.length) {
           continue;
         }
-        if (!self2.$__isSelected(path2)) {
+        if (!self2.$__isSelected(path3)) {
           continue;
         }
-        if (path2.indexOf(".") === -1) {
-          json2[path2] = schemaType.applyGetters(
-            json2[path2],
+        if (path3.indexOf(".") === -1) {
+          json2[path3] = schemaType.applyGetters(
+            json2[path3],
             self2
           );
-          if (Array.isArray(json2[path2]) && schemaType.embeddedSchemaType) {
-            for (let i2 = 0; i2 < json2[path2].length; ++i2) {
-              json2[path2][i2] = schemaType.embeddedSchemaType.applyGetters(
-                json2[path2][i2],
+          if (Array.isArray(json2[path3]) && schemaType.embeddedSchemaType) {
+            for (let i2 = 0; i2 < json2[path3].length; ++i2) {
+              json2[path3][i2] = schemaType.embeddedSchemaType.applyGetters(
+                json2[path3][i2],
                 self2
               );
             }
           }
           continue;
         }
-        const parts = path2.split(".");
+        const parts = path3.split(".");
         const plen = parts.length;
         const last = plen - 1;
         let branch = json2;
@@ -42999,20 +42999,20 @@ var require_document2 = __commonJS({
       if (!cur || !paths) {
         return json2;
       }
-      for (const path2 of paths) {
-        const schematype = schema.paths[path2];
+      for (const path3 of paths) {
+        const schematype = schema.paths[path3];
         const topLevelTransformFunction = schematype.options.transform ?? schematype.constructor?.defaultOptions?.transform;
         const embeddedSchemaTypeTransformFunction = schematype.embeddedSchemaType?.options?.transform ?? schematype.embeddedSchemaType?.constructor?.defaultOptions?.transform;
         if (typeof topLevelTransformFunction === "function") {
-          const val = self2.$get(path2);
+          const val = self2.$get(path3);
           if (val === void 0) {
             continue;
           }
           const transformedValue = topLevelTransformFunction.call(self2, val);
-          throwErrorIfPromise(path2, transformedValue);
-          utils.setValue(path2, transformedValue, json2);
+          throwErrorIfPromise(path3, transformedValue);
+          utils.setValue(path3, transformedValue, json2);
         } else if (typeof embeddedSchemaTypeTransformFunction === "function") {
-          const val = self2.$get(path2);
+          const val = self2.$get(path3);
           if (val === void 0) {
             continue;
           }
@@ -43020,17 +43020,17 @@ var require_document2 = __commonJS({
           for (let i = 0; i < vals.length; ++i) {
             const transformedValue = embeddedSchemaTypeTransformFunction.call(self2, vals[i]);
             vals[i] = transformedValue;
-            throwErrorIfPromise(path2, transformedValue);
+            throwErrorIfPromise(path3, transformedValue);
           }
-          json2[path2] = vals;
+          json2[path3] = vals;
         }
       }
       return json2;
     }
     __name(applySchemaTypeTransforms, "applySchemaTypeTransforms");
-    function throwErrorIfPromise(path2, transformedValue) {
+    function throwErrorIfPromise(path3, transformedValue) {
       if (isPromise(transformedValue)) {
-        throw new Error("`transform` function must be synchronous, but the transform on path `" + path2 + "` returned a promise.");
+        throw new Error("`transform` function must be synchronous, but the transform on path `" + path3 + "` returned a promise.");
       }
     }
     __name(throwErrorIfPromise, "throwErrorIfPromise");
@@ -43049,9 +43049,9 @@ var require_document2 = __commonJS({
       if (selected == null || utils.hasOwnKeys(selected) === false) {
         return json2;
       }
-      for (const path2 of paths) {
-        if (selected[path2] != null && !selected[path2]) {
-          delete json2[path2];
+      for (const path3 of paths) {
+        if (selected[path3] != null && !selected[path3]) {
+          delete json2[path3];
         }
       }
       return json2;
@@ -43131,13 +43131,13 @@ var require_document2 = __commonJS({
       }
       if (this.$session() != null) {
         const session = this.$session();
-        paths.forEach((path2) => {
-          if (path2.options == null) {
-            path2.options = { session };
+        paths.forEach((path3) => {
+          if (path3.options == null) {
+            path3.options = { session };
             return;
           }
-          if (!("session" in path2.options)) {
-            path2.options.session = session;
+          if (!("session" in path3.options)) {
+            path3.options.session = session;
           }
         });
       }
@@ -43162,15 +43162,15 @@ var require_document2 = __commonJS({
       }
       return result;
     }, "$getPopulatedDocs");
-    Document5.prototype.populated = function(path2, val, options) {
+    Document5.prototype.populated = function(path3, val, options) {
       if (val == null || val === true) {
         if (!this.$__.populated) {
           return void 0;
         }
-        if (typeof path2 !== "string") {
+        if (typeof path3 !== "string") {
           return void 0;
         }
-        const _path = path2.endsWith(".$*") ? path2.replace(/\.\$\*$/, "") : path2;
+        const _path = path3.endsWith(".$*") ? path3.replace(/\.\$\*$/, "") : path3;
         const v = this.$__.populated[_path];
         if (v) {
           return val === true ? v : v.value;
@@ -43178,8 +43178,8 @@ var require_document2 = __commonJS({
         return void 0;
       }
       this.$__.populated || (this.$__.populated = {});
-      this.$__.populated[path2] = { value: val, options };
-      const pieces = path2.split(".");
+      this.$__.populated[path3] = { value: val, options };
+      const pieces = path3.split(".");
       for (let i = 0; i < pieces.length - 1; ++i) {
         const subpath = pieces.slice(0, i + 1).join(".");
         const subdoc = this.$get(subpath);
@@ -43192,22 +43192,22 @@ var require_document2 = __commonJS({
       return val;
     };
     Document5.prototype.$populated = Document5.prototype.populated;
-    Document5.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path2, values) {
-      if (Array.isArray(path2)) {
-        path2.forEach((p) => this.$assertPopulated(p, values));
+    Document5.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path3, values) {
+      if (Array.isArray(path3)) {
+        path3.forEach((p) => this.$assertPopulated(p, values));
         return this;
       }
       if (arguments.length > 1) {
         this.$set(values);
       }
-      if (!this.$populated(path2)) {
-        throw new MongooseError(`Expected path "${path2}" to be populated`);
+      if (!this.$populated(path3)) {
+        throw new MongooseError(`Expected path "${path3}" to be populated`);
       }
       return this;
     }, "$assertPopulated");
-    Document5.prototype.depopulate = function(path2) {
-      if (typeof path2 === "string") {
-        path2 = path2.indexOf(" ") === -1 ? [path2] : path2.split(" ");
+    Document5.prototype.depopulate = function(path3) {
+      if (typeof path3 === "string") {
+        path3 = path3.indexOf(" ") === -1 ? [path3] : path3.split(" ");
       }
       let populatedIds;
       const virtualKeys = this.$$populatedVirtuals ? Object.keys(this.$$populatedVirtuals) : [];
@@ -43245,7 +43245,7 @@ var require_document2 = __commonJS({
         }
         return this;
       }
-      for (const singlePath of path2) {
+      for (const singlePath of path3) {
         populatedIds = this.$populated(singlePath);
         delete populated[singlePath];
         if (virtualKeys.indexOf(singlePath) !== -1) {
@@ -43273,8 +43273,8 @@ var require_document2 = __commonJS({
       }
       return this;
     };
-    Document5.prototype.$__fullPath = function(path2) {
-      return path2 || "";
+    Document5.prototype.$__fullPath = function(path3) {
+      return path3 || "";
     };
     Document5.prototype.$getChanges = function() {
       const delta = this.$__delta();
@@ -43308,7 +43308,7 @@ var require_document2 = __commonJS({
           }
           const optimisticConcurrencyTrie = this.$__schema.options._optimisticConcurrencyTrie;
           const modPaths = this.directModifiedPaths();
-          const hasRelevantModPaths = pathsToSave == null ? modPaths.find((path2) => optimisticConcurrencyTrie.overlapsPath(path2.indexOf(".") === -1 ? path2 : path2.split("."))) : modPaths.find((path2) => optimisticConcurrencyTrie.overlapsPath(path2.indexOf(".") === -1 ? path2 : path2.split(".")) && isInPathsToSave(path2, pathsToSaveSet, pathsToSave));
+          const hasRelevantModPaths = pathsToSave == null ? modPaths.find((path3) => optimisticConcurrencyTrie.overlapsPath(path3.indexOf(".") === -1 ? path3 : path3.split("."))) : modPaths.find((path3) => optimisticConcurrencyTrie.overlapsPath(path3.indexOf(".") === -1 ? path3 : path3.split(".")) && isInPathsToSave(path3, pathsToSaveSet, pathsToSave));
           if (hasRelevantModPaths) {
             this.$__.version = dirty.length ? VERSION_ALL : VERSION_WHERE;
           }
@@ -43318,7 +43318,7 @@ var require_document2 = __commonJS({
           }
           const optimisticConcurrencyExcludeTrie = this.$__schema.options._optimisticConcurrencyExcludeTrie;
           const modPaths = this.directModifiedPaths();
-          const hasRelevantModPaths = pathsToSave == null ? modPaths.find((path2) => !optimisticConcurrencyExcludeTrie.matchesPathOrAncestor(path2.indexOf(".") === -1 ? path2 : path2.split("."))) : modPaths.find((path2) => !optimisticConcurrencyExcludeTrie.matchesPathOrAncestor(path2.indexOf(".") === -1 ? path2 : path2.split(".")) && isInPathsToSave(path2, pathsToSaveSet, pathsToSave));
+          const hasRelevantModPaths = pathsToSave == null ? modPaths.find((path3) => !optimisticConcurrencyExcludeTrie.matchesPathOrAncestor(path3.indexOf(".") === -1 ? path3 : path3.split("."))) : modPaths.find((path3) => !optimisticConcurrencyExcludeTrie.matchesPathOrAncestor(path3.indexOf(".") === -1 ? path3 : path3.split(".")) && isInPathsToSave(path3, pathsToSaveSet, pathsToSave));
           if (hasRelevantModPaths) {
             this.$__.version = dirty.length ? VERSION_ALL : VERSION_WHERE;
           }
@@ -43366,7 +43366,7 @@ var require_document2 = __commonJS({
             continue;
           }
           const pathsToCheck = parentPaths(data.path);
-          if (pathsToCheck.find((path2) => isPathExcluded(this.$__.isSelected, path2))) {
+          if (pathsToCheck.find((path3) => isPathExcluded(this.$__.isSelected, path3))) {
             continue;
           }
         }
@@ -43409,10 +43409,10 @@ var require_document2 = __commonJS({
       }
       return [where, delta, unsavedDirty];
     }, "$__delta");
-    function checkDivergentArray(doc, path2, array2) {
-      const pop = doc.$populated(path2, true);
+    function checkDivergentArray(doc, path3, array2) {
+      const pop = doc.$populated(path3, true);
       if (!pop && doc.$__.selected) {
-        const top = path2.split(".")[0];
+        const top = path3.split(".")[0];
         if (doc.$__.selected[top] && doc.$__.selected[top].$slice != null && utils.isMongooseArray(array2)) {
           const atomics = array2[arrayAtomicsSymbol];
           if (atomics.$set) {
@@ -43431,7 +43431,7 @@ var require_document2 = __commonJS({
       if (check2) {
         const atomics = array2[arrayAtomicsSymbol];
         if (utils.hasOwnKeys(atomics) === false || atomics.$set || atomics.$pop) {
-          return path2;
+          return path3;
         }
       }
     }
@@ -43528,11 +43528,11 @@ var require_document2 = __commonJS({
       }
     }
     __name(handleAtomics, "handleAtomics");
-    function shouldSkipVersioning(self2, path2) {
+    function shouldSkipVersioning(self2, path3) {
       const skipVersioning = self2.$__schema.options.skipVersioning;
       if (!skipVersioning) return false;
-      path2 = path2.replace(/\.\d+\./, ".");
-      return skipVersioning[path2];
+      path3 = path3.replace(/\.\d+\./, ".");
+      return skipVersioning[path3];
     }
     __name(shouldSkipVersioning, "shouldSkipVersioning");
     Document5.prototype.$clone = function() {
@@ -43824,7 +43824,7 @@ var require_utils3 = __commonJS({
       }
       return val;
     }, "clonePOJOsAndArrays");
-    exports2.merge = /* @__PURE__ */ __name(function merge2(to, from, options, path2) {
+    exports2.merge = /* @__PURE__ */ __name(function merge2(to, from, options, path3) {
       options = options || {};
       if (from == null) {
         return to;
@@ -43836,14 +43836,14 @@ var require_utils3 = __commonJS({
       if (from[trustedSymbol]) {
         to[trustedSymbol] = from[trustedSymbol];
       }
-      path2 = path2 || "";
+      path3 = path3 || "";
       const omitNested = options.omitNested || {};
       while (i < len) {
         key = keys[i++];
         if (options.omit && options.omit[key]) {
           continue;
         }
-        if (omitNested[path2]) {
+        if (omitNested[path3]) {
           continue;
         }
         if (specialProperties.has(key)) {
@@ -43870,7 +43870,7 @@ var require_utils3 = __commonJS({
               continue;
             }
           }
-          merge2(to[key], from[key], options, path2 ? path2 + "." + key : key);
+          merge2(to[key], from[key], options, path3 ? path3 + "." + key : key);
         } else if (options.overwrite) {
           to[key] = from[key];
         }
@@ -43939,7 +43939,7 @@ var require_utils3 = __commonJS({
       }
       return false;
     }, "hasKey");
-    exports2.tick = /* @__PURE__ */ __name(function tick(callback) {
+    exports2.tick = /* @__PURE__ */ __name(function tick2(callback) {
       if (typeof callback !== "function") {
         return;
       }
@@ -43967,33 +43967,33 @@ var require_utils3 = __commonJS({
       object2.expireAfterSeconds = typeof object2.expires !== "string" ? object2.expires : Math.round(ms(object2.expires) / 1e3);
       delete object2.expires;
     }, "expires");
-    exports2.populate = /* @__PURE__ */ __name(function populate(path2, select, model6, match, options, subPopulate, justOne, count) {
+    exports2.populate = /* @__PURE__ */ __name(function populate(path3, select, model6, match, options, subPopulate, justOne, count) {
       let obj = null;
       if (arguments.length === 1) {
-        if (path2 instanceof PopulateOptions) {
-          path2._docs = {};
-          path2._childDocs = [];
-          return [path2];
+        if (path3 instanceof PopulateOptions) {
+          path3._docs = {};
+          path3._childDocs = [];
+          return [path3];
         }
-        if (Array.isArray(path2)) {
-          const singles = makeSingles(path2);
+        if (Array.isArray(path3)) {
+          const singles = makeSingles(path3);
           return singles.map((o) => exports2.populate(o)[0]);
         }
-        if (exports2.isObject(path2)) {
-          obj = Object.assign({}, path2);
+        if (exports2.isObject(path3)) {
+          obj = Object.assign({}, path3);
         } else {
-          obj = { path: path2 };
+          obj = { path: path3 };
         }
       } else if (typeof model6 === "object") {
         obj = {
-          path: path2,
+          path: path3,
           select,
           match: model6,
           options: match
         };
       } else {
         obj = {
-          path: path2,
+          path: path3,
           select,
           model: model6,
           match,
@@ -44004,7 +44004,7 @@ var require_utils3 = __commonJS({
         };
       }
       if (typeof obj.path !== "string" && !(Array.isArray(obj.path) && obj.path.every((el) => typeof el === "string"))) {
-        throw new TypeError("utils.populate: invalid path. Expected string or array of strings. Got typeof `" + typeof path2 + "`");
+        throw new TypeError("utils.populate: invalid path. Expected string or array of strings. Got typeof `" + typeof path3 + "`");
       }
       return _populateObj(obj);
       function makeSingles(arr) {
@@ -44049,14 +44049,14 @@ var require_utils3 = __commonJS({
       if (obj.options != null) {
         obj.options = clone2(obj.options);
       }
-      for (const path2 of paths) {
-        ret.push(new PopulateOptions(Object.assign({}, obj, { path: path2 })));
+      for (const path3 of paths) {
+        ret.push(new PopulateOptions(Object.assign({}, obj, { path: path3 })));
       }
       return ret;
     }
     __name(_populateObj, "_populateObj");
-    exports2.getValue = function(path2, obj, map2) {
-      return mpath.get(path2, obj, getValueLookup, map2);
+    exports2.getValue = function(path3, obj, map2) {
+      return mpath.get(path3, obj, getValueLookup, map2);
     };
     var mapGetterOptions = Object.freeze({ getters: false });
     function getValueLookup(obj, part) {
@@ -44070,8 +44070,8 @@ var require_utils3 = __commonJS({
       return _from instanceof Map ? _from.get(part, mapGetterOptions) : _from[part];
     }
     __name(getValueLookup, "getValueLookup");
-    exports2.setValue = function(path2, val, obj, map2, _copying) {
-      mpath.set(path2, val, obj, "_doc", map2, _copying);
+    exports2.setValue = function(path3, val, obj, map2, _copying) {
+      mpath.set(path3, val, obj, "_doc", map2, _copying);
     };
     exports2.object = {};
     exports2.object.vals = /* @__PURE__ */ __name(function vals(o) {
@@ -44315,9 +44315,9 @@ var require_schemaType = __commonJS({
     var CastError = MongooseError.CastError;
     var ValidatorError = MongooseError.ValidatorError;
     var setOptionsForDefaults = { _skipMarkModified: true };
-    function SchemaType(path2, options, instance, parentSchema) {
+    function SchemaType(path3, options, instance, parentSchema) {
       this[schemaTypeSymbol] = true;
-      this.path = path2;
+      this.path = path3;
       this.instance = instance;
       this.schemaName = this.constructor.schemaName;
       this.validators = [];
@@ -44774,7 +44774,7 @@ var require_schemaType = __commonJS({
     }, "select");
     SchemaType.prototype.doValidate = /* @__PURE__ */ __name(async function doValidate(value, scope, options) {
       let err = false;
-      const path2 = this.path;
+      const path3 = this.path;
       const validators = this.validators.filter((v) => typeof v === "object" && v !== null);
       if (!validators.length) {
         return;
@@ -44785,7 +44785,7 @@ var require_schemaType = __commonJS({
         const validator = v.validator;
         let ok;
         const validatorProperties = isSimpleValidator(v) ? Object.assign({}, v) : clone2(v);
-        validatorProperties.path = options?.path || path2;
+        validatorProperties.path = options?.path || path3;
         validatorProperties.fullPath = this.$fullPath;
         validatorProperties.value = value;
         if (typeof value === "string") {
@@ -44860,7 +44860,7 @@ var require_schemaType = __commonJS({
     }
     __name(_validate, "_validate");
     SchemaType.prototype.doValidateSync = function(value, scope, options) {
-      const path2 = this.path;
+      const path3 = this.path;
       const count = this.validators.length;
       if (!count) {
         return null;
@@ -44883,7 +44883,7 @@ var require_schemaType = __commonJS({
         }
         const validator = v.validator;
         const validatorProperties = isSimpleValidator(v) ? Object.assign({}, v) : clone2(v);
-        validatorProperties.path = options?.path || path2;
+        validatorProperties.path = options?.path || path3;
         validatorProperties.fullPath = this.$fullPath;
         validatorProperties.value = value;
         if (typeof value === "string") {
@@ -44923,9 +44923,9 @@ var require_schemaType = __commonJS({
     SchemaType._isRef = function(self2, value, doc, init) {
       let ref = init && (self2.options?.ref || self2.options?.refPath);
       if (!ref && doc?.$__ != null) {
-        const path2 = doc.$__fullPath(self2.path, true);
+        const path3 = doc.$__fullPath(self2.path, true);
         const owner = doc.ownerDocument();
-        ref = path2 != null && owner.$populated(path2) || doc.$populated(self2.path);
+        ref = path3 != null && owner.$populated(path3) || doc.$populated(self2.path);
       }
       if (ref) {
         if (value == null) {
@@ -44953,11 +44953,11 @@ var require_schemaType = __commonJS({
         }
         throw new CastError(this.instance, value, this.path, null, this);
       }
-      const path2 = doc.$__fullPath(this.path, true);
+      const path3 = doc.$__fullPath(this.path, true);
       const owner = doc.ownerDocument();
-      const pop = owner.$populated(path2, true);
+      const pop = owner.$populated(path3, true);
       let ret = value;
-      if (!doc.$__.populated || !doc.$__.populated[path2] || !doc.$__.populated[path2].options || !doc.$__.populated[path2].options.options || !doc.$__.populated[path2].options.options.lean) {
+      if (!doc.$__.populated || !doc.$__.populated[path3] || !doc.$__.populated[path3].options || !doc.$__.populated[path3].options.options || !doc.$__.populated[path3].options.options.lean) {
         const PopulatedModel = pop ? pop.options[populateModelSymbol] : owner.constructor.db.model(this.options.ref);
         ret = PopulatedModel.hydrate(value, null, options);
         ret.$__.wasPopulated = { value: ret._doc._id, options: { [populateModelSymbol]: PopulatedModel } };
@@ -45097,7 +45097,7 @@ var require_virtualOptions = __commonJS({
 var require_lookupLocalFields = __commonJS({
   "node_modules/mongoose/lib/helpers/populate/lookupLocalFields.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function lookupLocalFields(cur, path2, val) {
+    module2.exports = /* @__PURE__ */ __name(function lookupLocalFields(cur, path3, val) {
       if (cur == null) {
         return cur;
       }
@@ -45112,19 +45112,19 @@ var require_lookupLocalFields = __commonJS({
           return void 0;
         }
         if (cur instanceof Map) {
-          cur.set(path2, val);
+          cur.set(path3, val);
         } else {
-          cur[path2] = val;
+          cur[path3] = val;
         }
         return val;
       }
-      if (path2 === "$*") {
+      if (path3 === "$*") {
         return cur instanceof Map ? Array.from(cur.values()) : Object.keys(cur).map((key) => cur[key]);
       }
       if (cur instanceof Map) {
-        return cur.get(path2);
+        return cur.get(path3);
       }
-      return cur[path2];
+      return cur[path3];
     }, "lookupLocalFields");
   }
 });
@@ -45205,8 +45205,8 @@ var require_virtualType = __commonJS({
       if (this.getters.length > 0 || this.setters.length > 0) {
         return;
       }
-      const path2 = this.path;
-      const internalProperty = "$" + path2;
+      const path3 = this.path;
+      const internalProperty = "$" + path3;
       this.getters.push(function() {
         return this.$locals[internalProperty];
       });
@@ -45314,34 +45314,34 @@ var require_getIndexes = __commonJS({
         prefix = prefix || "";
         const keys = Object.keys(schema2.paths);
         for (const key of keys) {
-          const path2 = schema2.paths[key];
+          const path3 = schema2.paths[key];
           if (baseSchema != null && baseSchema.paths[key]) {
             continue;
           }
-          if (path2._duplicateKeyErrorMessage != null) {
+          if (path3._duplicateKeyErrorMessage != null) {
             schema2._duplicateKeyErrorMessagesByPath = schema2._duplicateKeyErrorMessagesByPath || {};
-            schema2._duplicateKeyErrorMessagesByPath[key] = path2._duplicateKeyErrorMessage;
+            schema2._duplicateKeyErrorMessagesByPath[key] = path3._duplicateKeyErrorMessage;
           }
-          if (path2.$isMongooseDocumentArray || path2.$isSingleNested) {
-            if (get(path2, "options.excludeIndexes") !== true && get(path2, "schemaOptions.excludeIndexes") !== true && get(path2, "schema.options.excludeIndexes") !== true) {
-              collectIndexes(path2.schema, prefix + key + ".");
+          if (path3.$isMongooseDocumentArray || path3.$isSingleNested) {
+            if (get(path3, "options.excludeIndexes") !== true && get(path3, "schemaOptions.excludeIndexes") !== true && get(path3, "schema.options.excludeIndexes") !== true) {
+              collectIndexes(path3.schema, prefix + key + ".");
             }
-            if (path2.schema.discriminators != null) {
-              const discriminators = path2.schema.discriminators;
+            if (path3.schema.discriminators != null) {
+              const discriminators = path3.schema.discriminators;
               const discriminatorKeys = Object.keys(discriminators);
               for (const discriminatorKey of discriminatorKeys) {
                 collectIndexes(
                   discriminators[discriminatorKey],
                   prefix + key + ".",
-                  path2.schema
+                  path3.schema
                 );
               }
             }
-            if (path2.$isMongooseDocumentArray) {
+            if (path3.$isMongooseDocumentArray) {
               continue;
             }
           }
-          const index = path2._index || path2.embeddedSchemaType && path2.embeddedSchemaType._index;
+          const index = path3._index || path3.embeddedSchemaType && path3.embeddedSchemaType._index;
           if (index !== false && index != null) {
             const field = {};
             const isObject2 = helperIsObject(index);
@@ -45523,8 +45523,8 @@ var require_setPopulatedVirtualValue = __commonJS({
 var require_cleanPositionalOperators = __commonJS({
   "node_modules/mongoose/lib/helpers/schema/cleanPositionalOperators.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function cleanPositionalOperators(path2) {
-      return path2.replace(/\.\$(\[[^\]]*\])?(?=\.)/g, ".0").replace(/\.\$(\[[^\]]*\])?$/g, ".0");
+    module2.exports = /* @__PURE__ */ __name(function cleanPositionalOperators(path3) {
+      return path3.replace(/\.\$(\[[^\]]*\])?(?=\.)/g, ".0").replace(/\.\$(\[[^\]]*\])?$/g, ".0");
     }, "cleanPositionalOperators");
   }
 });
@@ -45663,8 +45663,8 @@ var require_applyTimestampsToChildren = __commonJS({
     __name(applyTimestampsToSingleNested, "applyTimestampsToSingleNested");
     function applyTimestampsToUpdateKey(schema, key, update, now) {
       const keyToSearch = cleanPositionalOperators(key);
-      const path2 = schema.path(keyToSearch);
-      if (!path2) {
+      const path3 = schema.path(keyToSearch);
+      if (!path3) {
         return;
       }
       const parentSchemaTypes = [];
@@ -45675,10 +45675,10 @@ var require_applyTimestampsToChildren = __commonJS({
           parentSchemaTypes.push({ parentPath: key.split(".").slice(0, i).join("."), parentSchemaType: s });
         }
       }
-      if (Array.isArray(update[key]) && path2.$isMongooseDocumentArray) {
-        applyTimestampsToDocumentArray(update[key], path2, now);
-      } else if (update[key] && path2.$isSingleNested) {
-        applyTimestampsToSingleNested(update[key], path2, now);
+      if (Array.isArray(update[key]) && path3.$isMongooseDocumentArray) {
+        applyTimestampsToDocumentArray(update[key], path3, now);
+      } else if (update[key] && path3.$isSingleNested) {
+        applyTimestampsToSingleNested(update[key], path3, now);
       } else if (parentSchemaTypes.length > 0) {
         for (const item of parentSchemaTypes) {
           const parentPath = item.parentPath;
@@ -45701,8 +45701,8 @@ var require_applyTimestampsToChildren = __commonJS({
             update[parentPath + "." + childPath + "." + updatedAt] = now;
           }
         }
-      } else if (path2.schema != null && path2.schema != schema && update[key]) {
-        const timestamps = path2.schema.options.timestamps;
+      } else if (path3.schema != null && path3.schema != schema && update[key]) {
+        const timestamps = path3.schema.options.timestamps;
         const createdAt = handleTimestampOption(timestamps, "createdAt");
         const updatedAt = handleTimestampOption(timestamps, "updatedAt");
         if (!timestamps) {
@@ -45968,14 +45968,14 @@ var require_validateRef = __commonJS({
     var MongooseError = require_mongooseError();
     var util = require("util");
     module2.exports = validateRef;
-    function validateRef(ref, path2) {
+    function validateRef(ref, path3) {
       if (typeof ref === "string") {
         return;
       }
       if (typeof ref === "function") {
         return;
       }
-      throw new MongooseError('Invalid ref at path "' + path2 + '". Got ' + util.inspect(ref, { depth: 0 }));
+      throw new MongooseError('Invalid ref at path "' + path3 + '". Got ' + util.inspect(ref, { depth: 0 }));
     }
     __name(validateRef, "validateRef");
   }
@@ -46042,7 +46042,7 @@ var require_array = __commonJS({
     var arraySchemaSymbol = require_symbols().arraySchemaSymbol;
     var _basePush = Array.prototype.push;
     var numberRE = /^\d+$/;
-    function MongooseArray(values, path2, doc, schematype) {
+    function MongooseArray(values, path3, doc, schematype) {
       let __array;
       if (Array.isArray(values)) {
         const len = values.length;
@@ -46066,7 +46066,7 @@ var require_array = __commonJS({
       const internals = {
         [arrayAtomicsSymbol]: {},
         [arrayAtomicsBackupSymbol]: void 0,
-        [arrayPathSymbol]: path2,
+        [arrayPathSymbol]: path3,
         [arraySchemaSymbol]: schematype,
         [arrayParentSymbol]: void 0,
         isMongooseArray: true,
@@ -46078,7 +46078,7 @@ var require_array = __commonJS({
       }
       if (doc?.$__) {
         internals[arrayParentSymbol] = doc;
-        internals[arraySchemaSymbol] = schematype || doc.schema.path(path2);
+        internals[arraySchemaSymbol] = schematype || doc.schema.path(path3);
       }
       const proxy = new Proxy(__array, {
         get: /* @__PURE__ */ __name(function(target, prop) {
@@ -46144,14 +46144,14 @@ var require_map = __commonJS({
       static {
         __name(this, "MongooseMap");
       }
-      constructor(v, path2, doc, schemaType) {
+      constructor(v, path3, doc, schemaType) {
         if (getConstructorName(v) === "Object") {
           v = Object.keys(v).reduce((arr, key) => arr.concat([[key, v[key]]]), []);
         }
         super(v);
         this.$__parent = doc?.$__ != null ? doc : null;
-        this.$__path = path2;
-        this.$__schemaType = schemaType == null ? new Mixed(path2) : schemaType;
+        this.$__path = path3;
+        this.$__schemaType = schemaType == null ? new Mixed(path3) : schemaType;
         this.$__runDeferred();
       }
       $init(key, value) {
@@ -46257,13 +46257,13 @@ var require_map = __commonJS({
         }
         super.set(key, value);
         if (parent?.$__ != null && !deepEqual(value, priorVal)) {
-          const path2 = fullPath.call(this);
-          parent.markModified(path2);
+          const path3 = fullPath.call(this);
+          parent.markModified(path3);
           if (isMongooseArray(value)) {
             value._registerAtomic("$set", value);
           }
           if (this.$__schemaType.$isMongooseDocumentArray || this.$__schemaType.$isSingleNested) {
-            cleanModifiedSubpaths(parent, path2);
+            cleanModifiedSubpaths(parent, path3);
           }
         }
         function fullPath() {
@@ -46715,12 +46715,12 @@ var require_cast_expr = __commonJS({
     }
     __name(castNumberOperator, "castNumberOperator");
     function castIn(val, schema, strictQuery) {
-      const path2 = val[1];
-      if (!isPath(path2)) {
+      const path3 = val[1];
+      if (!isPath(path3)) {
         return val;
       }
       const search = val[0];
-      const schematype = schema.path(path2.slice(1));
+      const schematype = schema.path(path3.slice(1));
       if (schematype === null) {
         if (strictQuery === false) {
           return val;
@@ -46734,7 +46734,7 @@ var require_cast_expr = __commonJS({
       }
       return [
         schematype.embeddedSchemaType.cast(search),
-        path2
+        path3
       ];
     }
     __name(castIn, "castIn");
@@ -46768,19 +46768,19 @@ var require_cast_expr = __commonJS({
       val[0] = _castExpression(val[0], schema, strictQuery);
       const lhs = val[0];
       if (isLiteral(val[1])) {
-        let path2 = null;
+        let path3 = null;
         let schematype = null;
         let caster = null;
         if (isPath(lhs)) {
-          path2 = lhs.slice(1);
-          schematype = schema.path(path2);
+          path3 = lhs.slice(1);
+          schematype = schema.path(path3);
         } else if (typeof lhs === "object" && lhs != null) {
           for (const key of Object.keys(lhs)) {
             if (dateOperators.has(key) && isPath(lhs[key])) {
-              path2 = lhs[key].slice(1) + "." + key;
+              path3 = lhs[key].slice(1) + "." + key;
               caster = castNumber;
             } else if (arrayElementOperators.has(key) && isPath(lhs[key])) {
-              path2 = lhs[key].slice(1) + "." + key;
+              path3 = lhs[key].slice(1) + "." + key;
               schematype = schema.path(lhs[key].slice(1));
               if (schematype != null) {
                 if (schematype.$isMongooseArray) {
@@ -46802,19 +46802,19 @@ var require_cast_expr = __commonJS({
             try {
               val[1] = { $literal: caster(val[1].$literal) };
             } catch {
-              throw new CastError(caster.name.replace(/^cast/, ""), val[1], path2 + ".$literal");
+              throw new CastError(caster.name.replace(/^cast/, ""), val[1], path3 + ".$literal");
             }
           } else {
             try {
               val[1] = caster(val[1]);
             } catch {
-              throw new CastError(caster.name.replace(/^cast/, ""), val[1], path2);
+              throw new CastError(caster.name.replace(/^cast/, ""), val[1], path3);
             }
           }
-        } else if (path2 != null && strictQuery === true) {
+        } else if (path3 != null && strictQuery === true) {
           return void 0;
-        } else if (path2 != null && strictQuery === "throw") {
-          throw new StrictModeError(path2);
+        } else if (path3 != null && strictQuery === "throw") {
+          throw new StrictModeError(path3);
         }
       } else {
         val[1] = _castExpression(val[1], schema, strictQuery);
@@ -46844,7 +46844,7 @@ var require_string = __commonJS({
   "node_modules/mongoose/lib/cast/string.js"(exports2, module2) {
     "use strict";
     var CastError = require_cast();
-    module2.exports = /* @__PURE__ */ __name(function castString(value, path2) {
+    module2.exports = /* @__PURE__ */ __name(function castString(value, path3) {
       if (value == null) {
         return value;
       }
@@ -46854,7 +46854,7 @@ var require_string = __commonJS({
       if (value.toString && value.toString !== Object.prototype.toString && !Array.isArray(value)) {
         return value.toString();
       }
-      throw new CastError("string", value, path2);
+      throw new CastError("string", value, path3);
     }, "castString");
   }
 });
@@ -46866,26 +46866,26 @@ var require_text = __commonJS({
     var CastError = require_cast();
     var castBoolean = require_boolean();
     var castString = require_string();
-    module2.exports = /* @__PURE__ */ __name(function castTextSearch(val, path2) {
+    module2.exports = /* @__PURE__ */ __name(function castTextSearch(val, path3) {
       if (val == null || typeof val !== "object") {
-        throw new CastError("$text", val, path2);
+        throw new CastError("$text", val, path3);
       }
       if (val.$search != null) {
-        val.$search = castString(val.$search, path2 + ".$search");
+        val.$search = castString(val.$search, path3 + ".$search");
       }
       if (val.$language != null) {
-        val.$language = castString(val.$language, path2 + ".$language");
+        val.$language = castString(val.$language, path3 + ".$language");
       }
       if (val.$caseSensitive != null) {
         val.$caseSensitive = castBoolean(
           val.$caseSensitive,
-          path2 + ".$caseSensitive"
+          path3 + ".$caseSensitive"
         );
       }
       if (val.$diacriticSensitive != null) {
         val.$diacriticSensitive = castBoolean(
           val.$diacriticSensitive,
-          path2 + ".$diacriticSensitive"
+          path3 + ".$diacriticSensitive"
         );
       }
       return val;
@@ -46926,8 +46926,8 @@ var require_isOperator = __commonJS({
       "$id",
       "$db"
     ]);
-    module2.exports = /* @__PURE__ */ __name(function isOperator(path2) {
-      return path2[0] === "$" && !specialKeys.has(path2);
+    module2.exports = /* @__PURE__ */ __name(function isOperator(path3) {
+      return path3[0] === "$" && !specialKeys.has(path3);
     }, "isOperator");
   }
 });
@@ -46969,20 +46969,20 @@ var require_cast2 = __commonJS({
       let any$conditionals;
       let schematype;
       let nested;
-      let path2;
+      let path3;
       let type;
       let val;
       options = options || {};
       while (i--) {
-        path2 = paths[i];
-        val = obj[path2];
-        if (path2 === "$or" || path2 === "$nor" || path2 === "$and") {
+        path3 = paths[i];
+        val = obj[path3];
+        if (path3 === "$or" || path3 === "$nor" || path3 === "$and") {
           if (!Array.isArray(val)) {
-            throw new CastError("Array", val, path2);
+            throw new CastError("Array", val, path3);
           }
           for (let k = val.length - 1; k >= 0; k--) {
             if (val[k] == null || typeof val[k] !== "object") {
-              throw new CastError("Object", val[k], path2 + "." + k);
+              throw new CastError("Object", val[k], path3 + "." + k);
             }
             const beforeCastKeysLength = Object.keys(val[k]).length;
             const discriminatorValue = val[k][schema.options.discriminatorKey];
@@ -46997,34 +46997,34 @@ var require_cast2 = __commonJS({
             }
           }
           if (val.length === 0) {
-            delete obj[path2];
+            delete obj[path3];
           }
-        } else if (path2 === "$where") {
+        } else if (path3 === "$where") {
           type = typeof val;
           if (type !== "string" && type !== "function") {
             throw new Error("Must have a string or function for $where");
           }
           if (type === "function") {
-            obj[path2] = val.toString();
+            obj[path3] = val.toString();
           }
           continue;
-        } else if (path2 === "$expr") {
+        } else if (path3 === "$expr") {
           val = cast$expr(val, schema);
           continue;
-        } else if (path2 === "$elemMatch") {
+        } else if (path3 === "$elemMatch") {
           val = cast(schema, val, options, context);
-        } else if (path2 === "$text") {
-          val = castTextSearch(val, path2);
-        } else if (path2 === "$comment" && !Object.hasOwn(schema.paths, "$comment")) {
-          val = castString(val, path2);
-          obj[path2] = val;
+        } else if (path3 === "$text") {
+          val = castTextSearch(val, path3);
+        } else if (path3 === "$comment" && !Object.hasOwn(schema.paths, "$comment")) {
+          val = castString(val, path3);
+          obj[path3] = val;
         } else {
           if (!schema) {
             continue;
           }
-          schematype = schema.path(path2);
+          schematype = schema.path(path3);
           if (!schematype) {
-            const split = path2.split(".");
+            const split = path3.split(".");
             let j = split.length;
             while (j--) {
               const pathFirstHalf = split.slice(0, j).join(".");
@@ -47042,7 +47042,7 @@ var require_cast2 = __commonJS({
             }
           }
           if (!schematype) {
-            const split = path2.split(".");
+            const split = path3.split(".");
             let j = split.length;
             let pathFirstHalf;
             let pathLastHalf;
@@ -47061,12 +47061,12 @@ var require_cast2 = __commonJS({
                 remainingConds[pathLastHalf] = val;
                 const ret = cast(schematype.schema, remainingConds, options, context)[pathLastHalf];
                 if (ret === void 0) {
-                  delete obj[path2];
+                  delete obj[path3];
                 } else {
-                  obj[path2] = ret;
+                  obj[path3] = ret;
                 }
               } else {
-                obj[path2] = val;
+                obj[path3] = val;
               }
               continue;
             }
@@ -47151,28 +47151,28 @@ var require_cast2 = __commonJS({
                 continue;
               }
             }
-            if (schema.nested[path2]) {
+            if (schema.nested[path3]) {
               continue;
             }
             const strict = "strict" in options ? options.strict : schema.options.strict;
             const strictQuery = getStrictQuery(options, schema._userProvidedOptions, schema.options, context);
             if (options.upsert && strict) {
               if (strict === "throw") {
-                throw new StrictModeError(path2);
+                throw new StrictModeError(path3);
               }
-              throw new StrictModeError(path2, 'Path "' + path2 + '" is not in schema, strict mode is `true`, and upsert is `true`.');
+              throw new StrictModeError(path3, 'Path "' + path3 + '" is not in schema, strict mode is `true`, and upsert is `true`.');
             }
             if (strictQuery === "throw") {
-              throw new StrictModeError(path2, 'Path "' + path2 + `" is not in schema and strictQuery is 'throw'.`);
+              throw new StrictModeError(path3, 'Path "' + path3 + `" is not in schema and strictQuery is 'throw'.`);
             } else if (strictQuery) {
-              delete obj[path2];
+              delete obj[path3];
             }
           } else if (val == null) {
             continue;
           } else if (utils.isPOJO(val)) {
             any$conditionals = Object.keys(val).some(isOperator);
             if (!any$conditionals) {
-              obj[path2] = schematype.castForQuery(
+              obj[path3] = schematype.castForQuery(
                 null,
                 val,
                 context
@@ -47233,9 +47233,9 @@ var require_cast2 = __commonJS({
                 context
               ));
             }
-            obj[path2] = { $in: casted };
+            obj[path3] = { $in: casted };
           } else {
-            obj[path2] = schematype.castForQuery(
+            obj[path3] = schematype.castForQuery(
               null,
               val,
               context
@@ -47324,10 +47324,10 @@ var require_bitwise = __commonJS({
       return _castNumber(_this.path, val);
     }
     __name(handleBitwiseOperator, "handleBitwiseOperator");
-    function _castNumber(path2, num) {
+    function _castNumber(path3, num) {
       const v = Number(num);
       if (isNaN(v)) {
-        throw new CastError("number", num, path2);
+        throw new CastError("number", num, path3);
       }
       return v;
     }
@@ -47846,11 +47846,11 @@ var require_array2 = __commonJS({
         }
         options = options || emptyOpts;
         let rawValue = utils.isMongooseArray(value) ? value.__array : value;
-        let path2 = options.path || this.path;
+        let path3 = options.path || this.path;
         if (options.arrayPathIndex != null) {
-          path2 += "." + options.arrayPathIndex;
+          path3 += "." + options.arrayPathIndex;
         }
-        value = MongooseArray(rawValue, path2, doc, this);
+        value = MongooseArray(rawValue, path3, doc, this);
         rawValue = value.__array;
         if (init && doc?.$__ != null && doc.$populated(this.path)) {
           return value;
@@ -48123,8 +48123,8 @@ var require_bigint2 = __commonJS({
     var CastError = require_cast();
     var SchemaType = require_schemaType();
     var castBigInt = require_bigint();
-    function SchemaBigInt(path2, options, _schemaOptions, parentSchema) {
-      SchemaType.call(this, path2, options, "BigInt", parentSchema);
+    function SchemaBigInt(path3, options, _schemaOptions, parentSchema) {
+      SchemaType.call(this, path3, options, "BigInt", parentSchema);
     }
     __name(SchemaBigInt, "SchemaBigInt");
     SchemaBigInt.schemaName = "BigInt";
@@ -48225,8 +48225,8 @@ var require_boolean2 = __commonJS({
     var CastError = require_cast();
     var SchemaType = require_schemaType();
     var castBoolean = require_boolean();
-    function SchemaBoolean(path2, options, _schemaOptions, parentSchema) {
-      SchemaType.call(this, path2, options, "Boolean", parentSchema);
+    function SchemaBoolean(path3, options, _schemaOptions, parentSchema) {
+      SchemaType.call(this, path3, options, "Boolean", parentSchema);
     }
     __name(SchemaBoolean, "SchemaBoolean");
     SchemaBoolean.schemaName = "Boolean";
@@ -49096,20 +49096,20 @@ var require_trackTransaction = __commonJS({
       const pathToAtomics = /* @__PURE__ */ new Map();
       previous = previous || /* @__PURE__ */ new Map();
       const pathsToCheck = Object.keys(doc.$__.activePaths.init).concat(Object.keys(doc.$__.activePaths.modify));
-      for (const path2 of pathsToCheck) {
-        const val = doc.$__getValue(path2);
+      for (const path3 of pathsToCheck) {
+        const val = doc.$__getValue(path3);
         if (Array.isArray(val) && utils.isMongooseDocumentArray(val) && val.length && val[arrayAtomicsSymbol] != null && utils.hasOwnKeys(val[arrayAtomicsSymbol])) {
-          const existing = previous.get(path2) || {};
-          pathToAtomics.set(path2, mergeAtomics(existing, val[arrayAtomicsSymbol]));
+          const existing = previous.get(path3) || {};
+          pathToAtomics.set(path3, mergeAtomics(existing, val[arrayAtomicsSymbol]));
         }
       }
       const dirty = doc.$__dirty();
       for (const dirt of dirty) {
-        const path2 = dirt.path;
+        const path3 = dirt.path;
         const val = dirt.value;
         if (val?.[arrayAtomicsSymbol] != null && utils.hasOwnKeys(val[arrayAtomicsSymbol])) {
-          const existing = previous.get(path2) || {};
-          pathToAtomics.set(path2, mergeAtomics(existing, val[arrayAtomicsSymbol]));
+          const existing = previous.get(path3) || {};
+          pathToAtomics.set(path3, mergeAtomics(existing, val[arrayAtomicsSymbol]));
         }
       }
       return pathToAtomics;
@@ -49172,12 +49172,12 @@ var require_mergeDiscriminatorSchema = __commonJS({
     var ObjectId2 = require_objectid();
     var SchemaType = require_schemaType();
     var isObject2 = require_isObject();
-    module2.exports = /* @__PURE__ */ __name(function mergeDiscriminatorSchema(to, from, path2, seen) {
+    module2.exports = /* @__PURE__ */ __name(function mergeDiscriminatorSchema(to, from, path3, seen) {
       const keys = Object.keys(from);
       let i = 0;
       const len = keys.length;
       let key;
-      path2 = path2 || "";
+      path3 = path3 || "";
       seen = seen || /* @__PURE__ */ new WeakSet();
       if (seen.has(from)) {
         return;
@@ -49185,12 +49185,12 @@ var require_mergeDiscriminatorSchema = __commonJS({
       seen.add(from);
       while (i < len) {
         key = keys[i++];
-        if (!path2) {
+        if (!path3) {
           if (key === "discriminators" || key === "base" || key === "_applyDiscriminators" || key === "_userProvidedOptions" || key === "options" || key === "tree") {
             continue;
           }
         }
-        if (path2 === "tree" && from?.instanceOfSchema) {
+        if (path3 === "tree" && from?.instanceOfSchema) {
           continue;
         }
         if (specialProperties.has(key)) {
@@ -49227,7 +49227,7 @@ var require_mergeDiscriminatorSchema = __commonJS({
               }
             }
           }
-          mergeDiscriminatorSchema(to[key], from[key], path2 ? path2 + "." + key : key, seen);
+          mergeDiscriminatorSchema(to[key], from[key], path3 ? path3 + "." + key : key, seen);
         }
       }
       if (from?.instanceOfSchema) {
@@ -49263,12 +49263,12 @@ var require_discriminator = __commonJS({
         allNestedPaths(parentSchema),
         allNestedPaths(childSchema)
       );
-      for (const path2 of allSharedNestedPaths) {
-        if (parentSchema._hasEncryptedField(path2) && childSchema._hasEncryptedField(path2)) {
-          throw new Error(`encrypted fields cannot be declared on both the base schema and the child schema in a discriminator. path=${path2}`);
+      for (const path3 of allSharedNestedPaths) {
+        if (parentSchema._hasEncryptedField(path3) && childSchema._hasEncryptedField(path3)) {
+          throw new Error(`encrypted fields cannot be declared on both the base schema and the child schema in a discriminator. path=${path3}`);
         }
-        if (parentSchema._hasEncryptedField(path2) || childSchema._hasEncryptedField(path2)) {
-          throw new Error(`encrypted fields cannot have the same path as a non-encrypted field for discriminators. path=${path2}`);
+        if (parentSchema._hasEncryptedField(path3) || childSchema._hasEncryptedField(path3)) {
+          throw new Error(`encrypted fields cannot have the same path as a non-encrypted field for discriminators. path=${path3}`);
         }
       }
       function allNestedPaths(schema) {
@@ -49343,20 +49343,20 @@ var require_discriminator = __commonJS({
         }
         const baseSchemaPaths = Object.keys(baseSchema.paths);
         const conflictingPaths = [];
-        for (const path2 of baseSchemaPaths) {
-          if (schema2.nested[path2]) {
-            conflictingPaths.push(path2);
+        for (const path3 of baseSchemaPaths) {
+          if (schema2.nested[path3]) {
+            conflictingPaths.push(path3);
             continue;
           }
-          if (path2.indexOf(".") === -1) {
+          if (path3.indexOf(".") === -1) {
             continue;
           }
-          const sp = path2.split(".").slice(0, -1);
+          const sp = path3.split(".").slice(0, -1);
           let cur = "";
           for (const piece of sp) {
             cur += (cur.length ? "." : "") + piece;
             if (schema2.paths[cur] instanceof Mixed || schema2.singleNestedPaths[cur] instanceof Mixed) {
-              conflictingPaths.push(path2);
+              conflictingPaths.push(path3);
             }
           }
         }
@@ -49533,9 +49533,9 @@ var require_subdocument2 = __commonJS({
     var InvalidSchemaOptionError = require_invalidSchemaOption();
     var SubdocumentType;
     module2.exports = SchemaSubdocument;
-    function SchemaSubdocument(schema, path2, options, parentSchema) {
+    function SchemaSubdocument(schema, path3, options, parentSchema) {
       if (schema.options.timeseries) {
-        throw new InvalidSchemaOptionError(path2, "timeseries");
+        throw new InvalidSchemaOptionError(path3, "timeseries");
       }
       const schemaTypeIdOption = SchemaSubdocument.defaultOptions?._id;
       if (schemaTypeIdOption != null) {
@@ -49544,12 +49544,12 @@ var require_subdocument2 = __commonJS({
       }
       schema = handleIdOption(schema, options);
       this.Constructor = _createConstructor(schema, null, options);
-      this.Constructor.path = path2;
-      this.Constructor.prototype.$basePath = path2;
+      this.Constructor.path = path3;
+      this.Constructor.prototype.$basePath = path3;
       this.schema = schema;
       this.$isSingleNested = true;
       this.base = schema.base;
-      SchemaType.call(this, path2, options, "Embedded", parentSchema);
+      SchemaType.call(this, path3, options, "Embedded", parentSchema);
     }
     __name(SchemaSubdocument, "SchemaSubdocument");
     SchemaSubdocument.prototype = Object.create(SchemaType.prototype);
@@ -49557,7 +49557,7 @@ var require_subdocument2 = __commonJS({
     SchemaSubdocument.prototype.OptionsConstructor = SchemaSubdocumentOptions;
     function _createConstructor(schema, baseClass, options) {
       SubdocumentType || (SubdocumentType = require_subdocument());
-      const _embedded = /* @__PURE__ */ __name(function SingleNested(value, path2, parent) {
+      const _embedded = /* @__PURE__ */ __name(function SingleNested(value, path3, parent) {
         this.$__parent = parent;
         SubdocumentType.apply(this, arguments);
         if (parent == null) {
@@ -49617,11 +49617,11 @@ var require_subdocument2 = __commonJS({
       const Constructor = getConstructor(this.Constructor, val, defaultDiscriminatorValue);
       let subdoc;
       const parentSelected = doc?.$__?.selected;
-      const path2 = this.path;
+      const path3 = this.path;
       const selected = parentSelected == null ? null : Object.keys(parentSelected).reduce((obj, key) => {
-        if (key.startsWith(path2 + ".")) {
+        if (key.startsWith(path3 + ".")) {
           obj = obj || {};
-          obj[key.substring(path2.length + 1)] = parentSelected[key];
+          obj[key.substring(path3.length + 1)] = parentSelected[key];
         }
         return obj;
       }, null);
@@ -49629,7 +49629,7 @@ var require_subdocument2 = __commonJS({
         subdoc = new Constructor(void 0, selected, doc, { defaults: false });
         delete subdoc.$__.defaults;
         if (options.path != null) {
-          const { path: path3, ...initOptions } = options;
+          const { path: path4, ...initOptions } = options;
           options = initOptions;
         }
         subdoc.$init(val, options);
@@ -49752,13 +49752,13 @@ var require_documentArrayElement = __commonJS({
     var SchemaType = require_schemaType();
     var SchemaSubdocument = require_subdocument2();
     var getConstructor = require_getConstructor();
-    function SchemaDocumentArrayElement(path2, schema, options, parentSchema) {
+    function SchemaDocumentArrayElement(path3, schema, options, parentSchema) {
       this.$parentSchemaType = options?.$parentSchemaType;
       if (!this.$parentSchemaType) {
         throw new MongooseError("Cannot create DocumentArrayElement schematype without a parent");
       }
       delete options.$parentSchemaType;
-      SchemaType.call(this, path2, options, "DocumentArrayElement", parentSchema);
+      SchemaType.call(this, path3, options, "DocumentArrayElement", parentSchema);
       this.$isMongooseDocumentArrayElement = true;
       this.Constructor = options?.Constructor;
       this.schema = schema;
@@ -50076,24 +50076,24 @@ var require_documentArray2 = __commonJS({
       let selected;
       let subdoc;
       options = options || {};
-      const path2 = options.path || this.path;
+      const path3 = options.path || this.path;
       if (!Array.isArray(value)) {
         if (!init && !SchemaDocumentArray.options.castNonArrays) {
           throw new CastError("DocumentArray", value, this.path, null, this);
         }
         if (!!doc && init) {
-          doc.markModified(path2);
+          doc.markModified(path3);
         }
         return this.cast([value], doc, init, prev, options);
       }
       if (!options.skipDocumentArrayCast || utils.isMongooseDocumentArray(value)) {
-        value = new MongooseDocumentArray(value, path2, doc, this);
+        value = new MongooseDocumentArray(value, path3, doc, this);
       }
       if (prev != null) {
         value[arrayAtomicsSymbol] = prev[arrayAtomicsSymbol] || {};
       }
       if (options.arrayPathIndex != null) {
-        value[arrayPathSymbol] = path2 + "." + options.arrayPathIndex;
+        value[arrayPathSymbol] = path3 + "." + options.arrayPathIndex;
       }
       const rawArray = utils.isMongooseDocumentArray(value) ? value.__array : value;
       const len = rawArray.length;
@@ -50128,7 +50128,7 @@ var require_documentArray2 = __commonJS({
             }
             subdoc = new Constructor(null, value, initDocumentOptions, selected, i);
             if (options.path != null || options.arrayPathIndex != null) {
-              const { path: path3, arrayPathIndex, ...initOptions } = options;
+              const { path: path4, arrayPathIndex, ...initOptions } = options;
               options = initOptions;
             }
             rawArray[i] = subdoc.$init(rawArray[i], options);
@@ -50191,7 +50191,7 @@ var require_documentArray2 = __commonJS({
       if (!(init && fields)) {
         return void 0;
       }
-      const path2 = array2.path + ".";
+      const path3 = array2.path + ".";
       const keys = Object.keys(fields);
       let i = keys.length;
       const selected = {};
@@ -50200,8 +50200,8 @@ var require_documentArray2 = __commonJS({
       let sub;
       while (i--) {
         key = keys[i];
-        if (key.startsWith(path2)) {
-          sub = key.substring(path2.length);
+        if (key.startsWith(path3)) {
+          sub = key.substring(path3.length);
           if (sub === "$") {
             continue;
           }
@@ -50302,8 +50302,8 @@ var require_double3 = __commonJS({
     var CastError = require_cast();
     var SchemaType = require_schemaType();
     var castDouble = require_double2();
-    function SchemaDouble(path2, options, _schemaOptions, parentSchema) {
-      SchemaType.call(this, path2, options, "Double", parentSchema);
+    function SchemaDouble(path3, options, _schemaOptions, parentSchema) {
+      SchemaType.call(this, path3, options, "Double", parentSchema);
     }
     __name(SchemaDouble, "SchemaDouble");
     SchemaDouble.schemaName = "Double";
@@ -50412,8 +50412,8 @@ var require_int322 = __commonJS({
     var SchemaType = require_schemaType();
     var castInt32 = require_int32();
     var handleBitwiseOperator = require_bitwise();
-    function SchemaInt32(path2, options, _schemaOptions, parentSchema) {
-      SchemaType.call(this, path2, options, "Int32", parentSchema);
+    function SchemaInt32(path3, options, _schemaOptions, parentSchema) {
+      SchemaType.call(this, path3, options, "Int32", parentSchema);
     }
     __name(SchemaInt32, "SchemaInt32");
     SchemaInt32.schemaName = "Int32";
@@ -50567,16 +50567,16 @@ var require_map2 = __commonJS({
         if (val instanceof MongooseMap) {
           return val;
         }
-        const path2 = options?.path ?? this.path;
+        const path3 = options?.path ?? this.path;
         if (init) {
-          const map2 = new MongooseMap({}, path2, doc, this.$__schemaType);
+          const map2 = new MongooseMap({}, path3, doc, this.$__schemaType);
           if (val instanceof global.Map) {
             for (const key of val.keys()) {
               let _val = val.get(key);
               if (_val == null) {
                 _val = map2.$__schemaType._castNullish(_val);
               } else {
-                _val = map2.$__schemaType.cast(_val, doc, true, null, { ...options, path: path2 + "." + key });
+                _val = map2.$__schemaType.cast(_val, doc, true, null, { ...options, path: path3 + "." + key });
               }
               map2.$init(key, _val);
             }
@@ -50586,14 +50586,14 @@ var require_map2 = __commonJS({
               if (_val == null) {
                 _val = map2.$__schemaType._castNullish(_val);
               } else {
-                _val = map2.$__schemaType.cast(_val, doc, true, null, { ...options, path: path2 + "." + key });
+                _val = map2.$__schemaType.cast(_val, doc, true, null, { ...options, path: path3 + "." + key });
               }
               map2.$init(key, _val);
             }
           }
           return map2;
         }
-        return new MongooseMap(val, path2, doc, this.$__schemaType);
+        return new MongooseMap(val, path3, doc, this.$__schemaType);
       }
       /**
        * Creates a copy of this map schema type.
@@ -50641,8 +50641,8 @@ var require_map2 = __commonJS({
     SchemaMap.schemaName = "Map";
     SchemaMap.prototype.OptionsConstructor = SchemaMapOptions;
     SchemaMap.defaultOptions = {};
-    SchemaMap.prototype._createNestedSchemaType = /* @__PURE__ */ __name(function _createNestedSchemaType(schema, path2, obj, options) {
-      const mapPath = path2 + ".$*";
+    SchemaMap.prototype._createNestedSchemaType = /* @__PURE__ */ __name(function _createNestedSchemaType(schema, path3, obj, options) {
+      const mapPath = path3 + ".$*";
       let _mapType = { type: {} };
       if (utils.hasUserDefinedProperty(obj, "of")) {
         const isInlineSchema = utils.isPOJO(obj.of) && utils.hasOwnKeys(obj.of) && !utils.hasUserDefinedProperty(obj.of, schema.options.typeKey);
@@ -50657,7 +50657,7 @@ var require_map2 = __commonJS({
           const subdocumentSchema = _mapType[schema.options.typeKey];
           subdocumentSchema.eachPath((subpath, type) => {
             if (type.options.select === true || type.options.select === false) {
-              throw new MongooseError('Cannot use schema-level projections (`select: true` or `select: false`) within maps at path "' + path2 + "." + subpath + '"');
+              throw new MongooseError('Cannot use schema-level projections (`select: true` or `select: false`) within maps at path "' + path3 + "." + subpath + '"');
             }
           });
         }
@@ -51603,12 +51603,12 @@ var require_schema2 = __commonJS({
     }
     __name(Schema6, "Schema");
     function aliasFields(schema, paths) {
-      for (const path2 of Object.keys(paths)) {
+      for (const path3 of Object.keys(paths)) {
         let alias = null;
-        if (paths[path2] != null) {
-          alias = paths[path2];
+        if (paths[path3] != null) {
+          alias = paths[path3];
         } else {
-          const options = get(schema.paths[path2], "options");
+          const options = get(schema.paths[path3], "options");
           if (options == null) {
             continue;
           }
@@ -51617,7 +51617,7 @@ var require_schema2 = __commonJS({
         if (!alias) {
           continue;
         }
-        const prop = schema.paths[path2].path;
+        const prop = schema.paths[path3].path;
         if (Array.isArray(alias)) {
           for (const a of alias) {
             if (typeof a !== "string") {
@@ -51711,8 +51711,8 @@ var require_schema2 = __commonJS({
       s.nested = clone2(this.nested);
       s.subpaths = clone2(this.subpaths);
       s.mapPaths = [];
-      for (const [path2, schemaType] of Object.entries(s.paths)) {
-        const mapPath = path2 + ".$*";
+      for (const [path3, schemaType] of Object.entries(s.paths)) {
+        const mapPath = path3 + ".$*";
         if (!schemaType.$isSchemaMap || !Object.hasOwn(s.paths, mapPath)) {
           continue;
         }
@@ -51721,18 +51721,18 @@ var require_schema2 = __commonJS({
       }
       for (const schemaType of Object.values(s.paths)) {
         if (schemaType.$isSingleNested) {
-          const path2 = schemaType.path;
+          const path3 = schemaType.path;
           for (const key of Object.keys(schemaType.schema.paths)) {
-            s.singleNestedPaths[path2 + "." + key] = schemaType.schema.paths[key];
+            s.singleNestedPaths[path3 + "." + key] = schemaType.schema.paths[key];
           }
           for (const key of Object.keys(schemaType.schema.singleNestedPaths)) {
-            s.singleNestedPaths[path2 + "." + key] = schemaType.schema.singleNestedPaths[key];
+            s.singleNestedPaths[path3 + "." + key] = schemaType.schema.singleNestedPaths[key];
           }
           for (const key of Object.keys(schemaType.schema.subpaths)) {
-            s.singleNestedPaths[path2 + "." + key] = schemaType.schema.subpaths[key];
+            s.singleNestedPaths[path3 + "." + key] = schemaType.schema.subpaths[key];
           }
           for (const key of Object.keys(schemaType.schema.nested)) {
-            s.singleNestedPaths[path2 + "." + key] = "nested";
+            s.singleNestedPaths[path3 + "." + key] = "nested";
           }
         }
       }
@@ -51761,24 +51761,24 @@ var require_schema2 = __commonJS({
       if (!Array.isArray(paths)) {
         throw new MongooseError('Schema#pick() only accepts an array argument, got "' + typeof paths + '"');
       }
-      for (const path2 of paths) {
-        if (this._hasEncryptedField(path2)) {
-          const encrypt = this.encryptedFields[path2];
-          const schemaType = this.path(path2);
+      for (const path3 of paths) {
+        if (this._hasEncryptedField(path3)) {
+          const encrypt = this.encryptedFields[path3];
+          const schemaType = this.path(path3);
           newSchema.add({
-            [path2]: {
+            [path3]: {
               encrypt,
               [this.options.typeKey]: schemaType
             }
           });
-        } else if (this.nested[path2]) {
-          newSchema.add({ [path2]: get(this.tree, path2) });
+        } else if (this.nested[path3]) {
+          newSchema.add({ [path3]: get(this.tree, path3) });
         } else {
-          const schematype = this.path(path2);
+          const schematype = this.path(path3);
           if (schematype == null) {
-            throw new MongooseError("Path `" + path2 + "` is not in the schema");
+            throw new MongooseError("Path `" + path3 + "` is not in the schema");
           }
-          newSchema.add({ [path2]: schematype });
+          newSchema.add({ [path3]: schematype });
         }
       }
       if (!this._hasEncryptedFields()) {
@@ -51876,15 +51876,15 @@ var require_schema2 = __commonJS({
       });
     }, "_getDocumentMiddleware");
     Schema6.prototype._defaultToObjectOptions = function(json2) {
-      const path2 = json2 ? "toJSON" : "toObject";
-      if (this._defaultToObjectOptionsMap && path2 in this._defaultToObjectOptionsMap) {
-        return this._defaultToObjectOptionsMap[path2];
+      const path3 = json2 ? "toJSON" : "toObject";
+      if (this._defaultToObjectOptionsMap && path3 in this._defaultToObjectOptionsMap) {
+        return this._defaultToObjectOptionsMap[path3];
       }
-      const baseOptions = this.base?.options?.[path2] || {};
-      const schemaOptions = this.options[path2] || {};
+      const baseOptions = this.base?.options?.[path3] || {};
+      const schemaOptions = this.options[path3] || {};
       const defaultOptions = Object.assign({}, baseOptions, schemaOptions);
       this._defaultToObjectOptionsMap = this._defaultToObjectOptionsMap || {};
-      this._defaultToObjectOptionsMap[path2] = utils.hasOwnKeys(defaultOptions) ? defaultOptions : null;
+      this._defaultToObjectOptionsMap[path3] = utils.hasOwnKeys(defaultOptions) ? defaultOptions : null;
       return defaultOptions;
     };
     Schema6.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
@@ -51998,8 +51998,8 @@ var require_schema2 = __commonJS({
             throw new MongooseError("encryptionType of a nested schema must match the encryption type of the parent schema.");
           }
           for (const [encryptedField, encryptedFieldConfig] of Object.entries(val.encryptedFields)) {
-            const path2 = fullPath + "." + encryptedField;
-            this._addEncryptedField(path2, encryptedFieldConfig);
+            const path3 = fullPath + "." + encryptedField;
+            this._addEncryptedField(path3, encryptedFieldConfig);
           }
         } else if (typeof val === "object" && "encrypt" in val) {
           const { encrypt } = val;
@@ -52017,35 +52017,35 @@ var require_schema2 = __commonJS({
       aliasFields(this, aliasObj);
       return this;
     }, "add");
-    Schema6.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path2, fieldConfig) {
-      const type = this.path(path2).autoEncryptionType();
+    Schema6.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path3, fieldConfig) {
+      const type = this.path(path3).autoEncryptionType();
       if (type == null) {
-        throw new MongooseError(`Invalid BSON type for FLE field: '${path2}'`);
+        throw new MongooseError(`Invalid BSON type for FLE field: '${path3}'`);
       }
-      this.encryptedFields[path2] = clone2(fieldConfig);
+      this.encryptedFields[path3] = clone2(fieldConfig);
     }, "_addEncryptedField");
-    Schema6.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path2) {
-      delete this.encryptedFields[path2];
+    Schema6.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path3) {
+      delete this.encryptedFields[path3];
     }, "_removeEncryptedField");
     Schema6.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
       return utils.hasOwnKeys(this.encryptedFields);
     }, "_hasEncryptedFields");
-    Schema6.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path2) {
-      return path2 in this.encryptedFields;
+    Schema6.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path3) {
+      return path3 in this.encryptedFields;
     }, "_hasEncryptedField");
     Schema6.prototype._buildEncryptedFields = function() {
       const fields = Object.entries(this.encryptedFields).map(
-        ([path2, config2]) => {
-          const bsonType = this.path(path2).autoEncryptionType();
-          return { path: path2, bsonType, ...config2 };
+        ([path3, config2]) => {
+          const bsonType = this.path(path3).autoEncryptionType();
+          return { path: path3, bsonType, ...config2 };
         }
       );
       return { fields };
     };
     Schema6.prototype._buildSchemaMap = function() {
-      function buildNestedPath(path2, object2, value) {
-        let i = 0, component = path2[i];
-        for (; i < path2.length - 1; ++i, component = path2[i]) {
+      function buildNestedPath(path3, object2, value) {
+        let i = 0, component = path3[i];
+        for (; i < path3.length - 1; ++i, component = path3[i]) {
           object2[component] = object2[component] == null ? {
             bsonType: "object",
             properties: {}
@@ -52055,9 +52055,9 @@ var require_schema2 = __commonJS({
         object2[component] = value;
       }
       __name(buildNestedPath, "buildNestedPath");
-      const schemaMapPropertyReducer = /* @__PURE__ */ __name((accum, [path2, propertyConfig]) => {
-        const bsonType = this.path(path2).autoEncryptionType();
-        const pathComponents = path2.split(".");
+      const schemaMapPropertyReducer = /* @__PURE__ */ __name((accum, [path3, propertyConfig]) => {
+        const bsonType = this.path(path3).autoEncryptionType();
+        const pathComponents = path3.split(".");
         const configuration = { encrypt: { ...propertyConfig, bsonType } };
         buildNestedPath(pathComponents, accum, configuration);
         return accum;
@@ -52071,8 +52071,8 @@ var require_schema2 = __commonJS({
         properties
       };
     };
-    Schema6.prototype.alias = /* @__PURE__ */ __name(function alias(path2, alias) {
-      aliasFields(this, { [path2]: alias });
+    Schema6.prototype.alias = /* @__PURE__ */ __name(function alias(path3, alias) {
+      aliasFields(this, { [path3]: alias });
       return this;
     }, "alias");
     Schema6.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
@@ -52112,17 +52112,17 @@ var require_schema2 = __commonJS({
     reserved.emit = reserved.listeners = reserved.removeListener = // document properties and functions
     reserved.collection = reserved.errors = reserved.get = reserved.init = reserved.isModified = reserved.isNew = reserved.populated = reserved.remove = reserved.save = reserved.toObject = reserved.validate = 1;
     reserved.collection = 1;
-    Schema6.prototype.path = function(path2, obj) {
+    Schema6.prototype.path = function(path3, obj) {
       if (obj === void 0) {
-        if (Object.hasOwn(this.paths, path2)) {
-          return this.paths[path2];
+        if (Object.hasOwn(this.paths, path3)) {
+          return this.paths[path3];
         }
-        const cleanPath = _pathToPositionalSyntax(path2);
-        let schematype = _getPath(this, path2, cleanPath);
+        const cleanPath = _pathToPositionalSyntax(path3);
+        let schematype = _getPath(this, path3, cleanPath);
         if (schematype != null) {
           return schematype;
         }
-        const mapPath = getMapPath(this, path2);
+        const mapPath = getMapPath(this, path3);
         if (mapPath != null) {
           return mapPath;
         }
@@ -52130,9 +52130,9 @@ var require_schema2 = __commonJS({
         if (schematype != null) {
           return schematype;
         }
-        return hasNumericSubpathRegex.test(path2) ? getPositionalPath(this, path2, cleanPath) : void 0;
+        return hasNumericSubpathRegex.test(path3) ? getPositionalPath(this, path3, cleanPath) : void 0;
       }
-      const subpaths = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+      const subpaths = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
       const last = subpaths.pop();
       if (utils.specialProperties.has(last)) {
         throw new MongooseError("Cannot set special property `" + last + "` on a schema");
@@ -52143,7 +52143,7 @@ var require_schema2 = __commonJS({
         utils.warn(errorMessage);
       }
       if (typeof obj === "object" && utils.hasUserDefinedProperty(obj, "ref")) {
-        validateRef(obj.ref, path2);
+        validateRef(obj.ref, path3);
       }
       let branch = this.tree;
       let fullPath = "";
@@ -52157,39 +52157,39 @@ var require_schema2 = __commonJS({
           branch[sub] = {};
         }
         if (typeof branch[sub] !== "object") {
-          const msg = "Cannot set nested path `" + path2 + "`. Parent path `" + fullPath + "` already set to type " + branch[sub].name + ".";
+          const msg = "Cannot set nested path `" + path3 + "`. Parent path `" + fullPath + "` already set to type " + branch[sub].name + ".";
           throw new MongooseError(msg);
         }
         branch = branch[sub];
       }
       branch[last] = clone2(obj);
-      this.paths[path2] = this.interpretAsType(path2, obj, this.options);
-      const schemaType = this.paths[path2];
-      this.childSchemas = this.childSchemas.filter((childSchema) => childSchema.path !== path2);
+      this.paths[path3] = this.interpretAsType(path3, obj, this.options);
+      const schemaType = this.paths[path3];
+      this.childSchemas = this.childSchemas.filter((childSchema) => childSchema.path !== path3);
       if (schemaType.$isSchemaMap) {
-        const mapPath = path2 + ".$*";
+        const mapPath = path3 + ".$*";
         this.paths[mapPath] = schemaType.$__schemaType;
         this.mapPaths.push(this.paths[mapPath]);
         if (schemaType.$__schemaType.$isSingleNested) {
           this.childSchemas.push({
             schema: schemaType.$__schemaType.schema,
             model: schemaType.$__schemaType.Constructor,
-            path: path2
+            path: path3
           });
         }
       }
       if (schemaType.$isSingleNested) {
         for (const key of Object.keys(schemaType.schema.paths)) {
-          this.singleNestedPaths[path2 + "." + key] = schemaType.schema.paths[key];
+          this.singleNestedPaths[path3 + "." + key] = schemaType.schema.paths[key];
         }
         for (const key of Object.keys(schemaType.schema.singleNestedPaths)) {
-          this.singleNestedPaths[path2 + "." + key] = schemaType.schema.singleNestedPaths[key];
+          this.singleNestedPaths[path3 + "." + key] = schemaType.schema.singleNestedPaths[key];
         }
         for (const key of Object.keys(schemaType.schema.subpaths)) {
-          this.singleNestedPaths[path2 + "." + key] = schemaType.schema.subpaths[key];
+          this.singleNestedPaths[path3 + "." + key] = schemaType.schema.subpaths[key];
         }
         for (const key of Object.keys(schemaType.schema.nested)) {
-          this.singleNestedPaths[path2 + "." + key] = "nested";
+          this.singleNestedPaths[path3 + "." + key] = "nested";
         }
         Object.defineProperty(schemaType.schema, "base", {
           configurable: true,
@@ -52201,7 +52201,7 @@ var require_schema2 = __commonJS({
         this.childSchemas.push({
           schema: schemaType.schema,
           model: schemaType.Constructor,
-          path: path2
+          path: path3
         });
       } else if (schemaType.$isMongooseDocumentArray) {
         Object.defineProperty(schemaType.schema, "base", {
@@ -52214,17 +52214,17 @@ var require_schema2 = __commonJS({
         this.childSchemas.push({
           schema: schemaType.schema,
           model: schemaType.Constructor,
-          path: path2
+          path: path3
         });
       }
       if (schemaType.$isMongooseArray && !schemaType.$isMongooseDocumentArray) {
-        let arrayPath = path2;
+        let arrayPath = path3;
         let _schemaType = schemaType;
         const toAdd = [];
         while (_schemaType.$isMongooseArray) {
           arrayPath = arrayPath + ".$";
           _schemaType.embeddedSchemaType._arrayPath = arrayPath;
-          _schemaType.embeddedSchemaType._arrayParentPath = path2;
+          _schemaType.embeddedSchemaType._arrayParentPath = path3;
           _schemaType = _schemaType.embeddedSchemaType;
           this.subpaths[arrayPath] = _schemaType;
         }
@@ -52235,21 +52235,21 @@ var require_schema2 = __commonJS({
       if (schemaType.$isMongooseDocumentArray) {
         for (const key of Object.keys(schemaType.schema.paths)) {
           const _schemaType = schemaType.schema.paths[key];
-          this.subpaths[path2 + "." + key] = _schemaType;
+          this.subpaths[path3 + "." + key] = _schemaType;
           if (typeof _schemaType === "object" && _schemaType != null && _schemaType.$parentSchemaDocArray == null) {
             _schemaType.$parentSchemaDocArray = schemaType;
           }
         }
         for (const key of Object.keys(schemaType.schema.subpaths)) {
           const _schemaType = schemaType.schema.subpaths[key];
-          this.subpaths[path2 + "." + key] = _schemaType;
+          this.subpaths[path3 + "." + key] = _schemaType;
           if (typeof _schemaType === "object" && _schemaType != null && _schemaType.$parentSchemaDocArray == null) {
             _schemaType.$parentSchemaDocArray = schemaType;
           }
         }
         for (const key of Object.keys(schemaType.schema.singleNestedPaths)) {
           const _schemaType = schemaType.schema.singleNestedPaths[key];
-          this.subpaths[path2 + "." + key] = _schemaType;
+          this.subpaths[path3 + "." + key] = _schemaType;
           if (typeof _schemaType === "object" && _schemaType != null && _schemaType.$parentSchemaDocArray == null) {
             _schemaType.$parentSchemaDocArray = schemaType;
           }
@@ -52259,31 +52259,31 @@ var require_schema2 = __commonJS({
     };
     Schema6.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
       const childSchemas = [];
-      for (const path2 of Object.keys(this.paths)) {
-        if (typeof path2 !== "string") {
+      for (const path3 of Object.keys(this.paths)) {
+        if (typeof path3 !== "string") {
           continue;
         }
-        const schematype = this.paths[path2];
+        const schematype = this.paths[path3];
         if (schematype.$isMongooseDocumentArray || schematype.$isSingleNested) {
           childSchemas.push({
             schema: schematype.schema,
             model: schematype.Constructor,
-            path: path2
+            path: path3
           });
         } else if (schematype.$isSchemaMap && schematype.$__schemaType.$isSingleNested) {
           childSchemas.push({
             schema: schematype.$__schemaType.schema,
             model: schematype.$__schemaType.Constructor,
-            path: path2
+            path: path3
           });
         }
       }
       this.childSchemas = childSchemas;
       return childSchemas;
     }, "_gatherChildSchemas");
-    function _getPath(schema, path2, cleanPath) {
-      if (Object.hasOwn(schema.paths, path2)) {
-        return schema.paths[path2];
+    function _getPath(schema, path3, cleanPath) {
+      if (Object.hasOwn(schema.paths, path3)) {
+        return schema.paths[path3];
       }
       if (Object.hasOwn(schema.subpaths, cleanPath)) {
         const subpath = schema.subpaths[cleanPath];
@@ -52302,27 +52302,27 @@ var require_schema2 = __commonJS({
       return null;
     }
     __name(_getPath, "_getPath");
-    function _pathToPositionalSyntax(path2) {
-      if (!/\.\d+/.test(path2)) {
-        return path2;
+    function _pathToPositionalSyntax(path3) {
+      if (!/\.\d+/.test(path3)) {
+        return path3;
       }
-      return path2.replace(/\.\d+\./g, ".$.").replace(/\.\d+$/, ".$");
+      return path3.replace(/\.\d+\./g, ".$.").replace(/\.\d+$/, ".$");
     }
     __name(_pathToPositionalSyntax, "_pathToPositionalSyntax");
-    function getMapPath(schema, path2) {
+    function getMapPath(schema, path3) {
       if (schema.mapPaths.length === 0) {
         return null;
       }
       for (const val of schema.mapPaths) {
         const cleanPath = val.path.replace(/\.\$\*/g, "");
-        if (path2 === cleanPath || path2.startsWith(cleanPath + ".") && path2.slice(cleanPath.length + 1).indexOf(".") === -1) {
+        if (path3 === cleanPath || path3.startsWith(cleanPath + ".") && path3.slice(cleanPath.length + 1).indexOf(".") === -1) {
           return val;
-        } else if (val.schema && path2.startsWith(cleanPath + ".")) {
-          let remnant = path2.slice(cleanPath.length + 1);
+        } else if (val.schema && path3.startsWith(cleanPath + ".")) {
+          let remnant = path3.slice(cleanPath.length + 1);
           remnant = remnant.slice(remnant.indexOf(".") + 1);
           return val.schema.path(remnant);
-        } else if (val.$isSchemaMap && path2.startsWith(cleanPath + ".")) {
-          let remnant = path2.slice(cleanPath.length + 1);
+        } else if (val.$isSchemaMap && path3.startsWith(cleanPath + ".")) {
+          let remnant = path3.slice(cleanPath.length + 1);
           remnant = remnant.slice(remnant.indexOf(".") + 1);
           const presplitPath = val.$__schemaType._presplitPath;
           if (remnant.indexOf(".") === -1 && presplitPath[presplitPath.length - 1] === "$*") {
@@ -52341,13 +52341,13 @@ var require_schema2 = __commonJS({
       writable: true,
       value: null
     });
-    Schema6.prototype.interpretAsType = function(path2, obj, options) {
+    Schema6.prototype.interpretAsType = function(path3, obj, options) {
       if (obj instanceof SchemaType) {
-        if (obj.path === path2) {
+        if (obj.path === path3) {
           return obj;
         }
         const clone3 = obj.clone();
-        clone3.path = path2;
+        clone3.path = path3;
         return clone3;
       }
       const MongooseTypes2 = this.base?.Schema.Types ?? Schema6.Types;
@@ -52362,16 +52362,16 @@ var require_schema2 = __commonJS({
       }
       let type = obj[options.typeKey] && (obj[options.typeKey] instanceof Function || options.typeKey !== "type" || !obj.type.type) ? obj[options.typeKey] : {};
       if (type instanceof SchemaType) {
-        if (type.path === path2) {
+        if (type.path === path3) {
           return type;
         }
         const clone3 = type.clone();
-        clone3.path = path2;
+        clone3.path = path3;
         return clone3;
       }
       let name;
       if (utils.isPOJO(type) || type === "mixed") {
-        return new MongooseTypes2.Mixed(path2, obj, null, this);
+        return new MongooseTypes2.Mixed(path3, obj, null, this);
       }
       if (Array.isArray(type) || type === Array || type === "array" || type === MongooseTypes2.Array) {
         let cast = type === Array || type === "array" ? obj.cast || obj.of : type[0];
@@ -52380,27 +52380,27 @@ var require_schema2 = __commonJS({
             if (this.options._isMerging) {
               cast = new Schema6(cast);
             } else {
-              throw new TypeError("Schema for array path `" + path2 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path2}: new Schema(...)`);
+              throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
           }
-          return new MongooseTypes2.DocumentArray(path2, cast, obj, null, this);
+          return new MongooseTypes2.DocumentArray(path3, cast, obj, null, this);
         }
         if (cast && cast[options.typeKey] && cast[options.typeKey].instanceOfSchema) {
           if (!(cast[options.typeKey] instanceof Schema6)) {
             if (this.options._isMerging) {
               cast[options.typeKey] = new Schema6(cast[options.typeKey]);
             } else {
-              throw new TypeError("Schema for array path `" + path2 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path2}: new Schema(...)`);
+              throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
           }
-          return new MongooseTypes2.DocumentArray(path2, cast[options.typeKey], obj, cast, this);
+          return new MongooseTypes2.DocumentArray(path3, cast[options.typeKey], obj, cast, this);
         }
         if (typeof cast !== "undefined") {
           if (Array.isArray(cast) || cast.type === Array || cast.type == "Array") {
             if (cast?.type == "Array") {
               cast.type = Array;
             }
-            return new MongooseTypes2.Array(path2, this.interpretAsType(path2, cast, options), obj, null, this);
+            return new MongooseTypes2.Array(path3, this.interpretAsType(path3, cast, options), obj, null, this);
           }
         }
         const castFromTypeKey = cast != null && cast[options.typeKey] && (options.typeKey !== "type" || !cast.type.type) ? cast[options.typeKey] : cast;
@@ -52431,34 +52431,34 @@ var require_schema2 = __commonJS({
             }
             const childSchema = new Schema6(castFromTypeKey, childSchemaOptions);
             childSchema.$implicitlyCreated = true;
-            return new MongooseTypes2.DocumentArray(path2, childSchema, obj, null, this);
+            return new MongooseTypes2.DocumentArray(path3, childSchema, obj, null, this);
           } else {
-            return new MongooseTypes2.Array(path2, MongooseTypes2.Mixed, obj, null, this);
+            return new MongooseTypes2.Array(path3, MongooseTypes2.Mixed, obj, null, this);
           }
         }
         if (cast) {
           type = cast[options.typeKey] && (options.typeKey !== "type" || !cast.type.type) ? cast[options.typeKey] : cast;
           if (Array.isArray(type)) {
-            return new MongooseTypes2.Array(path2, this.interpretAsType(path2, type, options), obj, null, this);
+            return new MongooseTypes2.Array(path3, this.interpretAsType(path3, type, options), obj, null, this);
           }
           name = typeof type === "string" ? type : type.schemaName || utils.getFunctionName(type);
           if (name === "ClockDate") {
             name = "Date";
           }
           if (name === void 0) {
-            throw new TypeError(`Invalid schema configuration: Could not determine the embedded type for array \`${path2}\`. See https://mongoosejs.com/docs/guide.html#definition for more info on supported schema syntaxes.`);
+            throw new TypeError(`Invalid schema configuration: Could not determine the embedded type for array \`${path3}\`. See https://mongoosejs.com/docs/guide.html#definition for more info on supported schema syntaxes.`);
           }
           if (!Object.hasOwn(MongooseTypes2, name)) {
-            throw new TypeError(`Invalid schema configuration: \`${name}\` is not a valid type within the array \`${path2}\`.See https://bit.ly/mongoose-schematypes for a list of valid schema types.`);
+            throw new TypeError(`Invalid schema configuration: \`${name}\` is not a valid type within the array \`${path3}\`.See https://bit.ly/mongoose-schematypes for a list of valid schema types.`);
           }
           if (name === "Union" && typeof cast === "object") {
             cast.parentSchema = this;
           }
         }
-        return new MongooseTypes2.Array(path2, cast || MongooseTypes2.Mixed, obj, options, this);
+        return new MongooseTypes2.Array(path3, cast || MongooseTypes2.Mixed, obj, options, this);
       }
       if (type?.instanceOfSchema) {
-        return new MongooseTypes2.Subdocument(type, path2, obj, this);
+        return new MongooseTypes2.Subdocument(type, path3, obj, this);
       }
       if (Buffer.isBuffer(type)) {
         name = "Buffer";
@@ -52481,12 +52481,12 @@ var require_schema2 = __commonJS({
         name = "Date";
       }
       if (name === void 0) {
-        throw new TypeError(`Invalid schema configuration: \`${path2}\` schematype definition is invalid. See https://mongoosejs.com/docs/guide.html#definition for more info on supported schema syntaxes.`);
+        throw new TypeError(`Invalid schema configuration: \`${path3}\` schematype definition is invalid. See https://mongoosejs.com/docs/guide.html#definition for more info on supported schema syntaxes.`);
       }
       if (MongooseTypes2[name] == null) {
-        throw new TypeError(`Invalid schema configuration: \`${name}\` is not a valid type at path \`${path2}\`. See https://bit.ly/mongoose-schematypes for a list of valid schema types.`);
+        throw new TypeError(`Invalid schema configuration: \`${name}\` is not a valid type at path \`${path3}\`. See https://bit.ly/mongoose-schematypes for a list of valid schema types.`);
       }
-      const schemaType = new MongooseTypes2[name](path2, obj, options, this);
+      const schemaType = new MongooseTypes2[name](path3, obj, options, this);
       return schemaType;
     };
     Schema6.prototype.eachPath = function(fn) {
@@ -52505,9 +52505,9 @@ var require_schema2 = __commonJS({
       let i = paths.length;
       const ret = [];
       while (i--) {
-        const path2 = paths[i];
-        if (this.paths[path2].isRequired) {
-          ret.push(path2);
+        const path3 = paths[i];
+        if (this.paths[path3].isRequired) {
+          ret.push(path3);
         }
       }
       this._requiredpaths = ret;
@@ -52519,12 +52519,12 @@ var require_schema2 = __commonJS({
       }
       const paths = Object.keys(this.paths);
       const ret = [];
-      for (const path2 of paths) {
-        const schematype = this.paths[path2];
+      for (const path3 of paths) {
+        const schematype = this.paths[path3];
         const topLevelTransformFunction = schematype.options.transform ?? schematype.constructor?.defaultOptions?.transform;
         const embeddedSchemaTypeTransformFunction = schematype.embeddedSchemaType?.options?.transform ?? schematype.embeddedSchemaType?.constructor?.defaultOptions?.transform;
         if (topLevelTransformFunction || embeddedSchemaTypeTransformFunction) {
-          ret.push(path2);
+          ret.push(path3);
         }
       }
       this._pathsWithTransforms = ret.length ? ret : null;
@@ -52537,40 +52537,40 @@ var require_schema2 = __commonJS({
       this._indexedpaths = this.indexes();
       return this._indexedpaths;
     }, "indexedPaths");
-    Schema6.prototype.pathType = function(path2) {
-      if (Object.hasOwn(this.paths, path2)) {
+    Schema6.prototype.pathType = function(path3) {
+      if (Object.hasOwn(this.paths, path3)) {
         return "real";
       }
-      if (Object.hasOwn(this.virtuals, path2)) {
+      if (Object.hasOwn(this.virtuals, path3)) {
         return "virtual";
       }
-      if (Object.hasOwn(this.nested, path2)) {
+      if (Object.hasOwn(this.nested, path3)) {
         return "nested";
       }
-      const cleanPath = _pathToPositionalSyntax(path2);
-      if (Object.hasOwn(this.subpaths, cleanPath) || Object.hasOwn(this.subpaths, path2)) {
+      const cleanPath = _pathToPositionalSyntax(path3);
+      if (Object.hasOwn(this.subpaths, cleanPath) || Object.hasOwn(this.subpaths, path3)) {
         return "real";
       }
-      const singleNestedPath = Object.hasOwn(this.singleNestedPaths, cleanPath) || Object.hasOwn(this.singleNestedPaths, path2);
+      const singleNestedPath = Object.hasOwn(this.singleNestedPaths, cleanPath) || Object.hasOwn(this.singleNestedPaths, path3);
       if (singleNestedPath) {
         return singleNestedPath === "nested" ? "nested" : "real";
       }
-      const mapPath = getMapPath(this, path2);
+      const mapPath = getMapPath(this, path3);
       if (mapPath != null) {
         return "real";
       }
-      if (/\.\d+\.|\.\d+$/.test(path2)) {
-        return getPositionalPathType(this, path2, cleanPath);
+      if (/\.\d+\.|\.\d+$/.test(path3)) {
+        return getPositionalPathType(this, path3, cleanPath);
       }
       return "adhocOrUndefined";
     };
-    Schema6.prototype.hasMixedParent = function(path2) {
-      const subpaths = path2.split(/\./g);
-      path2 = "";
+    Schema6.prototype.hasMixedParent = function(path3) {
+      const subpaths = path3.split(/\./g);
+      path3 = "";
       for (let i = 0; i < subpaths.length; ++i) {
-        path2 = i > 0 ? path2 + "." + subpaths[i] : subpaths[i];
-        if (Object.hasOwn(this.paths, path2) && this.paths[path2] instanceof MongooseTypes.Mixed) {
-          return this.paths[path2];
+        path3 = i > 0 ? path3 + "." + subpaths[i] : subpaths[i];
+        if (Object.hasOwn(this.paths, path3) && this.paths[path3] instanceof MongooseTypes.Mixed) {
+          return this.paths[path3];
         }
       }
       return null;
@@ -52578,8 +52578,8 @@ var require_schema2 = __commonJS({
     Schema6.prototype.setupTimestamp = function(timestamps) {
       return setupTimestamps(this, timestamps);
     };
-    function getPositionalPathType(self2, path2, cleanPath) {
-      const subpaths = path2.split(/\.(\d+)\.|\.(\d+)$/).filter(Boolean);
+    function getPositionalPathType(self2, path3, cleanPath) {
+      const subpaths = path3.split(/\.(\d+)\.|\.(\d+)$/).filter(Boolean);
       if (subpaths.length < 2) {
         return Object.hasOwn(self2.paths, subpaths[0]) ? self2.paths[subpaths[0]] : "adhocOrUndefined";
       }
@@ -52626,8 +52626,8 @@ var require_schema2 = __commonJS({
       return "adhocOrUndefined";
     }
     __name(getPositionalPathType, "getPositionalPathType");
-    function getPositionalPath(self2, path2, cleanPath) {
-      getPositionalPathType(self2, path2, cleanPath);
+    function getPositionalPath(self2, path3, cleanPath) {
+      getPositionalPathType(self2, path3, cleanPath);
       return self2.subpaths[cleanPath];
     }
     __name(getPositionalPath, "getPositionalPath");
@@ -52920,11 +52920,11 @@ var require_schema2 = __commonJS({
         return mem[part];
       }, this.tree);
       if (options?.applyToArray && parts.length > 1) {
-        const path2 = this.path(parts.slice(0, -1).join("."));
-        if (path2?.$isMongooseArray) {
-          return path2.virtual(parts[parts.length - 1], options);
+        const path3 = this.path(parts.slice(0, -1).join("."));
+        if (path3?.$isMongooseArray) {
+          return path3.virtual(parts[parts.length - 1], options);
         } else {
-          throw new MongooseError(`Path "${path2}" is not an array`);
+          throw new MongooseError(`Path "${path3}" is not an array`);
         }
       }
       return virtuals[name];
@@ -52932,22 +52932,22 @@ var require_schema2 = __commonJS({
     Schema6.prototype.virtualpath = function(name) {
       return Object.hasOwn(this.virtuals, name) ? this.virtuals[name] : null;
     };
-    Schema6.prototype.remove = function(path2) {
-      if (typeof path2 === "string") {
-        path2 = [path2];
+    Schema6.prototype.remove = function(path3) {
+      if (typeof path3 === "string") {
+        path3 = [path3];
       }
-      if (Array.isArray(path2)) {
-        path2.forEach(function(name) {
+      if (Array.isArray(path3)) {
+        path3.forEach(function(name) {
           if (this.path(name) == null && !this.nested[name]) {
             return;
           }
           if (this.nested[name]) {
             const allKeys = Object.keys(this.paths).concat(Object.keys(this.nested));
-            for (const path3 of allKeys) {
-              if (path3.startsWith(name + ".")) {
-                delete this.paths[path3];
-                delete this.nested[path3];
-                _deletePath(this, path3);
+            for (const path4 of allKeys) {
+              if (path4.startsWith(name + ".")) {
+                delete this.paths[path4];
+                delete this.nested[path4];
+                _deletePath(this, path4);
               }
             }
             this.mapPaths = this.mapPaths.filter(
@@ -53001,17 +53001,17 @@ var require_schema2 = __commonJS({
       delete branch[last];
     }
     __name(_deletePath, "_deletePath");
-    Schema6.prototype.removeVirtual = function(path2) {
-      if (typeof path2 === "string") {
-        path2 = [path2];
+    Schema6.prototype.removeVirtual = function(path3) {
+      if (typeof path3 === "string") {
+        path3 = [path3];
       }
-      if (Array.isArray(path2)) {
-        for (const virtual of path2) {
+      if (Array.isArray(path3)) {
+        for (const virtual of path3) {
           if (this.virtuals[virtual] == null) {
             throw new MongooseError(`Attempting to remove virtual "${virtual}" that does not exist.`);
           }
         }
-        for (const virtual of path2) {
+        for (const virtual of path3) {
           delete this.paths[virtual];
           delete this.virtuals[virtual];
           if (virtual.indexOf(".") !== -1) {
@@ -53064,12 +53064,12 @@ var require_schema2 = __commonJS({
       }, this);
       return this;
     };
-    Schema6.prototype._getSchema = function(path2) {
+    Schema6.prototype._getSchema = function(path3) {
       const _this = this;
-      const pathschema = _this.path(path2);
+      const pathschema = _this.path(path3);
       const resultPath = [];
       if (pathschema) {
-        pathschema.$fullPath = path2;
+        pathschema.$fullPath = path3;
         return pathschema;
       }
       function search(parts2, schema) {
@@ -53130,7 +53130,7 @@ var require_schema2 = __commonJS({
         }
       }
       __name(search, "search");
-      const parts = path2.split(".");
+      const parts = path3.split(".");
       for (let i = 0; i < parts.length; ++i) {
         if (parts[i] === "$" || isArrayFilter(parts[i])) {
           parts[i] = "0";
@@ -53141,9 +53141,9 @@ var require_schema2 = __commonJS({
       }
       return search(parts, _this);
     };
-    Schema6.prototype._getPathType = function(path2) {
+    Schema6.prototype._getPathType = function(path3) {
       const _this = this;
-      const pathschema = _this.path(path2);
+      const pathschema = _this.path(path3);
       if (pathschema) {
         return "real";
       }
@@ -53179,7 +53179,7 @@ var require_schema2 = __commonJS({
         return { schema: foundschema || schema, pathType: "undefined" };
       }
       __name(search, "search");
-      return search(path2.split("."), _this);
+      return search(path3.split("."), _this);
     };
     Schema6.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
       if (!this._duplicateKeyErrorMessagesByPath) {
@@ -53226,8 +53226,8 @@ var require_schema2 = __commonJS({
     Schema6.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
       const useBsonType = options?.useBsonType ?? false;
       const result = useBsonType ? { required: [], properties: {} } : { type: "object", required: [], properties: {} };
-      for (const path2 of Object.keys(this.paths)) {
-        const schemaType = this.paths[path2];
+      for (const path3 of Object.keys(this.paths)) {
+        const schemaType = this.paths[path3];
         if (schemaType._presplitPath.indexOf("$*") !== -1) {
           continue;
         }
@@ -53249,7 +53249,7 @@ var require_schema2 = __commonJS({
           }
         }
         const lastSubpath = schemaType._presplitPath[schemaType._presplitPath.length - 1];
-        if (path2 === "_id") {
+        if (path3 === "_id") {
           if (!jsonSchemaForPath.required) {
             jsonSchemaForPath.required = [];
           }
@@ -53372,8 +53372,8 @@ var require_applyPlugins = __commonJS({
       options = Object.assign({}, options);
       delete options.skipTopLevel;
       if (options.applyPluginsToChildSchemas !== false) {
-        for (const path2 of Object.keys(schema.paths)) {
-          const type = schema.paths[path2];
+        for (const path3 of Object.keys(schema.paths)) {
+          const type = schema.paths[path3];
           if (type.schema != null) {
             applyPlugins(type.schema, plugins, options, cacheKey);
             type.Constructor.prototype.$__setSchema(type.schema);
@@ -53468,7 +53468,7 @@ var require_common3 = __commonJS({
     var util = require("util");
     exports2.flatten = flatten;
     exports2.modifiedPaths = modifiedPaths;
-    function flatten(update, path2, options, schema) {
+    function flatten(update, path3, options, schema) {
       let keys;
       if (update && isMongooseObject(update) && !Buffer.isBuffer(update)) {
         keys = Object.keys(update.toObject({ transform: false, virtuals: false }) || {});
@@ -53477,30 +53477,30 @@ var require_common3 = __commonJS({
       }
       const numKeys2 = keys.length;
       const result = {};
-      path2 = path2 ? path2 + "." : "";
+      path3 = path3 ? path3 + "." : "";
       for (let i = 0; i < numKeys2; ++i) {
         const key = keys[i];
         const val = update[key];
-        result[path2 + key] = val;
-        const keySchema = schema?.path?.(path2 + key);
-        const isNested = schema?.nested?.[path2 + key];
+        result[path3 + key] = val;
+        const keySchema = schema?.path?.(path3 + key);
+        const isNested = schema?.nested?.[path3 + key];
         if (keySchema?.instance === "Mixed") continue;
         if (shouldFlatten(val)) {
           if (options?.skipArrays && Array.isArray(val)) {
             continue;
           }
-          const flat = flatten(val, path2 + key, options, schema);
+          const flat = flatten(val, path3 + key, options, schema);
           for (const k in flat) {
             result[k] = flat[k];
           }
           if (Array.isArray(val)) {
-            result[path2 + key] = val;
+            result[path3 + key] = val;
           }
         }
         if (isNested) {
           const paths = Object.keys(schema.paths);
           for (const p of paths) {
-            if (p.startsWith(path2 + key + ".") && !Object.hasOwn(result, p)) {
+            if (p.startsWith(path3 + key + ".") && !Object.hasOwn(result, p)) {
               result[p] = void 0;
             }
           }
@@ -53509,13 +53509,13 @@ var require_common3 = __commonJS({
       return result;
     }
     __name(flatten, "flatten");
-    function modifiedPaths(update, path2, result, recursion = null) {
+    function modifiedPaths(update, path3, result, recursion = null) {
       if (update == null || typeof update !== "object") {
         return;
       }
       if (recursion == null) {
         recursion = {
-          raw: { update, path: path2 },
+          raw: { update, path: path3 },
           trace: /* @__PURE__ */ new WeakSet()
         };
       }
@@ -53528,17 +53528,17 @@ updatePath: '${recursion.raw.path}'`);
       const keys = Object.keys(update || {});
       const numKeys2 = keys.length;
       result = result || {};
-      path2 = path2 ? path2 + "." : "";
+      path3 = path3 ? path3 + "." : "";
       for (let i = 0; i < numKeys2; ++i) {
         const key = keys[i];
         let val = update[key];
-        const _path = path2 + key;
+        const _path = path3 + key;
         result[_path] = true;
         if (!Buffer.isBuffer(val) && isMongooseObject(val)) {
           val = val.toObject({ transform: false, virtuals: false });
         }
         if (shouldFlatten(val)) {
-          modifiedPaths(val, path2 + key, result, recursion);
+          modifiedPaths(val, path3 + key, result, recursion);
         }
       }
       recursion.trace.delete(update);
@@ -53584,17 +53584,17 @@ var require_updatedPathsByArrayFilter = __commonJS({
         return {};
       }
       const updatedPaths = modifiedPaths(update);
-      return Object.keys(updatedPaths).reduce((cur, path2) => {
-        const matches = path2.match(/\$\[[^\]]+\]/g);
+      return Object.keys(updatedPaths).reduce((cur, path3) => {
+        const matches = path3.match(/\$\[[^\]]+\]/g);
         if (matches == null) {
           return cur;
         }
         for (const match of matches) {
-          const firstMatch = path2.indexOf(match);
-          if (firstMatch !== path2.lastIndexOf(match)) {
-            throw new Error(`Path '${path2}' contains the same array filter multiple times`);
+          const firstMatch = path3.indexOf(match);
+          if (firstMatch !== path3.lastIndexOf(match)) {
+            throw new Error(`Path '${path3}' contains the same array filter multiple times`);
           }
-          cur[match.substring(2, match.length - 1)] = path2.substring(0, firstMatch - 1).replace(/\$\[[^\]]+\]/g, "0");
+          cur[match.substring(2, match.length - 1)] = path3.substring(0, firstMatch - 1).replace(/\$\[[^\]]+\]/g, "0");
         }
         return cur;
       }, {});
@@ -53611,8 +53611,8 @@ var require_getEmbeddedDiscriminatorPath2 = __commonJS({
     var getDiscriminatorByValue = require_getDiscriminatorByValue();
     var getDiscriminatorValueFromFilter = require_getDiscriminatorValueFromFilter();
     var updatedPathsByArrayFilter = require_updatedPathsByArrayFilter();
-    module2.exports = /* @__PURE__ */ __name(function getEmbeddedDiscriminatorPath(schema, update, filter, path2, options) {
-      const parts = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+    module2.exports = /* @__PURE__ */ __name(function getEmbeddedDiscriminatorPath(schema, update, filter, path3, options) {
+      const parts = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
       let schematype = null;
       let type = "adhocOrUndefined";
       filter = filter || {};
@@ -53731,16 +53731,16 @@ var require_moveImmutableProperties = __commonJS({
         const isDollarKey = key.startsWith("$");
         if (key === "$set") {
           const updatedPaths = Object.keys(update[key]);
-          for (const path2 of updatedPaths) {
-            _walkUpdatePath(schema, update[key], path2, update, ctx);
+          for (const path3 of updatedPaths) {
+            _walkUpdatePath(schema, update[key], path3, update, ctx);
           }
         } else if (!isDollarKey) {
           _walkUpdatePath(schema, update, key, update, ctx);
         }
       }
     }, "moveImmutableProperties");
-    function _walkUpdatePath(schema, op, path2, update, ctx) {
-      const schematype = schema.path(path2);
+    function _walkUpdatePath(schema, op, path3, update, ctx) {
+      const schematype = schema.path(path3);
       if (schematype == null) {
         return;
       }
@@ -53755,8 +53755,8 @@ var require_moveImmutableProperties = __commonJS({
         return;
       }
       update.$setOnInsert = update.$setOnInsert || {};
-      update.$setOnInsert[path2] = op[path2];
-      delete op[path2];
+      update.$setOnInsert[path3] = op[path3];
+      delete op[path3];
     }
     __name(_walkUpdatePath, "_walkUpdatePath");
   }
@@ -53767,15 +53767,15 @@ var require_setDottedPath = __commonJS({
   "node_modules/mongoose/lib/helpers/path/setDottedPath.js"(exports2, module2) {
     "use strict";
     var specialProperties = require_specialProperties();
-    module2.exports = /* @__PURE__ */ __name(function setDottedPath(obj, path2, val) {
-      if (path2.indexOf(".") === -1) {
-        if (specialProperties.has(path2)) {
+    module2.exports = /* @__PURE__ */ __name(function setDottedPath(obj, path3, val) {
+      if (path3.indexOf(".") === -1) {
+        if (specialProperties.has(path3)) {
           return;
         }
-        obj[path2] = val;
+        obj[path3] = val;
         return;
       }
-      const parts = path2.split(".");
+      const parts = path3.split(".");
       const last = parts.pop();
       let cur = obj;
       for (const part of parts) {
@@ -54200,13 +54200,13 @@ var require_castUpdate = __commonJS({
       $set: 1,
       $setOnInsert: 1
     };
-    function castUpdateVal(schema, val, op, $conditional, context, path2) {
+    function castUpdateVal(schema, val, op, $conditional, context, path3) {
       if (!schema) {
         if (op in numberOps) {
           try {
             return castNumber(val);
           } catch {
-            throw new CastError("number", val, path2);
+            throw new CastError("number", val, path3);
           }
         }
         return val;
@@ -54345,12 +54345,12 @@ var require_getPath = __commonJS({
     "use strict";
     var getDiscriminatorByKey = require_getDiscriminatorByKey();
     var numberRE = /^\d+$/;
-    module2.exports = /* @__PURE__ */ __name(function getPath(schema, path2, discriminatorValueMap) {
-      let schematype = schema.path(path2);
+    module2.exports = /* @__PURE__ */ __name(function getPath(schema, path3, discriminatorValueMap) {
+      let schematype = schema.path(path3);
       if (schematype != null) {
         return schematype;
       }
-      const pieces = path2.split(".");
+      const pieces = path3.split(".");
       let cur = "";
       let isArray = false;
       for (const piece of pieces) {
@@ -54538,8 +54538,8 @@ var require_setDefaultsOnInsert = __commonJS({
       const paths = Object.keys(filter);
       const numPaths = paths.length;
       for (let i = 0; i < numPaths; ++i) {
-        const path2 = paths[i];
-        const condition = filter[path2];
+        const path3 = paths[i];
+        const condition = filter[path3];
         if (condition && typeof condition === "object") {
           const conditionKeys = Object.keys(condition);
           const numConditionKeys = conditionKeys.length;
@@ -54554,14 +54554,14 @@ var require_setDefaultsOnInsert = __commonJS({
             continue;
           }
         }
-        updatedKeys[path2] = true;
-        if (path2.indexOf(".") === -1) {
+        updatedKeys[path3] = true;
+        if (path3.indexOf(".") === -1) {
           continue;
         }
-        const pieces = schema.paths[path2] ? (
+        const pieces = schema.paths[path3] ? (
           // If the SchemaType already split for us, use that to avoid the extra overhead
-          schema.paths[path2].splitPath()
-        ) : path2.split(".");
+          schema.paths[path3].splitPath()
+        ) : path3.split(".");
         let cur = pieces[0];
         for (let j = 1; j < pieces.length; ++j) {
           updatedKeys[cur] = true;
@@ -54571,7 +54571,7 @@ var require_setDefaultsOnInsert = __commonJS({
       if (options?.overwrite && !hasDollarUpdate) {
         return castedDoc;
       }
-      schema.eachPath(function(path2, schemaType) {
+      schema.eachPath(function(path3, schemaType) {
         if (schemaType.path === "_id" && schemaType.options.auto) {
           return;
         }
@@ -54583,20 +54583,20 @@ var require_setDefaultsOnInsert = __commonJS({
         if (pathPieces.includes("$*")) {
           return;
         }
-        if (isModified(castedDoc, updatedKeys, path2, pathPieces, hasDollarUpdate)) {
+        if (isModified(castedDoc, updatedKeys, path3, pathPieces, hasDollarUpdate)) {
           return;
         }
         castedDoc = castedDoc || {};
         castedDoc.$setOnInsert = castedDoc.$setOnInsert || {};
-        if (get(castedDoc, path2) == null) {
-          castedDoc.$setOnInsert[path2] = def;
+        if (get(castedDoc, path3) == null) {
+          castedDoc.$setOnInsert[path3] = def;
         }
-        updatedValues[path2] = def;
+        updatedValues[path3] = def;
       });
       return castedDoc;
     };
-    function isModified(castedDoc, updatedKeys, path2, pathPieces, hasDollarUpdate) {
-      if (updatedKeys[path2]) {
+    function isModified(castedDoc, updatedKeys, path3, pathPieces, hasDollarUpdate) {
+      if (updatedKeys[path3]) {
         return true;
       }
       let cur = pathPieces[0];
@@ -54609,13 +54609,13 @@ var require_setDefaultsOnInsert = __commonJS({
       if (hasDollarUpdate) {
         for (const key in castedDoc) {
           if (key.charAt(0) === "$") {
-            if (pathExistsInUpdate(castedDoc[key], path2, pathPieces)) {
+            if (pathExistsInUpdate(castedDoc[key], path3, pathPieces)) {
               return true;
             }
           }
         }
       } else {
-        if (pathExistsInUpdate(castedDoc, path2, pathPieces)) {
+        if (pathExistsInUpdate(castedDoc, path3, pathPieces)) {
           return true;
         }
       }
@@ -55296,15 +55296,15 @@ var require_connection2 = __commonJS({
         if (Object.hasOwn(state, "isDeleted")) {
           doc.$isDeleted(state.isDeleted);
         }
-        for (const path2 of state.modifiedPaths) {
-          doc.$__.activePaths.modify(path2);
+        for (const path3 of state.modifiedPaths) {
+          doc.$__.activePaths.modify(path3);
         }
-        for (const path2 of state.atomics.keys()) {
-          const val = doc.$__getValue(path2);
+        for (const path3 of state.atomics.keys()) {
+          const val = doc.$__getValue(path3);
           if (val == null) {
             continue;
           }
-          val[arrayAtomicsSymbol] = state.atomics.get(path2);
+          val[arrayAtomicsSymbol] = state.atomics.get(path3);
         }
       }
     }
@@ -55702,9 +55702,9 @@ var require_connection2 = __commonJS({
       }
       return this;
     }, "deleteModel");
-    Connection.prototype.watch = /* @__PURE__ */ __name(function watch(pipeline2, options) {
-      const changeStreamPromise = this._waitForConnect().then(() => this.db.watch(pipeline2, options));
-      return new ChangeStream(changeStreamPromise, pipeline2, options);
+    Connection.prototype.watch = /* @__PURE__ */ __name(function watch(pipeline3, options) {
+      const changeStreamPromise = this._waitForConnect().then(() => this.db.watch(pipeline3, options));
+      return new ChangeStream(changeStreamPromise, pipeline3, options);
     }, "watch");
     Connection.prototype.asPromise = /* @__PURE__ */ __name(async function asPromise() {
       try {
@@ -56049,8 +56049,8 @@ var require_connection3 = __commonJS({
       }
       return newConn;
     };
-    NativeConnection.prototype.aggregate = /* @__PURE__ */ __name(function aggregate(pipeline2, options) {
-      return new this.base.Aggregate(null, this).append(pipeline2).option(options ?? {});
+    NativeConnection.prototype.aggregate = /* @__PURE__ */ __name(function aggregate(pipeline3, options) {
+      return new this.base.Aggregate(null, this).append(pipeline3).option(options ?? {});
     }, "aggregate");
     NativeConnection.prototype.removeDb = /* @__PURE__ */ __name(function removeDb(name) {
       const dbs = this.otherDbs.filter((db) => db.name === name);
@@ -56600,7 +56600,7 @@ var require_queryCursor = __commonJS({
   "node_modules/mongoose/lib/cursor/queryCursor.js"(exports2, module2) {
     "use strict";
     var MongooseError = require_mongooseError();
-    var Readable3 = require("stream").Readable;
+    var Readable4 = require("stream").Readable;
     var eachAsync = require_eachAsync();
     var helpers = require_queryHelpers();
     var kareem = require_kareem();
@@ -56610,7 +56610,7 @@ var require_queryCursor = __commonJS({
     var { cursorNextChannel } = require_tracing();
     var { buildMiddlewareFilter } = require_buildMiddlewareFilter();
     function QueryCursor(query) {
-      Readable3.call(this, { autoDestroy: true, objectMode: true });
+      Readable4.call(this, { autoDestroy: true, objectMode: true });
       this.cursor = null;
       this.skipped = false;
       this.query = query;
@@ -56669,7 +56669,7 @@ var require_queryCursor = __commonJS({
       model6.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
     }
     __name(QueryCursor, "QueryCursor");
-    util.inherits(QueryCursor, Readable3);
+    util.inherits(QueryCursor, Readable4);
     function _getRawCursor(query, queryCursor) {
       try {
         const cursor = query.model.collection.find(query._conditions, queryCursor.options);
@@ -57104,8 +57104,8 @@ var require_isInclusive = __commonJS({
 var require_isSubpath = __commonJS({
   "node_modules/mongoose/lib/helpers/projection/isSubpath.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function isSubpath(path1, path2) {
-      return path1 === path2 || path2.startsWith(path1 + ".");
+    module2.exports = /* @__PURE__ */ __name(function isSubpath(path1, path22) {
+      return path1 === path22 || path22.startsWith(path1 + ".");
     }, "isSubpath");
   }
 });
@@ -57607,14 +57607,14 @@ var require_mquery = __commonJS({
     };
     Query.prototype.equals = /* @__PURE__ */ __name(function equals(val) {
       this._ensurePath("equals");
-      const path2 = this._path;
-      this._conditions[path2] = val;
+      const path3 = this._path;
+      this._conditions[path3] = val;
       return this;
     }, "equals");
     Query.prototype.eq = /* @__PURE__ */ __name(function eq(val) {
       this._ensurePath("eq");
-      const path2 = this._path;
-      this._conditions[path2] = val;
+      const path3 = this._path;
+      this._conditions[path3] = val;
       return this;
     }, "eq");
     Query.prototype.or = /* @__PURE__ */ __name(function or(array2) {
@@ -57637,82 +57637,82 @@ var require_mquery = __commonJS({
     }, "and");
     "gt gte lt lte ne in nin all regex size maxDistance minDistance".split(" ").forEach(function($conditional) {
       Query.prototype[$conditional] = function() {
-        let path2, val;
+        let path3, val;
         if (1 === arguments.length) {
           this._ensurePath($conditional);
           val = arguments[0];
-          path2 = this._path;
+          path3 = this._path;
         } else {
           val = arguments[1];
-          path2 = arguments[0];
+          path3 = arguments[0];
         }
-        const existing = getOwnCondition(this._conditions, path2);
-        const conds = existing === null || typeof existing === "object" ? existing : this._conditions[path2] = {};
+        const existing = getOwnCondition(this._conditions, path3);
+        const conds = existing === null || typeof existing === "object" ? existing : this._conditions[path3] = {};
         conds["$" + $conditional] = val;
         return this;
       };
     });
     Query.prototype.mod = function() {
-      let val, path2;
+      let val, path3;
       if (1 === arguments.length) {
         this._ensurePath("mod");
         val = arguments[0];
-        path2 = this._path;
+        path3 = this._path;
       } else if (2 === arguments.length && !Array.isArray(arguments[1])) {
         this._ensurePath("mod");
         val = [arguments[0], arguments[1]];
-        path2 = this._path;
+        path3 = this._path;
       } else if (3 === arguments.length) {
         val = [arguments[1], arguments[2]];
-        path2 = arguments[0];
+        path3 = arguments[0];
       } else {
         val = arguments[1];
-        path2 = arguments[0];
+        path3 = arguments[0];
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds.$mod = val;
       return this;
     };
     Query.prototype.exists = function() {
-      let path2, val;
+      let path3, val;
       if (0 === arguments.length) {
         this._ensurePath("exists");
-        path2 = this._path;
+        path3 = this._path;
         val = true;
       } else if (1 === arguments.length) {
         if ("boolean" === typeof arguments[0]) {
           this._ensurePath("exists");
-          path2 = this._path;
+          path3 = this._path;
           val = arguments[0];
         } else {
-          path2 = arguments[0];
+          path3 = arguments[0];
           val = true;
         }
       } else if (2 === arguments.length) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         val = arguments[1];
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds.$exists = val;
       return this;
     };
     Query.prototype.elemMatch = function() {
       if (null == arguments[0])
         throw new TypeError("Invalid argument");
-      let fn, path2, criteria;
+      let fn, path3, criteria;
       if ("function" === typeof arguments[0]) {
         this._ensurePath("elemMatch");
-        path2 = this._path;
+        path3 = this._path;
         fn = arguments[0];
       } else if (utils.isObject(arguments[0])) {
         this._ensurePath("elemMatch");
-        path2 = this._path;
+        path3 = this._path;
         criteria = arguments[0];
       } else if ("function" === typeof arguments[1]) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         fn = arguments[1];
       } else if (arguments[1] && utils.isObject(arguments[1])) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         criteria = arguments[1];
       } else {
         throw new TypeError("Invalid argument");
@@ -57722,7 +57722,7 @@ var require_mquery = __commonJS({
         fn(criteria);
         criteria = criteria._conditions;
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds.$elemMatch = criteria;
       return this;
     };
@@ -57751,50 +57751,50 @@ var require_mquery = __commonJS({
       throw new TypeError("Invalid argument");
     }, "within");
     Query.prototype.box = function() {
-      let path2, box;
+      let path3, box;
       if (3 === arguments.length) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         box = [arguments[1], arguments[2]];
       } else if (2 === arguments.length) {
         this._ensurePath("box");
-        path2 = this._path;
+        path3 = this._path;
         box = [arguments[0], arguments[1]];
       } else {
         throw new TypeError("Invalid argument");
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds[this._geoComparison || "$geoWithin"] = { $box: box };
       return this;
     };
     Query.prototype.polygon = function() {
-      let val, path2;
+      let val, path3;
       if ("string" == typeof arguments[0]) {
         val = Array.from(arguments);
-        path2 = val.shift();
+        path3 = val.shift();
       } else {
         this._ensurePath("polygon");
-        path2 = this._path;
+        path3 = this._path;
         val = Array.from(arguments);
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds[this._geoComparison || "$geoWithin"] = { $polygon: val };
       return this;
     };
     Query.prototype.circle = function() {
-      let path2, val;
+      let path3, val;
       if (1 === arguments.length) {
         this._ensurePath("circle");
-        path2 = this._path;
+        path3 = this._path;
         val = arguments[0];
       } else if (2 === arguments.length) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         val = arguments[1];
       } else {
         throw new TypeError("Invalid argument");
       }
       if (!("radius" in val && val.center))
         throw new Error("center and radius are required");
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       const type = val.spherical ? "$centerSphere" : "$center";
       const wKey = this._geoComparison || "$geoWithin";
       conds[wKey] = {};
@@ -57804,16 +57804,16 @@ var require_mquery = __commonJS({
       return this;
     };
     Query.prototype.near = /* @__PURE__ */ __name(function near() {
-      let path2, val;
+      let path3, val;
       this._geoComparison = "$near";
       if (0 === arguments.length) {
         return this;
       } else if (1 === arguments.length) {
         this._ensurePath("near");
-        path2 = this._path;
+        path3 = this._path;
         val = arguments[0];
       } else if (2 === arguments.length) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         val = arguments[1];
       } else {
         throw new TypeError("Invalid argument");
@@ -57821,7 +57821,7 @@ var require_mquery = __commonJS({
       if (!val.center) {
         throw new Error("center is required");
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       const type = val.spherical ? "$nearSphere" : "$near";
       if (Array.isArray(val.center)) {
         conds[type] = val.center;
@@ -57861,10 +57861,10 @@ var require_mquery = __commonJS({
       if (!("$within" == this._geoComparison || "$geoWithin" == this._geoComparison || "$near" == this._geoComparison || "$geoIntersects" == this._geoComparison)) {
         throw new Error("geometry() must come after `within()`, `intersects()`, or `near()");
       }
-      let val, path2;
+      let val, path3;
       if (1 === arguments.length) {
         this._ensurePath("geometry");
-        path2 = this._path;
+        path3 = this._path;
         val = arguments[0];
       } else {
         throw new TypeError("Invalid argument");
@@ -57872,7 +57872,7 @@ var require_mquery = __commonJS({
       if (!(val.type && Array.isArray(val.coordinates))) {
         throw new TypeError("Invalid argument");
       }
-      const conds = getOwnCondition(this._conditions, path2) || (this._conditions[path2] = {});
+      const conds = getOwnCondition(this._conditions, path3) || (this._conditions[path3] = {});
       conds[this._geoComparison] = { $geometry: val };
       return this;
     }, "geometry");
@@ -57915,7 +57915,7 @@ var require_mquery = __commonJS({
       if (0 === arguments.length)
         return this;
       this._validate("slice");
-      let path2, val;
+      let path3, val;
       if (1 === arguments.length) {
         const arg = arguments[0];
         if (typeof arg === "object" && !Array.isArray(arg)) {
@@ -57930,24 +57930,24 @@ var require_mquery = __commonJS({
           return this;
         }
         this._ensurePath("slice");
-        path2 = this._path;
+        path3 = this._path;
         val = arguments[0];
       } else if (2 === arguments.length) {
         if ("number" === typeof arguments[0]) {
           this._ensurePath("slice");
-          path2 = this._path;
+          path3 = this._path;
           val = [arguments[0], arguments[1]];
         } else {
-          path2 = arguments[0];
+          path3 = arguments[0];
           val = arguments[1];
         }
       } else if (3 === arguments.length) {
-        path2 = arguments[0];
+        path3 = arguments[0];
         val = [arguments[1], arguments[2]];
       }
-      assertSafePath(path2);
+      assertSafePath(path3);
       const myFields = this._fields || (this._fields = {});
-      myFields[path2] = { $slice: val };
+      myFields[path3] = { $slice: val };
       return this;
     };
     Query.prototype.sort = function(arg) {
@@ -58476,14 +58476,14 @@ var require_mquery = __commonJS({
         throw new Error(msg);
       }
     };
-    function getOwnCondition(conditions, path2) {
-      assertSafePath(path2);
-      return Object.prototype.hasOwnProperty.call(conditions, path2) ? conditions[path2] : void 0;
+    function getOwnCondition(conditions, path3) {
+      assertSafePath(path3);
+      return Object.prototype.hasOwnProperty.call(conditions, path3) ? conditions[path3] : void 0;
     }
     __name(getOwnCondition, "getOwnCondition");
-    function assertSafePath(path2) {
-      if (path2 != null && utils.specialProperties.indexOf(String(path2)) !== -1) {
-        throw new Error("Cannot use `" + path2 + "` as a query path");
+    function assertSafePath(path3) {
+      if (path3 != null && utils.specialProperties.indexOf(String(path3)) !== -1) {
+        throw new Error("Cannot use `" + path3 + "` as a query path");
       }
     }
     __name(assertSafePath, "assertSafePath");
@@ -58674,13 +58674,13 @@ var require_selectPopulatedFields = __commonJS({
       const paths = Object.keys(populateOptions);
       userProvidedFields = userProvidedFields || {};
       if (isInclusive(fields)) {
-        for (const path2 of paths) {
-          if (!isPathInFields(userProvidedFields, path2)) {
-            fields[path2] = 1;
-          } else if (userProvidedFields[path2] === 0) {
-            delete fields[path2];
+        for (const path3 of paths) {
+          if (!isPathInFields(userProvidedFields, path3)) {
+            fields[path3] = 1;
+          } else if (userProvidedFields[path3] === 0) {
+            delete fields[path3];
           }
-          const refPath = populateOptions[path2]?.refPath;
+          const refPath = populateOptions[path3]?.refPath;
           if (typeof refPath === "string") {
             if (!isPathInFields(userProvidedFields, refPath)) {
               fields[refPath] = 1;
@@ -58690,19 +58690,19 @@ var require_selectPopulatedFields = __commonJS({
           }
         }
       } else if (isExclusive(fields)) {
-        for (const path2 of paths) {
-          if (userProvidedFields[path2] == null) {
-            delete fields[path2];
+        for (const path3 of paths) {
+          if (userProvidedFields[path3] == null) {
+            delete fields[path3];
           }
-          const refPath = populateOptions[path2]?.refPath;
+          const refPath = populateOptions[path3]?.refPath;
           if (typeof refPath === "string" && userProvidedFields[refPath] == null) {
             delete fields[refPath];
           }
         }
       }
     }, "selectPopulatedFields");
-    function isPathInFields(userProvidedFields, path2) {
-      const pieces = path2.split(".");
+    function isPathInFields(userProvidedFields, path3) {
+      const pieces = path3.split(".");
       const len = pieces.length;
       let cur = pieces[0];
       for (let i = 1; i < len; ++i) {
@@ -58817,7 +58817,7 @@ var require_updateValidators = __commonJS({
               })
             );
           } else {
-            const isAlreadyValidated = alreadyValidated.find((path2) => updates[i].startsWith(path2 + "."));
+            const isAlreadyValidated = alreadyValidated.find((path3) => updates[i].startsWith(path3 + "."));
             if (isAlreadyValidated) {
               continue;
             }
@@ -59089,9 +59089,9 @@ var require_query = __commonJS({
       q._mongooseOptions = this._mongooseOptions;
       return q;
     };
-    Query.prototype.where = /* @__PURE__ */ __name(function where(path2) {
-      if (typeof path2 === "string" && specialProperties.has(path2)) {
-        throw new MongooseError(`Cannot use \`${path2}\` as a query path`);
+    Query.prototype.where = /* @__PURE__ */ __name(function where(path3) {
+      if (typeof path3 === "string" && specialProperties.has(path3)) {
+        throw new MongooseError(`Cannot use \`${path3}\` as a query path`);
       }
       return Query.base.where.apply(this, arguments);
     }, "where");
@@ -59100,7 +59100,7 @@ var require_query = __commonJS({
         return this;
       }
       this._validate("slice");
-      let path2;
+      let path3;
       let val;
       if (args.length === 1) {
         const arg = args[0];
@@ -59113,23 +59113,23 @@ var require_query = __commonJS({
           return this;
         }
         this._ensurePath("slice");
-        path2 = this._path;
+        path3 = this._path;
         val = args[0];
       } else if (args.length === 2) {
         if ("number" === typeof args[0]) {
           this._ensurePath("slice");
-          path2 = this._path;
+          path3 = this._path;
           val = [args[0], args[1]];
         } else {
-          path2 = args[0];
+          path3 = args[0];
           val = args[1];
         }
       } else if (args.length === 3) {
-        path2 = args[0];
+        path3 = args[0];
         val = [args[1], args[2]];
       }
       const p = {};
-      p[path2] = { $slice: val };
+      p[path3] = { $slice: val };
       this.select(p);
       return this;
     };
@@ -59144,26 +59144,26 @@ var require_query = __commonJS({
     };
     Query.prototype.mod = function() {
       let val;
-      let path2;
+      let path3;
       if (arguments.length === 1) {
         this._ensurePath("mod");
         val = arguments[0];
-        path2 = this._path;
+        path3 = this._path;
       } else if (arguments.length === 2 && !Array.isArray(arguments[1])) {
         this._ensurePath("mod");
         val = [arguments[0], arguments[1]];
-        path2 = this._path;
+        path3 = this._path;
       } else if (arguments.length === 3) {
         val = [arguments[1], arguments[2]];
-        path2 = arguments[0];
+        path3 = arguments[0];
       } else {
         val = arguments[1];
-        path2 = arguments[0];
+        path3 = arguments[0];
       }
-      if (path2 != null && specialProperties.has(String(path2))) {
-        throw new MongooseError(`Cannot use \`${path2}\` as a query path`);
+      if (path3 != null && specialProperties.has(String(path3))) {
+        throw new MongooseError(`Cannot use \`${path3}\` as a query path`);
       }
-      const conds = Object.hasOwn(this._conditions, path2) && this._conditions[path2] || (this._conditions[path2] = {});
+      const conds = Object.hasOwn(this._conditions, path3) && this._conditions[path3] || (this._conditions[path3] = {});
       conds.$mod = val;
       return this;
     };
@@ -59606,12 +59606,12 @@ var require_query = __commonJS({
       this._mongooseOptions.lean = arguments.length ? v : true;
       return this;
     };
-    Query.prototype.set = function(path2, val) {
+    Query.prototype.set = function(path3, val) {
       _cloneUpdateIfShared(this);
-      if (typeof path2 === "object") {
-        const keys = Object.keys(path2);
+      if (typeof path3 === "object") {
+        const keys = Object.keys(path3);
         for (const key of keys) {
-          this.set(key, path2[key]);
+          this.set(key, path3[key]);
         }
         return this;
       }
@@ -59620,27 +59620,27 @@ var require_query = __commonJS({
         update = {};
         this[queryUpdateSymbol] = update;
       }
-      if (path2 in update) {
-        delete update[path2];
+      if (path3 in update) {
+        delete update[path3];
       }
       update.$set = update.$set || {};
-      update.$set[path2] = val;
+      update.$set[path3] = val;
       return this;
     };
-    Query.prototype.get = /* @__PURE__ */ __name(function get(path2) {
+    Query.prototype.get = /* @__PURE__ */ __name(function get(path3) {
       const update = this[queryUpdateSymbol];
       if (update == null) {
         return void 0;
       }
       const $set = update.$set;
       if ($set == null) {
-        return update[path2];
+        return update[path3];
       }
-      if (utils.hasUserDefinedProperty(update, path2)) {
-        return update[path2];
+      if (utils.hasUserDefinedProperty(update, path3)) {
+        return update[path3];
       }
-      if (utils.hasUserDefinedProperty($set, path2)) {
-        return $set[path2];
+      if (utils.hasUserDefinedProperty($set, path3)) {
+        return $set[path3];
       }
       return void 0;
     }, "get");
@@ -60476,11 +60476,11 @@ var require_query = __commonJS({
       return def;
     }
     __name(_getOption, "_getOption");
-    function _completeOneLean(schema, doc, path2, res, opts, callback) {
+    function _completeOneLean(schema, doc, path3, res, opts, callback) {
       if (opts.lean && typeof opts.lean.transform === "function") {
         opts.lean.transform(doc);
         for (let i = 0; i < schema.childSchemas.length; i++) {
-          const childPath = path2 ? path2 + "." + schema.childSchemas[i].model.path : schema.childSchemas[i].model.path;
+          const childPath = path3 ? path3 + "." + schema.childSchemas[i].model.path : schema.childSchemas[i].model.path;
           const _schema = schema.childSchemas[i].schema;
           const obj = mpath.get(childPath, doc);
           if (obj == null) {
@@ -60507,13 +60507,13 @@ var require_query = __commonJS({
       return callback(null, doc);
     }
     __name(_completeOneLean, "_completeOneLean");
-    function _completeManyLean(schema, docs, path2, opts) {
+    function _completeManyLean(schema, docs, path3, opts) {
       if (opts.lean && typeof opts.lean.transform === "function") {
         for (const doc of docs) {
           opts.lean.transform(doc);
         }
         for (let i = 0; i < schema.childSchemas.length; i++) {
-          const childPath = path2 ? path2 + "." + schema.childSchemas[i].model.path : schema.childSchemas[i].model.path;
+          const childPath = path3 ? path3 + "." + schema.childSchemas[i].model.path : schema.childSchemas[i].model.path;
           const _schema = schema.childSchemas[i].schema;
           let doc = mpath.get(childPath, docs);
           if (doc == null) {
@@ -60832,8 +60832,8 @@ var require_query = __commonJS({
       return err;
     }
     __name(_orFailError, "_orFailError");
-    Query.prototype.isPathSelectedInclusive = function(path2) {
-      return isPathSelectedInclusive(this._fields, path2);
+    Query.prototype.isPathSelectedInclusive = function(path3) {
+      return isPathSelectedInclusive(this._fields, path3);
     };
     Query.prototype.exec = /* @__PURE__ */ __name(async function exec(op) {
       if (typeof op === "function" || arguments.length >= 2 && typeof arguments[1] === "function") {
@@ -61019,9 +61019,9 @@ var require_query = __commonJS({
       }
       const pop = opts.populate;
       for (const populateOptions of res) {
-        const path2 = populateOptions.path;
-        if (pop[path2]?.populate && populateOptions.populate) {
-          populateOptions.populate = pop[path2].populate.concat(populateOptions.populate);
+        const path3 = populateOptions.path;
+        if (pop[path3]?.populate && populateOptions.populate) {
+          populateOptions.populate = pop[path3].populate.concat(populateOptions.populate);
         }
         pop[populateOptions.path] = populateOptions;
       }
@@ -61030,12 +61030,12 @@ var require_query = __commonJS({
     Query.prototype.getPopulatedPaths = /* @__PURE__ */ __name(function getPopulatedPaths() {
       const obj = this._mongooseOptions.populate || {};
       const ret = Object.keys(obj);
-      for (const path2 of Object.keys(obj)) {
-        const pop = obj[path2];
+      for (const path3 of Object.keys(obj)) {
+        const pop = obj[path3];
         if (!Array.isArray(pop.populate)) {
           continue;
         }
-        _getPopulatedPaths(ret, pop.populate, path2 + ".");
+        _getPopulatedPaths(ret, pop.populate, path3 + ".");
       }
       return ret;
     }, "getPopulatedPaths");
@@ -61251,7 +61251,7 @@ var require_aggregationCursor = __commonJS({
   "node_modules/mongoose/lib/cursor/aggregationCursor.js"(exports2, module2) {
     "use strict";
     var MongooseError = require_mongooseError();
-    var Readable3 = require("stream").Readable;
+    var Readable4 = require("stream").Readable;
     var eachAsync = require_eachAsync();
     var immediate = require_immediate();
     var kareem = require_kareem();
@@ -61259,7 +61259,7 @@ var require_aggregationCursor = __commonJS({
     var { cursorNextChannel } = require_tracing();
     var { buildMiddlewareFilter } = require_buildMiddlewareFilter();
     function AggregationCursor(agg) {
-      Readable3.call(this, { autoDestroy: true, objectMode: true });
+      Readable4.call(this, { autoDestroy: true, objectMode: true });
       this.cursor = null;
       this.agg = agg;
       this._transforms = [];
@@ -61280,7 +61280,7 @@ var require_aggregationCursor = __commonJS({
       }
     }
     __name(AggregationCursor, "AggregationCursor");
-    util.inherits(AggregationCursor, Readable3);
+    util.inherits(AggregationCursor, Readable4);
     function _init(model6, c, agg) {
       const preFilter = buildMiddlewareFilter(agg.options, "pre");
       model6.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
@@ -61526,11 +61526,11 @@ var require_aggregationCursor = __commonJS({
 var require_prepareDiscriminatorPipeline = __commonJS({
   "node_modules/mongoose/lib/helpers/aggregate/prepareDiscriminatorPipeline.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function prepareDiscriminatorPipeline(pipeline2, schema, prefix) {
+    module2.exports = /* @__PURE__ */ __name(function prepareDiscriminatorPipeline(pipeline3, schema, prefix) {
       const discriminatorMapping = schema?.discriminatorMapping;
       prefix = prefix || "";
       if (discriminatorMapping && !discriminatorMapping.isRoot) {
-        const originalPipeline = pipeline2;
+        const originalPipeline = pipeline3;
         const filterKey = (prefix.length > 0 ? prefix + "." : prefix) + discriminatorMapping.key;
         const discriminatorValue = discriminatorMapping.value;
         if (originalPipeline[0] != null && originalPipeline[0].$match && (originalPipeline[0].$match[filterKey] === void 0 || originalPipeline[0].$match[filterKey] === discriminatorValue)) {
@@ -61560,11 +61560,11 @@ var require_prepareDiscriminatorPipeline = __commonJS({
 var require_stringifyFunctionOperators = __commonJS({
   "node_modules/mongoose/lib/helpers/aggregate/stringifyFunctionOperators.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function stringifyFunctionOperators(pipeline2) {
-      if (!Array.isArray(pipeline2)) {
+    module2.exports = /* @__PURE__ */ __name(function stringifyFunctionOperators(pipeline3) {
+      if (!Array.isArray(pipeline3)) {
         return;
       }
-      for (const stage of pipeline2) {
+      for (const stage of pipeline3) {
         if (stage == null) {
           continue;
         }
@@ -61624,7 +61624,7 @@ var require_aggregate2 = __commonJS({
     var read = Query.prototype.read;
     var readConcern = Query.prototype.readConcern;
     var validRedactStringValues = /* @__PURE__ */ new Set(["$$DESCEND", "$$PRUNE", "$$KEEP"]);
-    function Aggregate(pipeline2, modelOrConn) {
+    function Aggregate(pipeline3, modelOrConn) {
       this._pipeline = [];
       if (modelOrConn == null || modelOrConn[modelSymbol]) {
         this._model = modelOrConn;
@@ -61632,8 +61632,8 @@ var require_aggregate2 = __commonJS({
         this._connection = modelOrConn;
       }
       this.options = {};
-      if (arguments.length === 1 && Array.isArray(pipeline2)) {
-        this.append.apply(this, pipeline2);
+      if (arguments.length === 1 && Array.isArray(pipeline3)) {
+        this.append.apply(this, pipeline3);
       }
     }
     __name(Aggregate, "Aggregate");
@@ -62048,14 +62048,14 @@ var require_applyDefaultsToPOJO = __commonJS({
         let curPath = "";
         const p = paths[i];
         const type = schema.paths[p];
-        const path2 = type.splitPath();
-        const len = path2.length;
+        const path3 = type.splitPath();
+        const len = path3.length;
         let doc_ = doc;
         for (let j = 0; j < len; ++j) {
           if (doc_ == null) {
             break;
           }
-          const piece = path2[j];
+          const piece = path3[j];
           curPath += (!curPath.length ? "" : ".") + piece;
           if (j === len - 1) {
             if (typeof doc_[piece] !== "undefined") {
@@ -62097,8 +62097,8 @@ var require_applyEmbeddedDiscriminators = __commonJS({
         return;
       }
       seen.add(schema);
-      for (const path2 of Object.keys(schema.paths)) {
-        const schemaType = schema.paths[path2];
+      for (const path3 of Object.keys(schema.paths)) {
+        const schemaType = schema.paths[path3];
         if (!schemaType.schema) {
           continue;
         }
@@ -63963,11 +63963,11 @@ var require_convertErrorToIssues = __commonJS({
     var ValidationError = require_validation();
     module2.exports = /* @__PURE__ */ __name(function convertErrorToIssues(error62) {
       if (error62 instanceof ValidationError) {
-        return Object.keys(error62.errors).map((path2) => {
-          const err = error62.errors[path2];
+        return Object.keys(error62.errors).map((path3) => {
+          const err = error62.errors[path3];
           return {
             message: err.message,
-            path: path2.split(".").map((part) => {
+            path: path3.split(".").map((part) => {
               const num = +part;
               return Number.isInteger(num) && String(num) === part ? num : part;
             })
@@ -64101,8 +64101,8 @@ var require_getSchemaTypes = __commonJS({
     var leanPopulateMap = require_leanPopulateMap();
     var mpath = require_mpath();
     var populateModelSymbol = require_symbols().populateModelSymbol;
-    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model6, schema, doc, path2, parts) {
-      const pathschema = schema.path(path2);
+    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model6, schema, doc, path3, parts) {
+      const pathschema = schema.path(path3);
       const topLevelDoc = doc;
       if (pathschema) {
         return pathschema;
@@ -64115,7 +64115,7 @@ var require_getSchemaTypes = __commonJS({
         } else if (model6.discriminators != null) {
           return Object.keys(model6.discriminators).reduce((arr, name) => {
             const disc = model6.discriminators[name];
-            return arr.concat(getSchemaTypes(disc, disc.schema, null, path2));
+            return arr.concat(getSchemaTypes(disc, disc.schema, null, path3));
           }, []);
         }
       }
@@ -64258,7 +64258,7 @@ var require_getSchemaTypes = __commonJS({
         }
       }
       __name(search, "search");
-      parts = parts || path2.split(".");
+      parts = parts || path3.split(".");
       for (let i = 0; i < parts.length; ++i) {
         if (parts[i] === "$") {
           parts[i] = "0";
@@ -65168,15 +65168,15 @@ var require_parallelLimit = __commonJS({
 var require_pushNestedArrayPaths = __commonJS({
   "node_modules/mongoose/lib/helpers/model/pushNestedArrayPaths.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function pushNestedArrayPaths(paths, nestedArray, path2) {
+    module2.exports = /* @__PURE__ */ __name(function pushNestedArrayPaths(paths, nestedArray, path3) {
       if (nestedArray == null) {
         return;
       }
       for (let i = 0; i < nestedArray.length; ++i) {
         if (Array.isArray(nestedArray[i])) {
-          pushNestedArrayPaths(paths, nestedArray[i], path2 + "." + i);
+          pushNestedArrayPaths(paths, nestedArray[i], path3 + "." + i);
         } else {
-          paths.push(path2 + "." + i);
+          paths.push(path3 + "." + i);
         }
       }
     }, "pushNestedArrayPaths");
@@ -65478,7 +65478,7 @@ var require_model = __commonJS({
           const pathsToSaveSet = pathsToSave != null ? new Set(pathsToSave) : null;
           const delta = this.$__delta(pathsToSave, pathsToSaveSet);
           const unsavedDirty = pathsToSave != null ? delta != null ? delta[2] : this.$__dirty() : null;
-          const unsavedDefaultPaths = pathsToSave != null ? Object.keys(this.$__.activePaths.getStatePaths("default")).filter((path2) => !isInPathsToSave(path2, pathsToSaveSet, pathsToSave)) : null;
+          const unsavedDefaultPaths = pathsToSave != null ? Object.keys(this.$__.activePaths.getStatePaths("default")).filter((path3) => !isInPathsToSave(path3, pathsToSaveSet, pathsToSave)) : null;
           if (delta) {
             where = this.$__where(delta[0]);
             _applyCustomWhere(this, where);
@@ -65579,8 +65579,8 @@ var require_model = __commonJS({
           dirty.value[arrayAtomicsBackupSymbol] = null;
         }
       }
-      for (const path2 of unsavedDefaultPaths) {
-        doc.$__.activePaths.default(path2);
+      for (const path3 of unsavedDefaultPaths) {
+        doc.$__.activePaths.default(path3);
       }
     }
     __name(restoreUnsavedState, "restoreUnsavedState");
@@ -66386,7 +66386,7 @@ var require_model = __commonJS({
       }
       return mq.distinct(field, conditions);
     }, "distinct");
-    Model.where = /* @__PURE__ */ __name(function where(path2, val) {
+    Model.where = /* @__PURE__ */ __name(function where(path3, val) {
       _checkContext(this, "where");
       void val;
       const mq = new this.Query({}, {}, this, this.$__collection).find({});
@@ -66582,17 +66582,17 @@ var require_model = __commonJS({
       }
       return await doc.$save(options);
     }, "insertOne");
-    Model.watch = function(pipeline2, options) {
+    Model.watch = function(pipeline3, options) {
       _checkContext(this, "watch");
       options = options || {};
       const watchOptions = options?.hydrate !== void 0 ? utils.omit(options, ["hydrate"]) : { ...options };
       options.model = this;
-      pipeline2 = pipeline2 || [];
-      prepareDiscriminatorPipeline(pipeline2, this.schema, "fullDocument");
+      pipeline3 = pipeline3 || [];
+      prepareDiscriminatorPipeline(pipeline3, this.schema, "fullDocument");
       const changeStreamPromise = this.db._waitForConnect().then(
-        () => this.$__collection.watch(pipeline2, watchOptions)
+        () => this.$__collection.watch(pipeline3, watchOptions)
       );
-      return new ChangeStream(changeStreamPromise, pipeline2, options);
+      return new ChangeStream(changeStreamPromise, pipeline3, options);
     };
     Model.startSession = function() {
       _checkContext(this, "startSession");
@@ -67096,25 +67096,25 @@ var require_model = __commonJS({
         schema = getSchemaDiscriminatorByValue(schema, obj[discriminatorKey]) || schema;
       }
       const paths = Object.keys(schema.paths);
-      for (const path2 of paths) {
-        const schemaType = schema.path(path2);
+      for (const path3 of paths) {
+        const schemaType = schema.path(path3);
         if (!schemaType?.$isMongooseArray) {
           continue;
         }
-        const val = get(obj, path2);
-        pushNestedArrayPaths(paths, val, path2);
+        const val = get(obj, path3);
+        pushNestedArrayPaths(paths, val, path3);
       }
       let error62 = null;
-      for (const path2 of paths) {
-        const schemaType = schema.path(path2);
+      for (const path3 of paths) {
+        const schemaType = schema.path(path3);
         if (schemaType == null) {
           continue;
         }
-        let val = get(obj, path2, void 0);
+        let val = get(obj, path3, void 0);
         if (val == null) {
           continue;
         }
-        const pieces = path2.indexOf(".") === -1 ? [path2] : path2.split(".");
+        const pieces = path3.indexOf(".") === -1 ? [path3] : path3.split(".");
         let cur = ret;
         for (let i = 0; i < pieces.length - 1; ++i) {
           if (cur[pieces[i]] == null) {
@@ -67128,7 +67128,7 @@ var require_model = __commonJS({
             if (!castNonArraysOption) {
               if (!options.ignoreCastErrors) {
                 error62 = error62 || new ValidationError();
-                error62.addError(path2, new ObjectExpectedError(path2, val));
+                error62.addError(path3, new ObjectExpectedError(path3, val));
               }
             } else {
               cur[pieces[pieces.length - 1]] = [
@@ -67144,7 +67144,7 @@ var require_model = __commonJS({
           } catch (err) {
             if (!options.ignoreCastErrors) {
               error62 = error62 || new ValidationError();
-              error62.addError(path2, err);
+              error62.addError(path3, err);
             }
             continue;
           }
@@ -67157,7 +67157,7 @@ var require_model = __commonJS({
         } catch (err) {
           if (!options.ignoreCastErrors) {
             error62 = error62 || new ValidationError();
-            error62.addError(path2, err);
+            error62.addError(path3, err);
           }
           continue;
         }
@@ -67282,12 +67282,12 @@ var require_model = __commonJS({
       return mq[op](conditions, doc, options);
     }
     __name(_update, "_update");
-    Model.aggregate = /* @__PURE__ */ __name(function aggregate(pipeline2, options) {
+    Model.aggregate = /* @__PURE__ */ __name(function aggregate(pipeline3, options) {
       _checkContext(this, "aggregate");
       if (typeof options === "function" || typeof arguments[2] === "function") {
         throw new MongooseError("Model.aggregate() no longer accepts a callback");
       }
-      const aggregate2 = new Aggregate(pipeline2 || []);
+      const aggregate2 = new Aggregate(pipeline3 || []);
       aggregate2.model(this);
       if (options != null) {
         aggregate2.option(options);
@@ -67332,13 +67332,13 @@ var require_model = __commonJS({
           return _pathsToValidate.has(p);
         });
       }
-      for (const path2 of paths) {
-        const schemaType = schema.path(path2);
+      for (const path3 of paths) {
+        const schemaType = schema.path(path3);
         if (!schemaType?.$isMongooseArray || schemaType.$isMongooseDocumentArray) {
           continue;
         }
-        const val = get(obj, path2);
-        pushNestedArrayPaths(paths, val, path2);
+        const val = get(obj, path3);
+        pushNestedArrayPaths(paths, val, path3);
       }
       let error62 = null;
       paths = new Set(paths);
@@ -67351,16 +67351,16 @@ var require_model = __commonJS({
         }
       }
       const promises = [];
-      for (const path2 of paths) {
-        const schemaType = schema.path(path2);
+      for (const path3 of paths) {
+        const schemaType = schema.path(path3);
         if (schemaType == null) {
           continue;
         }
-        const val = get(obj, path2, void 0);
+        const val = get(obj, path3, void 0);
         promises.push(
-          schemaType.doValidate(val, context, { path: path2 }).catch((err) => {
+          schemaType.doValidate(val, context, { path: path3 }).catch((err) => {
             error62 = error62 || new ValidationError();
-            error62.addError(path2, err);
+            error62.addError(path3, err);
           })
         );
       }
@@ -67395,13 +67395,13 @@ var require_model = __commonJS({
         return docs;
       }
       if (paths.find((p) => p.ordered)) {
-        for (const path2 of paths) {
-          await _populatePath(this, docs, path2);
+        for (const path3 of paths) {
+          await _populatePath(this, docs, path3);
         }
       } else {
         const promises = [];
-        for (const path2 of paths) {
-          promises.push(_populatePath(this, docs, path2));
+        for (const path3 of paths) {
+          promises.push(_populatePath(this, docs, path3));
         }
         await Promise.all(promises);
       }
@@ -69246,22 +69246,22 @@ function __disposeResources(env2) {
   __name(next, "next");
   return next();
 }
-function __rewriteRelativeImportExtension(path2, preserveJsx, extraExtensions, ignoreCase) {
-  if (typeof path2 === "string" && /^\.\.?\//.test(path2)) {
+function __rewriteRelativeImportExtension(path3, preserveJsx, extraExtensions, ignoreCase) {
+  if (typeof path3 === "string" && /^\.\.?\//.test(path3)) {
     if (extraExtensions) {
       for (var extension2 in extraExtensions) {
-        var suffix = path2.slice(-extension2.length);
+        var suffix = path3.slice(-extension2.length);
         if (suffix === extension2 || ignoreCase && suffix.toLowerCase() === extension2.toLowerCase()) {
           var output2 = extraExtensions[extension2];
-          return output2 === extension2 ? path2 : path2.slice(0, -extension2.length) + output2;
+          return output2 === extension2 ? path3 : path3.slice(0, -extension2.length) + output2;
         }
       }
     }
-    return path2.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
+    return path3.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
       return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : d + ext + "." + cm.toLowerCase() + "js";
     });
   }
-  return path2;
+  return path3;
 }
 var extendStatics, __assign, __createBinding, __setModuleDefault, ownKeys, _SuppressedError, tslib_es6_default;
 var init_tslib_es6 = __esm({
@@ -70271,14 +70271,14 @@ var require_util = __commonJS({
         }
         const port = url2.port != null ? url2.port : url2.protocol === "https:" ? 443 : 80;
         let origin = url2.origin != null ? url2.origin : `${url2.protocol || ""}//${url2.hostname || ""}:${port}`;
-        let path2 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
+        let path3 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path2 && path2[0] !== "/") {
-          path2 = `/${path2}`;
+        if (path3 && path3[0] !== "/") {
+          path3 = `/${path3}`;
         }
-        return new URL(`${origin}${path2}`);
+        return new URL(`${origin}${path3}`);
       }
       if (!isHttpOrHttpsPrefixed(url2.origin || url2.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -70762,39 +70762,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path2, origin }
+          request: { method, path: path3, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path2);
+        debuglog("sending request to %s %s/%s", method, origin, path3);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path2, origin },
+          request: { method, path: path3, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path2,
+          path3,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path2, origin }
+          request: { method, path: path3, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path2);
+        debuglog("trailers received from %s %s/%s", method, origin, path3);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path2, origin },
+          request: { method, path: path3, origin },
           error: error62
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path2,
+          path3,
           error62.message
         );
       });
@@ -70843,9 +70843,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path2, origin }
+            request: { method, path: path3, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path2);
+          debuglog("sending request to %s %s/%s", method, origin, path3);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -70911,7 +70911,7 @@ var require_request = __commonJS({
         __name(this, "Request");
       }
       constructor(origin, {
-        path: path2,
+        path: path3,
         method,
         body,
         headers,
@@ -70926,11 +70926,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path2 !== "string") {
+        if (typeof path3 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path2[0] !== "/" && !(path2.startsWith("http://") || path2.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path3[0] !== "/" && !(path3.startsWith("http://") || path3.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path2)) {
+        } else if (invalidPathRegex.test(path3)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -70996,7 +70996,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path2, query) : path2;
+        this.path = query ? buildURL(path3, query) : path3;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -75838,7 +75838,7 @@ var require_client_h1 = __commonJS({
     }
     __name(shouldSendContentLength, "shouldSendContentLength");
     function writeH1(client, request) {
-      const { method, path: path2, host, upgrade, blocking, reset } = request;
+      const { method, path: path3, host, upgrade, blocking, reset } = request;
       let { body, headers, contentLength } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -75919,7 +75919,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path2} HTTP/1.1\r
+      let header = `${method} ${path3} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -76258,7 +76258,7 @@ var require_client_h2 = __commonJS({
     "use strict";
     var assert2 = require("node:assert");
     var { errorMonitor } = require("node:events");
-    var { pipeline: pipeline2 } = require("node:stream");
+    var { pipeline: pipeline3 } = require("node:stream");
     var util = require_util();
     var {
       RequestContentLengthMismatchError,
@@ -76466,7 +76466,7 @@ var require_client_h2 = __commonJS({
     __name(shouldSendContentLength, "shouldSendContentLength");
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path2, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path3, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body } = request;
       if (upgrade) {
         util.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -76563,7 +76563,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path2;
+      headers[HTTP2_HEADER_PATH] = path3;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -76749,7 +76749,7 @@ var require_client_h2 = __commonJS({
     __name(writeBuffer, "writeBuffer");
     function writeStream(abort, socket, expectsPayload, h2stream, body, client, request, contentLength) {
       assert2(contentLength !== 0 || client[kRunning] === 0, "stream body cannot be pipelined");
-      const pipe2 = pipeline2(
+      const pipe2 = pipeline3(
         body,
         h2stream,
         (err) => {
@@ -76930,9 +76930,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path2 = search ? `${pathname}${search}` : pathname;
+        const path3 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path2;
+        this.opts.path = path3;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -78215,10 +78215,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path2 = "/",
+          path: path3 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path2;
+        opts.path = origin + path3;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -78920,7 +78920,7 @@ var require_readable = __commonJS({
   "node_modules/undici/lib/api/readable.js"(exports2, module2) {
     "use strict";
     var assert2 = require("node:assert");
-    var { Readable: Readable3 } = require("node:stream");
+    var { Readable: Readable4 } = require("node:stream");
     var { RequestAbortedError, NotSupportedError, InvalidArgumentError, AbortError } = require_errors3();
     var util = require_util();
     var { ReadableStreamFrom } = require_util();
@@ -78932,7 +78932,7 @@ var require_readable = __commonJS({
     var kContentLength = /* @__PURE__ */ Symbol("kContentLength");
     var noop2 = /* @__PURE__ */ __name(() => {
     }, "noop");
-    var BodyReadable = class extends Readable3 {
+    var BodyReadable = class extends Readable4 {
       static {
         __name(this, "BodyReadable");
       }
@@ -79287,7 +79287,7 @@ var require_api_request = __commonJS({
   "node_modules/undici/lib/api/api-request.js"(exports2, module2) {
     "use strict";
     var assert2 = require("node:assert");
-    var { Readable: Readable3 } = require_readable();
+    var { Readable: Readable4 } = require_readable();
     var { InvalidArgumentError, RequestAbortedError } = require_errors3();
     var util = require_util();
     var { getResolveErrorBodyCallback } = require_util3();
@@ -79385,7 +79385,7 @@ var require_api_request = __commonJS({
         const parsedHeaders = responseHeaders === "raw" ? util.parseHeaders(rawHeaders) : headers;
         const contentType = parsedHeaders["content-type"];
         const contentLength = parsedHeaders["content-length"];
-        const res = new Readable3({
+        const res = new Readable4({
           resume,
           abort,
           contentType,
@@ -79708,7 +79708,7 @@ var require_api_pipeline = __commonJS({
   "node_modules/undici/lib/api/api-pipeline.js"(exports2, module2) {
     "use strict";
     var {
-      Readable: Readable3,
+      Readable: Readable4,
       Duplex,
       PassThrough: PassThrough3
     } = require("node:stream");
@@ -79722,7 +79722,7 @@ var require_api_pipeline = __commonJS({
     var { addSignal, removeSignal } = require_abort_signal();
     var assert2 = require("node:assert");
     var kResume = /* @__PURE__ */ Symbol("resume");
-    var PipelineRequest = class extends Readable3 {
+    var PipelineRequest = class extends Readable4 {
       static {
         __name(this, "PipelineRequest");
       }
@@ -79742,7 +79742,7 @@ var require_api_pipeline = __commonJS({
         callback(err);
       }
     };
-    var PipelineResponse = class extends Readable3 {
+    var PipelineResponse = class extends Readable4 {
       static {
         __name(this, "PipelineResponse");
       }
@@ -79899,7 +79899,7 @@ var require_api_pipeline = __commonJS({
         util.destroy(ret, err);
       }
     };
-    function pipeline2(opts, handler) {
+    function pipeline3(opts, handler) {
       try {
         const pipelineHandler = new PipelineHandler(opts, handler);
         this.dispatch({ ...opts, body: pipelineHandler.req }, pipelineHandler);
@@ -79908,8 +79908,8 @@ var require_api_pipeline = __commonJS({
         return new PassThrough3().destroy(err);
       }
     }
-    __name(pipeline2, "pipeline");
-    module2.exports = pipeline2;
+    __name(pipeline3, "pipeline");
+    module2.exports = pipeline3;
   }
 });
 
@@ -80257,21 +80257,21 @@ var require_mock_utils = __commonJS({
       return true;
     }
     __name(matchHeaders, "matchHeaders");
-    function safeUrl(path2) {
-      if (typeof path2 !== "string") {
-        return path2;
+    function safeUrl(path3) {
+      if (typeof path3 !== "string") {
+        return path3;
       }
-      const pathSegments = path2.split("?");
+      const pathSegments = path3.split("?");
       if (pathSegments.length !== 2) {
-        return path2;
+        return path3;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
     __name(safeUrl, "safeUrl");
-    function matchKey(mockDispatch2, { path: path2, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path2);
+    function matchKey(mockDispatch2, { path: path3, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path3);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -80295,7 +80295,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path2 }) => matchValue(safeUrl(path2), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path3 }) => matchValue(safeUrl(path3), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -80336,9 +80336,9 @@ var require_mock_utils = __commonJS({
     }
     __name(deleteMockDispatch, "deleteMockDispatch");
     function buildKey(opts) {
-      const { path: path2, method, body, headers, query } = opts;
+      const { path: path3, method, body, headers, query } = opts;
       return {
-        path: path2,
+        path: path3,
         method,
         body,
         headers,
@@ -80829,10 +80829,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path2, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path3, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path2,
+            Path: path3,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -83179,7 +83179,7 @@ var require_fetch = __commonJS({
       subresourceSet
     } = require_constants6();
     var EE = require("node:events");
-    var { Readable: Readable3, pipeline: pipeline2, finished } = require("node:stream");
+    var { Readable: Readable4, pipeline: pipeline3, finished } = require("node:stream");
     var { addAbortListener, isErrored, isReadable, bufferToLowerCasedHeaderName } = require_util();
     var { dataURLProcessor, serializeAMimeType, minimizeSupportedMimeType } = require_data_url();
     var { getGlobalDispatcher } = require_global2();
@@ -84134,13 +84134,13 @@ var require_fetch = __commonJS({
                   }
                 }
               }
-              this.body = new Readable3({ read: resume });
+              this.body = new Readable4({ read: resume });
               const onError = this.onError.bind(this);
               resolve2({
                 status,
                 statusText,
                 headersList,
-                body: decoders.length ? pipeline2(this.body, ...decoders, (err) => {
+                body: decoders.length ? pipeline3(this.body, ...decoders, (err) => {
                   if (err) {
                     this.onError(err);
                   }
@@ -85808,9 +85808,9 @@ var require_util6 = __commonJS({
       }
     }
     __name(validateCookieValue, "validateCookieValue");
-    function validateCookiePath(path2) {
-      for (let i = 0; i < path2.length; ++i) {
-        const code = path2.charCodeAt(i);
+    function validateCookiePath(path3) {
+      for (let i = 0; i < path3.length; ++i) {
+        const code = path3.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code > 126 || // exclude DEL and non-ascii
         code === 59) {
@@ -86517,7 +86517,7 @@ var require_constants8 = __commonJS({
       writable: false,
       configurable: false
     };
-    var states = {
+    var states2 = {
       CONNECTING: 0,
       OPEN: 1,
       CLOSING: 2,
@@ -86554,7 +86554,7 @@ var require_constants8 = __commonJS({
       uid,
       sentCloseFrameState,
       staticPropertyDescriptors,
-      states,
+      states: states2,
       opcodes,
       maxUnsigned16Bit,
       parserStates,
@@ -86586,24 +86586,24 @@ var require_util7 = __commonJS({
   "node_modules/undici/lib/web/websocket/util.js"(exports2, module2) {
     "use strict";
     var { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = require_symbols7();
-    var { states, opcodes } = require_constants8();
+    var { states: states2, opcodes } = require_constants8();
     var { ErrorEvent, createFastMessageEvent } = require_events2();
     var { isUtf8 } = require("node:buffer");
     var { collectASequenceOfCodePointsFast, removeHTTPWhitespace } = require_data_url();
     function isConnecting(ws) {
-      return ws[kReadyState] === states.CONNECTING;
+      return ws[kReadyState] === states2.CONNECTING;
     }
     __name(isConnecting, "isConnecting");
     function isEstablished(ws) {
-      return ws[kReadyState] === states.OPEN;
+      return ws[kReadyState] === states2.OPEN;
     }
     __name(isEstablished, "isEstablished");
     function isClosing(ws) {
-      return ws[kReadyState] === states.CLOSING;
+      return ws[kReadyState] === states2.CLOSING;
     }
     __name(isClosing, "isClosing");
     function isClosed(ws) {
-      return ws[kReadyState] === states.CLOSED;
+      return ws[kReadyState] === states2.CLOSED;
     }
     __name(isClosed, "isClosed");
     function fireEvent(e, target, eventFactory = (type, init) => new Event(type, init), eventInitDict = {}) {
@@ -86612,7 +86612,7 @@ var require_util7 = __commonJS({
     }
     __name(fireEvent, "fireEvent");
     function websocketMessageReceived(ws, type, data) {
-      if (ws[kReadyState] !== states.OPEN) {
+      if (ws[kReadyState] !== states2.OPEN) {
         return;
       }
       let dataForEvent;
@@ -86855,7 +86855,7 @@ var require_frame = __commonJS({
 var require_connection4 = __commonJS({
   "node_modules/undici/lib/web/websocket/connection.js"(exports2, module2) {
     "use strict";
-    var { uid, states, sentCloseFrameState, emptyBuffer, opcodes } = require_constants8();
+    var { uid, states: states2, sentCloseFrameState, emptyBuffer, opcodes } = require_constants8();
     var {
       kReadyState,
       kSentClose,
@@ -86965,7 +86965,7 @@ var require_connection4 = __commonJS({
       if (isClosing(ws) || isClosed(ws)) {
       } else if (!isEstablished(ws)) {
         failWebsocketConnection(ws, "Connection was closed before it was established.");
-        ws[kReadyState] = states.CLOSING;
+        ws[kReadyState] = states2.CLOSING;
       } else if (ws[kSentClose] === sentCloseFrameState.NOT_SENT) {
         ws[kSentClose] = sentCloseFrameState.PROCESSING;
         const frame = new WebsocketFrameSend();
@@ -86982,9 +86982,9 @@ var require_connection4 = __commonJS({
         const socket = ws[kResponse].socket;
         socket.write(frame.createFrame(opcodes.CLOSE));
         ws[kSentClose] = sentCloseFrameState.SENT;
-        ws[kReadyState] = states.CLOSING;
+        ws[kReadyState] = states2.CLOSING;
       } else {
-        ws[kReadyState] = states.CLOSING;
+        ws[kReadyState] = states2.CLOSING;
       }
     }
     __name(closeWebSocketConnection, "closeWebSocketConnection");
@@ -87010,7 +87010,7 @@ var require_connection4 = __commonJS({
       } else if (!ws[kReceivedClose]) {
         code = 1006;
       }
-      ws[kReadyState] = states.CLOSED;
+      ws[kReadyState] = states2.CLOSED;
       fireEvent("close", ws, (type, init) => new CloseEvent(type, init), {
         wasClean,
         code,
@@ -87027,7 +87027,7 @@ var require_connection4 = __commonJS({
     __name(onSocketClose, "onSocketClose");
     function onSocketError(error62) {
       const { ws } = this;
-      ws[kReadyState] = states.CLOSING;
+      ws[kReadyState] = states2.CLOSING;
       if (channels.socketError.hasSubscribers) {
         channels.socketError.publish(error62);
       }
@@ -87132,7 +87132,7 @@ var require_receiver = __commonJS({
     "use strict";
     var { Writable: Writable2 } = require("node:stream");
     var assert2 = require("node:assert");
-    var { parserStates, opcodes, states, emptyBuffer, sentCloseFrameState } = require_constants8();
+    var { parserStates, opcodes, states: states2, emptyBuffer, sentCloseFrameState } = require_constants8();
     var { kReadyState, kSentClose, kResponse, kReceivedClose } = require_symbols7();
     var { channels } = require_diagnostics();
     var {
@@ -87480,7 +87480,7 @@ var require_receiver = __commonJS({
               }
             );
           }
-          this.ws[kReadyState] = states.CLOSING;
+          this.ws[kReadyState] = states2.CLOSING;
           this.ws[kReceivedClose] = true;
           return false;
         } else if (opcode === opcodes.PING) {
@@ -87606,7 +87606,7 @@ var require_websocket = __commonJS({
     var { webidl } = require_webidl();
     var { URLSerializer } = require_data_url();
     var { environmentSettingsObject } = require_util2();
-    var { staticPropertyDescriptors, states, sentCloseFrameState, sendHints } = require_constants8();
+    var { staticPropertyDescriptors, states: states2, sentCloseFrameState, sendHints } = require_constants8();
     var {
       kWebSocketURL,
       kReadyState,
@@ -87883,7 +87883,7 @@ var require_websocket = __commonJS({
         response.socket.ws = this;
         this[kByteParser] = parser;
         this.#sendQueue = new SendQueue(response.socket);
-        this[kReadyState] = states.OPEN;
+        this[kReadyState] = states2.OPEN;
         const extensions = response.headersList.get("sec-websocket-extensions");
         if (extensions !== null) {
           this.#extensions = extensions;
@@ -87895,10 +87895,10 @@ var require_websocket = __commonJS({
         fireEvent("open", this);
       }
     };
-    WebSocket2.CONNECTING = WebSocket2.prototype.CONNECTING = states.CONNECTING;
-    WebSocket2.OPEN = WebSocket2.prototype.OPEN = states.OPEN;
-    WebSocket2.CLOSING = WebSocket2.prototype.CLOSING = states.CLOSING;
-    WebSocket2.CLOSED = WebSocket2.prototype.CLOSED = states.CLOSED;
+    WebSocket2.CONNECTING = WebSocket2.prototype.CONNECTING = states2.CONNECTING;
+    WebSocket2.OPEN = WebSocket2.prototype.OPEN = states2.OPEN;
+    WebSocket2.CLOSING = WebSocket2.prototype.CLOSING = states2.CLOSING;
+    WebSocket2.CLOSED = WebSocket2.prototype.CLOSED = states2.CLOSED;
     Object.defineProperties(WebSocket2.prototype, {
       CONNECTING: staticPropertyDescriptors,
       OPEN: staticPropertyDescriptors,
@@ -88440,7 +88440,7 @@ ${value}`;
 var require_eventsource = __commonJS({
   "node_modules/undici/lib/web/eventsource/eventsource.js"(exports2, module2) {
     "use strict";
-    var { pipeline: pipeline2 } = require("node:stream");
+    var { pipeline: pipeline3 } = require("node:stream");
     var { fetching } = require_fetch();
     var { makeRequest } = require_request2();
     var { webidl } = require_webidl();
@@ -88603,7 +88603,7 @@ var require_eventsource = __commonJS({
               ));
             }, "push")
           });
-          pipeline2(
+          pipeline3(
             response.body.stream,
             eventSourceStream,
             (error62) => {
@@ -88806,11 +88806,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path2 = opts.path;
+          let path3 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path2 = `/${path2}`;
+            path3 = `/${path3}`;
           }
-          url2 = new URL(util.parseOrigin(url2).origin + path2);
+          url2 = new URL(util.parseOrigin(url2).origin + path3);
         } else {
           if (!opts) {
             opts = typeof url2 === "object" ? url2 : {};
@@ -89667,26 +89667,26 @@ var require_channel = __commonJS({
       ForumLayoutType3[ForumLayoutType3["ListView"] = 1] = "ListView";
       ForumLayoutType3[ForumLayoutType3["GalleryView"] = 2] = "GalleryView";
     })(ForumLayoutType2 || (exports2.ForumLayoutType = ForumLayoutType2 = {}));
-    var ChannelType2;
-    (function(ChannelType3) {
-      ChannelType3[ChannelType3["GuildText"] = 0] = "GuildText";
-      ChannelType3[ChannelType3["DM"] = 1] = "DM";
-      ChannelType3[ChannelType3["GuildVoice"] = 2] = "GuildVoice";
-      ChannelType3[ChannelType3["GroupDM"] = 3] = "GroupDM";
-      ChannelType3[ChannelType3["GuildCategory"] = 4] = "GuildCategory";
-      ChannelType3[ChannelType3["GuildAnnouncement"] = 5] = "GuildAnnouncement";
-      ChannelType3[ChannelType3["AnnouncementThread"] = 10] = "AnnouncementThread";
-      ChannelType3[ChannelType3["PublicThread"] = 11] = "PublicThread";
-      ChannelType3[ChannelType3["PrivateThread"] = 12] = "PrivateThread";
-      ChannelType3[ChannelType3["GuildStageVoice"] = 13] = "GuildStageVoice";
-      ChannelType3[ChannelType3["GuildDirectory"] = 14] = "GuildDirectory";
-      ChannelType3[ChannelType3["GuildForum"] = 15] = "GuildForum";
-      ChannelType3[ChannelType3["GuildMedia"] = 16] = "GuildMedia";
-      ChannelType3[ChannelType3["GuildNews"] = 5] = "GuildNews";
-      ChannelType3[ChannelType3["GuildNewsThread"] = 10] = "GuildNewsThread";
-      ChannelType3[ChannelType3["GuildPublicThread"] = 11] = "GuildPublicThread";
-      ChannelType3[ChannelType3["GuildPrivateThread"] = 12] = "GuildPrivateThread";
-    })(ChannelType2 || (exports2.ChannelType = ChannelType2 = {}));
+    var ChannelType4;
+    (function(ChannelType5) {
+      ChannelType5[ChannelType5["GuildText"] = 0] = "GuildText";
+      ChannelType5[ChannelType5["DM"] = 1] = "DM";
+      ChannelType5[ChannelType5["GuildVoice"] = 2] = "GuildVoice";
+      ChannelType5[ChannelType5["GroupDM"] = 3] = "GroupDM";
+      ChannelType5[ChannelType5["GuildCategory"] = 4] = "GuildCategory";
+      ChannelType5[ChannelType5["GuildAnnouncement"] = 5] = "GuildAnnouncement";
+      ChannelType5[ChannelType5["AnnouncementThread"] = 10] = "AnnouncementThread";
+      ChannelType5[ChannelType5["PublicThread"] = 11] = "PublicThread";
+      ChannelType5[ChannelType5["PrivateThread"] = 12] = "PrivateThread";
+      ChannelType5[ChannelType5["GuildStageVoice"] = 13] = "GuildStageVoice";
+      ChannelType5[ChannelType5["GuildDirectory"] = 14] = "GuildDirectory";
+      ChannelType5[ChannelType5["GuildForum"] = 15] = "GuildForum";
+      ChannelType5[ChannelType5["GuildMedia"] = 16] = "GuildMedia";
+      ChannelType5[ChannelType5["GuildNews"] = 5] = "GuildNews";
+      ChannelType5[ChannelType5["GuildNewsThread"] = 10] = "GuildNewsThread";
+      ChannelType5[ChannelType5["GuildPublicThread"] = 11] = "GuildPublicThread";
+      ChannelType5[ChannelType5["GuildPrivateThread"] = 12] = "GuildPrivateThread";
+    })(ChannelType4 || (exports2.ChannelType = ChannelType4 = {}));
     var VideoQualityMode2;
     (function(VideoQualityMode3) {
       VideoQualityMode3[VideoQualityMode3["Auto"] = 1] = "Auto";
@@ -90244,23 +90244,23 @@ var require_message = __commonJS({
       MessageReferenceType3[MessageReferenceType3["Default"] = 0] = "Default";
       MessageReferenceType3[MessageReferenceType3["Forward"] = 1] = "Forward";
     })(MessageReferenceType2 || (exports2.MessageReferenceType = MessageReferenceType2 = {}));
-    var MessageFlags3;
-    (function(MessageFlags4) {
-      MessageFlags4[MessageFlags4["Crossposted"] = 1] = "Crossposted";
-      MessageFlags4[MessageFlags4["IsCrosspost"] = 2] = "IsCrosspost";
-      MessageFlags4[MessageFlags4["SuppressEmbeds"] = 4] = "SuppressEmbeds";
-      MessageFlags4[MessageFlags4["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
-      MessageFlags4[MessageFlags4["Urgent"] = 16] = "Urgent";
-      MessageFlags4[MessageFlags4["HasThread"] = 32] = "HasThread";
-      MessageFlags4[MessageFlags4["Ephemeral"] = 64] = "Ephemeral";
-      MessageFlags4[MessageFlags4["Loading"] = 128] = "Loading";
-      MessageFlags4[MessageFlags4["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
-      MessageFlags4[MessageFlags4["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
-      MessageFlags4[MessageFlags4["SuppressNotifications"] = 4096] = "SuppressNotifications";
-      MessageFlags4[MessageFlags4["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
-      MessageFlags4[MessageFlags4["HasSnapshot"] = 16384] = "HasSnapshot";
-      MessageFlags4[MessageFlags4["IsComponentsV2"] = 32768] = "IsComponentsV2";
-    })(MessageFlags3 || (exports2.MessageFlags = MessageFlags3 = {}));
+    var MessageFlags5;
+    (function(MessageFlags6) {
+      MessageFlags6[MessageFlags6["Crossposted"] = 1] = "Crossposted";
+      MessageFlags6[MessageFlags6["IsCrosspost"] = 2] = "IsCrosspost";
+      MessageFlags6[MessageFlags6["SuppressEmbeds"] = 4] = "SuppressEmbeds";
+      MessageFlags6[MessageFlags6["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
+      MessageFlags6[MessageFlags6["Urgent"] = 16] = "Urgent";
+      MessageFlags6[MessageFlags6["HasThread"] = 32] = "HasThread";
+      MessageFlags6[MessageFlags6["Ephemeral"] = 64] = "Ephemeral";
+      MessageFlags6[MessageFlags6["Loading"] = 128] = "Loading";
+      MessageFlags6[MessageFlags6["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
+      MessageFlags6[MessageFlags6["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
+      MessageFlags6[MessageFlags6["SuppressNotifications"] = 4096] = "SuppressNotifications";
+      MessageFlags6[MessageFlags6["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
+      MessageFlags6[MessageFlags6["HasSnapshot"] = 16384] = "HasSnapshot";
+      MessageFlags6[MessageFlags6["IsComponentsV2"] = 32768] = "IsComponentsV2";
+    })(MessageFlags5 || (exports2.MessageFlags = MessageFlags5 = {}));
     var BaseThemeType2;
     (function(BaseThemeType3) {
       BaseThemeType3[BaseThemeType3["Unset"] = 0] = "Unset";
@@ -96521,13 +96521,13 @@ var require_tree2 = __commonJS({
       mime: leaf.info.mime,
       extension: leaf.info.extension
     }), "createMatch");
-    var isLeafNode = /* @__PURE__ */ __name((tree, path2) => tree && path2.length === 0, "isLeafNode");
+    var isLeafNode = /* @__PURE__ */ __name((tree, path3) => tree && path3.length === 0, "isLeafNode");
     var merge2 = /* @__PURE__ */ __name((node2, tree) => {
       if (node2.bytes.length === 0)
         return tree;
-      const [currentByte, ...path2] = node2.bytes;
+      const [currentByte, ...path3] = node2.bytes;
       const currentTree = tree.bytes[currentByte];
-      if (isLeafNode(currentTree, path2)) {
+      if (isLeafNode(currentTree, path3)) {
         const matchingNode = tree.bytes[currentByte];
         tree.bytes[currentByte] = {
           ...matchingNode,
@@ -96539,9 +96539,9 @@ var require_tree2 = __commonJS({
         return tree;
       }
       if (tree.bytes[currentByte]) {
-        tree.bytes[currentByte] = exports2.merge(exports2.createNode(node2.typename, path2, node2.info), tree.bytes[currentByte]);
+        tree.bytes[currentByte] = exports2.merge(exports2.createNode(node2.typename, path3, node2.info), tree.bytes[currentByte]);
       } else {
-        tree.bytes[currentByte] = exports2.createComplexNode(node2.typename, path2, node2.info);
+        tree.bytes[currentByte] = exports2.createComplexNode(node2.typename, path3, node2.info);
       }
       return tree;
     }, "merge");
@@ -96555,7 +96555,7 @@ var require_tree2 = __commonJS({
         bytes: {},
         matches: void 0
       };
-      const [currentKey, ...path2] = bytes;
+      const [currentKey, ...path3] = bytes;
       if (bytes.length === 0) {
         return {
           matches: [
@@ -96567,7 +96567,7 @@ var require_tree2 = __commonJS({
           bytes: {}
         };
       }
-      obj.bytes[currentKey] = exports2.createComplexNode(typename, path2, info);
+      obj.bytes[currentKey] = exports2.createComplexNode(typename, path3, info);
       return obj;
     }, "createComplexNode");
     exports2.createComplexNode = createComplexNode;
@@ -101048,7 +101048,7 @@ var require_dist8 = __commonJS({
       escapeHeading: /* @__PURE__ */ __name(() => escapeHeading, "escapeHeading"),
       escapeInlineCode: /* @__PURE__ */ __name(() => escapeInlineCode, "escapeInlineCode"),
       escapeItalic: /* @__PURE__ */ __name(() => escapeItalic, "escapeItalic"),
-      escapeMarkdown: /* @__PURE__ */ __name(() => escapeMarkdown, "escapeMarkdown"),
+      escapeMarkdown: /* @__PURE__ */ __name(() => escapeMarkdown2, "escapeMarkdown"),
       escapeMaskedLink: /* @__PURE__ */ __name(() => escapeMaskedLink, "escapeMaskedLink"),
       escapeNumberedList: /* @__PURE__ */ __name(() => escapeNumberedList, "escapeNumberedList"),
       escapeSpoiler: /* @__PURE__ */ __name(() => escapeSpoiler, "escapeSpoiler"),
@@ -101077,7 +101077,7 @@ var require_dist8 = __commonJS({
       version: /* @__PURE__ */ __name(() => version3, "version")
     });
     module2.exports = __toCommonJS2(index_exports);
-    function escapeMarkdown(text, options = {}) {
+    function escapeMarkdown2(text, options = {}) {
       const {
         codeBlock: codeBlock2 = true,
         inlineCode: inlineCode2 = true,
@@ -101097,7 +101097,7 @@ var require_dist8 = __commonJS({
       if (!codeBlockContent) {
         return text.split("```").map((subString, index, array2) => {
           if (index % 2 && index !== array2.length - 1) return subString;
-          return escapeMarkdown(subString, {
+          return escapeMarkdown2(subString, {
             inlineCode: inlineCode2,
             bold: bold2,
             italic: italic2,
@@ -101116,7 +101116,7 @@ var require_dist8 = __commonJS({
       if (!inlineCodeContent) {
         return text.split(/(?<=^|[^`])`(?=[^`]|$)/g).map((subString, index, array2) => {
           if (index % 2 && index !== array2.length - 1) return subString;
-          return escapeMarkdown(subString, {
+          return escapeMarkdown2(subString, {
             codeBlock: codeBlock2,
             bold: bold2,
             italic: italic2,
@@ -101146,8 +101146,8 @@ var require_dist8 = __commonJS({
       if (maskedLink) res = escapeMaskedLink(res);
       return res;
     }
-    __name(escapeMarkdown, "escapeMarkdown");
-    __name3(escapeMarkdown, "escapeMarkdown");
+    __name(escapeMarkdown2, "escapeMarkdown");
+    __name3(escapeMarkdown2, "escapeMarkdown");
     function escapeCodeBlock(text) {
       return text.replaceAll("```", "\\`\\`\\`");
     }
@@ -101573,7 +101573,7 @@ var require_ChannelFlagsBitField = __commonJS({
 var require_Constants = __commonJS({
   "node_modules/discord.js/src/util/Constants.js"(exports2) {
     "use strict";
-    var { ChannelType: ChannelType2, MessageType: MessageType2, ComponentType: ComponentType2, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
+    var { ChannelType: ChannelType4, MessageType: MessageType2, ComponentType: ComponentType2, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
     exports2.MaxBulkDeletableMessageAge = 12096e5;
     exports2.SweeperKeys = [
       "autoModerationRules",
@@ -101600,18 +101600,18 @@ var require_Constants = __commonJS({
       MessageType2.ContextMenuCommand
     ];
     exports2.GuildTextBasedChannelTypes = [
-      ChannelType2.GuildText,
-      ChannelType2.GuildAnnouncement,
-      ChannelType2.AnnouncementThread,
-      ChannelType2.PublicThread,
-      ChannelType2.PrivateThread,
-      ChannelType2.GuildVoice,
-      ChannelType2.GuildStageVoice
+      ChannelType4.GuildText,
+      ChannelType4.GuildAnnouncement,
+      ChannelType4.AnnouncementThread,
+      ChannelType4.PublicThread,
+      ChannelType4.PrivateThread,
+      ChannelType4.GuildVoice,
+      ChannelType4.GuildStageVoice
     ];
-    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType2.DM, ChannelType2.GroupDM];
-    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType2.DM];
-    exports2.ThreadChannelTypes = [ChannelType2.AnnouncementThread, ChannelType2.PublicThread, ChannelType2.PrivateThread];
-    exports2.VoiceBasedChannelTypes = [ChannelType2.GuildVoice, ChannelType2.GuildStageVoice];
+    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType4.DM, ChannelType4.GroupDM];
+    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType4.DM];
+    exports2.ThreadChannelTypes = [ChannelType4.AnnouncementThread, ChannelType4.PublicThread, ChannelType4.PrivateThread];
+    exports2.VoiceBasedChannelTypes = [ChannelType4.GuildVoice, ChannelType4.GuildStageVoice];
     exports2.SelectMenuTypes = [
       ComponentType2.StringSelect,
       ComponentType2.UserSelect,
@@ -101668,7 +101668,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101680,13 +101680,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits3;
+      static Flags = PermissionFlagsBits6;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits3).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits6).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101698,7 +101698,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits3.ManageChannels | PermissionFlagsBits3.MuteMembers | PermissionFlagsBits3.MoveMembers;
+      static StageModerator = PermissionFlagsBits6.ManageChannels | PermissionFlagsBits6.MuteMembers | PermissionFlagsBits6.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101725,7 +101725,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits3.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits6.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101734,7 +101734,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits3.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits6.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101743,7 +101743,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits3.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits6.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -101763,7 +101763,7 @@ var require_BaseChannel = __commonJS({
     "use strict";
     var { channelLink, channelMention } = require_dist8();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var ChannelFlagsBitField = require_ChannelFlagsBitField();
     var { ThreadChannelTypes } = require_Constants();
@@ -101878,7 +101878,7 @@ var require_BaseChannel = __commonJS({
        * @returns {boolean}
        */
       isDMBased() {
-        return [ChannelType2.DM, ChannelType2.GroupDM].includes(this.type);
+        return [ChannelType4.DM, ChannelType4.GroupDM].includes(this.type);
       }
       /**
        * Indicates whether this channel is {@link BaseGuildVoiceChannel voice-based}.
@@ -102154,7 +102154,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102224,7 +102224,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits3.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits6.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102792,7 +102792,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits3, ChannelType: ChannelType2 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6, ChannelType: ChannelType4 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102873,7 +102873,7 @@ var require_GuildChannel = __commonJS({
        * @readonly
        */
       get position() {
-        const selfIsCategory = this.type === ChannelType2.GuildCategory;
+        const selfIsCategory = this.type === ChannelType4.GuildCategory;
         const types = getSortableGroupTypes(this.type);
         let count = 0;
         for (const channel of this.guild.channels.cache.values()) {
@@ -102936,7 +102936,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits3.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits6.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -102951,7 +102951,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits3.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits6.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -102977,7 +102977,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits3.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits6.ViewChannel, false)
         );
       }
       /**
@@ -103111,10 +103111,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits3.ViewChannel | PermissionFlagsBits3.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits3.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits6.ViewChannel | PermissionFlagsBits6.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits6.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103126,7 +103126,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits3.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits6.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -103199,7 +103199,7 @@ var require_Util = __commonJS({
     var { parse: parse3 } = require("node:path");
     var process3 = require("node:process");
     var { Collection: Collection2 } = require_dist7();
-    var { ChannelType: ChannelType2, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
     var { fetch: fetch2 } = require_undici();
     var Colors = require_Colors();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -103274,24 +103274,24 @@ var require_Util = __commonJS({
     }
     __name(makePlainError, "makePlainError");
     var TextSortableGroupTypes = [
-      ChannelType2.GuildText,
-      ChannelType2.GuildAnnouncement,
-      ChannelType2.GuildForum,
-      ChannelType2.GuildMedia
+      ChannelType4.GuildText,
+      ChannelType4.GuildAnnouncement,
+      ChannelType4.GuildForum,
+      ChannelType4.GuildMedia
     ];
-    var VoiceSortableGroupTypes = [ChannelType2.GuildVoice, ChannelType2.GuildStageVoice];
-    var CategorySortableGroupTypes = [ChannelType2.GuildCategory];
+    var VoiceSortableGroupTypes = [ChannelType4.GuildVoice, ChannelType4.GuildStageVoice];
+    var CategorySortableGroupTypes = [ChannelType4.GuildCategory];
     function getSortableGroupTypes(type) {
       switch (type) {
-        case ChannelType2.GuildText:
-        case ChannelType2.GuildAnnouncement:
-        case ChannelType2.GuildForum:
-        case ChannelType2.GuildMedia:
+        case ChannelType4.GuildText:
+        case ChannelType4.GuildAnnouncement:
+        case ChannelType4.GuildForum:
+        case ChannelType4.GuildMedia:
           return TextSortableGroupTypes;
-        case ChannelType2.GuildVoice:
-        case ChannelType2.GuildStageVoice:
+        case ChannelType4.GuildVoice:
+        case ChannelType4.GuildStageVoice:
           return VoiceSortableGroupTypes;
-        case ChannelType2.GuildCategory:
+        case ChannelType4.GuildCategory:
           return CategorySortableGroupTypes;
         default:
           return [type];
@@ -103350,8 +103350,8 @@ var require_Util = __commonJS({
       return updatedItems;
     }
     __name(setPosition, "setPosition");
-    function basename(path2, ext) {
-      const res = parse3(path2);
+    function basename(path3, ext) {
+      const res = parse3(path3);
       return ext && res.ext.startsWith(ext) ? res.name : res.base.split("?")[0];
     }
     __name(basename, "basename");
@@ -103373,7 +103373,7 @@ var require_Util = __commonJS({
               return user ? `@${user.displayName}` : match;
             }
             case "@&": {
-              if (channel.type === ChannelType2.DM) return match;
+              if (channel.type === ChannelType4.DM) return match;
               const role = channel.guild.roles.cache.get(id);
               return role ? `@${role.name}` : match;
             }
@@ -104288,13 +104288,13 @@ var require_Collector = __commonJS({
               yield queue.shift();
             } else {
               await new Promise((resolve2) => {
-                const tick = /* @__PURE__ */ __name(() => {
-                  this.removeListener("collect", tick);
-                  this.removeListener("end", tick);
+                const tick2 = /* @__PURE__ */ __name(() => {
+                  this.removeListener("collect", tick2);
+                  this.removeListener("end", tick2);
                   return resolve2();
                 }, "tick");
-                this.on("collect", tick);
-                this.on("end", tick);
+                this.on("collect", tick2);
+                this.on("end", tick2);
               });
             }
           }
@@ -104444,7 +104444,7 @@ var require_InteractionCollector = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var Collector = require_Collector();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var InteractionCollector = class extends Collector {
       static {
         __name(this, "InteractionCollector");
@@ -104469,27 +104469,27 @@ var require_InteractionCollector = __commonJS({
         }, "bulkDeleteListener");
         if (this.messageId || this.messageInteractionId) {
           this._handleMessageDeletion = this._handleMessageDeletion.bind(this);
-          this.client.on(Events5.MessageDelete, this._handleMessageDeletion);
-          this.client.on(Events5.MessageBulkDelete, bulkDeleteListener);
+          this.client.on(Events7.MessageDelete, this._handleMessageDeletion);
+          this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
         }
         if (this.channelId) {
           this._handleChannelDeletion = this._handleChannelDeletion.bind(this);
           this._handleThreadDeletion = this._handleThreadDeletion.bind(this);
-          this.client.on(Events5.ChannelDelete, this._handleChannelDeletion);
-          this.client.on(Events5.ThreadDelete, this._handleThreadDeletion);
+          this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
+          this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
         }
         if (this.guildId) {
           this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
-          this.client.on(Events5.GuildDelete, this._handleGuildDeletion);
+          this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
         }
-        this.client.on(Events5.InteractionCreate, this.handleCollect);
+        this.client.on(Events7.InteractionCreate, this.handleCollect);
         this.once("end", () => {
-          this.client.removeListener(Events5.InteractionCreate, this.handleCollect);
-          this.client.removeListener(Events5.MessageDelete, this._handleMessageDeletion);
-          this.client.removeListener(Events5.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events5.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events5.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events5.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events7.InteractionCreate, this.handleCollect);
+          this.client.removeListener(Events7.MessageDelete, this._handleMessageDeletion);
+          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
         this.on("collect", (interaction) => {
@@ -104607,7 +104607,7 @@ var require_MessageCollector = __commonJS({
   "node_modules/discord.js/src/structures/MessageCollector.js"(exports2, module2) {
     "use strict";
     var Collector = require_Collector();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageCollector = class extends Collector {
       static {
         __name(this, "MessageCollector");
@@ -104628,19 +104628,19 @@ var require_MessageCollector = __commonJS({
         this._handleThreadDeletion = this._handleThreadDeletion.bind(this);
         this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
         this.client.incrementMaxListeners();
-        this.client.on(Events5.MessageCreate, this.handleCollect);
-        this.client.on(Events5.MessageDelete, this.handleDispose);
-        this.client.on(Events5.MessageBulkDelete, bulkDeleteListener);
-        this.client.on(Events5.ChannelDelete, this._handleChannelDeletion);
-        this.client.on(Events5.ThreadDelete, this._handleThreadDeletion);
-        this.client.on(Events5.GuildDelete, this._handleGuildDeletion);
+        this.client.on(Events7.MessageCreate, this.handleCollect);
+        this.client.on(Events7.MessageDelete, this.handleDispose);
+        this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
+        this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
+        this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
+        this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
         this.once("end", () => {
-          this.client.removeListener(Events5.MessageCreate, this.handleCollect);
-          this.client.removeListener(Events5.MessageDelete, this.handleDispose);
-          this.client.removeListener(Events5.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events5.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events5.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events5.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events7.MessageCreate, this.handleCollect);
+          this.client.removeListener(Events7.MessageDelete, this.handleDispose);
+          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
       }
@@ -104719,7 +104719,7 @@ var require_GuildTemplate = __commonJS({
     var { RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var { resolveImage } = require_DataResolver();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildTemplate2 = class extends Base {
       static {
         __name(this, "GuildTemplate");
@@ -104788,7 +104788,7 @@ var require_GuildTemplate = __commonJS({
         if (client.guilds.cache.has(data.id)) return client.guilds.cache.get(data.id);
         return new Promise((resolve2) => {
           const resolveGuild2 = /* @__PURE__ */ __name((guild) => {
-            client.off(Events5.GuildCreate, handleGuild);
+            client.off(Events7.GuildCreate, handleGuild);
             client.decrementMaxListeners();
             resolve2(guild);
           }, "resolveGuild");
@@ -104799,7 +104799,7 @@ var require_GuildTemplate = __commonJS({
             }
           }, "handleGuild");
           client.incrementMaxListeners();
-          client.on(Events5.GuildCreate, handleGuild);
+          client.on(Events7.GuildCreate, handleGuild);
           const timeout = setTimeout2(() => resolveGuild2(client.guilds._add(data)), 1e4).unref();
         });
       }
@@ -105767,7 +105767,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection2 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105918,7 +105918,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits3.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits3.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits6.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits6.ManageGuild)
         );
       }
       /**
@@ -106034,8 +106034,8 @@ var require_DataResolver = __commonJS({
   "node_modules/discord.js/src/util/DataResolver.js"(exports2, module2) {
     "use strict";
     var { Buffer: Buffer10 } = require("node:buffer");
-    var fs2 = require("node:fs/promises");
-    var path2 = require("node:path");
+    var fs3 = require("node:fs/promises");
+    var path3 = require("node:path");
     var { fetch: fetch2 } = require_undici();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     async function resolveInviteTargetUsersFile(client, targetUsersFile) {
@@ -106074,10 +106074,10 @@ var require_DataResolver = __commonJS({
           const res = await fetch2(resource);
           return { data: Buffer10.from(await res.arrayBuffer()), contentType: res.headers.get("content-type") };
         }
-        const file2 = path2.resolve(resource);
-        const stats = await fs2.stat(file2);
+        const file2 = path3.resolve(resource);
+        const stats = await fs3.stat(file2);
         if (!stats.isFile()) throw new DiscordjsError2(ErrorCodes2.FileNotFound, file2);
-        return { data: await fs2.readFile(file2) };
+        return { data: await fs3.readFile(file2) };
       }
       throw new DiscordjsTypeError2(ErrorCodes2.ReqResourceType);
     }
@@ -106113,7 +106113,7 @@ var require_DataResolver = __commonJS({
 var require_MessageFlagsBitField = __commonJS({
   "node_modules/discord.js/src/util/MessageFlagsBitField.js"(exports2, module2) {
     "use strict";
-    var { MessageFlags: MessageFlags3 } = require_v106();
+    var { MessageFlags: MessageFlags5 } = require_v106();
     var BitField = require_BitField();
     var MessageFlagsBitField = class extends BitField {
       static {
@@ -106124,7 +106124,7 @@ var require_MessageFlagsBitField = __commonJS({
        * @type {MessageFlags}
        * @memberof MessageFlagsBitField
        */
-      static Flags = MessageFlags3;
+      static Flags = MessageFlags5;
     };
     module2.exports = MessageFlagsBitField;
   }
@@ -109424,11 +109424,11 @@ var require_baseGet = __commonJS({
   "node_modules/lodash/_baseGet.js"(exports2, module2) {
     var castPath = require_castPath();
     var toKey = require_toKey();
-    function baseGet(object2, path2) {
-      path2 = castPath(path2, object2);
-      var index = 0, length = path2.length;
+    function baseGet(object2, path3) {
+      path3 = castPath(path3, object2);
+      var index = 0, length = path3.length;
       while (object2 != null && index < length) {
-        object2 = object2[toKey(path2[index++])];
+        object2 = object2[toKey(path3[index++])];
       }
       return index && index == length ? object2 : void 0;
     }
@@ -109441,8 +109441,8 @@ var require_baseGet = __commonJS({
 var require_get2 = __commonJS({
   "node_modules/lodash/get.js"(exports2, module2) {
     var baseGet = require_baseGet();
-    function get(object2, path2, defaultValue) {
-      var result = object2 == null ? void 0 : baseGet(object2, path2);
+    function get(object2, path3, defaultValue) {
+      var result = object2 == null ? void 0 : baseGet(object2, path3);
       return result === void 0 ? defaultValue : result;
     }
     __name(get, "get");
@@ -113587,7 +113587,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder2, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder5, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113613,7 +113613,7 @@ var require_dist9 = __commonJS({
       SlashCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports10, "SlashCommandAssertions"),
       SlashCommandAttachmentOption: /* @__PURE__ */ __name(() => SlashCommandAttachmentOption, "SlashCommandAttachmentOption"),
       SlashCommandBooleanOption: /* @__PURE__ */ __name(() => SlashCommandBooleanOption, "SlashCommandBooleanOption"),
-      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder16, "SlashCommandBuilder"),
+      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder19, "SlashCommandBuilder"),
       SlashCommandChannelOption: /* @__PURE__ */ __name(() => SlashCommandChannelOption, "SlashCommandChannelOption"),
       SlashCommandIntegerOption: /* @__PURE__ */ __name(() => SlashCommandIntegerOption, "SlashCommandIntegerOption"),
       SlashCommandMentionableOption: /* @__PURE__ */ __name(() => SlashCommandMentionableOption, "SlashCommandMentionableOption"),
@@ -113721,7 +113721,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder2 = class {
+    var EmbedBuilder5 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -118091,7 +118091,7 @@ var require_dist9 = __commonJS({
         return this;
       }
     };
-    var SlashCommandBuilder16 = class {
+    var SlashCommandBuilder19 = class {
       static {
         __name(this, "SlashCommandBuilder");
       }
@@ -118147,10 +118147,10 @@ var require_dist9 = __commonJS({
        */
       nsfw = void 0;
     };
-    __name3(SlashCommandBuilder16, "SlashCommandBuilder");
-    SlashCommandBuilder16 = __decorateClass([
+    __name3(SlashCommandBuilder19, "SlashCommandBuilder");
+    SlashCommandBuilder19 = __decorateClass([
       (0, import_ts_mixer6.mix)(SharedSlashCommandOptions, SharedNameAndDescription, SharedSlashCommandSubcommands, SharedSlashCommand)
-    ], SlashCommandBuilder16);
+    ], SlashCommandBuilder19);
     var Assertions_exports11 = {};
     __export2(Assertions_exports11, {
       contextsPredicate: /* @__PURE__ */ __name(() => contextsPredicate2, "contextsPredicate"),
@@ -118799,7 +118799,7 @@ var require_ReactionCollector = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var Collector = require_Collector();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ReactionCollector = class _ReactionCollector extends Collector {
       static {
         __name(this, "ReactionCollector");
@@ -118822,23 +118822,23 @@ var require_ReactionCollector = __commonJS({
           if (messages.has(this.message.id)) this.stop("messageDelete");
         }, "bulkDeleteListener");
         this.client.incrementMaxListeners();
-        this.client.on(Events5.MessageReactionAdd, this.handleCollect);
-        this.client.on(Events5.MessageReactionRemove, this.handleDispose);
-        this.client.on(Events5.MessageReactionRemoveAll, this.empty);
-        this.client.on(Events5.MessageDelete, this._handleMessageDeletion);
-        this.client.on(Events5.MessageBulkDelete, bulkDeleteListener);
-        this.client.on(Events5.ChannelDelete, this._handleChannelDeletion);
-        this.client.on(Events5.ThreadDelete, this._handleThreadDeletion);
-        this.client.on(Events5.GuildDelete, this._handleGuildDeletion);
+        this.client.on(Events7.MessageReactionAdd, this.handleCollect);
+        this.client.on(Events7.MessageReactionRemove, this.handleDispose);
+        this.client.on(Events7.MessageReactionRemoveAll, this.empty);
+        this.client.on(Events7.MessageDelete, this._handleMessageDeletion);
+        this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
+        this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
+        this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
+        this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
         this.once("end", () => {
-          this.client.removeListener(Events5.MessageReactionAdd, this.handleCollect);
-          this.client.removeListener(Events5.MessageReactionRemove, this.handleDispose);
-          this.client.removeListener(Events5.MessageReactionRemoveAll, this.empty);
-          this.client.removeListener(Events5.MessageDelete, this._handleMessageDeletion);
-          this.client.removeListener(Events5.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events5.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events5.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events5.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events7.MessageReactionAdd, this.handleCollect);
+          this.client.removeListener(Events7.MessageReactionRemove, this.handleDispose);
+          this.client.removeListener(Events7.MessageReactionRemoveAll, this.empty);
+          this.client.removeListener(Events7.MessageDelete, this._handleMessageDeletion);
+          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
         this.on("collect", (reaction, user) => {
@@ -119285,7 +119285,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119321,7 +119321,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits3.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits6.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -120737,10 +120737,10 @@ var require_Message = __commonJS({
     var { DiscordSnowflake } = require_cjs();
     var {
       InteractionType: InteractionType2,
-      ChannelType: ChannelType2,
+      ChannelType: ChannelType4,
       MessageType: MessageType2,
-      MessageFlags: MessageFlags3,
-      PermissionFlagsBits: PermissionFlagsBits3,
+      MessageFlags: MessageFlags5,
+      PermissionFlagsBits: PermissionFlagsBits6,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121059,7 +121059,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get hasThread() {
-        return this.flags.has(MessageFlags3.HasThread);
+        return this.flags.has(MessageFlags5.HasThread);
       }
       /**
        * The thread started by this message
@@ -121199,7 +121199,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits3.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits6.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121219,8 +121219,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits3.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits6.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121231,7 +121231,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits3.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits6.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121245,7 +121245,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits3.ReadMessageHistory | PermissionFlagsBits3.PinMessages);
+        return permissions.has(PermissionFlagsBits6.ReadMessageHistory | PermissionFlagsBits6.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121266,10 +121266,10 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits3.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits3.ManageMessages);
+        const bitfield = PermissionFlagsBits6.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits6.ManageMessages);
         const { channel } = this;
         return Boolean(
-          channel?.type === ChannelType2.GuildAnnouncement && !this.flags.has(MessageFlags3.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
+          channel?.type === ChannelType4.GuildAnnouncement && !this.flags.has(MessageFlags5.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
         );
       }
       /**
@@ -121438,7 +121438,7 @@ var require_Message = __commonJS({
        */
       async startThread(options = {}) {
         if (!this.channel) throw new DiscordjsError2(ErrorCodes2.ChannelNotCached);
-        if (![ChannelType2.GuildText, ChannelType2.GuildAnnouncement].includes(this.channel.type)) {
+        if (![ChannelType4.GuildText, ChannelType4.GuildAnnouncement].includes(this.channel.type)) {
           throw new DiscordjsError2(ErrorCodes2.MessageThreadParent);
         }
         if (this.hasThread) throw new DiscordjsError2(ErrorCodes2.MessageExistingThread);
@@ -121470,9 +121470,9 @@ var require_Message = __commonJS({
       suppressEmbeds(suppress = true) {
         const flags = new MessageFlagsBitField(this.flags.bitfield);
         if (suppress) {
-          flags.add(MessageFlags3.SuppressEmbeds);
+          flags.add(MessageFlags5.SuppressEmbeds);
         } else {
-          flags.remove(MessageFlags3.SuppressEmbeds);
+          flags.remove(MessageFlags5.SuppressEmbeds);
         }
         return this.edit({ flags });
       }
@@ -122032,7 +122032,7 @@ var require_WebhookClient = __commonJS({
 var require_VoiceState = __commonJS({
   "node_modules/discord.js/src/structures/VoiceState.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var VoiceState = class extends Base {
@@ -122179,7 +122179,7 @@ var require_VoiceState = __commonJS({
        * @returns {Promise<VoiceState>}
        */
       async edit(options) {
-        if (this.channel?.type !== ChannelType2.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
+        if (this.channel?.type !== ChannelType4.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
         const target = this.client.user.id === this.id ? "@me" : this.id;
         if (target !== "@me" && options.requestToSpeak !== void 0) {
           throw new DiscordjsError2(ErrorCodes2.VoiceStateNotOwn);
@@ -122474,7 +122474,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122729,7 +122729,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits3.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits6.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122738,7 +122738,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits3.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits6.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122746,7 +122746,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits3.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits3.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits6.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits6.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -123294,7 +123294,7 @@ var require_MessagePayload = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { lazy: lazy2, isJSONEncodable } = require_dist2();
     var { DiscordSnowflake } = require_cjs();
-    var { MessageFlags: MessageFlags3, MessageReferenceType: MessageReferenceType2 } = require_v106();
+    var { MessageFlags: MessageFlags5, MessageReferenceType: MessageReferenceType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveFile } = require_DataResolver();
     var MessageFlagsBitField = require_MessageFlagsBitField();
@@ -123423,7 +123423,7 @@ var require_MessagePayload = __commonJS({
           flags = new MessageFlagsBitField(this.options.flags).bitfield;
         }
         if (isInteraction && this.options.ephemeral) {
-          flags |= MessageFlags3.Ephemeral;
+          flags |= MessageFlags5.Ephemeral;
         }
         let allowedMentions = this.options.allowedMentions === void 0 ? this.target.client.options.allowedMentions : this.options.allowedMentions;
         if (allowedMentions?.repliedUser !== void 0) {
@@ -124576,7 +124576,7 @@ var require_Partials = __commonJS({
 var require_Action = __commonJS({
   "node_modules/discord.js/src/client/actions/Action.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType2 } = require_v106();
+    var { ChannelType: ChannelType4 } = require_v106();
     var { Poll } = require_Poll();
     var { PollAnswer } = require_PollAnswer();
     var Partials2 = require_Partials();
@@ -124601,7 +124601,7 @@ var require_Action = __commonJS({
           if (!data.recipients.some((existingRecipient) => recipient.id === existingRecipient.id)) {
             payloadData.recipients = [...data.recipients, recipient];
           }
-        } else if (data.type === ChannelType2.DM || data.type === ChannelType2.GroupDM) {
+        } else if (data.type === ChannelType4.DM || data.type === ChannelType4.GroupDM) {
           const recipient = data.author ?? data.user ?? { id: data.user_id };
           payloadData.recipients = [recipient];
         }
@@ -124694,14 +124694,14 @@ var require_ApplicationCommandPermissionsUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/ApplicationCommandPermissionsUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ApplicationCommandPermissionsUpdateAction = class extends Action {
       static {
         __name(this, "ApplicationCommandPermissionsUpdateAction");
       }
       handle(data) {
         const client = this.client;
-        client.emit(Events5.ApplicationCommandPermissionsUpdate, {
+        client.emit(Events7.ApplicationCommandPermissionsUpdate, {
           permissions: data.permissions,
           id: data.id,
           guildId: data.guild_id,
@@ -124778,7 +124778,7 @@ var require_AutoModerationActionExecution2 = __commonJS({
     "use strict";
     var Action = require_Action();
     var AutoModerationActionExecution = require_AutoModerationActionExecution();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var AutoModerationActionExecutionAction = class extends Action {
       static {
         __name(this, "AutoModerationActionExecutionAction");
@@ -124787,7 +124787,7 @@ var require_AutoModerationActionExecution2 = __commonJS({
         const { client } = this;
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
-          client.emit(Events5.AutoModerationActionExecution, new AutoModerationActionExecution(data, guild));
+          client.emit(Events7.AutoModerationActionExecution, new AutoModerationActionExecution(data, guild));
         }
         return {};
       }
@@ -124801,7 +124801,7 @@ var require_AutoModerationRuleCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var AutoModerationRuleCreateAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleCreateAction");
@@ -124811,7 +124811,7 @@ var require_AutoModerationRuleCreate = __commonJS({
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
           const autoModerationRule = guild.autoModerationRules._add(data);
-          client.emit(Events5.AutoModerationRuleCreate, autoModerationRule);
+          client.emit(Events7.AutoModerationRuleCreate, autoModerationRule);
         }
         return {};
       }
@@ -124825,7 +124825,7 @@ var require_AutoModerationRuleDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var AutoModerationRuleDeleteAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleDeleteAction");
@@ -124837,7 +124837,7 @@ var require_AutoModerationRuleDelete = __commonJS({
           const autoModerationRule = guild.autoModerationRules.cache.get(data.id);
           if (autoModerationRule) {
             guild.autoModerationRules.cache.delete(autoModerationRule.id);
-            client.emit(Events5.AutoModerationRuleDelete, autoModerationRule);
+            client.emit(Events7.AutoModerationRuleDelete, autoModerationRule);
           }
         }
         return {};
@@ -124852,7 +124852,7 @@ var require_AutoModerationRuleUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var AutoModerationRuleUpdateAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleUpdateAction");
@@ -124863,7 +124863,7 @@ var require_AutoModerationRuleUpdate = __commonJS({
         if (guild) {
           const oldAutoModerationRule = guild.autoModerationRules.cache.get(data.id)?._clone() ?? null;
           const newAutoModerationRule = guild.autoModerationRules._add(data);
-          client.emit(Events5.AutoModerationRuleUpdate, oldAutoModerationRule, newAutoModerationRule);
+          client.emit(Events7.AutoModerationRuleUpdate, oldAutoModerationRule, newAutoModerationRule);
         }
         return {};
       }
@@ -124877,7 +124877,7 @@ var require_ChannelCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/ChannelCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ChannelCreateAction = class extends Action {
       static {
         __name(this, "ChannelCreateAction");
@@ -124887,7 +124887,7 @@ var require_ChannelCreate = __commonJS({
         const existing = client.channels.cache.has(data.id);
         const channel = client.channels._add(data);
         if (!existing && channel) {
-          client.emit(Events5.ChannelCreate, channel);
+          client.emit(Events7.ChannelCreate, channel);
         }
         return { channel };
       }
@@ -124901,7 +124901,7 @@ var require_ChannelDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/ChannelDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ChannelDeleteAction = class extends Action {
       static {
         __name(this, "ChannelDeleteAction");
@@ -124911,7 +124911,7 @@ var require_ChannelDelete = __commonJS({
         const channel = client.channels.cache.get(data.id);
         if (channel) {
           client.channels._remove(channel.id);
-          client.emit(Events5.ChannelDelete, channel);
+          client.emit(Events7.ChannelDelete, channel);
         }
       }
     };
@@ -125060,7 +125060,7 @@ var require_DMChannel = __commonJS({
   "node_modules/discord.js/src/structures/DMChannel.js"(exports2, module2) {
     "use strict";
     var { userMention } = require_dist8();
-    var { ChannelType: ChannelType2 } = require_v106();
+    var { ChannelType: ChannelType4 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var DMMessageManager = require_DMMessageManager();
@@ -125071,7 +125071,7 @@ var require_DMChannel = __commonJS({
       }
       constructor(client, data) {
         super(client, data);
-        this.type = ChannelType2.DM;
+        this.type = ChannelType4.DM;
         this.messages = new DMMessageManager(this);
       }
       _patch(data) {
@@ -125708,7 +125708,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType2, PermissionFlagsBits: PermissionFlagsBits3, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType4, PermissionFlagsBits: PermissionFlagsBits6, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -125745,7 +125745,7 @@ var require_ThreadChannel = __commonJS({
         }
         if ("thread_metadata" in data) {
           this.locked = data.thread_metadata.locked ?? false;
-          this.invitable = this.type === ChannelType2.PrivateThread ? data.thread_metadata.invitable ?? false : null;
+          this.invitable = this.type === ChannelType4.PrivateThread ? data.thread_metadata.invitable ?? false : null;
           this.archived = data.thread_metadata.archived;
           this.autoArchiveDuration = data.thread_metadata.auto_archive_duration;
           this.archiveTimestamp = Date.parse(data.thread_metadata.archive_timestamp);
@@ -125759,7 +125759,7 @@ var require_ThreadChannel = __commonJS({
           this.archiveTimestamp ??= null;
           this.invitable ??= null;
         }
-        this._createdTimestamp ??= this.type === ChannelType2.PrivateThread ? super.createdTimestamp : null;
+        this._createdTimestamp ??= this.type === ChannelType4.PrivateThread ? super.createdTimestamp : null;
         if ("last_message_id" in data) {
           this.lastMessageId = data.last_message_id;
         } else {
@@ -125932,7 +125932,7 @@ var require_ThreadChannel = __commonJS({
             auto_archive_duration: options.autoArchiveDuration,
             rate_limit_per_user: options.rateLimitPerUser,
             locked: options.locked,
-            invitable: this.type === ChannelType2.PrivateThread ? options.invitable : void 0,
+            invitable: this.type === ChannelType4.PrivateThread ? options.invitable : void 0,
             applied_tags: options.appliedTags,
             flags: "flags" in options ? ChannelFlagsBitField.resolve(options.flags) : void 0
           },
@@ -125979,7 +125979,7 @@ var require_ThreadChannel = __commonJS({
        * @returns {Promise<ThreadChannel>}
        */
       async setInvitable(invitable = true, reason) {
-        if (this.type !== ChannelType2.PrivateThread) {
+        if (this.type !== ChannelType4.PrivateThread) {
           throw new DiscordjsRangeError2(ErrorCodes2.ThreadInvitableType, this.type);
         }
         return this.edit({ invitable, reason });
@@ -126062,7 +126062,7 @@ var require_ThreadChannel = __commonJS({
        * @readonly
        */
       get editable() {
-        return this.ownerId === this.client.user.id && (this.type !== ChannelType2.PrivateThread || this.joined) || this.manageable;
+        return this.ownerId === this.client.user.id && (this.type !== ChannelType4.PrivateThread || this.joined) || this.manageable;
       }
       /**
        * Whether the thread is joinable by the client user
@@ -126071,7 +126071,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType2.PrivateThread ? PermissionFlagsBits3.ManageThreads : PermissionFlagsBits3.ViewChannel,
+          this.type === ChannelType4.PrivateThread ? PermissionFlagsBits6.ManageThreads : PermissionFlagsBits6.ViewChannel,
           false
         );
       }
@@ -126083,8 +126083,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits3.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126095,7 +126095,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits3.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits6.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126105,8 +126105,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType2.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits3.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType4.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits6.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126271,9 +126271,9 @@ var require_ThreadManager = __commonJS({
        * @returns {Promise<FetchedThreadsMore>}
        */
       async fetchArchived({ type = "public", fetchAll = false, before, limit } = {}, cache = true) {
-        let path2 = Routes3.channelThreads(this.channel.id, type);
+        let path3 = Routes3.channelThreads(this.channel.id, type);
         if (type === "private" && !fetchAll) {
-          path2 = Routes3.channelJoinedArchivedThreads(this.channel.id);
+          path3 = Routes3.channelJoinedArchivedThreads(this.channel.id);
         }
         let timestamp;
         let id;
@@ -126297,7 +126297,7 @@ var require_ThreadManager = __commonJS({
             }
           }
         }
-        const raw = await this.client.rest.get(path2, { query });
+        const raw = await this.client.rest.get(path3, { query });
         return this.constructor._mapThreads(raw, this.client, { parent: this.channel, cache });
       }
       /**
@@ -126332,7 +126332,7 @@ var require_ThreadManager = __commonJS({
 var require_GuildTextThreadManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildTextThreadManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, Routes: Routes3 } = require_v106();
     var ThreadManager = require_ThreadManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildTextThreadManager = class extends ThreadManager {
@@ -126391,12 +126391,12 @@ var require_GuildTextThreadManager = __commonJS({
         reason,
         rateLimitPerUser
       } = {}) {
-        let resolvedType = this.channel.type === ChannelType2.GuildAnnouncement ? ChannelType2.AnnouncementThread : ChannelType2.PublicThread;
+        let resolvedType = this.channel.type === ChannelType4.GuildAnnouncement ? ChannelType4.AnnouncementThread : ChannelType4.PublicThread;
         let startMessageId;
         if (startMessage) {
           startMessageId = this.channel.messages.resolveId(startMessage);
           if (!startMessageId) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "startMessage", "MessageResolvable");
-        } else if (this.channel.type !== ChannelType2.GuildAnnouncement) {
+        } else if (this.channel.type !== ChannelType4.GuildAnnouncement) {
           resolvedType = type ?? resolvedType;
         }
         const data = await this.client.rest.post(Routes3.threads(this.channel.id, startMessageId), {
@@ -126404,7 +126404,7 @@ var require_GuildTextThreadManager = __commonJS({
             name,
             auto_archive_duration: autoArchiveDuration,
             type: resolvedType,
-            invitable: resolvedType === ChannelType2.PrivateThread ? invitable : void 0,
+            invitable: resolvedType === ChannelType4.PrivateThread ? invitable : void 0,
             rate_limit_per_user: rateLimitPerUser
           },
           reason
@@ -126615,7 +126615,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126689,8 +126689,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits3.Connect, false);
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126880,7 +126880,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits3, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits6, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126893,7 +126893,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits3.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits6.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126904,8 +126904,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits3.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits3.Speak, false);
+        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -127104,7 +127104,7 @@ var require_Channels = __commonJS({
   "node_modules/discord.js/src/util/Channels.js"(exports2, module2) {
     "use strict";
     var { lazy: lazy2 } = require_dist2();
-    var { ChannelType: ChannelType2 } = require_v106();
+    var { ChannelType: ChannelType4 } = require_v106();
     var getCategoryChannel = lazy2(() => require_CategoryChannel());
     var getDMChannel = lazy2(() => require_DMChannel());
     var getNewsChannel = lazy2(() => require_NewsChannel());
@@ -127119,49 +127119,49 @@ var require_Channels = __commonJS({
     function createChannel(client, data, guild, { allowUnknownGuild } = {}) {
       let channel;
       if (!data.guild_id && !guild) {
-        if (data.recipients && data.type !== ChannelType2.GroupDM || data.type === ChannelType2.DM) {
+        if (data.recipients && data.type !== ChannelType4.GroupDM || data.type === ChannelType4.DM) {
           channel = new (getDMChannel())(client, data);
-        } else if (data.type === ChannelType2.GroupDM) {
+        } else if (data.type === ChannelType4.GroupDM) {
           channel = new (getPartialGroupDMChannel())(client, data);
         }
       } else {
         guild ??= client.guilds.cache.get(data.guild_id);
         if (guild || allowUnknownGuild) {
           switch (data.type) {
-            case ChannelType2.GuildText: {
+            case ChannelType4.GuildText: {
               channel = new (getTextChannel())(guild, data, client);
               break;
             }
-            case ChannelType2.GuildVoice: {
+            case ChannelType4.GuildVoice: {
               channel = new (getVoiceChannel())(guild, data, client);
               break;
             }
-            case ChannelType2.GuildCategory: {
+            case ChannelType4.GuildCategory: {
               channel = new (getCategoryChannel())(guild, data, client);
               break;
             }
-            case ChannelType2.GuildAnnouncement: {
+            case ChannelType4.GuildAnnouncement: {
               channel = new (getNewsChannel())(guild, data, client);
               break;
             }
-            case ChannelType2.GuildStageVoice: {
+            case ChannelType4.GuildStageVoice: {
               channel = new (getStageChannel())(guild, data, client);
               break;
             }
-            case ChannelType2.AnnouncementThread:
-            case ChannelType2.PublicThread:
-            case ChannelType2.PrivateThread: {
+            case ChannelType4.AnnouncementThread:
+            case ChannelType4.PublicThread:
+            case ChannelType4.PrivateThread: {
               channel = new (getThreadChannel())(guild, data, client);
               if (!allowUnknownGuild) channel.parent?.threads.cache.set(channel.id, channel);
               break;
             }
-            case ChannelType2.GuildDirectory:
+            case ChannelType4.GuildDirectory:
               channel = new (getDirectoryChannel())(guild, data, client);
               break;
-            case ChannelType2.GuildForum:
+            case ChannelType4.GuildForum:
               channel = new (getForumChannel())(guild, data, client);
               break;
-            case ChannelType2.GuildMedia:
+            case ChannelType4.GuildMedia:
               channel = new (getMediaChannel())(guild, data, client);
               break;
           }
@@ -127263,7 +127263,7 @@ var require_EntitlementCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var EntitlementCreateAction = class extends Action {
       static {
         __name(this, "EntitlementCreateAction");
@@ -127271,7 +127271,7 @@ var require_EntitlementCreate = __commonJS({
       handle(data) {
         const client = this.client;
         const entitlement = client.application.entitlements._add(data);
-        client.emit(Events5.EntitlementCreate, entitlement);
+        client.emit(Events7.EntitlementCreate, entitlement);
         return {};
       }
     };
@@ -127284,7 +127284,7 @@ var require_EntitlementDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var EntitlementDeleteAction = class extends Action {
       static {
         __name(this, "EntitlementDeleteAction");
@@ -127293,7 +127293,7 @@ var require_EntitlementDelete = __commonJS({
         const client = this.client;
         const entitlement = client.application.entitlements._add(data, false);
         client.application.entitlements.cache.delete(entitlement.id);
-        client.emit(Events5.EntitlementDelete, entitlement);
+        client.emit(Events7.EntitlementDelete, entitlement);
         return {};
       }
     };
@@ -127306,7 +127306,7 @@ var require_EntitlementUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var EntitlementUpdateAction = class extends Action {
       static {
         __name(this, "EntitlementUpdateAction");
@@ -127315,7 +127315,7 @@ var require_EntitlementUpdate = __commonJS({
         const client = this.client;
         const oldEntitlement = client.application.entitlements.cache.get(data.id)?._clone() ?? null;
         const newEntitlement = client.application.entitlements._add(data);
-        client.emit(Events5.EntitlementUpdate, oldEntitlement, newEntitlement);
+        client.emit(Events7.EntitlementUpdate, oldEntitlement, newEntitlement);
         return {};
       }
     };
@@ -128189,7 +128189,7 @@ var require_GuildAuditLogEntryCreate = __commonJS({
     "use strict";
     var Action = require_Action();
     var GuildAuditLogsEntry = require_GuildAuditLogsEntry();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildAuditLogEntryCreateAction = class extends Action {
       static {
         __name(this, "GuildAuditLogEntryCreateAction");
@@ -128200,7 +128200,7 @@ var require_GuildAuditLogEntryCreate = __commonJS({
         let auditLogEntry;
         if (guild) {
           auditLogEntry = new GuildAuditLogsEntry(guild, data);
-          client.emit(Events5.GuildAuditLogEntryCreate, auditLogEntry, guild);
+          client.emit(Events7.GuildAuditLogEntryCreate, auditLogEntry, guild);
         }
         return { auditLogEntry };
       }
@@ -128214,7 +128214,7 @@ var require_GuildBanAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildBanAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildBanAdd = class extends Action {
       static {
         __name(this, "GuildBanAdd");
@@ -128222,7 +128222,7 @@ var require_GuildBanAdd = __commonJS({
       handle(data) {
         const client = this.client;
         const guild = client.guilds.cache.get(data.guild_id);
-        if (guild) client.emit(Events5.GuildBanAdd, guild.bans._add(data));
+        if (guild) client.emit(Events7.GuildBanAdd, guild.bans._add(data));
       }
     };
     module2.exports = GuildBanAdd;
@@ -128278,7 +128278,7 @@ var require_GuildBanRemove = __commonJS({
     "use strict";
     var Action = require_Action();
     var GuildBan = require_GuildBan();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildBanRemove = class extends Action {
       static {
         __name(this, "GuildBanRemove");
@@ -128289,7 +128289,7 @@ var require_GuildBanRemove = __commonJS({
         if (guild) {
           const ban = guild.bans.cache.get(data.user.id) ?? new GuildBan(client, data, guild);
           guild.bans.cache.delete(ban.user.id);
-          client.emit(Events5.GuildBanRemove, ban);
+          client.emit(Events7.GuildBanRemove, ban);
         }
       }
     };
@@ -128327,7 +128327,7 @@ var require_GuildDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildDeleteAction = class extends Action {
       static {
         __name(this, "GuildDeleteAction");
@@ -128338,13 +128338,13 @@ var require_GuildDelete = __commonJS({
         if (guild) {
           if (data.unavailable) {
             guild.available = false;
-            client.emit(Events5.GuildUnavailable, guild);
+            client.emit(Events7.GuildUnavailable, guild);
             return;
           }
           for (const channel of guild.channels.cache.values()) this.client.channels._remove(channel.id);
           client.voice.adapters.get(data.id)?.destroy();
           client.guilds.cache.delete(guild.id);
-          client.emit(Events5.GuildDelete, guild);
+          client.emit(Events7.GuildDelete, guild);
         }
       }
     };
@@ -128357,7 +128357,7 @@ var require_GuildEmojiCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildEmojiCreateAction = class extends Action {
       static {
         __name(this, "GuildEmojiCreateAction");
@@ -128365,7 +128365,7 @@ var require_GuildEmojiCreate = __commonJS({
       handle(guild, createdEmoji) {
         const already = guild.emojis.cache.has(createdEmoji.id);
         const emoji3 = guild.emojis._add(createdEmoji);
-        if (!already) this.client.emit(Events5.GuildEmojiCreate, emoji3);
+        if (!already) this.client.emit(Events7.GuildEmojiCreate, emoji3);
         return { emoji: emoji3 };
       }
     };
@@ -128378,14 +128378,14 @@ var require_GuildEmojiDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildEmojiDeleteAction = class extends Action {
       static {
         __name(this, "GuildEmojiDeleteAction");
       }
       handle(emoji3) {
         emoji3.guild.emojis.cache.delete(emoji3.id);
-        this.client.emit(Events5.GuildEmojiDelete, emoji3);
+        this.client.emit(Events7.GuildEmojiDelete, emoji3);
         return { emoji: emoji3 };
       }
     };
@@ -128398,14 +128398,14 @@ var require_GuildEmojiUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildEmojiUpdateAction = class extends Action {
       static {
         __name(this, "GuildEmojiUpdateAction");
       }
       handle(current, data) {
         const old = current._update(data);
-        this.client.emit(Events5.GuildEmojiUpdate, old, current);
+        this.client.emit(Events7.GuildEmojiUpdate, old, current);
         return { emoji: current };
       }
     };
@@ -128451,7 +128451,7 @@ var require_GuildIntegrationsUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildIntegrationsUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildIntegrationsUpdate = class extends Action {
       static {
         __name(this, "GuildIntegrationsUpdate");
@@ -128459,7 +128459,7 @@ var require_GuildIntegrationsUpdate = __commonJS({
       handle(data) {
         const client = this.client;
         const guild = client.guilds.cache.get(data.guild_id);
-        if (guild) client.emit(Events5.GuildIntegrationsUpdate, guild);
+        if (guild) client.emit(Events7.GuildIntegrationsUpdate, guild);
       }
     };
     module2.exports = GuildIntegrationsUpdate;
@@ -128490,7 +128490,7 @@ var require_GuildMemberRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildMemberRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Status2 = require_Status();
     var GuildMemberRemoveAction = class extends Action {
       static {
@@ -128505,7 +128505,7 @@ var require_GuildMemberRemove = __commonJS({
           guild.memberCount--;
           if (member) {
             guild.members.cache.delete(member.id);
-            if (shard.status === Status2.Ready) client.emit(Events5.GuildMemberRemove, member);
+            if (shard.status === Status2.Ready) client.emit(Events7.GuildMemberRemove, member);
           }
           guild.presences.cache.delete(data.user.id);
           guild.voiceStates.cache.delete(data.user.id);
@@ -128522,7 +128522,7 @@ var require_GuildMemberUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildMemberUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Status2 = require_Status();
     var GuildMemberUpdateAction = class extends Action {
       static {
@@ -128543,10 +128543,10 @@ var require_GuildMemberUpdate = __commonJS({
           const member = this.getMember({ user: data.user }, guild);
           if (member) {
             const old = member._update(data);
-            if (shard.status === Status2.Ready && !member.equals(old)) client.emit(Events5.GuildMemberUpdate, old, member);
+            if (shard.status === Status2.Ready && !member.equals(old)) client.emit(Events7.GuildMemberUpdate, old, member);
           } else {
             const newMember = guild.members._add(data);
-            this.client.emit(Events5.GuildMemberAvailable, newMember);
+            this.client.emit(Events7.GuildMemberAvailable, newMember);
           }
         }
       }
@@ -128560,7 +128560,7 @@ var require_GuildRoleCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildRoleCreate = class extends Action {
       static {
         __name(this, "GuildRoleCreate");
@@ -128572,7 +128572,7 @@ var require_GuildRoleCreate = __commonJS({
         if (guild) {
           const already = guild.roles.cache.has(data.role.id);
           role = guild.roles._add(data.role);
-          if (!already) client.emit(Events5.GuildRoleCreate, role);
+          if (!already) client.emit(Events7.GuildRoleCreate, role);
         }
         return { role };
       }
@@ -128586,7 +128586,7 @@ var require_GuildRoleDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildRoleDeleteAction = class extends Action {
       static {
         __name(this, "GuildRoleDeleteAction");
@@ -128599,7 +128599,7 @@ var require_GuildRoleDelete = __commonJS({
           role = guild.roles.cache.get(data.role_id);
           if (role) {
             guild.roles.cache.delete(data.role_id);
-            client.emit(Events5.GuildRoleDelete, role);
+            client.emit(Events7.GuildRoleDelete, role);
           }
         }
         return { role };
@@ -128614,7 +128614,7 @@ var require_GuildRoleUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildRoleUpdateAction = class extends Action {
       static {
         __name(this, "GuildRoleUpdateAction");
@@ -128627,7 +128627,7 @@ var require_GuildRoleUpdate = __commonJS({
           const role = guild.roles.cache.get(data.role.id);
           if (role) {
             old = role._update(data.role);
-            client.emit(Events5.GuildRoleUpdate, old, role);
+            client.emit(Events7.GuildRoleUpdate, old, role);
           }
           return {
             old,
@@ -128674,7 +128674,7 @@ var require_GuildScheduledEventCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildScheduledEventCreateAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventCreateAction");
@@ -128684,7 +128684,7 @@ var require_GuildScheduledEventCreate = __commonJS({
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
           const guildScheduledEvent = guild.scheduledEvents._add(data);
-          client.emit(Events5.GuildScheduledEventCreate, guildScheduledEvent);
+          client.emit(Events7.GuildScheduledEventCreate, guildScheduledEvent);
           return { guildScheduledEvent };
         }
         return {};
@@ -128699,7 +128699,7 @@ var require_GuildScheduledEventDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildScheduledEventDeleteAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventDeleteAction");
@@ -128711,7 +128711,7 @@ var require_GuildScheduledEventDelete = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           if (guildScheduledEvent) {
             guild.scheduledEvents.cache.delete(guildScheduledEvent.id);
-            client.emit(Events5.GuildScheduledEventDelete, guildScheduledEvent);
+            client.emit(Events7.GuildScheduledEventDelete, guildScheduledEvent);
             return { guildScheduledEvent };
           }
         }
@@ -128727,7 +128727,7 @@ var require_GuildScheduledEventUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildScheduledEventUpdateAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUpdateAction");
@@ -128738,7 +128738,7 @@ var require_GuildScheduledEventUpdate = __commonJS({
         if (guild) {
           const oldGuildScheduledEvent = guild.scheduledEvents.cache.get(data.id)?._clone() ?? null;
           const newGuildScheduledEvent = guild.scheduledEvents._add(data);
-          client.emit(Events5.GuildScheduledEventUpdate, oldGuildScheduledEvent, newGuildScheduledEvent);
+          client.emit(Events7.GuildScheduledEventUpdate, oldGuildScheduledEvent, newGuildScheduledEvent);
           return { oldGuildScheduledEvent, newGuildScheduledEvent };
         }
         return {};
@@ -128753,7 +128753,7 @@ var require_GuildScheduledEventUserAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUserAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildScheduledEventUserAddAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUserAddAction");
@@ -128765,7 +128765,7 @@ var require_GuildScheduledEventUserAdd = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           const user = this.getUser(data);
           if (guildScheduledEvent && user) {
-            client.emit(Events5.GuildScheduledEventUserAdd, guildScheduledEvent, user);
+            client.emit(Events7.GuildScheduledEventUserAdd, guildScheduledEvent, user);
             return { guildScheduledEvent, user };
           }
         }
@@ -128781,7 +128781,7 @@ var require_GuildScheduledEventUserRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUserRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildScheduledEventUserRemoveAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUserRemoveAction");
@@ -128793,7 +128793,7 @@ var require_GuildScheduledEventUserRemove = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           const user = this.getUser(data);
           if (guildScheduledEvent && user) {
-            client.emit(Events5.GuildScheduledEventUserRemove, guildScheduledEvent, user);
+            client.emit(Events7.GuildScheduledEventUserRemove, guildScheduledEvent, user);
             return { guildScheduledEvent, user };
           }
         }
@@ -128809,7 +128809,7 @@ var require_GuildSoundboardSoundDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildSoundboardSoundDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildSoundboardSoundDeleteAction = class extends Action {
       static {
         __name(this, "GuildSoundboardSoundDeleteAction");
@@ -128820,7 +128820,7 @@ var require_GuildSoundboardSoundDelete = __commonJS({
         const soundboardSound = this.getSoundboardSound(data, guild);
         if (soundboardSound) {
           guild.soundboardSounds.cache.delete(soundboardSound.soundId);
-          this.client.emit(Events5.GuildSoundboardSoundDelete, soundboardSound);
+          this.client.emit(Events7.GuildSoundboardSoundDelete, soundboardSound);
         }
         return { soundboardSound };
       }
@@ -128834,7 +128834,7 @@ var require_GuildStickerCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildStickerCreateAction = class extends Action {
       static {
         __name(this, "GuildStickerCreateAction");
@@ -128842,7 +128842,7 @@ var require_GuildStickerCreate = __commonJS({
       handle(guild, createdSticker) {
         const already = guild.stickers.cache.has(createdSticker.id);
         const sticker = guild.stickers._add(createdSticker);
-        if (!already) this.client.emit(Events5.GuildStickerCreate, sticker);
+        if (!already) this.client.emit(Events7.GuildStickerCreate, sticker);
         return { sticker };
       }
     };
@@ -128855,14 +128855,14 @@ var require_GuildStickerDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildStickerDeleteAction = class extends Action {
       static {
         __name(this, "GuildStickerDeleteAction");
       }
       handle(sticker) {
         sticker.guild.stickers.cache.delete(sticker.id);
-        this.client.emit(Events5.GuildStickerDelete, sticker);
+        this.client.emit(Events7.GuildStickerDelete, sticker);
         return { sticker };
       }
     };
@@ -128875,14 +128875,14 @@ var require_GuildStickerUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildStickerUpdateAction = class extends Action {
       static {
         __name(this, "GuildStickerUpdateAction");
       }
       handle(current, data) {
         const old = current._update(data);
-        this.client.emit(Events5.GuildStickerUpdate, old, current);
+        this.client.emit(Events7.GuildStickerUpdate, old, current);
         return { sticker: current };
       }
     };
@@ -128928,7 +128928,7 @@ var require_GuildUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var GuildUpdateAction = class extends Action {
       static {
         __name(this, "GuildUpdateAction");
@@ -128938,7 +128938,7 @@ var require_GuildUpdate = __commonJS({
         const guild = client.guilds.cache.get(data.id);
         if (guild) {
           const old = guild._update(data);
-          client.emit(Events5.GuildUpdate, old, guild);
+          client.emit(Events7.GuildUpdate, old, guild);
           return {
             old,
             updated: guild
@@ -129451,7 +129451,7 @@ var require_InteractionResponses = __commonJS({
     var { deprecate } = require("node:util");
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { isJSONEncodable } = require_dist2();
-    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags3, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
+    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags5, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var MessageFlagsBitField = require_MessageFlagsBitField();
     var InteractionCallbackResponse = require_InteractionCallbackResponse();
@@ -129548,7 +129548,7 @@ var require_InteractionResponses = __commonJS({
         }
         const flags = new MessageFlagsBitField(options.flags);
         if (options.ephemeral) {
-          flags.add(MessageFlags3.Ephemeral);
+          flags.add(MessageFlags5.Ephemeral);
         }
         const response = await this.client.rest.post(Routes3.interactionCallback(this.id, this.token), {
           body: {
@@ -129561,7 +129561,7 @@ var require_InteractionResponses = __commonJS({
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
         this.deferred = true;
-        this.ephemeral = flags.has(MessageFlags3.Ephemeral);
+        this.ephemeral = flags.has(MessageFlags5.Ephemeral);
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
       /**
@@ -129616,7 +129616,7 @@ var require_InteractionResponses = __commonJS({
           auth: false,
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
-        this.ephemeral = Boolean(data.flags & MessageFlags3.Ephemeral);
+        this.ephemeral = Boolean(data.flags & MessageFlags5.Ephemeral);
         this.replied = true;
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
@@ -130144,7 +130144,7 @@ var require_MentionableSelectMenuInteraction = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MentionableSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
         __name(this, "MentionableSelectMenuInteraction");
@@ -130162,7 +130162,7 @@ var require_MentionableSelectMenuInteraction = __commonJS({
             const user = users[id];
             if (!user) {
               this.client.emit(
-                Events5.Debug,
+                Events7.Debug,
                 `[MentionableSelectMenuInteraction] Received a member without a user, skipping ${id}`
               );
               continue;
@@ -130725,7 +130725,7 @@ var require_UserSelectMenuInteraction = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var UserSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
         __name(this, "UserSelectMenuInteraction");
@@ -130742,7 +130742,7 @@ var require_UserSelectMenuInteraction = __commonJS({
         for (const [id, member] of Object.entries(resolved?.members ?? {})) {
           const user = resolved.users[id];
           if (!user) {
-            this.client.emit(Events5.Debug, `[UserSelectMenuInteraction] Received a member without a user, skipping ${id}`);
+            this.client.emit(Events7.Debug, `[UserSelectMenuInteraction] Received a member without a user, skipping ${id}`);
             continue;
           }
           this.members.set(id, this.guild?.members._add({ user, ...member }) ?? { user, ...member });
@@ -130771,7 +130771,7 @@ var require_InteractionCreate = __commonJS({
     var StringSelectMenuInteraction = require_StringSelectMenuInteraction();
     var UserContextMenuCommandInteraction = require_UserContextMenuCommandInteraction();
     var UserSelectMenuInteraction = require_UserSelectMenuInteraction();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var InteractionCreateAction = class extends Action {
       static {
         __name(this, "InteractionCreateAction");
@@ -130798,7 +130798,7 @@ var require_InteractionCreate = __commonJS({
                 break;
               default:
                 client.emit(
-                  Events5.Debug,
+                  Events7.Debug,
                   `[INTERACTION] Received application command interaction with unknown type: ${data.data.type}`
                 );
                 return;
@@ -130827,7 +130827,7 @@ var require_InteractionCreate = __commonJS({
                 break;
               default:
                 client.emit(
-                  Events5.Debug,
+                  Events7.Debug,
                   `[INTERACTION] Received component interaction with unknown type: ${data.data.component_type}`
                 );
                 return;
@@ -130840,11 +130840,11 @@ var require_InteractionCreate = __commonJS({
             InteractionClass = ModalSubmitInteraction;
             break;
           default:
-            client.emit(Events5.Debug, `[INTERACTION] Received interaction with unknown type: ${data.type}`);
+            client.emit(Events7.Debug, `[INTERACTION] Received interaction with unknown type: ${data.type}`);
             return;
         }
         const interaction = new InteractionClass(client, data);
-        client.emit(Events5.InteractionCreate, interaction);
+        client.emit(Events7.InteractionCreate, interaction);
       }
     };
     module2.exports = InteractionCreateAction;
@@ -130856,7 +130856,7 @@ var require_InviteCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/InviteCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var InviteCreateAction = class extends Action {
       static {
         __name(this, "InviteCreateAction");
@@ -130868,7 +130868,7 @@ var require_InviteCreate = __commonJS({
         if (!channel) return false;
         const inviteData = Object.assign(data, { channel, guild });
         const invite = guild.invites._add(inviteData);
-        client.emit(Events5.InviteCreate, invite);
+        client.emit(Events7.InviteCreate, invite);
         return { invite };
       }
     };
@@ -130882,7 +130882,7 @@ var require_InviteDelete = __commonJS({
     "use strict";
     var Action = require_Action();
     var Invite2 = require_Invite();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var InviteDeleteAction = class extends Action {
       static {
         __name(this, "InviteDeleteAction");
@@ -130895,7 +130895,7 @@ var require_InviteDelete = __commonJS({
         const inviteData = Object.assign(data, { channel, guild });
         const invite = new Invite2(client, inviteData);
         guild.invites.cache.delete(invite.code);
-        client.emit(Events5.InviteDelete, invite);
+        client.emit(Events7.InviteDelete, invite);
         return { invite };
       }
     };
@@ -130908,7 +130908,7 @@ var require_MessageCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageCreateAction = class extends Action {
       static {
         __name(this, "MessageCreateAction");
@@ -130931,7 +130931,7 @@ var require_MessageCreate = __commonJS({
           if (existing && existing.author?.id !== this.client.user.id) return { message: existing };
           const message = existing ?? channel.messages._add(data);
           channel.lastMessageId = data.id;
-          client.emit(Events5.MessageCreate, message);
+          client.emit(Events7.MessageCreate, message);
           return { message };
         }
         return {};
@@ -130946,7 +130946,7 @@ var require_MessageDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageDeleteAction = class extends Action {
       static {
         __name(this, "MessageDeleteAction");
@@ -130961,7 +130961,7 @@ var require_MessageDelete = __commonJS({
           message = this.getMessage(data, channel);
           if (message) {
             channel.messages.cache.delete(message.id);
-            client.emit(Events5.MessageDelete, message);
+            client.emit(Events7.MessageDelete, message);
           }
         }
         return { message };
@@ -130977,7 +130977,7 @@ var require_MessageDeleteBulk = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageDeleteBulkAction = class extends Action {
       static {
         __name(this, "MessageDeleteBulkAction");
@@ -131004,7 +131004,7 @@ var require_MessageDeleteBulk = __commonJS({
               channel.messages.cache.delete(id);
             }
           }
-          if (messages.size > 0) client.emit(Events5.MessageBulkDelete, messages, channel);
+          if (messages.size > 0) client.emit(Events7.MessageBulkDelete, messages, channel);
           return { messages };
         }
         return {};
@@ -131019,7 +131019,7 @@ var require_MessagePollVoteAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/MessagePollVoteAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessagePollVoteAddAction = class extends Action {
       static {
         __name(this, "MessagePollVoteAddAction");
@@ -131038,7 +131038,7 @@ var require_MessagePollVoteAdd = __commonJS({
           answer.voters._add(user);
         }
         answer.voteCount++;
-        this.client.emit(Events5.MessagePollVoteAdd, answer, data.user_id);
+        this.client.emit(Events7.MessagePollVoteAdd, answer, data.user_id);
         return { poll };
       }
     };
@@ -131051,7 +131051,7 @@ var require_MessagePollVoteRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/MessagePollVoteRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessagePollVoteRemoveAction = class extends Action {
       static {
         __name(this, "MessagePollVoteRemoveAction");
@@ -131069,7 +131069,7 @@ var require_MessagePollVoteRemove = __commonJS({
         if (answer.voteCount > 0) {
           answer.voteCount--;
         }
-        this.client.emit(Events5.MessagePollVoteRemove, answer, data.user_id);
+        this.client.emit(Events7.MessagePollVoteRemove, answer, data.user_id);
         return { poll };
       }
     };
@@ -131082,7 +131082,7 @@ var require_MessageReactionAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Partials2 = require_Partials();
     var MessageReactionAdd = class extends Action {
       static {
@@ -131112,7 +131112,7 @@ var require_MessageReactionAdd = __commonJS({
         if (!reaction) return false;
         reaction._add(user, data.burst);
         if (fromStructure) return { message, reaction, user };
-        this.client.emit(Events5.MessageReactionAdd, reaction, user, { type: data.type, burst: data.burst });
+        this.client.emit(Events7.MessageReactionAdd, reaction, user, { type: data.type, burst: data.burst });
         return { message, reaction, user };
       }
     };
@@ -131125,7 +131125,7 @@ var require_MessageReactionRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageReactionRemove = class extends Action {
       static {
         __name(this, "MessageReactionRemove");
@@ -131145,7 +131145,7 @@ var require_MessageReactionRemove = __commonJS({
         const reaction = this.getReaction(data, message, user);
         if (!reaction) return false;
         reaction._remove(user, data.burst);
-        this.client.emit(Events5.MessageReactionRemove, reaction, user, { type: data.type, burst: data.burst });
+        this.client.emit(Events7.MessageReactionRemove, reaction, user, { type: data.type, burst: data.burst });
         return { message, reaction, user };
       }
     };
@@ -131158,7 +131158,7 @@ var require_MessageReactionRemoveAll = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemoveAll.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageReactionRemoveAll = class extends Action {
       static {
         __name(this, "MessageReactionRemoveAll");
@@ -131170,7 +131170,7 @@ var require_MessageReactionRemoveAll = __commonJS({
         if (!message) return false;
         const removed = message.reactions.cache.clone();
         message.reactions.cache.clear();
-        this.client.emit(Events5.MessageReactionRemoveAll, message, removed);
+        this.client.emit(Events7.MessageReactionRemoveAll, message, removed);
         return { message };
       }
     };
@@ -131183,7 +131183,7 @@ var require_MessageReactionRemoveEmoji = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemoveEmoji.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var MessageReactionRemoveEmoji = class extends Action {
       static {
         __name(this, "MessageReactionRemoveEmoji");
@@ -131196,7 +131196,7 @@ var require_MessageReactionRemoveEmoji = __commonJS({
         const reaction = this.getReaction(data, message);
         if (!reaction) return false;
         if (!message.partial) message.reactions.cache.delete(reaction.emoji.id ?? reaction.emoji.name);
-        this.client.emit(Events5.MessageReactionRemoveEmoji, reaction);
+        this.client.emit(Events7.MessageReactionRemoveEmoji, reaction);
         return { reaction };
       }
     };
@@ -131239,7 +131239,7 @@ var require_PresenceUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/PresenceUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Partials2 = require_Partials();
     var PresenceUpdateAction = class extends Action {
       static {
@@ -131264,11 +131264,11 @@ var require_PresenceUpdate = __commonJS({
             deaf: false,
             mute: false
           });
-          this.client.emit(Events5.GuildMemberAvailable, member);
+          this.client.emit(Events7.GuildMemberAvailable, member);
         }
         const newPresence = guild.presences._add(Object.assign(data, { guild }));
-        if (this.client.listenerCount(Events5.PresenceUpdate) && !newPresence.equals(oldPresence)) {
-          this.client.emit(Events5.PresenceUpdate, oldPresence, newPresence);
+        if (this.client.listenerCount(Events7.PresenceUpdate) && !newPresence.equals(oldPresence)) {
+          this.client.emit(Events7.PresenceUpdate, oldPresence, newPresence);
         }
       }
     };
@@ -131281,7 +131281,7 @@ var require_StageInstanceCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var StageInstanceCreateAction = class extends Action {
       static {
         __name(this, "StageInstanceCreateAction");
@@ -131291,7 +131291,7 @@ var require_StageInstanceCreate = __commonJS({
         const channel = this.getChannel({ id: data.channel_id, guild_id: data.guild_id });
         if (channel) {
           const stageInstance = channel.guild.stageInstances._add(data);
-          client.emit(Events5.StageInstanceCreate, stageInstance);
+          client.emit(Events7.StageInstanceCreate, stageInstance);
           return { stageInstance };
         }
         return {};
@@ -131306,7 +131306,7 @@ var require_StageInstanceDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var StageInstanceDeleteAction = class extends Action {
       static {
         __name(this, "StageInstanceDeleteAction");
@@ -131318,7 +131318,7 @@ var require_StageInstanceDelete = __commonJS({
           const stageInstance = channel.guild.stageInstances._add(data);
           if (stageInstance) {
             channel.guild.stageInstances.cache.delete(stageInstance.id);
-            client.emit(Events5.StageInstanceDelete, stageInstance);
+            client.emit(Events7.StageInstanceDelete, stageInstance);
             return { stageInstance };
           }
         }
@@ -131334,7 +131334,7 @@ var require_StageInstanceUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var StageInstanceUpdateAction = class extends Action {
       static {
         __name(this, "StageInstanceUpdateAction");
@@ -131345,7 +131345,7 @@ var require_StageInstanceUpdate = __commonJS({
         if (channel) {
           const oldStageInstance = channel.guild.stageInstances.cache.get(data.id)?._clone() ?? null;
           const newStageInstance = channel.guild.stageInstances._add(data);
-          client.emit(Events5.StageInstanceUpdate, oldStageInstance, newStageInstance);
+          client.emit(Events7.StageInstanceUpdate, oldStageInstance, newStageInstance);
           return { oldStageInstance, newStageInstance };
         }
         return {};
@@ -131360,7 +131360,7 @@ var require_ThreadCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ThreadCreateAction = class extends Action {
       static {
         __name(this, "ThreadCreateAction");
@@ -131370,7 +131370,7 @@ var require_ThreadCreate = __commonJS({
         const existing = client.channels.cache.has(data.id);
         const thread = client.channels._add(data);
         if (!existing && thread) {
-          client.emit(Events5.ThreadCreate, thread, data.newly_created ?? false);
+          client.emit(Events7.ThreadCreate, thread, data.newly_created ?? false);
         }
         return { thread };
       }
@@ -131384,7 +131384,7 @@ var require_ThreadDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ThreadDeleteAction = class extends Action {
       static {
         __name(this, "ThreadDeleteAction");
@@ -131394,7 +131394,7 @@ var require_ThreadDelete = __commonJS({
         const thread = client.channels.cache.get(data.id);
         if (thread) {
           client.channels._remove(thread.id);
-          client.emit(Events5.ThreadDelete, thread);
+          client.emit(Events7.ThreadDelete, thread);
         }
         return { thread };
       }
@@ -131409,7 +131409,7 @@ var require_ThreadListSync = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ThreadListSyncAction = class extends Action {
       static {
         __name(this, "ThreadListSyncAction");
@@ -131438,7 +131438,7 @@ var require_ThreadListSync = __commonJS({
             thread.members._add(rawMember);
           }
         }
-        client.emit(Events5.ThreadListSync, syncedThreads, guild);
+        client.emit(Events7.ThreadListSync, syncedThreads, guild);
         return {
           syncedThreads
         };
@@ -131460,7 +131460,7 @@ var require_ThreadMemberUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadMemberUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ThreadMemberUpdateAction = class extends Action {
       static {
         __name(this, "ThreadMemberUpdateAction");
@@ -131475,7 +131475,7 @@ var require_ThreadMemberUpdate = __commonJS({
             return { newMember };
           }
           const old = member._update(data);
-          client.emit(Events5.ThreadMemberUpdate, old, member);
+          client.emit(Events7.ThreadMemberUpdate, old, member);
         }
         return {};
       }
@@ -131490,7 +131490,7 @@ var require_ThreadMembersUpdate = __commonJS({
     "use strict";
     var { Collection: Collection2 } = require_dist7();
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ThreadMembersUpdateAction = class extends Action {
       static {
         __name(this, "ThreadMembersUpdateAction");
@@ -131515,7 +131515,7 @@ var require_ThreadMembersUpdate = __commonJS({
           if (addedMembers.size === 0 && removedMembers.size === 0) {
             return {};
           }
-          client.emit(Events5.ThreadMembersUpdate, addedMembers, removedMembers, thread);
+          client.emit(Events7.ThreadMembersUpdate, addedMembers, removedMembers, thread);
         }
         return {};
       }
@@ -131586,7 +131586,7 @@ var require_TypingStart = __commonJS({
     "use strict";
     var Action = require_Action();
     var Typing = require_Typing();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var TypingStart = class extends Action {
       static {
         __name(this, "TypingStart");
@@ -131595,12 +131595,12 @@ var require_TypingStart = __commonJS({
         const channel = this.getChannel({ id: data.channel_id, ..."guild_id" in data && { guild_id: data.guild_id } });
         if (!channel) return;
         if (!channel.isTextBased()) {
-          this.client.emit(Events5.Warn, `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`);
+          this.client.emit(Events7.Warn, `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`);
           return;
         }
         const user = this.getUserFromMember(data);
         if (user) {
-          this.client.emit(Events5.TypingStart, new Typing(channel, user, data));
+          this.client.emit(Events7.TypingStart, new Typing(channel, user, data));
         }
       }
     };
@@ -131613,7 +131613,7 @@ var require_UserUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/UserUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var UserUpdateAction = class extends Action {
       static {
         __name(this, "UserUpdateAction");
@@ -131623,7 +131623,7 @@ var require_UserUpdate = __commonJS({
         const newUser = data.id === client.user.id ? client.user : client.users.cache.get(data.id);
         const oldUser = newUser._update(data);
         if (!oldUser.equals(newUser)) {
-          client.emit(Events5.UserUpdate, oldUser, newUser);
+          client.emit(Events7.UserUpdate, oldUser, newUser);
           return {
             old: oldUser,
             updated: newUser
@@ -131645,7 +131645,7 @@ var require_VoiceStateUpdate = __commonJS({
     "use strict";
     var Action = require_Action();
     var VoiceState = require_VoiceState();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var VoiceStateUpdate = class extends Action {
       static {
         __name(this, "VoiceStateUpdate");
@@ -131663,10 +131663,10 @@ var require_VoiceStateUpdate = __commonJS({
             member = guild.members._add(data.member);
           }
           if (member?.user.id === client.user.id) {
-            client.emit(Events5.Debug, `[VOICE] received voice state update: ${JSON.stringify(data)}`);
+            client.emit(Events7.Debug, `[VOICE] received voice state update: ${JSON.stringify(data)}`);
             client.voice.onVoiceStateUpdate(data);
           }
-          client.emit(Events5.VoiceStateUpdate, oldState, newState);
+          client.emit(Events7.VoiceStateUpdate, oldState, newState);
         }
       }
     };
@@ -131793,7 +131793,7 @@ var require_ActionsManager = __commonJS({
 var require_ClientVoiceManager = __commonJS({
   "node_modules/discord.js/src/client/voice/ClientVoiceManager.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var ClientVoiceManager2 = class {
       static {
         __name(this, "ClientVoiceManager");
@@ -131801,7 +131801,7 @@ var require_ClientVoiceManager = __commonJS({
       constructor(client) {
         Object.defineProperty(this, "client", { value: client });
         this.adapters = /* @__PURE__ */ new Map();
-        client.on(Events5.ShardDisconnect, (_, shardId) => {
+        client.on(Events7.ShardDisconnect, (_, shardId) => {
           for (const [guildId, adapter] of this.adapters.entries()) {
             if (client.guilds.cache.get(guildId)?.shardId === shardId) {
               adapter.destroy();
@@ -134680,7 +134680,7 @@ var require_websocket2 = __commonJS({
     var net = require("net");
     var tls = require("tls");
     var { randomBytes, createHash } = require("crypto");
-    var { Duplex, Readable: Readable3 } = require("stream");
+    var { Duplex, Readable: Readable4 } = require("stream");
     var { URL: URL2 } = require("url");
     var PerMessageDeflate2 = require_permessage_deflate2();
     var Receiver2 = require_receiver2();
@@ -136304,7 +136304,7 @@ var require_dist11 = __commonJS({
     var import_node_worker_threads2 = require("worker_threads");
     var import_collection2 = require_dist10();
     var import_node_events = require("events");
-    var import_node_path2 = require("path");
+    var import_node_path3 = require("path");
     var import_node_worker_threads = require("worker_threads");
     var import_collection = require_dist10();
     var WorkerSendPayloadOp = /* @__PURE__ */ ((WorkerSendPayloadOp2) => {
@@ -136458,20 +136458,20 @@ var require_dist11 = __commonJS({
         }
       }
       resolveWorkerPath() {
-        const path2 = this.options.workerPath;
-        if (!path2) {
-          return (0, import_node_path2.join)(__dirname, "defaultWorker.js");
+        const path3 = this.options.workerPath;
+        if (!path3) {
+          return (0, import_node_path3.join)(__dirname, "defaultWorker.js");
         }
-        if ((0, import_node_path2.isAbsolute)(path2)) {
-          return path2;
+        if ((0, import_node_path3.isAbsolute)(path3)) {
+          return path3;
         }
-        if (/^\.\.?[/\\]/.test(path2)) {
-          return (0, import_node_path2.resolve)(path2);
+        if (/^\.\.?[/\\]/.test(path3)) {
+          return (0, import_node_path3.resolve)(path3);
         }
         try {
-          return require.resolve(path2);
+          return require.resolve(path3);
         } catch {
-          return (0, import_node_path2.resolve)(path2);
+          return (0, import_node_path3.resolve)(path3);
         }
       }
       async waitForWorkerReady(worker) {
@@ -136658,7 +136658,7 @@ var require_dist11 = __commonJS({
     var import_collection4 = require_dist10();
     var import_util9 = require_dist2();
     var import_v103 = require_v106();
-    var import_promises = require("timers/promises");
+    var import_promises3 = require("timers/promises");
     var import_collection3 = require_dist10();
     var import_async_queue = require_cjs2();
     var SimpleIdentifyThrottler = class {
@@ -136688,7 +136688,7 @@ var require_dist11 = __commonJS({
           const diff = state.resetsAt - Date.now();
           if (diff > 0 && diff <= 5e3) {
             const time3 = diff + Math.random() * 1500;
-            await (0, import_promises.setTimeout)(time3);
+            await (0, import_promises3.setTimeout)(time3);
           }
           state.resetsAt = Date.now() + 5e3;
         } finally {
@@ -137946,13 +137946,13 @@ var require_CHANNEL_DELETE = __commonJS({
 var require_CHANNEL_PINS_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/CHANNEL_PINS_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const channel = client.channels.cache.get(data.channel_id);
       const time3 = data.last_pin_timestamp ? Date.parse(data.last_pin_timestamp) : null;
       if (channel) {
         channel.lastPinTimestamp = time3;
-        client.emit(Events5.ChannelPinsUpdate, channel, time3);
+        client.emit(Events7.ChannelPinsUpdate, channel, time3);
       }
     };
   }
@@ -137962,11 +137962,11 @@ var require_CHANNEL_PINS_UPDATE = __commonJS({
 var require_CHANNEL_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/CHANNEL_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.ChannelUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events5.ChannelUpdate, old, updated);
+        client.emit(Events7.ChannelUpdate, old, updated);
       }
     };
   }
@@ -138036,20 +138036,20 @@ var require_GUILD_BAN_REMOVE = __commonJS({
 var require_GUILD_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Status2 = require_Status();
     module2.exports = (client, { d: data }, shard) => {
       let guild = client.guilds.cache.get(data.id);
       if (guild) {
         if (!guild.available && !data.unavailable) {
           guild._patch(data);
-          client.emit(Events5.GuildAvailable, guild);
+          client.emit(Events7.GuildAvailable, guild);
         }
       } else {
         data.shardId = shard.id;
         guild = client.guilds._add(data);
         if (client.ws.status === Status2.Ready) {
-          client.emit(Events5.GuildCreate, guild);
+          client.emit(Events7.GuildCreate, guild);
         }
       }
     };
@@ -138091,7 +138091,7 @@ var require_GUILD_MEMBERS_CHUNK = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_MEMBERS_CHUNK.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
@@ -138100,7 +138100,7 @@ var require_GUILD_MEMBERS_CHUNK = __commonJS({
       if (data.presences) {
         for (const presence of data.presences) guild.presences._add(Object.assign(presence, { guild }));
       }
-      client.emit(Events5.GuildMembersChunk, members2, guild, {
+      client.emit(Events7.GuildMembersChunk, members2, guild, {
         index: data.chunk_index,
         count: data.chunk_count,
         notFound: data.not_found,
@@ -138114,7 +138114,7 @@ var require_GUILD_MEMBERS_CHUNK = __commonJS({
 var require_GUILD_MEMBER_ADD = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_MEMBER_ADD.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Status2 = require_Status();
     module2.exports = (client, { d: data }, shard) => {
       const guild = client.guilds.cache.get(data.guild_id);
@@ -138122,7 +138122,7 @@ var require_GUILD_MEMBER_ADD = __commonJS({
         guild.memberCount++;
         const member = guild.members._add(data);
         if (shard.status === Status2.Ready) {
-          client.emit(Events5.GuildMemberAdd, member);
+          client.emit(Events7.GuildMemberAdd, member);
         }
       }
     };
@@ -138234,7 +138234,7 @@ var require_GUILD_SOUNDBOARD_SOUNDS_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUNDS_UPDATE.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
@@ -138242,7 +138242,7 @@ var require_GUILD_SOUNDBOARD_SOUNDS_UPDATE = __commonJS({
       for (const soundboardSound of data.soundboard_sounds) {
         soundboardSounds.set(soundboardSound.sound_id, guild.soundboardSounds._add(soundboardSound));
       }
-      client.emit(Events5.GuildSoundboardSoundsUpdate, soundboardSounds, guild);
+      client.emit(Events7.GuildSoundboardSoundsUpdate, soundboardSounds, guild);
     };
   }
 });
@@ -138251,12 +138251,12 @@ var require_GUILD_SOUNDBOARD_SOUNDS_UPDATE = __commonJS({
 var require_GUILD_SOUNDBOARD_SOUND_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUND_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
       const soundboardSound = guild.soundboardSounds._add(data);
-      client.emit(Events5.GuildSoundboardSoundCreate, soundboardSound);
+      client.emit(Events7.GuildSoundboardSoundCreate, soundboardSound);
     };
   }
 });
@@ -138275,13 +138275,13 @@ var require_GUILD_SOUNDBOARD_SOUND_DELETE = __commonJS({
 var require_GUILD_SOUNDBOARD_SOUND_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUND_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
       const oldGuildSoundboardSound = guild.soundboardSounds.cache.get(data.sound_id)?._clone() ?? null;
       const newGuildSoundboardSound = guild.soundboardSounds._add(data);
-      client.emit(Events5.GuildSoundboardSoundUpdate, oldGuildSoundboardSound, newGuildSoundboardSound);
+      client.emit(Events7.GuildSoundboardSoundUpdate, oldGuildSoundboardSound, newGuildSoundboardSound);
     };
   }
 });
@@ -138430,11 +138430,11 @@ var require_MESSAGE_REACTION_REMOVE_EMOJI = __commonJS({
 var require_MESSAGE_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/MESSAGE_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.MessageUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events5.MessageUpdate, old, updated);
+        client.emit(Events7.MessageUpdate, old, updated);
       }
     };
   }
@@ -138687,10 +138687,10 @@ var require_READY = __commonJS({
 var require_RESUMED = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/RESUMED.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, packet, shard) => {
       const replayed = shard.sessionInfo.sequence - shard.closeSequence;
-      client.emit(Events5.ShardResume, shard.id, replayed);
+      client.emit(Events7.ShardResume, shard.id, replayed);
     };
   }
 });
@@ -138700,7 +138700,7 @@ var require_SOUNDBOARD_SOUNDS = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SOUNDBOARD_SOUNDS.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
@@ -138708,7 +138708,7 @@ var require_SOUNDBOARD_SOUNDS = __commonJS({
       for (const soundboardSound of data.soundboard_sounds) {
         soundboardSounds.set(soundboardSound.sound_id, guild.soundboardSounds._add(soundboardSound));
       }
-      client.emit(Events5.SoundboardSounds, soundboardSounds, guild);
+      client.emit(Events7.SoundboardSounds, soundboardSounds, guild);
     };
   }
 });
@@ -138747,10 +138747,10 @@ var require_STAGE_INSTANCE_UPDATE = __commonJS({
 var require_SUBSCRIPTION_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const subscription = client.application.subscriptions._add(data);
-      client.emit(Events5.SubscriptionCreate, subscription);
+      client.emit(Events7.SubscriptionCreate, subscription);
     };
   }
 });
@@ -138759,11 +138759,11 @@ var require_SUBSCRIPTION_CREATE = __commonJS({
 var require_SUBSCRIPTION_DELETE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_DELETE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const subscription = client.application.subscriptions._add(data, false);
       client.application.subscriptions.cache.delete(subscription.id);
-      client.emit(Events5.SubscriptionDelete, subscription);
+      client.emit(Events7.SubscriptionDelete, subscription);
     };
   }
 });
@@ -138772,11 +138772,11 @@ var require_SUBSCRIPTION_DELETE = __commonJS({
 var require_SUBSCRIPTION_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const oldSubscription = client.application.subscriptions.cache.get(data.id)?._clone() ?? null;
       const newSubscription = client.application.subscriptions._add(data);
-      client.emit(Events5.SubscriptionUpdate, oldSubscription, newSubscription);
+      client.emit(Events7.SubscriptionUpdate, oldSubscription, newSubscription);
     };
   }
 });
@@ -138835,11 +138835,11 @@ var require_THREAD_MEMBER_UPDATE = __commonJS({
 var require_THREAD_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/THREAD_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.ChannelUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events5.ThreadUpdate, old, updated);
+        client.emit(Events7.ThreadUpdate, old, updated);
       }
     };
   }
@@ -138910,11 +138910,11 @@ var require_VOICE_CHANNEL_EFFECT_SEND = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/VOICE_CHANNEL_EFFECT_SEND.js"(exports2, module2) {
     "use strict";
     var VoiceChannelEffect = require_VoiceChannelEffect();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
-      client.emit(Events5.VoiceChannelEffectSend, new VoiceChannelEffect(data, guild));
+      client.emit(Events7.VoiceChannelEffectSend, new VoiceChannelEffect(data, guild));
     };
   }
 });
@@ -138923,14 +138923,14 @@ var require_VOICE_CHANNEL_EFFECT_SEND = __commonJS({
 var require_VOICE_SERVER_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/VOICE_SERVER_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     module2.exports = (client, { d: data }) => {
       client.emit(
-        Events5.Debug,
+        Events7.Debug,
         `[VOICE] received voice server: ${JSON.stringify({ ...data, token: "*".repeat(data.token.length) })}`
       );
       client.voice.onVoiceServer(data);
-      client.emit(Events5.VoiceServerUpdate, {
+      client.emit(Events7.VoiceServerUpdate, {
         guildId: data.guild_id,
         endpoint: data.endpoint,
         token: data.token
@@ -139060,7 +139060,7 @@ var require_WebSocketManager = __commonJS({
     var WebSocketShard = require_WebSocketShard();
     var PacketHandlers = require_handlers();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var Status2 = require_Status();
     var WebSocketShardEvents = require_WebSocketShardEvents();
     var zlib;
@@ -139121,7 +139121,7 @@ var require_WebSocketManager = __commonJS({
        */
       debug(messages, shardId) {
         this.client.emit(
-          Events5.Debug,
+          Events7.Debug,
           `[WS => ${typeof shardId === "number" ? `Shard ${shardId}` : "Manager"}] ${messages.join("\n	")}`
         );
       }
@@ -139176,7 +139176,7 @@ var require_WebSocketManager = __commonJS({
             const shard = new WebSocketShard(this, id);
             this.shards.set(id, shard);
             shard.on(WebSocketShardEvents.AllReady, (unavailableGuilds) => {
-              this.client.emit(Events5.ShardReady, shard.id, unavailableGuilds);
+              this.client.emit(Events7.ShardReady, shard.id, unavailableGuilds);
               this.checkShardsReady();
             });
             shard.status = Status2.Connecting;
@@ -139207,7 +139207,7 @@ var require_WebSocketManager = __commonJS({
       attachEvents() {
         this._ws.on(WSWebSocketShardEvents.Debug, ({ message, shardId }) => this.debug([message], shardId));
         this._ws.on(WSWebSocketShardEvents.Dispatch, ({ data, shardId }) => {
-          this.client.emit(Events5.Raw, data, shardId);
+          this.client.emit(Events7.Raw, data, shardId);
           this.emit(data.t, data.d, shardId);
           const shard = this.shards.get(shardId);
           this.handlePacket(data, shard);
@@ -139223,12 +139223,12 @@ var require_WebSocketManager = __commonJS({
           shard.emit(WebSocketShardEvents.Close, { code, reason: reasonIsDeprecated, wasClean: true });
           if (UNRECOVERABLE_CLOSE_CODES.includes(code)) {
             shard.status = Status2.Disconnected;
-            this.client.emit(Events5.ShardDisconnect, { code, reason: reasonIsDeprecated, wasClean: true }, shardId);
+            this.client.emit(Events7.ShardDisconnect, { code, reason: reasonIsDeprecated, wasClean: true }, shardId);
             this.debug([`Shard not recoverable: ${code} (${GatewayCloseCodes2[code] ?? CloseCodes[code]})`], shardId);
             return;
           }
           this.shards.get(shardId).status = Status2.Connecting;
-          this.client.emit(Events5.ShardReconnecting, shardId);
+          this.client.emit(Events7.ShardReconnecting, shardId);
         });
         this._ws.on(WSWebSocketShardEvents.Hello, ({ shardId }) => {
           const shard = this.shards.get(shardId);
@@ -139251,7 +139251,7 @@ var require_WebSocketManager = __commonJS({
           shard.ping = latency;
         });
         this._ws.on(WSWebSocketShardEvents.Error, ({ error: error62, shardId }) => {
-          this.client.emit(Events5.ShardError, error62, shardId);
+          this.client.emit(Events7.ShardError, error62, shardId);
         });
       }
       /**
@@ -139323,7 +139323,7 @@ var require_WebSocketManager = __commonJS({
             "DeprecationWarning"
           );
         }
-        this.client.emit(Events5.ClientReady, this.client);
+        this.client.emit(Events7.ClientReady, this.client);
         this.handlePacket();
       }
     };
@@ -139422,7 +139422,7 @@ var require_ChannelManager = __commonJS({
     var { BaseChannel } = require_BaseChannel();
     var { createChannel } = require_Channels();
     var { ThreadChannelTypes } = require_Constants();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var cacheWarningEmitted = false;
     var ChannelManager2 = class extends CachedManager {
       static {
@@ -139456,7 +139456,7 @@ var require_ChannelManager = __commonJS({
         }
         const channel = createChannel(this.client, data, guild, { allowUnknownGuild });
         if (!channel) {
-          this.client.emit(Events5.Debug, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
+          this.client.emit(Events7.Debug, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
           return null;
         }
         if (cache && !allowUnknownGuild) this.cache.set(channel.id, channel);
@@ -139536,7 +139536,7 @@ var require_ShardClientUtil = __commonJS({
     var process3 = require("node:process");
     var { calculateShardId } = require_dist2();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var { makeError, makePlainError } = require_Util();
     var ShardClientUtil2 = class {
       static {
@@ -139549,32 +139549,32 @@ var require_ShardClientUtil = __commonJS({
         switch (mode) {
           case "process":
             process3.on("message", this._handleMessage.bind(this));
-            client.on(Events5.ShardReady, () => {
+            client.on(Events7.ShardReady, () => {
               process3.send({ _ready: true });
             });
-            client.on(Events5.ShardDisconnect, () => {
+            client.on(Events7.ShardDisconnect, () => {
               process3.send({ _disconnect: true });
             });
-            client.on(Events5.ShardReconnecting, () => {
+            client.on(Events7.ShardReconnecting, () => {
               process3.send({ _reconnecting: true });
             });
-            client.on(Events5.ShardResume, () => {
+            client.on(Events7.ShardResume, () => {
               process3.send({ _resume: true });
             });
             break;
           case "worker":
             this.parentPort = require("node:worker_threads").parentPort;
             this.parentPort.on("message", this._handleMessage.bind(this));
-            client.on(Events5.ShardReady, () => {
+            client.on(Events7.ShardReady, () => {
               this.parentPort.postMessage({ _ready: true });
             });
-            client.on(Events5.ShardDisconnect, () => {
+            client.on(Events7.ShardDisconnect, () => {
               this.parentPort.postMessage({ _disconnect: true });
             });
-            client.on(Events5.ShardReconnecting, () => {
+            client.on(Events7.ShardReconnecting, () => {
               this.parentPort.postMessage({ _reconnecting: true });
             });
-            client.on(Events5.ShardResume, () => {
+            client.on(Events7.ShardResume, () => {
               this.parentPort.postMessage({ _resume: true });
             });
             break;
@@ -139726,7 +139726,7 @@ var require_ShardClientUtil = __commonJS({
         this.send(message).catch((err) => {
           const error62 = new Error(`Error when sending ${type} response to master process: ${err.message}`);
           error62.stack = err.stack;
-          this.client.emit(Events5.Error, error62);
+          this.client.emit(Events7.Error, error62);
         });
       }
       /**
@@ -139740,7 +139740,7 @@ var require_ShardClientUtil = __commonJS({
           this._singleton = new this(client, mode);
         } else {
           client.emit(
-            Events5.Warn,
+            Events7.Warn,
             "Multiple clients created in child process/worker; only the first will handle sharding helpers."
           );
         }
@@ -140541,7 +140541,7 @@ var require_GuildChannelManager = __commonJS({
     "use strict";
     var process3 = require("node:process");
     var { Collection: Collection2 } = require_dist7();
-    var { ChannelType: ChannelType2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var GuildTextThreadManager = require_GuildTextThreadManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -140807,7 +140807,7 @@ var require_GuildChannelManager = __commonJS({
         if (options.lockPermissions) {
           if (parentId) {
             const newParent = this.cache.get(parentId);
-            if (newParent?.type === ChannelType2.GuildCategory) {
+            if (newParent?.type === ChannelType4.GuildCategory) {
               permission_overwrites = newParent.permissionOverwrites.cache.map(
                 (overwrite) => PermissionOverwrites.resolve(overwrite, this.guild)
               );
@@ -141013,7 +141013,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits3 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141155,7 +141155,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits3.CreateGuildExpressions | PermissionFlagsBits3.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits6.CreateGuildExpressions | PermissionFlagsBits6.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -141452,7 +141452,7 @@ var require_GuildMemberManager = __commonJS({
     var { GuildMember } = require_GuildMember();
     var { Role } = require_Role();
     var { resolveImage } = require_DataResolver();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var { GuildMemberFlagsBitField } = require_GuildMemberFlagsBitField();
     var Partials2 = require_Partials();
     var deprecatedEmittedForEditSoleNickname = false;
@@ -141649,9 +141649,9 @@ var require_GuildMemberManager = __commonJS({
           let i = 0;
           const cleanup = /* @__PURE__ */ __name(() => {
             clearTimeout2(timeout);
-            this.client.removeListener(Events5.Raw, rateLimitHandler);
+            this.client.removeListener(Events7.Raw, rateLimitHandler);
             this.client.decrementMaxListeners();
-            this.client.removeListener(Events5.GuildMembersChunk, handler);
+            this.client.removeListener(Events7.GuildMembersChunk, handler);
             this.client.decrementMaxListeners();
           }, "cleanup");
           const timeout = setTimeout2(() => {
@@ -141685,9 +141685,9 @@ var require_GuildMemberManager = __commonJS({
             }
           }, "rateLimitHandler");
           this.client.incrementMaxListeners();
-          this.client.on(Events5.Raw, rateLimitHandler);
+          this.client.on(Events7.Raw, rateLimitHandler);
           this.client.incrementMaxListeners();
-          this.client.on(Events5.GuildMembersChunk, handler);
+          this.client.on(Events7.GuildMembersChunk, handler);
           this.guild.shard.send({
             op: GatewayOpcodes2.RequestGuildMembers,
             d: requestData
@@ -143632,7 +143632,7 @@ var require_Guild = __commonJS({
     var { Collection: Collection2 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType2, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
+    var { ChannelType: ChannelType4, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
     var AnonymousGuild = require_AnonymousGuild();
     var GuildAuditLogs = require_GuildAuditLogs();
     var { GuildOnboarding } = require_GuildOnboarding();
@@ -144771,7 +144771,7 @@ var require_Guild = __commonJS({
        * @private
        */
       _sortedChannels(channel) {
-        const channelIsCategory = channel.type === ChannelType2.GuildCategory;
+        const channelIsCategory = channel.type === ChannelType4.GuildCategory;
         const types = getSortableGroupTypes(channel.type);
         return discordSort(
           this.channels.cache.filter(
@@ -144824,7 +144824,7 @@ var require_GuildManager = __commonJS({
     var OAuth2Guild = require_OAuth2Guild();
     var { Role } = require_Role();
     var { resolveImage } = require_DataResolver();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var PermissionsBitField2 = require_PermissionsBitField();
     var SystemChannelFlagsBitField = require_SystemChannelFlagsBitField();
     var { _transformAPIIncidentsData } = require_Transformers();
@@ -145013,9 +145013,9 @@ var require_GuildManager = __commonJS({
             }
           }, "handleGuild");
           this.client.incrementMaxListeners();
-          this.client.once(Events5.GuildCreate, handleGuild);
+          this.client.once(Events7.GuildCreate, handleGuild);
           const timeout = setTimeout2(() => {
-            this.client.removeListener(Events5.GuildCreate, handleGuild);
+            this.client.removeListener(Events7.GuildCreate, handleGuild);
             this.client.decrementMaxListeners();
             resolve2(this.client.guilds._add(data));
           }, 1e4).unref();
@@ -145099,18 +145099,18 @@ var require_GuildManager = __commonJS({
             remainingGuildIds.delete(guild.id);
             if (remainingGuildIds.size === 0) {
               clearTimeout2(timeout);
-              this.client.removeListener(Events5.SoundboardSounds, handler);
+              this.client.removeListener(Events7.SoundboardSounds, handler);
               this.client.decrementMaxListeners();
               resolve2(fetchedSoundboardSounds);
             }
           }, "handler");
           const timeout = setTimeout2(() => {
-            this.client.removeListener(Events5.SoundboardSounds, handler);
+            this.client.removeListener(Events7.SoundboardSounds, handler);
             this.client.decrementMaxListeners();
             reject(new DiscordjsError2(ErrorCodes2.GuildSoundboardSoundsTimeout));
           }, time3).unref();
           this.client.incrementMaxListeners();
-          this.client.on(Events5.SoundboardSounds, handler);
+          this.client.on(Events7.SoundboardSounds, handler);
         });
       }
       /**
@@ -145159,7 +145159,7 @@ var require_GuildManager = __commonJS({
 var require_UserManager = __commonJS({
   "node_modules/discord.js/src/managers/UserManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType4, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { GuildMember } = require_GuildMember();
@@ -145197,7 +145197,7 @@ var require_UserManager = __commonJS({
       dmChannel(userId) {
         const expectedRecipientIds = [userId, this.client.user.id];
         return this.client.channels.cache.find(
-          (channel) => channel.type === ChannelType2.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
+          (channel) => channel.type === ChannelType4.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
         ) ?? null;
       }
       /**
@@ -145580,7 +145580,7 @@ var require_Sweepers = __commonJS({
     "use strict";
     var { setInterval: setInterval2, clearInterval: clearInterval2 } = require("node:timers");
     var { ThreadChannelTypes, SweeperKeys } = require_Constants();
-    var Events5 = require_Events();
+    var Events7 = require_Events();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var Sweepers2 = class {
       static {
@@ -145618,7 +145618,7 @@ var require_Sweepers = __commonJS({
         const { guilds, items: guildCommands } = this._sweepGuildDirectProp("commands", filter, { emit: false });
         const globalCommands = this.client.application?.commands.cache.sweep(filter) ?? 0;
         this.client.emit(
-          Events5.CacheSweep,
+          Events7.CacheSweep,
           `Swept ${globalCommands} global application commands and ${guildCommands} guild commands in ${guilds} guilds.`
         );
         return guildCommands + globalCommands;
@@ -145658,7 +145658,7 @@ var require_Sweepers = __commonJS({
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "filter", "function");
         }
         const entitlements = this.client.application.entitlements.cache.sweep(filter);
-        this.client.emit(Events5.CacheSweep, `Swept ${entitlements} entitlements.`);
+        this.client.emit(Events7.CacheSweep, `Swept ${entitlements} entitlements.`);
         return entitlements;
       }
       /**
@@ -145703,7 +145703,7 @@ var require_Sweepers = __commonJS({
           channels++;
           messages += channel.messages.cache.sweep(filter);
         }
-        this.client.emit(Events5.CacheSweep, `Swept ${messages} messages in ${channels} text-based channels.`);
+        this.client.emit(Events7.CacheSweep, `Swept ${messages} messages in ${channels} text-based channels.`);
         return messages;
       }
       /**
@@ -145735,7 +145735,7 @@ var require_Sweepers = __commonJS({
           }
         }
         this.client.emit(
-          Events5.CacheSweep,
+          Events7.CacheSweep,
           `Swept ${reactions} reactions on ${messages} messages in ${channels} text-based channels.`
         );
         return reactions;
@@ -145773,7 +145773,7 @@ var require_Sweepers = __commonJS({
           threads++;
           members2 += channel.members.cache.sweep(filter);
         }
-        this.client.emit(Events5.CacheSweep, `Swept ${members2} thread members in ${threads} threads.`);
+        this.client.emit(Events7.CacheSweep, `Swept ${members2} thread members in ${threads} threads.`);
         return members2;
       }
       /**
@@ -145802,7 +145802,7 @@ var require_Sweepers = __commonJS({
             this.client.channels._remove(key);
           }
         }
-        this.client.emit(Events5.CacheSweep, `Swept ${threads} threads.`);
+        this.client.emit(Events7.CacheSweep, `Swept ${threads} threads.`);
         return threads;
       }
       /**
@@ -145815,7 +145815,7 @@ var require_Sweepers = __commonJS({
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "filter", "function");
         }
         const users = this.client.users.cache.sweep(filter);
-        this.client.emit(Events5.CacheSweep, `Swept ${users} users.`);
+        this.client.emit(Events7.CacheSweep, `Swept ${users} users.`);
         return users;
       }
       /**
@@ -145940,7 +145940,7 @@ var require_Sweepers = __commonJS({
           items += cache.sweep(filter);
         }
         if (emit) {
-          this.client.emit(Events5.CacheSweep, `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`);
+          this.client.emit(Events7.CacheSweep, `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`);
         }
         return { guilds, items };
       }
@@ -146477,7 +146477,7 @@ var require_Shard = __commonJS({
   "node_modules/discord.js/src/sharding/Shard.js"(exports2, module2) {
     "use strict";
     var EventEmitter9 = require("node:events");
-    var path2 = require("node:path");
+    var path3 = require("node:path");
     var process3 = require("node:process");
     var { setTimeout: setTimeout2, clearTimeout: clearTimeout2 } = require("node:timers");
     var { setTimeout: sleep } = require("node:timers/promises");
@@ -146532,14 +146532,14 @@ var require_Shard = __commonJS({
         this._exitListener = this._handleExit.bind(this, void 0, timeout);
         switch (this.manager.mode) {
           case "process":
-            this.process = childProcess.fork(path2.resolve(this.manager.file), this.args, {
+            this.process = childProcess.fork(path3.resolve(this.manager.file), this.args, {
               env: this.env,
               execArgv: this.execArgv,
               silent: this.silent
             }).on("message", this._handleMessage.bind(this)).on("exit", this._exitListener);
             break;
           case "worker":
-            this.worker = new Worker(path2.resolve(this.manager.file), {
+            this.worker = new Worker(path3.resolve(this.manager.file), {
               workerData: this.env,
               env: SHARE_ENV,
               execArgv: this.execArgv,
@@ -146800,8 +146800,8 @@ var require_ShardingManager = __commonJS({
   "node_modules/discord.js/src/sharding/ShardingManager.js"(exports2, module2) {
     "use strict";
     var EventEmitter9 = require("node:events");
-    var fs2 = require("node:fs");
-    var path2 = require("node:path");
+    var fs3 = require("node:fs");
+    var path3 = require("node:path");
     var process3 = require("node:process");
     var { setTimeout: sleep } = require("node:timers/promises");
     var { Collection: Collection2 } = require_dist7();
@@ -146849,8 +146849,8 @@ var require_ShardingManager = __commonJS({
         };
         this.file = file2;
         if (!file2) throw new DiscordjsError2(ErrorCodes2.ClientInvalidOption, "File", "specified.");
-        if (!path2.isAbsolute(file2)) this.file = path2.resolve(process3.cwd(), file2);
-        const stats = fs2.statSync(this.file);
+        if (!path3.isAbsolute(file2)) this.file = path3.resolve(process3.cwd(), file2);
+        const stats = fs3.statSync(this.file);
         if (!stats.isFile()) throw new DiscordjsError2(ErrorCodes2.ClientInvalidOption, "File", "a file");
         this.shardList = _options.shardList ?? "auto";
         if (this.shardList !== "auto") {
@@ -147290,7 +147290,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder2 = class extends BuildersEmbed {
+    var EmbedBuilder5 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147322,7 +147322,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder2;
+    module2.exports = EmbedBuilder5;
   }
 });
 
@@ -147331,7 +147331,7 @@ var require_AttachmentBuilder = __commonJS({
   "node_modules/discord.js/src/structures/AttachmentBuilder.js"(exports2, module2) {
     "use strict";
     var { basename, flatten } = require_Util();
-    var AttachmentBuilder = class _AttachmentBuilder {
+    var AttachmentBuilder4 = class _AttachmentBuilder {
       static {
         __name(this, "AttachmentBuilder");
       }
@@ -147445,7 +147445,7 @@ var require_AttachmentBuilder = __commonJS({
         });
       }
     };
-    module2.exports = AttachmentBuilder;
+    module2.exports = AttachmentBuilder4;
   }
 });
 
@@ -148101,10 +148101,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path2) {
-  if (!path2)
+function getElementAtPath(obj, path3) {
+  if (!path3)
     return obj;
-  return path2.reduce((acc, key) => acc?.[key], obj);
+  return path3.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -148363,11 +148363,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path2, issues) {
+function prefixIssues(path3, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path2);
+    iss.path.unshift(path3);
     return iss;
   });
 }
@@ -148997,16 +148997,16 @@ function flattenError(error62, mapper = (issue2) => issue2.message) {
 }
 function formatError(error62, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = /* @__PURE__ */ __name((error63, path2 = []) => {
+  const processError = /* @__PURE__ */ __name((error63, path3 = []) => {
     for (const issue2 of error63.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path2, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path3, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path3, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path3, ...issue2.path]);
       } else {
-        const fullpath = [...path2, ...issue2.path];
+        const fullpath = [...path3, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -149045,17 +149045,17 @@ function formatError(error62, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error62, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = /* @__PURE__ */ __name((error63, path2 = []) => {
+  const processError = /* @__PURE__ */ __name((error63, path3 = []) => {
     var _a3;
     for (const issue2 of error63.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path2, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path3, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path3, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path3, ...issue2.path]);
       } else {
-        const fullpath = [...path2, ...issue2.path];
+        const fullpath = [...path3, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -149094,8 +149094,8 @@ function treeifyError(error62, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path2 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path2) {
+  const path3 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path3) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -167664,13 +167664,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path2 = ref.slice(1).split("/").filter(Boolean);
-  if (path2.length === 0) {
+  const path3 = ref.slice(1).split("/").filter(Boolean);
+  if (path3.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path2[0] === defsKey) {
-    const key = path2[1] === void 0 ? void 0 : decodeJSONPointerSegment(path2[1]);
+  if (path3[0] === defsKey) {
+    const key = path3[1] === void 0 ? void 0 : decodeJSONPointerSegment(path3[1]);
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -170587,8 +170587,8 @@ function initializeNodes() {
 function findPath(from, constraints, goal = getNode(
   "opus"
   /* Opus */
-), path2 = [], depth = 5) {
-  if (from === goal && constraints(path2)) {
+), path3 = [], depth = 5) {
+  if (from === goal && constraints(path3)) {
     return { cost: 0 };
   } else if (depth === 0) {
     return { cost: Number.POSITIVE_INFINITY };
@@ -170596,7 +170596,7 @@ function findPath(from, constraints, goal = getNode(
   let currentBest;
   for (const edge of from.edges) {
     if (currentBest && edge.cost > currentBest.cost) continue;
-    const next = findPath(edge.to, constraints, goal, [...path2, edge], depth - 1);
+    const next = findPath(edge.to, constraints, goal, [...path3, edge], depth - 1);
     const cost = edge.cost + next.cost;
     if (!currentBest || cost < currentBest.cost) {
       currentBest = { cost, edge, next };
@@ -173483,7 +173483,7 @@ to ${stringifyState2(newState)}`);
         return packet;
       }
     };
-    VOLUME_CONSTRAINT = /* @__PURE__ */ __name2((path2) => path2.some(
+    VOLUME_CONSTRAINT = /* @__PURE__ */ __name2((path3) => path3.some(
       (edge) => edge.type === "volume transformer"
       /* InlineVolume */
     ), "VOLUME_CONSTRAINT");
@@ -174668,8 +174668,8 @@ var require_req = __commonJS({
       if (req.originalUrl) {
         _req.url = req.originalUrl;
       } else {
-        const path2 = req.path;
-        _req.url = typeof path2 === "string" ? path2 : req.url ? req.url.path || req.url : void 0;
+        const path3 = req.path;
+        _req.url = typeof path3 === "string" ? path3 : req.url ? req.url.path || req.url : void 0;
       }
       if (req.query) {
         _req.query = req.query;
@@ -174845,14 +174845,14 @@ var require_redact2 = __commonJS({
       return obj;
     }
     __name(deepClone, "deepClone");
-    function parsePath(path2) {
+    function parsePath(path3) {
       const parts = [];
       let current = "";
       let inBrackets = false;
       let inQuotes = false;
       let quoteChar = "";
-      for (let i = 0; i < path2.length; i++) {
-        const char = path2[i];
+      for (let i = 0; i < path3.length; i++) {
+        const char = path3[i];
         if (!inBrackets && char === ".") {
           if (current) {
             parts.push(current);
@@ -174988,10 +174988,10 @@ var require_redact2 = __commonJS({
     }
     __name(getValue, "getValue");
     function redactPaths(obj, paths, censor, remove = false) {
-      for (const path2 of paths) {
-        const parts = parsePath(path2);
+      for (const path3 of paths) {
+        const parts = parsePath(path3);
         if (parts.includes("*")) {
-          redactWildcardPath(obj, parts, censor, path2, remove);
+          redactWildcardPath(obj, parts, censor, path3, remove);
         } else {
           if (remove) {
             removeKey(obj, parts);
@@ -175078,8 +175078,8 @@ var require_redact2 = __commonJS({
           }
         } else {
           if (afterWildcard.includes("*")) {
-            const wrappedCensor = typeof censor === "function" ? (value, path2) => {
-              const fullPath = [...pathArray.slice(0, pathLength), ...path2];
+            const wrappedCensor = typeof censor === "function" ? (value, path3) => {
+              const fullPath = [...pathArray.slice(0, pathLength), ...path3];
               return censor(value, fullPath);
             } : censor;
             redactWildcardPath(current, afterWildcard, wrappedCensor, originalPath, remove);
@@ -175116,8 +175116,8 @@ var require_redact2 = __commonJS({
         return null;
       }
       const pathStructure = /* @__PURE__ */ new Map();
-      for (const path2 of pathsToClone) {
-        const parts = parsePath(path2);
+      for (const path3 of pathsToClone) {
+        const parts = parsePath(path3);
         let current = pathStructure;
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i];
@@ -175172,24 +175172,24 @@ var require_redact2 = __commonJS({
       return cloneSelectively(obj, pathStructure);
     }
     __name(selectiveClone, "selectiveClone");
-    function validatePath(path2) {
-      if (typeof path2 !== "string") {
+    function validatePath(path3) {
+      if (typeof path3 !== "string") {
         throw new Error("Paths must be (non-empty) strings");
       }
-      if (path2 === "") {
+      if (path3 === "") {
         throw new Error("Invalid redaction path ()");
       }
-      if (path2.includes("..")) {
-        throw new Error(`Invalid redaction path (${path2})`);
+      if (path3.includes("..")) {
+        throw new Error(`Invalid redaction path (${path3})`);
       }
-      if (path2.includes(",")) {
-        throw new Error(`Invalid redaction path (${path2})`);
+      if (path3.includes(",")) {
+        throw new Error(`Invalid redaction path (${path3})`);
       }
       let bracketCount = 0;
       let inQuotes = false;
       let quoteChar = "";
-      for (let i = 0; i < path2.length; i++) {
-        const char = path2[i];
+      for (let i = 0; i < path3.length; i++) {
+        const char = path3[i];
         if ((char === '"' || char === "'") && bracketCount > 0) {
           if (!inQuotes) {
             inQuotes = true;
@@ -175203,12 +175203,12 @@ var require_redact2 = __commonJS({
         } else if (char === "]" && !inQuotes) {
           bracketCount--;
           if (bracketCount < 0) {
-            throw new Error(`Invalid redaction path (${path2})`);
+            throw new Error(`Invalid redaction path (${path3})`);
           }
         }
       }
       if (bracketCount !== 0) {
-        throw new Error(`Invalid redaction path (${path2})`);
+        throw new Error(`Invalid redaction path (${path3})`);
       }
     }
     __name(validatePath, "validatePath");
@@ -175216,8 +175216,8 @@ var require_redact2 = __commonJS({
       if (!Array.isArray(paths)) {
         throw new TypeError("paths must be an array");
       }
-      for (const path2 of paths) {
-        validatePath(path2);
+      for (const path3 of paths) {
+        validatePath(path3);
       }
     }
     __name(validatePaths, "validatePaths");
@@ -175389,8 +175389,8 @@ var require_redaction = __commonJS({
         if (shape[k] === null) {
           o[k] = (value) => topCensor(value, [k]);
         } else {
-          const wrappedCensor = typeof censor === "function" ? (value, path2) => {
-            return censor(value, [k, ...path2]);
+          const wrappedCensor = typeof censor === "function" ? (value, path3) => {
+            return censor(value, [k, ...path3]);
           } : censor;
           o[k] = Redact({
             paths: shape[k],
@@ -175614,10 +175614,10 @@ var require_atomic_sleep = __commonJS({
 var require_sonic_boom = __commonJS({
   "node_modules/sonic-boom/index.js"(exports2, module2) {
     "use strict";
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var EventEmitter9 = require("events");
     var inherits = require("util").inherits;
-    var path2 = require("path");
+    var path3 = require("path");
     var sleep = require_atomic_sleep();
     var assert2 = require("assert");
     var BUSY_WRITE_TIMEOUT = 100;
@@ -175672,20 +175672,20 @@ var require_sonic_boom = __commonJS({
       const mode = sonic.mode;
       if (sonic.sync) {
         try {
-          if (sonic.mkdir) fs2.mkdirSync(path2.dirname(file2), { recursive: true });
-          const fd = fs2.openSync(file2, flags, mode);
+          if (sonic.mkdir) fs3.mkdirSync(path3.dirname(file2), { recursive: true });
+          const fd = fs3.openSync(file2, flags, mode);
           fileOpened(null, fd);
         } catch (err) {
           fileOpened(err);
           throw err;
         }
       } else if (sonic.mkdir) {
-        fs2.mkdir(path2.dirname(file2), { recursive: true }, (err) => {
+        fs3.mkdir(path3.dirname(file2), { recursive: true }, (err) => {
           if (err) return fileOpened(err);
-          fs2.open(file2, flags, mode, fileOpened);
+          fs3.open(file2, flags, mode, fileOpened);
         });
       } else {
-        fs2.open(file2, flags, mode, fileOpened);
+        fs3.open(file2, flags, mode, fileOpened);
       }
     }
     __name(openFile, "openFile");
@@ -175727,8 +175727,8 @@ var require_sonic_boom = __commonJS({
         this.flush = flushBuffer;
         this.flushSync = flushBufferSync;
         this._actualWrite = actualWriteBuffer;
-        fsWriteSync = /* @__PURE__ */ __name(() => fs2.writeSync(this.fd, this._writingBuf), "fsWriteSync");
-        fsWrite = /* @__PURE__ */ __name(() => fs2.write(this.fd, this._writingBuf, this.release), "fsWrite");
+        fsWriteSync = /* @__PURE__ */ __name(() => fs3.writeSync(this.fd, this._writingBuf), "fsWriteSync");
+        fsWrite = /* @__PURE__ */ __name(() => fs3.write(this.fd, this._writingBuf, this.release), "fsWrite");
       } else if (contentMode === void 0 || contentMode === kContentModeUtf8) {
         this._writingBuf = "";
         this.write = write;
@@ -175737,15 +175737,15 @@ var require_sonic_boom = __commonJS({
         this._actualWrite = actualWrite;
         fsWriteSync = /* @__PURE__ */ __name(() => {
           if (Buffer.isBuffer(this._writingBuf)) {
-            return fs2.writeSync(this.fd, this._writingBuf);
+            return fs3.writeSync(this.fd, this._writingBuf);
           }
-          return fs2.writeSync(this.fd, this._writingBuf, "utf8");
+          return fs3.writeSync(this.fd, this._writingBuf, "utf8");
         }, "fsWriteSync");
         fsWrite = /* @__PURE__ */ __name(() => {
           if (Buffer.isBuffer(this._writingBuf)) {
-            return fs2.write(this.fd, this._writingBuf, this.release);
+            return fs3.write(this.fd, this._writingBuf, this.release);
           }
-          return fs2.write(this.fd, this._writingBuf, "utf8", this.release);
+          return fs3.write(this.fd, this._writingBuf, "utf8", this.release);
         }, "fsWrite");
       } else {
         throw new Error(`SonicBoom supports "${kContentModeUtf8}" and "${kContentModeBuffer}", but passed ${contentMode}`);
@@ -175802,7 +175802,7 @@ var require_sonic_boom = __commonJS({
           }
         }
         if (this._fsync) {
-          fs2.fsyncSync(this.fd);
+          fs3.fsyncSync(this.fd);
         }
         const len = this._len;
         if (this._reopening) {
@@ -175922,7 +175922,7 @@ var require_sonic_boom = __commonJS({
       const onDrain = /* @__PURE__ */ __name(() => {
         if (!this._fsync) {
           try {
-            fs2.fsync(this.fd, (err) => {
+            fs3.fsync(this.fd, (err) => {
               this._flushPending = false;
               cb(err);
             });
@@ -176027,7 +176027,7 @@ var require_sonic_boom = __commonJS({
       const fd = this.fd;
       this.once("ready", () => {
         if (fd !== this.fd) {
-          fs2.close(fd, (err) => {
+          fs3.close(fd, (err) => {
             if (err) {
               return this.emit("error", err);
             }
@@ -176076,7 +176076,7 @@ var require_sonic_boom = __commonJS({
           buf = this._bufs[0];
         }
         try {
-          const n = Buffer.isBuffer(buf) ? fs2.writeSync(this.fd, buf) : fs2.writeSync(this.fd, buf, "utf8");
+          const n = Buffer.isBuffer(buf) ? fs3.writeSync(this.fd, buf) : fs3.writeSync(this.fd, buf, "utf8");
           const releasedBufObj = releaseWritingBuf(buf, this._len, n);
           buf = releasedBufObj.writingBuf;
           this._len = releasedBufObj.len;
@@ -176092,7 +176092,7 @@ var require_sonic_boom = __commonJS({
         }
       }
       try {
-        fs2.fsyncSync(this.fd);
+        fs3.fsyncSync(this.fd);
       } catch {
       }
     }
@@ -176114,7 +176114,7 @@ var require_sonic_boom = __commonJS({
           buf = mergeBuf(this._bufs[0], this._lens[0]);
         }
         try {
-          const n = fs2.writeSync(this.fd, buf);
+          const n = fs3.writeSync(this.fd, buf);
           buf = buf.subarray(n);
           this._len = Math.max(this._len - n, 0);
           if (buf.length <= 0) {
@@ -176143,13 +176143,13 @@ var require_sonic_boom = __commonJS({
       this._writingBuf = this._writingBuf.length ? this._writingBuf : this._bufs.shift() || "";
       if (this.sync) {
         try {
-          const written = Buffer.isBuffer(this._writingBuf) ? fs2.writeSync(this.fd, this._writingBuf) : fs2.writeSync(this.fd, this._writingBuf, "utf8");
+          const written = Buffer.isBuffer(this._writingBuf) ? fs3.writeSync(this.fd, this._writingBuf) : fs3.writeSync(this.fd, this._writingBuf, "utf8");
           release(null, written);
         } catch (err) {
           release(err);
         }
       } else {
-        fs2.write(this.fd, this._writingBuf, release);
+        fs3.write(this.fd, this._writingBuf, release);
       }
     }
     __name(actualWrite, "actualWrite");
@@ -176159,7 +176159,7 @@ var require_sonic_boom = __commonJS({
       this._writingBuf = this._writingBuf.length ? this._writingBuf : mergeBuf(this._bufs.shift(), this._lens.shift());
       if (this.sync) {
         try {
-          const written = fs2.writeSync(this.fd, this._writingBuf);
+          const written = fs3.writeSync(this.fd, this._writingBuf);
           release(null, written);
         } catch (err) {
           release(err);
@@ -176168,7 +176168,7 @@ var require_sonic_boom = __commonJS({
         if (kCopyBuffer) {
           this._writingBuf = Buffer.from(this._writingBuf);
         }
-        fs2.write(this.fd, this._writingBuf, release);
+        fs3.write(this.fd, this._writingBuf, release);
       }
     }
     __name(actualWriteBuffer, "actualWriteBuffer");
@@ -176185,12 +176185,12 @@ var require_sonic_boom = __commonJS({
       sonic._lens = [];
       assert2(typeof sonic.fd === "number", `sonic.fd must be a number, got ${typeof sonic.fd}`);
       try {
-        fs2.fsync(sonic.fd, closeWrapped);
+        fs3.fsync(sonic.fd, closeWrapped);
       } catch {
       }
       function closeWrapped() {
         if (sonic.fd !== 1 && sonic.fd !== 2) {
-          fs2.close(sonic.fd, done);
+          fs3.close(sonic.fd, done);
         } else {
           done();
         }
@@ -177137,15 +177137,15 @@ var require_transport = __commonJS({
       if (!unquoted) {
         return false;
       }
-      let path2 = unquoted;
-      if (path2.startsWith("file://")) {
+      let path3 = unquoted;
+      if (path3.startsWith("file://")) {
         try {
-          path2 = fileURLToPath(path2);
+          path3 = fileURLToPath(path3);
         } catch {
           return false;
         }
       }
-      return isAbsolute(path2) && !existsSync(path2);
+      return isAbsolute(path3) && !existsSync(path3);
     }
     __name(shouldDropPreload, "shouldDropPreload");
     function stripQuotes(value) {
@@ -177222,7 +177222,7 @@ var require_transport = __commonJS({
     }
     __name(flush, "flush");
     function transport(fullOptions) {
-      const { pipeline: pipeline2, targets, levels, dedupe, worker = {}, caller = getCallers(), sync = false } = fullOptions;
+      const { pipeline: pipeline3, targets, levels, dedupe, worker = {}, caller = getCallers(), sync = false } = fullOptions;
       const options = {
         ...fullOptions.options
       };
@@ -177254,9 +177254,9 @@ var require_transport = __commonJS({
         const targetsHaveLevel = options.targets.some((t) => t.level != null);
         const pipelinesHaveLevel = options.pipelines.some((p) => p.some((t) => t.level != null));
         usesMultistream = options.targets.length + options.pipelines.length > 1 || targetsHaveLevel || pipelinesHaveLevel;
-      } else if (pipeline2) {
+      } else if (pipeline3) {
         target = bundlerOverrides["pino-worker"] || join(__dirname, "worker.js");
-        options.pipelines = [pipeline2.map((dest) => {
+        options.pipelines = [pipeline3.map((dest) => {
           return {
             ...dest,
             target: fixTarget(dest.target)
@@ -177270,7 +177270,7 @@ var require_transport = __commonJS({
         options.dedupe = dedupe;
       }
       options.pinoWillSendConfig = true;
-      const name = targets || pipeline2 ? "pino.transport" : target;
+      const name = targets || pipeline3 ? "pino.transport" : target;
       const stream = buildStream(fixTarget(target), options, worker, sync, name);
       if (usesMultistream) {
         stream[transportUsesMultistreamSym] = true;
@@ -177337,7 +177337,7 @@ var require_tools = __commonJS({
     var transport = require_transport();
     var [nodeMajor] = process.versions.node.split(".").map((v) => Number(v));
     var asJsonChan = diagChan.tracingChannel("pino_asJson");
-    var asString = nodeMajor >= 25 ? (str) => JSON.stringify(str) : _asString;
+    var asString2 = nodeMajor >= 25 ? (str) => JSON.stringify(str) : _asString;
     function noop2() {
     }
     __name(noop2, "noop");
@@ -177451,13 +177451,13 @@ var require_tools = __commonJS({
               if (stringifier) value = stringifier(value);
               break;
             case "string":
-              value = (stringifier || asString)(value);
+              value = (stringifier || asString2)(value);
               break;
             default:
               value = (stringifier || stringify2)(value, stringifySafe);
           }
           if (value === void 0) continue;
-          const strKey = asString(key);
+          const strKey = asString2(key);
           propStr += "," + strKey + ":" + value;
         }
       }
@@ -177478,7 +177478,7 @@ var require_tools = __commonJS({
             msgStr = ',"' + messageKey + '":' + value;
             break;
           case "string":
-            value = (stringifier || asString)(value);
+            value = (stringifier || asString2)(value);
             msgStr = ',"' + messageKey + '":' + value;
             break;
           default:
@@ -177510,7 +177510,7 @@ var require_tools = __commonJS({
           value = serializers[key] ? serializers[key](value) : value;
           value = (stringifiers[key] || wildcardStringifier || stringify2)(value, stringifySafe);
           if (value === void 0) continue;
-          data += "," + asString(key) + ":" + value;
+          data += "," + asString2(key) + ":" + value;
         }
       }
       return data;
@@ -179155,6 +179155,17 @@ var import_mongoose3 = __toESM(require_mongoose2());
 
 // src/db/models/Guild.ts
 var import_mongoose = __toESM(require_mongoose2());
+var liveLeaderboardSchema = new import_mongoose.Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    channelId: { type: String, default: "" },
+    messageId: { type: String, default: "" },
+    intervalMinutes: { type: Number, default: 10 },
+    rows: { type: Number, default: 25 },
+    title: { type: String, default: "" }
+  },
+  { _id: false }
+);
 var guildSchema = new import_mongoose.Schema(
   {
     guildId: { type: String, required: true, unique: true, index: true },
@@ -179163,9 +179174,15 @@ var guildSchema = new import_mongoose.Schema(
     xpCooldown: { type: Number, default: 60 },
     xpMin: { type: Number, default: 15 },
     xpMax: { type: Number, default: 25 },
+    xpVoiceMin: { type: Number, default: 5 },
+    xpVoiceMax: { type: Number, default: 8 },
+    xpIgnoreBots: { type: Boolean, default: true },
+    xpChannel: { type: String, default: "" },
     levelUpChannel: { type: String },
     levelUpMessage: { type: String },
     disableXpChannels: { type: [String], default: [] },
+    levelRoles: { type: import_mongoose.Schema.Types.Mixed, default: {} },
+    liveLeaderboard: { type: liveLeaderboardSchema, default: /* @__PURE__ */ __name(() => ({}), "default") },
     sukuna: { type: import_mongoose.Schema.Types.Mixed, default: {} }
   },
   { timestamps: true }
@@ -179176,7 +179193,7 @@ async function readGuildConfig(guildId) {
 }
 __name(readGuildConfig, "readGuildConfig");
 async function updateGuildConfig(guildId, updates) {
-  return Guild.findOneAndUpdate({ guildId }, updates, { upsert: true, new: true }).lean();
+  return Guild.findOneAndUpdate({ guildId }, updates, { upsert: true, new: true, setDefaultsOnInsert: true }).lean();
 }
 __name(updateGuildConfig, "updateGuildConfig");
 
@@ -179191,11 +179208,15 @@ var userSchema = new import_mongoose2.Schema(
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 0 },
     totalXp: { type: Number, default: 0 },
+    lastMessageAt: { type: Date },
+    voiceMinutes: { type: Number, default: 0 },
     lastDaily: { type: Date },
     lastWork: { type: Date }
   },
   { timestamps: true }
 );
+userSchema.index({ totalXp: -1 });
+userSchema.index({ xp: -1 });
 var User = (0, import_mongoose2.model)("User", userSchema);
 async function getUser(userId) {
   let user = await User.findOne({ userId });
@@ -179206,11 +179227,152 @@ async function getUser(userId) {
 }
 __name(getUser, "getUser");
 
-// src/db/utils.ts
+// src/utils/level.ts
 function xpForLevel(level) {
-  return Math.floor(5 * Math.pow(level, 2) + 50 * level + 100);
+  return Math.floor(5 * level * level + 50 * level + 100);
 }
 __name(xpForLevel, "xpForLevel");
+function levelFromXp(totalXp) {
+  const total = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
+  let level = 0;
+  let remaining = total;
+  let iterations = 0;
+  const MAX_ITERATIONS = 1e5;
+  while (remaining >= xpForLevel(level)) {
+    remaining -= xpForLevel(level);
+    level++;
+    iterations++;
+    if (iterations > MAX_ITERATIONS) {
+      console.error("levelFromXp: Max iterations exceeded, breaking loop");
+      break;
+    }
+  }
+  return {
+    level,
+    xpInLevel: remaining,
+    xpForNext: xpForLevel(level),
+    totalXp: total
+  };
+}
+__name(levelFromXp, "levelFromXp");
+function progressPercent(info) {
+  if (info.xpForNext <= 0) return 100;
+  return Math.min(100, Math.floor(info.xpInLevel / info.xpForNext * 100));
+}
+__name(progressPercent, "progressPercent");
+function progressBar(percent, size = 20) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  const filled = Math.round(clamped / 100 * size);
+  return "\u25B0".repeat(filled) + "\u25B1".repeat(Math.max(0, size - filled));
+}
+__name(progressBar, "progressBar");
+function randomXp(min, max, fixed) {
+  const lo = Number.isFinite(min) && min >= 0 ? Math.floor(min) : fixed !== void 0 && Number.isFinite(fixed) ? Math.floor(fixed) : 0;
+  const hi = Number.isFinite(max) && max >= 0 ? Math.floor(max) : lo;
+  if (hi <= lo) return lo;
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
+__name(randomXp, "randomXp");
+
+// src/db/utils.ts
+function effectiveXp(doc) {
+  const xp = Number.isFinite(doc.xp) ? Math.max(0, Math.floor(doc.xp)) : 0;
+  const totalXp = Number.isFinite(doc.totalXp) ? Math.max(0, Math.floor(doc.totalXp)) : 0;
+  return Math.max(xp, totalXp);
+}
+__name(effectiveXp, "effectiveXp");
+var EFFECTIVE_XP_EXPRESSION = {
+  $max: [{ $ifNull: ["$totalXp", 0] }, { $ifNull: ["$xp", 0] }]
+};
+async function getUserXp(userId) {
+  const doc = await User.findOne({ userId }).lean();
+  if (!doc) return null;
+  const xp = effectiveXp(doc);
+  return {
+    userId: doc.userId,
+    xp,
+    level: levelFromXp(xp).level,
+    lastMessageAt: doc.lastMessageAt ?? void 0
+  };
+}
+__name(getUserXp, "getUserXp");
+async function addXp(userId, amount, source = "message", voiceMinutes = 0) {
+  const user = await getUser(userId);
+  const baseXp = effectiveXp(user);
+  const oldLevel = levelFromXp(baseXp).level;
+  const granted = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  const totalXp = baseXp + granted;
+  user.xp = totalXp;
+  user.totalXp = totalXp;
+  user.level = levelFromXp(totalXp).level;
+  if (source === "message") user.lastMessageAt = /* @__PURE__ */ new Date();
+  const addedMinutes = Number.isFinite(voiceMinutes) ? Math.max(0, Math.floor(voiceMinutes)) : 0;
+  if (addedMinutes > 0) {
+    user.voiceMinutes = (Number.isFinite(user.voiceMinutes) ? user.voiceMinutes : 0) + addedMinutes;
+  }
+  await user.save();
+  const info = levelFromXp(totalXp);
+  return {
+    leveledUp: info.level > oldLevel,
+    newLevel: info.level,
+    oldLevel,
+    totalXp,
+    info
+  };
+}
+__name(addXp, "addXp");
+async function setUserXp(userId, totalXp) {
+  const user = await getUser(userId);
+  const oldLevel = levelFromXp(effectiveXp(user)).level;
+  const next = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
+  user.xp = next;
+  user.totalXp = next;
+  user.level = levelFromXp(next).level;
+  await user.save();
+  const info = levelFromXp(next);
+  return {
+    leveledUp: info.level > oldLevel,
+    newLevel: info.level,
+    oldLevel,
+    totalXp: next,
+    info
+  };
+}
+__name(setUserXp, "setUserXp");
+async function getLeaderboard(limit = 10) {
+  const rows = await User.aggregate([
+    { $addFields: { effectiveXp: EFFECTIVE_XP_EXPRESSION } },
+    { $match: { effectiveXp: { $gt: 0 } } },
+    { $sort: { effectiveXp: -1, userId: 1 } },
+    { $limit: Math.max(1, limit) }
+  ]);
+  return rows.map((row) => {
+    const xp = effectiveXp({ xp: row.xp, totalXp: row.effectiveXp });
+    return {
+      user_id: row.userId,
+      xp,
+      level: levelFromXp(xp).level
+    };
+  });
+}
+__name(getLeaderboard, "getLeaderboard");
+async function getRankPosition(userId) {
+  const doc = await User.findOne({ userId }).lean();
+  if (!doc) return 0;
+  const xp = effectiveXp(doc);
+  if (xp <= 0) return 0;
+  const higher = await User.countDocuments({
+    $expr: { $gt: [EFFECTIVE_XP_EXPRESSION, xp] }
+  });
+  return higher + 1;
+}
+__name(getRankPosition, "getRankPosition");
+async function countRanked() {
+  return User.countDocuments({
+    $expr: { $gt: [EFFECTIVE_XP_EXPRESSION, 0] }
+  });
+}
+__name(countRanked, "countRanked");
 
 // src/db/index.ts
 var _conn = null;
@@ -179674,31 +179836,1608 @@ var diceCommand = {
 };
 
 // src/commands/leveling/rank.ts
+var import_discord16 = __toESM(require_src());
+
+// src/utils/rankEmbeds.ts
 var import_discord15 = __toESM(require_src());
+function buildRankCard(opts) {
+  const { user, info } = opts;
+  const percent = progressPercent(info);
+  const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
+  const embed = new import_discord15.EmbedBuilder().setColor(5793266).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(
+    [
+      `**Level ${info.level}**`,
+      `${progressBar(percent)}  \`${percent}%\``,
+      "",
+      `\`${info.xpInLevel.toLocaleString()}\` / \`${info.xpForNext.toLocaleString()}\` XP`
+    ].join("\n")
+  ).addFields(
+    { name: "XP to next level", value: `${remaining.toLocaleString()} XP`, inline: true },
+    { name: "Total XP", value: info.totalXp.toLocaleString(), inline: true }
+  ).setFooter({ text: opts.guildName }).setTimestamp();
+  if (opts.position && opts.position > 0) {
+    embed.addFields({ name: "Rank", value: `#${opts.position}`, inline: true });
+  }
+  return embed;
+}
+__name(buildRankCard, "buildRankCard");
+function buildLeaderboardEmbed(entries, guildName) {
+  const description = entries.map((entry, i) => {
+    const medal = i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : `**${i + 1}.**`;
+    return `${medal} <@${entry.userId}> \u2014 level **${entry.level}** (\`${entry.totalXp.toLocaleString()}\` XP)`;
+  }).join("\n");
+  return new import_discord15.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
+}
+__name(buildLeaderboardEmbed, "buildLeaderboardEmbed");
+
+// src/utils/fonts.ts
+var import_node_fs = __toESM(require("node:fs"));
+var import_node_path = __toESM(require("node:path"));
+var import_node_stream4 = require("node:stream");
+var import_promises = require("node:stream/promises");
+
+// src/utils/canvas-runtime.ts
+var loading = null;
+function loadCanvas() {
+  if (!loading) {
+    loading = import("@napi-rs/canvas").then((mod3) => {
+      const candidate = mod3;
+      if (typeof candidate.createCanvas === "function") return mod3;
+      const fallback = candidate.default;
+      if (fallback && typeof fallback.createCanvas === "function") return fallback;
+      throw new Error("module did not expose createCanvas");
+    }).catch((error62) => {
+      const message = error62 instanceof Error ? error62.message : String(error62);
+      console.warn(
+        `[Canvas] @napi-rs/canvas is unavailable (${message}); rank cards will use embeds.`
+      );
+      return null;
+    });
+  }
+  return loading;
+}
+__name(loadCanvas, "loadCanvas");
+
+// src/utils/fonts.ts
+function firstExisting(candidates) {
+  for (const candidate of candidates) {
+    try {
+      if (import_node_fs.default.existsSync(candidate)) return candidate;
+    } catch {
+    }
+  }
+  return null;
+}
+__name(firstExisting, "firstExisting");
+function resolveDir(name) {
+  return firstExisting([
+    import_node_path.default.join(process.cwd(), name),
+    import_node_path.default.join(__dirname, "..", "..", name),
+    import_node_path.default.join(__dirname, name)
+  ]) ?? import_node_path.default.join(process.cwd(), name);
+}
+__name(resolveDir, "resolveDir");
+var FONTS_DIR = resolveDir("assets/fonts");
+var DATA_FONTS_DIR = resolveDir("data/fonts");
+var ready = false;
+var initPromise = null;
+var registeredAliases = /* @__PURE__ */ new Set();
+var emojiDownloadStarted = false;
+var BUNDLED = [
+  ["NotoSans-Latin.ttf", "AtlasSans"],
+  ["NotoSans-LatinExt.ttf", "AtlasSansExt"],
+  ["NotoSans-Greek.ttf", "AtlasGreek"],
+  ["NotoSans-Cyrillic.ttf", "AtlasCyrillic"],
+  ["NotoSans-Vietnamese.ttf", "AtlasVietnamese"],
+  ["NotoSansArabic-Regular.ttf", "AtlasArabic"],
+  ["NotoSansHebrew-Regular.ttf", "AtlasHebrew"],
+  ["NotoSansThai-Regular.ttf", "AtlasThai"],
+  ["NotoSansDevanagari-Regular.ttf", "AtlasDevanagari"],
+  ["NotoSansBengali-Regular.ttf", "AtlasBengali"],
+  ["NotoSansTamil-Regular.ttf", "AtlasTamil"],
+  ["NotoSansJP-Regular.ttf", "AtlasJP"],
+  ["NotoSansKR-Regular.ttf", "AtlasKR"],
+  ["NotoSansSC-Regular.ttf", "AtlasSC"],
+  ["NotoSansMath-Regular.ttf", "AtlasMath"],
+  ["NotoSansEgyptianHieroglyphs-Regular.ttf", "AtlasHieroglyphs"]
+  // NOTE: the 25MB colour-emoji TTF is NOT committed — it is downloaded once
+  // to data/fonts on hosts that have no system emoji font (see below).
+];
+var FONT_DOWNLOAD_URLS = {
+  "NotoSansJP-Regular.ttf": "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf",
+  "NotoSansKR-Regular.ttf": "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf",
+  "NotoSansSC-Regular.ttf": "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+  "NotoSansMath-Regular.ttf": "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansmath/NotoSansMath-Regular.ttf",
+  "NotoSansEgyptianHieroglyphs-Regular.ttf": "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansegyptianhieroglyphs/NotoSansEgyptianHieroglyphs-Regular.ttf"
+};
+var SYSTEM = [
+  ["/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", "Arial"],
+  ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "Arial"],
+  ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVu Sans"],
+  ["/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", "Noto Color Emoji"],
+  ["C:/Windows/Fonts/arial.ttf", "Arial"],
+  ["C:/Windows/Fonts/tahoma.ttf", "Tahoma"],
+  ["C:/Windows/Fonts/yugothic.ttf", "Yu Gothic"],
+  ["C:/Windows/Fonts/malgun.ttf", "Malgun Gothic"],
+  ["C:/Windows/Fonts/msyh.ttf", "Microsoft YaHei"],
+  ["C:/Windows/Fonts/seguiemj.ttf", "Segoe UI Emoji"],
+  ["C:/Windows/Fonts/seguisym.ttf", "Segoe UI Symbol"]
+];
+var FONT_STACK = [
+  "Arial",
+  "AtlasSans",
+  "AtlasSansExt",
+  "AtlasGreek",
+  "AtlasCyrillic",
+  "AtlasVietnamese",
+  "AtlasArabic",
+  "AtlasHebrew",
+  "AtlasThai",
+  "AtlasDevanagari",
+  "AtlasBengali",
+  "AtlasTamil",
+  "AtlasJP",
+  "AtlasKR",
+  "AtlasSC",
+  "AtlasMath",
+  "AtlasHieroglyphs",
+  "Tahoma",
+  "Yu Gothic",
+  "Malgun Gothic",
+  "Microsoft YaHei",
+  "DejaVu Sans",
+  "Segoe UI Emoji",
+  "AtlasEmoji",
+  "Noto Color Emoji",
+  "Segoe UI Symbol"
+].map((font) => /\s/.test(font) ? `"${font}"` : font).join(", ");
+async function ensureFonts() {
+  if (!initPromise) initPromise = registerFonts();
+  await initPromise;
+  return ready ? loadCanvas() : null;
+}
+__name(ensureFonts, "ensureFonts");
+async function registerFonts() {
+  const canvas = await loadCanvas();
+  if (!canvas) return;
+  const { GlobalFonts } = canvas;
+  const missing = [];
+  const downloading = /* @__PURE__ */ new Set();
+  for (const [file2, alias] of [...BUNDLED, ...SYSTEM]) {
+    const isSystem = file2.startsWith("/") || /^[A-Za-z]:/.test(file2);
+    const candidates = isSystem ? [file2] : [import_node_path.default.join(FONTS_DIR, file2), import_node_path.default.join(DATA_FONTS_DIR, file2)];
+    try {
+      const full = firstExisting(candidates);
+      if (full) {
+        GlobalFonts.registerFromPath(full, alias);
+        registeredAliases.add(alias);
+        continue;
+      }
+      if (isSystem) continue;
+      void downloadFont(canvas, file2, alias, downloading);
+      missing.push(file2);
+    } catch (error62) {
+      console.error(`[Fonts] Failed to register ${alias} from ${file2}:`, error62);
+    }
+  }
+  if (missing.length) {
+    console.info(
+      `[Fonts] Queued download for missing fonts: ${missing.join(", ")} \u2014 they land in data/fonts on first start.`
+    );
+  }
+  try {
+    const bundledEmoji = import_node_path.default.join(FONTS_DIR, EMOJI_FILE);
+    if (!registeredAliases.has("AtlasEmoji") && import_node_fs.default.existsSync(bundledEmoji)) {
+      GlobalFonts.registerFromPath(bundledEmoji, "AtlasEmoji");
+      registeredAliases.add("AtlasEmoji");
+    }
+  } catch (error62) {
+    console.error("[Fonts] Failed to register bundled emoji font:", error62);
+  }
+  const hasEmoji = ["AtlasEmoji", "Segoe UI Emoji", "Noto Color Emoji"].some(
+    (alias) => registeredAliases.has(alias)
+  );
+  if (!hasEmoji) void ensureEmojiFont(canvas);
+  ready = true;
+}
+__name(registerFonts, "registerFonts");
+var EMOJI_FILE = "NotoColorEmoji-Regular.ttf";
+var EMOJI_URLS = [
+  "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf",
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/notocoloremoji/NotoColorEmoji-Regular.ttf"
+];
+var EMOJI_MIN_BYTES = 2e7;
+async function ensureEmojiFont(canvas) {
+  if (emojiDownloadStarted) return;
+  emojiDownloadStarted = true;
+  const dest = import_node_path.default.join(DATA_FONTS_DIR, EMOJI_FILE);
+  try {
+    if (import_node_fs.default.existsSync(dest)) {
+      if (import_node_fs.default.statSync(dest).size >= EMOJI_MIN_BYTES) {
+        canvas.GlobalFonts.registerFromPath(dest, "AtlasEmoji");
+        registeredAliases.add("AtlasEmoji");
+        console.log("[Fonts] Color emoji loaded from data/fonts.");
+        return;
+      }
+      import_node_fs.default.rmSync(dest, { force: true });
+    }
+  } catch (error62) {
+    console.error("[Fonts] Could not reuse cached emoji font:", error62);
+    return;
+  }
+  for (const url2 of EMOJI_URLS) {
+    try {
+      console.log(`[Fonts] Downloading Noto Color Emoji (~25MB) via ${new URL(url2).host}...`);
+      import_node_fs.default.mkdirSync(DATA_FONTS_DIR, { recursive: true });
+      const res = await fetch(url2);
+      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      const tmp = `${dest}.part`;
+      await (0, import_promises.pipeline)(import_node_stream4.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
+      if (import_node_fs.default.statSync(tmp).size < EMOJI_MIN_BYTES) throw new Error("download incomplete");
+      import_node_fs.default.renameSync(tmp, dest);
+      canvas.GlobalFonts.registerFromPath(dest, "AtlasEmoji");
+      registeredAliases.add("AtlasEmoji");
+      console.log("[Fonts] Color emoji ready.");
+      return;
+    } catch (error62) {
+      console.error(
+        "[Fonts] Emoji download failed via " + url2 + ":",
+        error62?.message || error62
+      );
+    }
+  }
+  console.warn(
+    "[Fonts] No color emoji available \u2014 emoji may render as boxes until the download succeeds."
+  );
+}
+__name(ensureEmojiFont, "ensureEmojiFont");
+async function downloadFont(canvas, file2, alias, downloading) {
+  if (downloading.has(file2)) return;
+  const url2 = FONT_DOWNLOAD_URLS[file2];
+  if (!url2) {
+    console.warn(`[Fonts] No download URL for ${file2} \u2014 glyph coverage may be incomplete.`);
+    return;
+  }
+  downloading.add(file2);
+  const dest = import_node_path.default.join(DATA_FONTS_DIR, file2);
+  try {
+    import_node_fs.default.mkdirSync(DATA_FONTS_DIR, { recursive: true });
+    console.log(`[Fonts] Downloading ${file2} via ${new URL(url2).host}...`);
+    const res = await fetch(url2);
+    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+    const tmp = `${dest}.part`;
+    await (0, import_promises.pipeline)(import_node_stream4.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
+    import_node_fs.default.renameSync(tmp, dest);
+    canvas.GlobalFonts.registerFromPath(dest, alias);
+    registeredAliases.add(alias);
+    console.log(`[Fonts] ${file2} ready (downloaded to data/fonts).`);
+  } catch (error62) {
+    console.error(`[Fonts] Failed to download ${file2}:`, error62?.message || error62);
+  } finally {
+    downloading.delete(file2);
+  }
+}
+__name(downloadFont, "downloadFont");
+function ellipsize(measure, text, maxWidth) {
+  if (measure(text) <= maxWidth) return text;
+  const chars = Array.from(text);
+  let end = chars.length;
+  while (end > 1 && measure(`${chars.slice(0, end).join("")}\u2026`) > maxWidth) end--;
+  return `${chars.slice(0, end).join("")}\u2026`;
+}
+__name(ellipsize, "ellipsize");
+
+// src/utils/rankcard.ts
+async function canvasOrThrow() {
+  const canvas = await ensureFonts();
+  if (!canvas) throw new Error("@napi-rs/canvas is not available");
+  return canvas;
+}
+__name(canvasOrThrow, "canvasOrThrow");
+var RankCardCanvas = class {
+  static {
+    __name(this, "RankCardCanvas");
+  }
+  width = 1e3;
+  height = 300;
+  async generate(data) {
+    const { createCanvas, loadImage } = await canvasOrThrow();
+    const canvas = createCanvas(this.width, this.height);
+    const ctx = canvas.getContext("2d");
+    this.drawBackground(ctx);
+    await this.drawAvatar(ctx, loadImage, data.avatarUrl);
+    const textX = 310;
+    const rightX = 960;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `bold 44px ${FONT_STACK}`;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(this.fitText(ctx, data.username, 440), textX, 112);
+    const secondary = data.statusText || `Total XP: ${(data.totalXp ?? 0).toLocaleString()}`;
+    ctx.font = `24px ${FONT_STACK}`;
+    ctx.fillStyle = "#b9bbbe";
+    ctx.fillText(this.fitText(ctx, secondary, 440), textX, 152);
+    ctx.textAlign = "right";
+    ctx.font = `bold 40px ${FONT_STACK}`;
+    ctx.fillStyle = "#f0b232";
+    const rankLabel = data.rank ? `Rank #${data.rank}${data.totalRanked ? ` / ${data.totalRanked}` : ""}` : "Unranked";
+    ctx.fillText(rankLabel, rightX, 108);
+    ctx.font = `bold 34px ${FONT_STACK}`;
+    ctx.fillStyle = "#00b0f4";
+    ctx.fillText(`Level ${data.level}`, rightX, 152);
+    const progress = data.xpNeeded > 0 ? Math.min(1, Math.max(0, data.xpIntoLevel / data.xpNeeded)) : 0;
+    ctx.font = `24px ${FONT_STACK}`;
+    ctx.fillStyle = "#b9bbbe";
+    ctx.textAlign = "left";
+    ctx.fillText(
+      `${data.xpIntoLevel.toLocaleString()} / ${data.xpNeeded.toLocaleString()} XP`,
+      textX,
+      212
+    );
+    ctx.textAlign = "right";
+    ctx.fillText(`${Math.round(progress * 100)}%`, rightX, 212);
+    this.drawProgressBar(ctx, textX, 228, rightX - textX, 28, progress);
+    if (data.guildName) {
+      ctx.textAlign = "left";
+      ctx.font = `20px ${FONT_STACK}`;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.fillText(this.fitText(ctx, data.guildName, 650), textX, 284);
+    }
+    this.roundedRect(ctx, 2, 2, this.width - 4, this.height - 4, 24);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.10)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    return canvas.toBuffer("image/png");
+  }
+  drawBackground(ctx) {
+    this.roundedRect(ctx, 0, 0, this.width, this.height, 24);
+    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
+    gradient.addColorStop(0, "#1e1f3a");
+    gradient.addColorStop(0.55, "#2b2d63");
+    gradient.addColorStop(1, "#171831");
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    const glow = ctx.createRadialGradient(this.width - 60, 40, 10, this.width - 60, 40, 420);
+    glow.addColorStop(0, "rgba(160, 51, 255, 0.35)");
+    glow.addColorStop(1, "rgba(160, 51, 255, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, this.width, this.height);
+  }
+  async drawAvatar(ctx, loadImage, avatarUrl) {
+    const x = 170;
+    const y = 150;
+    const radius = 100;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    try {
+      if (avatarUrl) {
+        const avatar = await loadImage(avatarUrl);
+        const size = Math.max(avatar.width, avatar.height);
+        ctx.drawImage(avatar, x - size / 2, y - size / 2, size, size);
+      } else {
+        throw new Error("no avatar");
+      }
+    } catch {
+      const fallback = ctx.createLinearGradient(x - radius, y - radius, x + radius, y + radius);
+      fallback.addColorStop(0, "#5865f2");
+      fallback.addColorStop(1, "#a033ff");
+      ctx.fillStyle = fallback;
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 6;
+    ctx.stroke();
+  }
+  drawProgressBar(ctx, x, y, width, height, progress) {
+    this.roundedRect(ctx, x, y, width, height, height / 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.14)";
+    ctx.fill();
+    if (progress <= 0) return;
+    const fillWidth = Math.max(height, width * progress);
+    this.roundedRect(ctx, x, y, fillWidth, height, height / 2);
+    const gradient = ctx.createLinearGradient(x, y, x + width, y);
+    gradient.addColorStop(0, "#00b0f4");
+    gradient.addColorStop(1, "#a033ff");
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+  roundedRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+  fitText(ctx, text, maxWidth) {
+    return ellipsize((value) => ctx.measureText(value).width, text, maxWidth);
+  }
+};
+var LeaderboardCanvas = class {
+  static {
+    __name(this, "LeaderboardCanvas");
+  }
+  width = 1e3;
+  rowHeight = 56;
+  headerHeight = 120;
+  async generate(rows, guildName, title = "Top members") {
+    const { createCanvas, loadImage } = await canvasOrThrow();
+    const height = this.headerHeight + rows.length * this.rowHeight + 30;
+    const canvas = createCanvas(this.width, height);
+    const ctx = canvas.getContext("2d");
+    this.drawBackground(ctx, height);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `bold 40px ${FONT_STACK}`;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(title, 50, 62);
+    ctx.textAlign = "right";
+    ctx.font = `24px ${FONT_STACK}`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.fillText(guildName, this.width - 50, 60);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.fillRect(50, 84, this.width - 100, 2);
+    for (let i = 0; i < rows.length; i++) {
+      await this.drawRow(ctx, loadImage, rows[i], i, this.headerHeight + i * this.rowHeight);
+    }
+    this.roundedRect(ctx, 2, 2, this.width - 4, height - 4, 24);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.10)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    return canvas.toBuffer("image/png");
+  }
+  async drawRow(ctx, loadImage, row, index, y) {
+    const centerY = y + this.rowHeight / 2;
+    ctx.textAlign = "center";
+    ctx.font = `bold 26px ${FONT_STACK}`;
+    ctx.fillStyle = index === 0 ? "#f0b232" : index === 1 ? "#c0c6cf" : index === 2 ? "#cd7f32" : "#8b93a7";
+    ctx.fillText(`${index + 1}`, 56, centerY + 9);
+    const avatarX = 120;
+    const radius = 20;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(avatarX, centerY, radius, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    try {
+      const avatar = await loadImage(row.avatarUrl);
+      const size = radius * 2;
+      ctx.drawImage(avatar, avatarX - size / 2, centerY - size / 2, size, size);
+    } catch {
+      ctx.fillStyle = "#5865f2";
+      ctx.fillRect(avatarX - radius, centerY - radius, radius * 2, radius * 2);
+    }
+    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(avatarX, centerY, radius, 0, Math.PI * 2, true);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.textAlign = "left";
+    ctx.font = `26px ${FONT_STACK}`;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(
+      ellipsize((value) => ctx.measureText(value).width, row.username, 400),
+      160,
+      centerY + 9
+    );
+    ctx.textAlign = "right";
+    ctx.font = `bold 24px ${FONT_STACK}`;
+    ctx.fillStyle = "#00b0f4";
+    ctx.fillText(`Level ${row.level}`, 760, centerY + 8);
+    ctx.font = `22px ${FONT_STACK}`;
+    ctx.fillStyle = "#b9bbbe";
+    ctx.fillText(`${row.totalXp.toLocaleString()} XP`, this.width - 50, centerY + 8);
+  }
+  drawBackground(ctx, height) {
+    this.roundedRect(ctx, 0, 0, this.width, height, 24);
+    const gradient = ctx.createLinearGradient(0, 0, this.width, height);
+    gradient.addColorStop(0, "#1e1f3a");
+    gradient.addColorStop(0.55, "#2b2d63");
+    gradient.addColorStop(1, "#171831");
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    const glow = ctx.createRadialGradient(this.width - 60, 40, 10, this.width - 60, 40, 420);
+    glow.addColorStop(0, "rgba(160, 51, 255, 0.35)");
+    glow.addColorStop(1, "rgba(160, 51, 255, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, this.width, height);
+  }
+  roundedRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+};
+var PODIUM_ACCENTS = {
+  1: "#f0b232",
+  2: "#c0c6cf",
+  3: "#cd7f32"
+};
+var LeaderboardPodiumCanvas = class {
+  static {
+    __name(this, "LeaderboardPodiumCanvas");
+  }
+  width = 1e3;
+  height = 360;
+  async generate(entries) {
+    const { createCanvas, loadImage } = await canvasOrThrow();
+    const canvas = createCanvas(this.width, this.height);
+    const ctx = canvas.getContext("2d");
+    this.drawBackground(ctx);
+    const slots = [
+      { entry: entries[1], x: 56, y: 62, width: 276, height: 272, rank: 2, avatarRadius: 42 },
+      { entry: entries[0], x: 352, y: 18, width: 296, height: 316, rank: 1, avatarRadius: 52 },
+      { entry: entries[2], x: 668, y: 62, width: 276, height: 272, rank: 3, avatarRadius: 42 }
+    ];
+    for (const slot of slots) this.drawPanel(ctx, slot);
+    for (const slot of slots) {
+      if (slot.entry) await this.drawEntry(ctx, loadImage, slot, slot.entry);
+    }
+    return canvas.toBuffer("image/png");
+  }
+  drawBackground(ctx) {
+    const gradient = ctx.createLinearGradient(0, 0, this.width, this.height);
+    gradient.addColorStop(0, "#1e1f3a");
+    gradient.addColorStop(0.55, "#2b2d63");
+    gradient.addColorStop(1, "#171831");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, this.width, this.height);
+    const glow = ctx.createRadialGradient(this.width / 2, 40, 10, this.width / 2, 40, 500);
+    glow.addColorStop(0, "rgba(160, 51, 255, 0.28)");
+    glow.addColorStop(1, "rgba(160, 51, 255, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, this.width, this.height);
+  }
+  drawPanel(ctx, slot) {
+    const accent = PODIUM_ACCENTS[slot.rank];
+    this.roundedRect(ctx, slot.x, slot.y, slot.width, slot.height, 22);
+    const gradient = ctx.createLinearGradient(slot.x, slot.y, slot.x, slot.y + slot.height);
+    gradient.addColorStop(0, "rgba(255, 255, 255, 0.09)");
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0.02)");
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.strokeStyle = slot.rank === 1 ? "rgba(240, 178, 50, 0.5)" : "rgba(255, 255, 255, 0.13)";
+    ctx.lineWidth = slot.rank === 1 ? 3 : 2;
+    ctx.stroke();
+    this.roundedRect(ctx, slot.x + slot.width * 0.2, slot.y, slot.width * 0.6, 5, 2.5);
+    ctx.fillStyle = accent;
+    ctx.fill();
+  }
+  async drawEntry(ctx, loadImage, slot, entry) {
+    const accent = PODIUM_ACCENTS[slot.rank];
+    const centerX = slot.x + slot.width / 2;
+    const hero = slot.rank === 1;
+    const badgeCy = slot.y + (hero ? 42 : 36);
+    this.drawCrown(ctx, centerX, badgeCy, hero ? 46 : 26, accent);
+    const avatarY = slot.y + (hero ? 110 : 88);
+    const nameY = avatarY + slot.avatarRadius + (hero ? 32 : 30);
+    const xpY = nameY + (hero ? 23 : 21);
+    const barY = xpY + (hero ? 14 : 13);
+    const barHeight = hero ? 10 : 9;
+    await this.drawAvatar(ctx, loadImage, entry.avatarUrl, centerX, avatarY, slot.avatarRadius, accent);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `bold ${hero ? 26 : 24}px ${FONT_STACK}`;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillText(
+      ellipsize((value) => ctx.measureText(value).width, entry.username, slot.width - 36),
+      centerX,
+      nameY
+    );
+    ctx.font = `${hero ? 18 : 16}px ${FONT_STACK}`;
+    ctx.fillStyle = "#b9bbbe";
+    ctx.fillText(
+      `Lv ${entry.level} \xB7 ${Math.floor(entry.totalXp).toLocaleString("en-US")} XP`,
+      centerX,
+      xpY
+    );
+    const contentWidth = slot.width - 48;
+    const pctWidth = 46;
+    const barWidth = contentWidth - pctWidth;
+    const barX = slot.x + 24;
+    this.drawProgressBar(ctx, barX, barY, barWidth, barHeight, entry.percent);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.font = `15px ${FONT_STACK}`;
+    ctx.fillStyle = "#b9bbbe";
+    ctx.fillText(`${entry.percent}%`, barX + contentWidth, barY + barHeight / 2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `bold ${hero ? 30 : 26}px ${FONT_STACK}`;
+    ctx.fillStyle = accent;
+    ctx.fillText(`${slot.rank}`, centerX, slot.y + slot.height - 16);
+  }
+  drawProgressBar(ctx, x, y, width, height, percent) {
+    const segments = 12;
+    const gap = 3;
+    const segmentWidth = (width - gap * (segments - 1)) / segments;
+    const filled = Math.round(Math.max(0, Math.min(100, percent)) / 100 * segments);
+    for (let i = 0; i < segments; i++) {
+      this.roundedRect(ctx, x + i * (segmentWidth + gap), y, segmentWidth, height, height / 2);
+      ctx.fillStyle = i < filled ? "#5865f2" : "rgba(255, 255, 255, 0.14)";
+      ctx.fill();
+    }
+  }
+  async drawAvatar(ctx, loadImage, avatarUrl, x, y, radius, ringColor) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    try {
+      if (!avatarUrl) throw new Error("no avatar");
+      const avatar = await loadImage(avatarUrl);
+      const side = Math.min(avatar.width, avatar.height);
+      ctx.drawImage(
+        avatar,
+        (avatar.width - side) / 2,
+        (avatar.height - side) / 2,
+        side,
+        side,
+        x - radius,
+        y - radius,
+        radius * 2,
+        radius * 2
+      );
+    } catch {
+      const fallback = ctx.createLinearGradient(x - radius, y - radius, x + radius, y + radius);
+      fallback.addColorStop(0, "#5865f2");
+      fallback.addColorStop(1, "#a033ff");
+      ctx.fillStyle = fallback;
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+    ctx.restore();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+    ctx.strokeStyle = ringColor;
+    ctx.lineWidth = slotRingWidth(radius);
+    ctx.stroke();
+  }
+  drawCrown(ctx, cx, cy, width, color) {
+    const half = width / 2;
+    const height = width * 0.55;
+    const top = cy - height / 2;
+    const bottom = cy + height / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - half, bottom);
+    ctx.lineTo(cx - half, top + height * 0.22);
+    ctx.lineTo(cx - half * 0.45, top + height * 0.68);
+    ctx.lineTo(cx, top);
+    ctx.lineTo(cx + half * 0.45, top + height * 0.68);
+    ctx.lineTo(cx + half, top + height * 0.22);
+    ctx.lineTo(cx + half, bottom);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillRect(cx - half, bottom - 2, width, 7);
+  }
+  roundedRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+};
+function slotRingWidth(radius) {
+  return Math.max(4, Math.round(radius / 12));
+}
+__name(slotRingWidth, "slotRingWidth");
+var rankCard = new RankCardCanvas();
+var leaderboardCard = new LeaderboardCanvas();
+var leaderboardPodium = new LeaderboardPodiumCanvas();
+
+// src/commands/leveling/rank.ts
 var rankCommand = {
-  data: new import_discord15.SlashCommandBuilder().setName("rank").setDescription("Check your leveling rank.").addUserOption(
+  data: new import_discord16.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
-    const user = interaction.options.getUser("user") ?? interaction.user;
-    const dbUser = await getUser(user.id);
-    const nextXp = xpForLevel(dbUser.level + 1);
-    const progress = dbUser.xp - xpForLevel(dbUser.level);
-    const needed = nextXp - xpForLevel(dbUser.level);
-    const embed = new import_discord15.EmbedBuilder().setColor(7506394).setTitle(`Rank \u2014 ${user.tag}`).addFields(
-      { name: "\u{1F3C6} Level", value: dbUser.level.toString(), inline: true },
-      {
-        name: "\u2728 XP",
-        value: `${progress.toLocaleString()} / ${needed.toLocaleString()}`,
-        inline: true
-      },
-      { name: "\u{1F4CA} Total XP", value: dbUser.totalXp.toLocaleString(), inline: true }
-    );
-    await interaction.reply({ embeds: [embed] });
+    const target = interaction.options.getUser("user") ?? interaction.user;
+    const guild = interaction.guild;
+    const row = await getUserXp(target.id);
+    if (!row || row.xp <= 0) {
+      await interaction.reply({
+        content: `${target.username} hasn't earned any XP yet.`,
+        flags: import_discord16.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const info = levelFromXp(row.xp);
+    const [position, totalRanked] = await Promise.all([
+      getRankPosition(target.id),
+      countRanked()
+    ]);
+    await interaction.deferReply();
+    try {
+      const buffer = await rankCard.generate({
+        avatarUrl: target.displayAvatarURL({ extension: "png", size: 256 }),
+        username: target.displayName,
+        statusText: null,
+        level: info.level,
+        rank: position || null,
+        totalRanked,
+        xpIntoLevel: info.xpInLevel,
+        xpNeeded: info.xpForNext,
+        totalXp: info.totalXp,
+        guildName: guild?.name
+      });
+      const attachment = new import_discord16.AttachmentBuilder(buffer, { name: "rank.png" });
+      await interaction.editReply({ files: [attachment] });
+    } catch (err) {
+      console.error("Failed to render rank card:", err);
+      const embed = buildRankCard({
+        user: target,
+        info,
+        guildName: guild?.name ?? "this server",
+        position
+      });
+      await interaction.editReply({ embeds: [embed] }).catch(() => void 0);
+    }
   }, "execute")
 };
+
+// src/commands/leveling/leaderboard.ts
+var import_discord17 = __toESM(require_src());
+var leaderboardCommand = {
+  data: new import_discord17.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
+    (option) => option.setName("limit").setDescription("How many members to show (1-25)").setMinValue(1).setMaxValue(25)
+  ),
+  category: "leveling",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const limit = interaction.options.getInteger("limit") ?? 10;
+    const rows = await getLeaderboard(limit);
+    if (rows.length === 0) {
+      await interaction.reply({
+        content: "No XP records yet.",
+        flags: import_discord17.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await interaction.deferReply();
+    const entries = await Promise.all(
+      rows.map(async (row) => {
+        let user = interaction.client.users.cache.get(row.user_id);
+        if (!user) {
+          try {
+            user = await interaction.client.users.fetch(row.user_id);
+          } catch {
+            user = void 0;
+          }
+        }
+        return {
+          userId: row.user_id,
+          username: user?.username ?? "Unknown user",
+          avatarUrl: user?.displayAvatarURL({ extension: "png", size: 128 }) ?? "",
+          level: levelFromXp(row.xp).level,
+          totalXp: row.xp
+        };
+      })
+    );
+    try {
+      const buffer = await leaderboardCard.generate(
+        entries,
+        interaction.guild?.name ?? "this server",
+        "\u{1F3C6} Top members"
+      );
+      const attachment = new import_discord17.AttachmentBuilder(buffer, { name: "leaderboard.png" });
+      await interaction.editReply({ files: [attachment] });
+    } catch (err) {
+      console.error("Failed to render leaderboard image:", err);
+      const embed = buildLeaderboardEmbed(
+        entries.map((entry) => ({
+          userId: entry.userId,
+          username: entry.username,
+          level: entry.level,
+          totalXp: entry.totalXp
+        })),
+        interaction.guild?.name ?? "this server"
+      );
+      await interaction.editReply({ embeds: [embed] }).catch(() => void 0);
+    }
+  }, "execute")
+};
+
+// src/commands/leveling/levels.ts
+var import_discord20 = __toESM(require_src());
+
+// src/utils/discord.ts
+var import_discord18 = __toESM(require_src());
+function canAssignRole(guild, role) {
+  const me = guild.members.me;
+  if (!me) return "I could not resolve my own member object.";
+  if (!me.permissions.has(import_discord18.PermissionFlagsBits.ManageRoles)) {
+    return "I need the **Manage Roles** permission to assign roles.";
+  }
+  if (role.managed) {
+    return "That role is managed by an integration and cannot be assigned manually.";
+  }
+  if (role.position >= me.roles.highest.position) {
+    return "That role is higher than (or equal to) my highest role, so I cannot assign it. Move my role above it.";
+  }
+  return null;
+}
+__name(canAssignRole, "canAssignRole");
+
+// src/utils/liveLeaderboard.ts
+var import_discord19 = __toESM(require_src());
+
+// src/utils/levelSettings.ts
+var DEFAULT_LEVEL_UP_MESSAGE = "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
+function asInt(value, fallback, min, max) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.round(parsed), min), max);
+}
+__name(asInt, "asInt");
+function asString(value, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+__name(asString, "asString");
+function asBool(value, fallback) {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return fallback;
+}
+__name(asBool, "asBool");
+function asIdArray(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((id) => typeof id === "string" && /^\d{5,25}$/.test(id)))];
+}
+__name(asIdArray, "asIdArray");
+function normalizeLevelRoles(raw) {
+  const source = raw instanceof Map ? Object.fromEntries(raw) : raw && typeof raw === "object" ? raw : {};
+  const entries = [];
+  for (const [level, roleId] of Object.entries(source)) {
+    if (!/^\d+$/.test(level)) continue;
+    if (typeof roleId !== "string" || roleId.trim() === "") continue;
+    entries.push([String(Number.parseInt(level, 10)), roleId.trim()]);
+  }
+  return Object.fromEntries(entries);
+}
+__name(normalizeLevelRoles, "normalizeLevelRoles");
+function readLevelSettings(config2) {
+  const raw = config2 ?? {};
+  const voice = raw.xpVoice ?? {};
+  return {
+    enabled: raw.xpEnabled !== false,
+    perMessageMin: asInt(raw.xpMin, 15, 0, 1e4),
+    perMessageMax: asInt(raw.xpMax, 25, 0, 1e4),
+    cooldownSeconds: asInt(raw.xpCooldown, 60, 0, 86400),
+    perVoiceMinuteMin: asInt(voice.min ?? raw.xpVoiceMin, 5, 0, 1e4),
+    perVoiceMinuteMax: asInt(voice.max ?? raw.xpVoiceMax, 8, 0, 1e4),
+    noXpChannels: asIdArray(raw.disableXpChannels),
+    xpChannel: asString(raw.xpChannel),
+    ignoreBots: asBool(raw.xpIgnoreBots, true),
+    levelUpChannel: asString(raw.levelUpChannel),
+    levelUpMessage: asString(raw.levelUpMessage, DEFAULT_LEVEL_UP_MESSAGE) || DEFAULT_LEVEL_UP_MESSAGE,
+    levelRoles: normalizeLevelRoles(raw.levelRoles),
+    liveLeaderboard: {
+      enabled: asBool(raw.liveLeaderboard?.enabled, false),
+      channelId: asString(raw.liveLeaderboard?.channelId),
+      messageId: asString(raw.liveLeaderboard?.messageId),
+      intervalMinutes: asInt(raw.liveLeaderboard?.intervalMinutes, 10, 1, 1440),
+      rows: asInt(raw.liveLeaderboard?.rows, 25, 3, 25),
+      title: asString(raw.liveLeaderboard?.title)
+    }
+  };
+}
+__name(readLevelSettings, "readLevelSettings");
+
+// src/utils/liveLeaderboard.ts
+var ZONES = [
+  { emoji: "\u{1F48E}", name: "Diamond Zone", from: 4, to: 10 },
+  { emoji: "\u{1F3C5}", name: "Gold Zone", from: 11, to: 18 },
+  { emoji: "\u26AA", name: "Silver Zone", from: 19, to: 25 }
+];
+var DIVIDER = "\u2500".repeat(46);
+var MEDALS = ["\u{1F947}", "\u{1F948}", "\u{1F949}"];
+var states = /* @__PURE__ */ new Map();
+var refreshTimer = null;
+function stateFor(guildId) {
+  let state = states.get(guildId);
+  if (!state) {
+    state = { signature: "", footerLabel: "", updatedAt: 0, lastAttempt: 0 };
+    states.set(guildId, state);
+  }
+  return state;
+}
+__name(stateFor, "stateFor");
+function formatXp(value) {
+  return Math.floor(value).toLocaleString("en-US");
+}
+__name(formatXp, "formatXp");
+function clampText(text, max) {
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 1))}\u2026`;
+}
+__name(clampText, "clampText");
+function linkText(text) {
+  return (0, import_discord19.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
+}
+__name(linkText, "linkText");
+function userLink(entry) {
+  return `[${linkText(entry.username)}](https://discord.com/users/${entry.userId})`;
+}
+__name(userLink, "userLink");
+function freshnessLabel(updatedAt, now = Date.now()) {
+  if (!updatedAt) return "just now";
+  const minutes = Math.max(0, Math.floor((now - updatedAt) / 6e4));
+  if (minutes < 1) return "just now";
+  if (minutes === 1) return "1 minute ago";
+  if (minutes < 60) return `${minutes} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+}
+__name(freshnessLabel, "freshnessLabel");
+async function collectEntries(client, guild, limit) {
+  const rows = await getLeaderboard(limit);
+  return Promise.all(
+    rows.map(async (row, index) => {
+      const member = guild.members.cache.get(row.user_id);
+      let user = member?.user ?? client.users.cache.get(row.user_id);
+      if (!user) {
+        try {
+          user = await client.users.fetch(row.user_id);
+        } catch {
+          user = void 0;
+        }
+      }
+      const info = levelFromXp(row.xp);
+      const username = member?.displayName ?? user?.globalName ?? user?.username ?? "Unknown user";
+      const avatarUrl = member ? member.displayAvatarURL({ extension: "png", size: 256 }) : user?.displayAvatarURL({ extension: "png", size: 256 }) ?? "";
+      return {
+        rank: index + 1,
+        userId: row.user_id,
+        username,
+        avatarUrl,
+        level: info.level,
+        totalXp: row.xp,
+        xpInLevel: info.xpInLevel,
+        xpForNext: info.xpForNext,
+        percent: progressPercent(info)
+      };
+    })
+  );
+}
+__name(collectEntries, "collectEntries");
+function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updatedAt = Date.now()) {
+  const title = titleOverride.trim() || `\u{1F3C6} ${guild.name} leaderboard`;
+  const top = entries.slice(0, 3);
+  const embed = new import_discord19.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
+    `\u{1F465} **${guild.memberCount.toLocaleString("en-US")}** members \u2728 *Ranked by experience*`
+  ).addFields({ name: "\u200B", value: DIVIDER });
+  const topLines = top.map(
+    (entry, index) => `${MEDALS[index]} ${userLink(entry)} \u2014 Lv ${entry.level} \xB7 ${formatXp(entry.totalXp)} XP`
+  );
+  embed.addFields({
+    name: "\u{1F451} Top 3",
+    value: topLines.length > 0 ? topLines.join("\n") : "No ranked members yet."
+  });
+  for (const zone of ZONES) {
+    const from = zone.from;
+    if (from > rows || from > entries.length + 1) continue;
+    const to = Math.min(zone.to, rows);
+    const zoneEntries = entries.filter((entry) => entry.rank >= from && entry.rank <= to);
+    if (zoneEntries.length === 0) continue;
+    const above = entries[from - 2];
+    const first = entries[from - 1];
+    const gap = above && first ? Math.max(0, above.totalXp - first.totalXp) : 0;
+    const target = from === 4 ? "Top 3" : ZONES.find((z2) => z2.to === from - 1)?.name ?? "the next zone";
+    const header = gap > 0 ? `Ranks ${from} \u2013 ${to} \u26A1 \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}` : `Ranks ${from} \u2013 ${to}`;
+    const lines = zoneEntries.map((entry) => {
+      const rankLabel = String(entry.rank).padStart(2, "0");
+      const bar = progressBar(entry.percent, 6);
+      return `\`${rankLabel}\` ${userLink(entry)} \u2014 Lv ${entry.level} \xB7 ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
+    });
+    embed.addFields(
+      { name: "\u200B", value: DIVIDER },
+      {
+        name: `${zone.emoji} ${zone.name}`,
+        value: clampText(`${header}
+${lines.join("\n")}`, 1024)
+      }
+    );
+  }
+  const label = freshnessLabel(updatedAt);
+  if (podiumUrl) embed.setImage(podiumUrl);
+  return embed.setFooter({ text: `\u{1F504} Updates automatically \xB7 last update ${label}` }).setTimestamp(new Date(updatedAt || Date.now()));
+}
+__name(buildContentEmbed, "buildContentEmbed");
+function signatureOf(entries, guild, rows, title) {
+  const members2 = entries.map((entry) => `${entry.userId}:${entry.totalXp}:${entry.username}:${entry.avatarUrl}`).join("|");
+  return `${guild.id}:${guild.name}:${guild.memberCount}:${rows}:${title}:${members2}`;
+}
+__name(signatureOf, "signatureOf");
+async function fetchTextChannel(client, channelId) {
+  try {
+    const channel = await client.channels.fetch(channelId);
+    if (!channel || !channel.isTextBased() || !("send" in channel)) return null;
+    return channel;
+  } catch {
+    return null;
+  }
+}
+__name(fetchTextChannel, "fetchTextChannel");
+async function buildMessagePayload(entries, guild, rows, title, updatedAt) {
+  try {
+    const buffer = await leaderboardPodium.generate(
+      entries.slice(0, 3).map((entry) => ({
+        username: entry.username,
+        avatarUrl: entry.avatarUrl,
+        level: entry.level,
+        totalXp: entry.totalXp,
+        percent: entry.percent
+      }))
+    );
+    const file2 = new import_discord19.AttachmentBuilder(buffer, { name: "top-3.png" });
+    return {
+      embeds: [buildContentEmbed(entries, guild, rows, title, "attachment://top-3.png", updatedAt)],
+      files: [file2]
+    };
+  } catch (err) {
+    console.error("[LiveLeaderboard] Podium render failed, sending text only:", err);
+    return {
+      embeds: [buildContentEmbed(entries, guild, rows, title, void 0, updatedAt)],
+      files: []
+    };
+  }
+}
+__name(buildMessagePayload, "buildMessagePayload");
+async function refreshLiveLeaderboard(client, guildId, options = {}) {
+  let settings = options.settings;
+  if (!settings) {
+    const row = await readGuildConfig(guildId).catch(() => null);
+    settings = readLevelSettings(row ?? {}).liveLeaderboard;
+  }
+  if (!settings.enabled) return { status: "disabled" };
+  if (!settings.channelId) return { status: "no-channel" };
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) return { status: "no-guild" };
+  const rows = Math.min(25, Math.max(3, settings.rows));
+  const entries = await collectEntries(client, guild, rows);
+  if (entries.length === 0) return { status: "empty" };
+  const state = stateFor(guildId);
+  const dataSignature = signatureOf(entries, guild, rows, settings.title);
+  const label = freshnessLabel(state.updatedAt);
+  if (!options.force && settings.messageId && dataSignature === state.signature && label === state.footerLabel) {
+    return { status: "unchanged", messageId: settings.messageId, channelId: settings.channelId };
+  }
+  const channel = await fetchTextChannel(client, settings.channelId);
+  if (!channel) {
+    console.error(`[LiveLeaderboard] Channel ${settings.channelId} is missing or not writable.`);
+    return { status: "no-channel" };
+  }
+  let message = null;
+  if (settings.messageId) {
+    message = await channel.messages.fetch(settings.messageId).catch(() => null);
+    if (message && message.channelId !== channel.id) message = null;
+  }
+  const contentChanged = !message || options.force === true || dataSignature !== state.signature;
+  const updatedAt = contentChanged ? Date.now() : state.updatedAt;
+  const payload = await buildMessagePayload(entries, guild, rows, settings.title, updatedAt);
+  try {
+    let messageId;
+    if (message) {
+      messageId = (await message.edit(payload)).id;
+    } else {
+      const sent = await channel.send(payload);
+      messageId = sent.id;
+      await updateGuildConfig(guildId, {
+        liveLeaderboard: {
+          ...settings,
+          channelId: channel.id,
+          messageId: sent.id
+        }
+      }).catch(() => null);
+    }
+    state.signature = dataSignature;
+    state.footerLabel = freshnessLabel(updatedAt);
+    if (contentChanged) state.updatedAt = updatedAt;
+    return {
+      status: message ? "updated" : "created",
+      messageId,
+      channelId: channel.id,
+      entries: entries.length
+    };
+  } catch (err) {
+    console.error("[LiveLeaderboard] Failed to publish/update the message:", err);
+    return { status: "error", channelId: channel.id, messageId: settings.messageId };
+  }
+}
+__name(refreshLiveLeaderboard, "refreshLiveLeaderboard");
+function invalidateLiveLeaderboard(guildId) {
+  if (guildId) {
+    states.delete(guildId);
+    return;
+  }
+  states.clear();
+}
+__name(invalidateLiveLeaderboard, "invalidateLiveLeaderboard");
+async function tick(client) {
+  for (const guild of client.guilds.cache.values()) {
+    const state = stateFor(guild.id);
+    let settings;
+    try {
+      const row = await readGuildConfig(guild.id);
+      settings = readLevelSettings(row ?? {}).liveLeaderboard;
+    } catch {
+      continue;
+    }
+    if (!settings.enabled || !settings.channelId) continue;
+    const intervalMs = Math.max(1, settings.intervalMinutes) * 6e4;
+    if (Date.now() - state.lastAttempt < intervalMs) continue;
+    state.lastAttempt = Date.now();
+    try {
+      await refreshLiveLeaderboard(client, guild.id, { settings });
+    } catch (err) {
+      console.error("[LiveLeaderboard] Refresh error:", err);
+    }
+  }
+}
+__name(tick, "tick");
+function startLiveLeaderboard(client) {
+  stopLiveLeaderboard();
+  invalidateLiveLeaderboard();
+  refreshTimer = setInterval(() => {
+    void tick(client);
+  }, 6e4);
+  void tick(client);
+}
+__name(startLiveLeaderboard, "startLiveLeaderboard");
+function stopLiveLeaderboard() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+__name(stopLiveLeaderboard, "stopLiveLeaderboard");
+
+// src/commands/leveling/shared.ts
+async function loadLevelSettings(context) {
+  const row = await readGuildConfig(context.guild.id).catch(() => null);
+  return readLevelSettings(row ?? context.settings ?? {});
+}
+__name(loadLevelSettings, "loadLevelSettings");
+async function saveGuildSettings(context, updates) {
+  const fresh = await updateGuildConfig(context.guild.id, updates);
+  if (fresh) context.client.cacheSettings(context.guild.id, fresh, Date.now());
+  return readLevelSettings(fresh ?? context.settings ?? {});
+}
+__name(saveGuildSettings, "saveGuildSettings");
+
+// src/commands/leveling/levels.ts
+var levelsCommand = {
+  data: new import_discord20.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord20.PermissionFlagsBits.ManageGuild).addSubcommand(
+    (sub) => sub.setName("setup").setDescription("Configure XP rates and announcement channels").addBooleanOption(
+      (o) => o.setName("enabled").setDescription("Whether members earn XP in this server")
+    ).addChannelOption(
+      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord20.ChannelType.GuildText)
+    ).addIntegerOption(
+      (o) => o.setName("xp_per_message").setDescription("Minimum XP per message (MEE6 default 15)").setMinValue(0).setMaxValue(1e4)
+    ).addIntegerOption(
+      (o) => o.setName("xp_per_message_max").setDescription("Maximum XP per message (MEE6 default 25)").setMinValue(0).setMaxValue(1e4)
+    ).addIntegerOption(
+      (o) => o.setName("cooldown_seconds").setDescription("Seconds between XP-earning messages per user (MEE6 default 60)").setMinValue(0).setMaxValue(3600)
+    ).addIntegerOption(
+      (o) => o.setName("xp_per_voice_minute").setDescription("Minimum XP per voice minute (MEE6 default 5)").setMinValue(0).setMaxValue(1e4)
+    ).addIntegerOption(
+      (o) => o.setName("xp_per_voice_minute_max").setDescription("Maximum XP per voice minute (MEE6 default 8)").setMinValue(0).setMaxValue(1e4)
+    ).addBooleanOption(
+      (o) => o.setName("ignore_bots").setDescription("Bots earn no XP when true (default true)")
+    ).addStringOption(
+      (o) => o.setName("announce_message").setDescription(
+        "Level-up text. Placeholders: {user} {username} {level} {server} {role} {xp} {xpneeded}"
+      ).setMaxLength(2e3)
+    )
+  ).addSubcommandGroup(
+    (group) => group.setName("role").setDescription("Manage level reward roles").addSubcommand(
+      (sub) => sub.setName("add").setDescription("Grant a role when a user reaches a level").addIntegerOption(
+        (o) => o.setName("level").setDescription("Level milestone").setRequired(true).setMinValue(1).setMaxValue(1e3)
+      ).addRoleOption(
+        (o) => o.setName("role").setDescription("Role to grant").setRequired(true)
+      )
+    ).addSubcommand(
+      (sub) => sub.setName("remove").setDescription("Remove the role reward for a level").addIntegerOption(
+        (o) => o.setName("level").setDescription("Level milestone to remove").setRequired(true).setMinValue(1).setMaxValue(1e3)
+      )
+    ).addSubcommand((sub) => sub.setName("list").setDescription("List all level reward roles"))
+  ).addSubcommandGroup(
+    (group) => group.setName("leaderboard").setDescription("Manage the self-updating leaderboard message").addSubcommand(
+      (sub) => sub.setName("start").setDescription("Post and keep a leaderboard message up to date").addChannelOption(
+        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord20.ChannelType.GuildText).setRequired(true)
+      ).addIntegerOption(
+        (o) => o.setName("interval_minutes").setDescription("Refresh interval in minutes (default 10)").setMinValue(1).setMaxValue(1440)
+      ).addIntegerOption(
+        (o) => o.setName("rows").setDescription("How many ranked members appear (3-25, default 25)").setMinValue(3).setMaxValue(25)
+      ).addStringOption(
+        (o) => o.setName("title").setDescription("Optional board title (default: server name)")
+      )
+    ).addSubcommand(
+      (sub) => sub.setName("stop").setDescription("Stop updating the live leaderboard")
+    ).addSubcommand(
+      (sub) => sub.setName("status").setDescription("Show the live leaderboard configuration")
+    )
+  ),
+  category: "leveling",
+  userPermissions: ["ManageGuild"],
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const group = interaction.options.getSubcommandGroup(false);
+    if (group === "role") {
+      const sub = interaction.options.getSubcommand();
+      if (sub === "add") return roleAdd(context);
+      if (sub === "remove") return roleRemove(context);
+      if (sub === "list") return roleList(context);
+      return;
+    }
+    if (group === "leaderboard") {
+      const sub = interaction.options.getSubcommand();
+      if (sub === "start") return leaderboardStart(context);
+      if (sub === "stop") return leaderboardStop(context);
+      if (sub === "status") return leaderboardStatus(context);
+      return;
+    }
+    return setup(context);
+  }, "execute")
+};
+async function setup(context) {
+  const { interaction } = context;
+  const announce = interaction.options.getChannel("announce_channel");
+  const enabled = interaction.options.getBoolean("enabled");
+  const xpPerMessage = interaction.options.getInteger("xp_per_message");
+  const xpPerMessageMax = interaction.options.getInteger("xp_per_message_max");
+  const cooldown = interaction.options.getInteger("cooldown_seconds");
+  const xpPerVoice = interaction.options.getInteger("xp_per_voice_minute");
+  const xpPerVoiceMax = interaction.options.getInteger("xp_per_voice_minute_max");
+  const ignoreBots = interaction.options.getBoolean("ignore_bots");
+  const announceMessage = interaction.options.getString("announce_message");
+  if (enabled === null && !announce && xpPerMessage === null && xpPerMessageMax === null && cooldown === null && xpPerVoice === null && xpPerVoiceMax === null && ignoreBots === null && !announceMessage) {
+    await interaction.reply({
+      content: "Nothing to change. Pass at least one option, e.g. `xp_per_message: 15` or `announce_channel: #levels`.",
+      ephemeral: true
+    });
+    return;
+  }
+  const current = await loadLevelSettings(context);
+  const updates = {};
+  const changes = [];
+  if (enabled !== null) {
+    updates.xpEnabled = enabled;
+    changes.push(`XP ${enabled ? "enabled" : "disabled"}`);
+  }
+  if (announce) {
+    updates.levelUpChannel = announce.id;
+    changes.push(`Level-up channel \u2192 <#${announce.id}>`);
+  }
+  let nextMin = current.perMessageMin;
+  let nextMax = current.perMessageMax;
+  if (xpPerMessage !== null) {
+    nextMin = xpPerMessage;
+    updates.xpMin = xpPerMessage;
+    changes.push(`XP per message \u2192 **${xpPerMessage}**`);
+  }
+  if (xpPerMessageMax !== null) {
+    nextMax = xpPerMessageMax;
+    updates.xpMax = xpPerMessageMax;
+    changes.push(`Max XP per message \u2192 **${xpPerMessageMax}**`);
+  }
+  if (nextMin > nextMax) {
+    updates.xpMin = nextMax;
+    updates.xpMax = nextMin;
+    changes.push(`Range normalised to **${nextMax}-${nextMin}**`);
+  }
+  if (cooldown !== null) {
+    updates.xpCooldown = cooldown;
+    changes.push(`Message cooldown \u2192 **${cooldown}s**`);
+  }
+  let nextVoiceMin = current.perVoiceMinuteMin;
+  let nextVoiceMax = current.perVoiceMinuteMax;
+  if (xpPerVoice !== null) {
+    nextVoiceMin = xpPerVoice;
+    updates.xpVoiceMin = xpPerVoice;
+    changes.push(`Voice XP per minute \u2192 **${xpPerVoice}**`);
+  }
+  if (xpPerVoiceMax !== null) {
+    nextVoiceMax = xpPerVoiceMax;
+    updates.xpVoiceMax = xpPerVoiceMax;
+    changes.push(`Max voice XP per minute \u2192 **${xpPerVoiceMax}**`);
+  }
+  if (nextVoiceMin > nextVoiceMax) {
+    updates.xpVoiceMin = nextVoiceMax;
+    updates.xpVoiceMax = nextVoiceMin;
+    changes.push(`Voice range normalised to **${nextVoiceMax}-${nextVoiceMin}**`);
+  }
+  if (ignoreBots !== null) {
+    updates.xpIgnoreBots = ignoreBots;
+    changes.push(
+      `Ignore bots for XP \u2192 ${ignoreBots ? "yes (bots earn no XP)" : "no (bots can earn XP)"}`
+    );
+  }
+  if (announceMessage) {
+    updates.levelUpMessage = announceMessage;
+    changes.push("Level-up message template updated");
+  }
+  const cfg = await saveGuildSettings(context, updates);
+  const embed = new import_discord20.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
+    {
+      name: "XP per message",
+      value: cfg.perMessageMin === cfg.perMessageMax ? `${cfg.perMessageMin}` : `${cfg.perMessageMin}-${cfg.perMessageMax} (random)`,
+      inline: true
+    },
+    { name: "Cooldown", value: `${cfg.cooldownSeconds}s`, inline: true },
+    {
+      name: "Voice XP/min",
+      value: cfg.perVoiceMinuteMin === cfg.perVoiceMinuteMax ? `${cfg.perVoiceMinuteMin}` : `${cfg.perVoiceMinuteMin}-${cfg.perVoiceMinuteMax} (random)`,
+      inline: true
+    }
+  );
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+__name(setup, "setup");
+async function roleAdd(context) {
+  const { interaction, guild } = context;
+  const level = interaction.options.getInteger("level", true);
+  const role = interaction.options.getRole("role", true);
+  if (role.id === guild.id) {
+    await interaction.reply({
+      content: "You cannot use **@everyone** as a level reward \u2014 pick a real role.",
+      ephemeral: true
+    });
+    return;
+  }
+  const permissionError = canAssignRole(guild, role);
+  if (permissionError) {
+    await interaction.reply({ content: permissionError, ephemeral: true });
+    return;
+  }
+  const current = await loadLevelSettings(context);
+  const previous = current.levelRoles[String(level)];
+  const levelRoles = { ...current.levelRoles, [String(level)]: role.id };
+  await saveGuildSettings(context, { levelRoles });
+  await interaction.reply({
+    content: `\u2705 Level **${level}** now grants <@&${role.id}>.${previous && previous !== role.id ? `
+(Replaced <@&${previous}>.)` : ""}
+Existing members receive it the next time they level up (or on rejoin).`,
+    ephemeral: true
+  });
+}
+__name(roleAdd, "roleAdd");
+async function roleRemove(context) {
+  const { interaction } = context;
+  const level = interaction.options.getInteger("level", true);
+  const current = await loadLevelSettings(context);
+  const existing = current.levelRoles[String(level)];
+  if (!existing) {
+    await interaction.reply({
+      content: `No role is configured for level ${level}.`,
+      ephemeral: true
+    });
+    return;
+  }
+  const levelRoles = { ...current.levelRoles };
+  delete levelRoles[String(level)];
+  await saveGuildSettings(context, { levelRoles });
+  await interaction.reply({
+    content: `\u2705 Removed the role reward for level ${level} (was <@&${existing}>).`,
+    ephemeral: true
+  });
+}
+__name(roleRemove, "roleRemove");
+async function roleList(context) {
+  const { interaction } = context;
+  const current = await loadLevelSettings(context);
+  const entries = Object.entries(current.levelRoles).sort((a, b) => Number(a[0]) - Number(b[0]));
+  const embed = new import_discord20.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
+  if (entries.length === 0) {
+    embed.setDescription("No level roles configured. Add one with `/levels role add`.");
+  } else {
+    embed.setDescription(
+      entries.map(([level, roleId]) => `Level **${level}** \u2192 <@&${roleId}>`).join("\n")
+    );
+  }
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+__name(roleList, "roleList");
+async function leaderboardStart(context) {
+  const { interaction } = context;
+  const channel = interaction.options.getChannel("channel", true);
+  const interval = interaction.options.getInteger("interval_minutes");
+  const rows = interaction.options.getInteger("rows");
+  const title = interaction.options.getString("title");
+  const current = await loadLevelSettings(context);
+  await interaction.deferReply({ ephemeral: true });
+  await saveGuildSettings(context, {
+    liveLeaderboard: {
+      ...current.liveLeaderboard,
+      enabled: true,
+      channelId: channel.id,
+      messageId: "",
+      intervalMinutes: interval ?? current.liveLeaderboard.intervalMinutes,
+      rows: rows ?? current.liveLeaderboard.rows,
+      title: title ?? current.liveLeaderboard.title
+    }
+  });
+  const result = await refreshLiveLeaderboard(context.client, context.guild.id, { force: true });
+  const labels = {
+    created: `\u2705 Live leaderboard posted in <#${channel.id}>.`,
+    updated: "\u2705 Live leaderboard updated.",
+    empty: "\u26A0\uFE0F The leaderboard is set up, but nobody has earned XP yet.",
+    "no-channel": "\u26A0\uFE0F I could not access that channel. Check my permissions.",
+    "no-guild": "\u26A0\uFE0F I could not resolve this server.",
+    error: "\u26A0\uFE0F The leaderboard is configured, but publishing the message failed.",
+    disabled: "\u2705 Live leaderboard enabled.",
+    unchanged: "\u2705 Live leaderboard unchanged."
+  };
+  await interaction.editReply({
+    content: (labels[result.status] ?? "\u2705 Live leaderboard enabled.") + `
+It refreshes every **${interval ?? current.liveLeaderboard.intervalMinutes}** minute(s).`
+  });
+}
+__name(leaderboardStart, "leaderboardStart");
+async function leaderboardStop(context) {
+  const { interaction } = context;
+  const current = await loadLevelSettings(context);
+  await saveGuildSettings(context, {
+    liveLeaderboard: { ...current.liveLeaderboard, enabled: false }
+  });
+  await interaction.reply({
+    content: "\u2705 The live leaderboard is no longer updated. The existing message stays where it is.",
+    ephemeral: true
+  });
+}
+__name(leaderboardStop, "leaderboardStop");
+async function leaderboardStatus(context) {
+  const { interaction } = context;
+  const settings = (await loadLevelSettings(context)).liveLeaderboard;
+  const embed = new import_discord20.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
+    { name: "Status", value: settings.enabled ? "Enabled" : "Disabled", inline: true },
+    {
+      name: "Channel",
+      value: settings.channelId ? `<#${settings.channelId}>` : "Not set",
+      inline: true
+    },
+    { name: "Interval", value: `${settings.intervalMinutes} min`, inline: true },
+    { name: "Rows", value: String(settings.rows), inline: true },
+    { name: "Title", value: settings.title || "Server name", inline: true },
+    {
+      name: "Message",
+      value: settings.messageId ? `\`${settings.messageId}\`` : "Not posted yet",
+      inline: true
+    }
+  );
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+__name(leaderboardStatus, "leaderboardStatus");
+
+// src/commands/leveling/xp.ts
+var import_discord22 = __toESM(require_src());
+var xpCommand = {
+  data: new import_discord22.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord22.PermissionFlagsBits.ManageGuild).addSubcommand(
+    (sub) => sub.setName("channel").setDescription("Only earn XP in one channel (or allow all channels again)").addChannelOption(
+      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord22.ChannelType.GuildText)
+    )
+  ).addSubcommandGroup(
+    (group) => group.setName("nocxp").setDescription("Channels where members earn no XP").addSubcommand(
+      (sub) => sub.setName("add").setDescription("Exclude a channel from XP").addChannelOption(
+        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord22.ChannelType.GuildText).setRequired(true)
+      )
+    ).addSubcommand(
+      (sub) => sub.setName("remove").setDescription("Allow XP in an excluded channel again").addChannelOption(
+        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord22.ChannelType.GuildText).setRequired(true)
+      )
+    ).addSubcommand((sub) => sub.setName("list").setDescription("List excluded channels"))
+  ),
+  category: "leveling",
+  userPermissions: ["ManageGuild"],
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const group = interaction.options.getSubcommandGroup(false);
+    if (group === "nocxp") {
+      const sub = interaction.options.getSubcommand();
+      if (sub === "add") return nocxpAdd(context);
+      if (sub === "remove") return nocxpRemove(context);
+      if (sub === "list") return nocxpList(context);
+      return;
+    }
+    if (interaction.options.getSubcommand() === "channel") {
+      return xpChannel(context);
+    }
+  }, "execute")
+};
+async function xpChannel(context) {
+  const { interaction } = context;
+  const channel = interaction.options.getChannel("channel");
+  await saveGuildSettings(context, { xpChannel: channel ? channel.id : "" });
+  if (channel) {
+    await interaction.reply({
+      content: `\u2705 XP is now only earned in <#${channel.id}>. Use \`/xp channel\` with no channel to allow all channels again.`,
+      ephemeral: true
+    });
+  } else {
+    await interaction.reply({
+      content: "\u2705 XP can now be earned in every channel (no-XP channels still apply).",
+      ephemeral: true
+    });
+  }
+}
+__name(xpChannel, "xpChannel");
+async function nocxpAdd(context) {
+  const { interaction } = context;
+  const channel = interaction.options.getChannel("channel", true);
+  const current = await loadLevelSettings(context);
+  if (current.noXpChannels.includes(channel.id)) {
+    await interaction.reply({
+      content: `<#${channel.id}> is already excluded from XP.`,
+      ephemeral: true
+    });
+    return;
+  }
+  await saveGuildSettings(context, {
+    disableXpChannels: [...current.noXpChannels, channel.id]
+  });
+  await interaction.reply({
+    content: `\u2705 Members earn no XP in <#${channel.id}>.`,
+    ephemeral: true
+  });
+}
+__name(nocxpAdd, "nocxpAdd");
+async function nocxpRemove(context) {
+  const { interaction } = context;
+  const channel = interaction.options.getChannel("channel", true);
+  const current = await loadLevelSettings(context);
+  if (!current.noXpChannels.includes(channel.id)) {
+    await interaction.reply({
+      content: `<#${channel.id}> is not excluded from XP.`,
+      ephemeral: true
+    });
+    return;
+  }
+  await saveGuildSettings(context, {
+    disableXpChannels: current.noXpChannels.filter((id) => id !== channel.id)
+  });
+  await interaction.reply({
+    content: `\u2705 Members earn XP in <#${channel.id}> again.`,
+    ephemeral: true
+  });
+}
+__name(nocxpRemove, "nocxpRemove");
+async function nocxpList(context) {
+  const { interaction } = context;
+  const current = await loadLevelSettings(context);
+  const embed = new import_discord22.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
+  if (current.noXpChannels.length === 0) {
+    embed.setDescription("No channels are excluded \u2014 XP is earned everywhere.");
+  } else {
+    embed.setDescription(current.noXpChannels.map((id) => `<#${id}>`).join("\n"));
+  }
+  if (current.xpChannel) {
+    embed.addFields({ name: "Exclusive XP channel", value: `<#${current.xpChannel}>` });
+  }
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+__name(nocxpList, "nocxpList");
 
 // src/commands/index.ts
 var commands = [
@@ -179716,7 +181455,10 @@ var commands = [
   eightBallCommand,
   coinflipCommand,
   diceCommand,
-  rankCommand
+  rankCommand,
+  leaderboardCommand,
+  levelsCommand,
+  xpCommand
 ];
 
 // src/index.ts
@@ -179729,8 +181471,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord16 = __toESM(require_src());
-var SukunaClient = class extends import_discord16.Client {
+var import_discord23 = __toESM(require_src());
+var SukunaClient = class extends import_discord23.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -179745,16 +181487,19 @@ var SukunaClient = class extends import_discord16.Client {
   constructor() {
     super({
       intents: [
-        import_discord16.GatewayIntentBits.Guilds,
-        import_discord16.GatewayIntentBits.GuildMembers,
-        import_discord16.GatewayIntentBits.GuildMessages,
-        import_discord16.GatewayIntentBits.MessageContent,
-        import_discord16.GatewayIntentBits.DirectMessages,
-        import_discord16.GatewayIntentBits.GuildVoiceStates,
-        import_discord16.GatewayIntentBits.GuildMessageReactions
+        import_discord23.GatewayIntentBits.Guilds,
+        import_discord23.GatewayIntentBits.GuildMembers,
+        import_discord23.GatewayIntentBits.GuildMessages,
+        import_discord23.GatewayIntentBits.MessageContent,
+        import_discord23.GatewayIntentBits.DirectMessages,
+        import_discord23.GatewayIntentBits.GuildVoiceStates,
+        import_discord23.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord16.Partials.Message, import_discord16.Partials.Channel, import_discord16.Partials.GuildMember, import_discord16.Partials.Reaction],
-      allowedMentions: { parse: ["users"], repliedUser: false }
+      partials: [import_discord23.Partials.Message, import_discord23.Partials.Channel, import_discord23.Partials.GuildMember, import_discord23.Partials.Reaction],
+      allowedMentions: { parse: ["users"], repliedUser: false },
+      // Always appear as "Do Not Disturb" with no activity text. Sent with the
+      // IDENTIFY payload, so it applies on login and on every reconnect.
+      presence: { status: "dnd" }
     });
   }
   async getConfig(guildId) {
@@ -179836,7 +181581,7 @@ __name(registerEvents, "registerEvents");
 var import_pino = __toESM(require_pino());
 
 // src/core/metrics.ts
-var import_node_stream4 = require("node:stream");
+var import_node_stream5 = require("node:stream");
 var MAX_EVENTS = 400;
 var events = [];
 var counters = {
@@ -179901,7 +181646,7 @@ var PINO_LEVELS = {
   50: "error",
   60: "error"
 };
-var activityLogStream = new import_node_stream4.Writable({
+var activityLogStream = new import_node_stream5.Writable({
   write(chunk, _encoding, callback) {
     try {
       const raw = chunk.toString().trim();
@@ -179943,7 +181688,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord18 = __toESM(require_src());
+var import_discord25 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -179975,17 +181720,17 @@ function newErrorId() {
 __name(newErrorId, "newErrorId");
 
 // src/core/respond.ts
-var import_discord17 = __toESM(require_src());
+var import_discord24 = __toESM(require_src());
 async function replyError(interaction, message, errorId) {
   const content = errorId ? `${message} (ref: ${errorId})` : message;
-  await interaction.reply({ content, flags: import_discord17.MessageFlags.Ephemeral }).catch(() => {
+  await interaction.reply({ content, flags: import_discord24.MessageFlags.Ephemeral }).catch(() => {
   });
 }
 __name(replyError, "replyError");
 
 // src/events/interactionCreate.ts
 var interactionCreate = {
-  name: import_discord18.Events.InteractionCreate,
+  name: import_discord25.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     if (!interaction.isChatInputCommand()) return;
     const command = client.commands.get(interaction.commandName);
@@ -180077,12 +181822,12 @@ var interactionCreate = {
 };
 
 // src/events/ready.ts
-var import_discord19 = __toESM(require_src());
+var import_discord28 = __toESM(require_src());
 
 // dashboard/server.ts
 var import_node_http = __toESM(require("node:http"));
-var import_node_fs = __toESM(require("node:fs"));
-var import_node_path = __toESM(require("node:path"));
+var import_node_fs2 = __toESM(require("node:fs"));
+var import_node_path2 = __toESM(require("node:path"));
 var import_node_crypto = __toESM(require("node:crypto"));
 init_zod();
 init_config();
@@ -181134,12 +182879,12 @@ var STATIC_FILES = {
   "/app.js": { file: "app.js", type: "application/javascript; charset=utf-8" }
 };
 function resolveDashboardDir() {
-  const candidates = [import_node_path.default.join(process.cwd(), "dashboard")];
+  const candidates = [import_node_path2.default.join(process.cwd(), "dashboard")];
   const here = typeof __dirname === "string" ? __dirname : "";
-  if (here) candidates.push(import_node_path.default.join(here, "dashboard"), import_node_path.default.join(here, "..", "dashboard"));
+  if (here) candidates.push(import_node_path2.default.join(here, "dashboard"), import_node_path2.default.join(here, "..", "dashboard"));
   for (const dir of candidates) {
     try {
-      if (import_node_fs.default.existsSync(import_node_path.default.join(dir, "index.html"))) return dir;
+      if (import_node_fs2.default.existsSync(import_node_path2.default.join(dir, "index.html"))) return dir;
     } catch {
     }
   }
@@ -181667,6 +183412,7 @@ async function sendGuildDetail(client, guild, res) {
     guild: serializeGuild(guild),
     config: serializeGuildConfig(row),
     channels: serializeChannels(guild),
+    roles: serializeRoles(guild),
     counts: {
       memories: memoryCount,
       faq: faqCount,
@@ -181680,11 +183426,23 @@ var guildPatchSchema = external_exports.object({
   modules: external_exports.record(external_exports.string().min(1).max(40), external_exports.boolean()).optional(),
   xpEnabled: external_exports.boolean().optional(),
   xpCooldown: external_exports.number().int().min(0).max(3600).optional(),
-  xpMin: external_exports.number().int().min(1).max(1e3).optional(),
-  xpMax: external_exports.number().int().min(1).max(1e3).optional(),
+  xpMin: external_exports.number().int().min(0).max(1e3).optional(),
+  xpMax: external_exports.number().int().min(0).max(1e3).optional(),
+  xpVoiceMin: external_exports.number().int().min(0).max(1e3).optional(),
+  xpVoiceMax: external_exports.number().int().min(0).max(1e3).optional(),
+  xpIgnoreBots: external_exports.boolean().optional(),
+  xpChannel: external_exports.string().regex(/^\d{5,25}$/).nullable().optional(),
   levelUpChannel: external_exports.string().regex(/^\d{5,25}$/).nullable().optional(),
-  levelUpMessage: external_exports.string().max(500).nullable().optional(),
-  disableXpChannels: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).max(200).optional()
+  levelUpMessage: external_exports.string().max(2e3).nullable().optional(),
+  disableXpChannels: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).max(200).optional(),
+  levelRoles: external_exports.record(external_exports.string().regex(/^\d+$/).max(10), external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  liveLeaderboard: external_exports.object({
+    enabled: external_exports.boolean().optional(),
+    channelId: external_exports.string().regex(/^\d{5,25}$/).nullable().optional(),
+    intervalMinutes: external_exports.number().int().min(1).max(1440).optional(),
+    rows: external_exports.number().int().min(3).max(25).optional(),
+    title: external_exports.string().max(100).nullable().optional()
+  }).strict().optional()
 }).strict();
 async function updateGuild(client, guild, req, res) {
   const parsed = guildPatchSchema.safeParse(await readJson(req));
@@ -181708,6 +183466,20 @@ async function updateGuild(client, guild, req, res) {
   if (nextMin > nextMax) throw new HttpError(400, "Minimum XP cannot exceed maximum XP");
   if (data.xpMin !== void 0) updates.xpMin = data.xpMin;
   if (data.xpMax !== void 0) updates.xpMax = data.xpMax;
+  const nextVoiceMin = data.xpVoiceMin ?? current?.xpVoiceMin ?? 5;
+  const nextVoiceMax = data.xpVoiceMax ?? current?.xpVoiceMax ?? 8;
+  if (nextVoiceMin > nextVoiceMax) {
+    throw new HttpError(400, "Minimum voice XP cannot exceed maximum voice XP");
+  }
+  if (data.xpVoiceMin !== void 0) updates.xpVoiceMin = data.xpVoiceMin;
+  if (data.xpVoiceMax !== void 0) updates.xpVoiceMax = data.xpVoiceMax;
+  if (data.xpIgnoreBots !== void 0) updates.xpIgnoreBots = data.xpIgnoreBots;
+  if (data.xpChannel !== void 0) {
+    if (data.xpChannel && !guild.channels.cache.has(data.xpChannel)) {
+      throw new HttpError(400, "XP channel does not exist in this guild");
+    }
+    updates.xpChannel = data.xpChannel ?? "";
+  }
   if (data.levelUpChannel !== void 0) {
     if (data.levelUpChannel && !guild.channels.cache.has(data.levelUpChannel)) {
       throw new HttpError(400, "Level-up channel does not exist in this guild");
@@ -181716,10 +183488,57 @@ async function updateGuild(client, guild, req, res) {
   }
   if (data.levelUpMessage !== void 0) updates.levelUpMessage = data.levelUpMessage;
   if (data.disableXpChannels !== void 0) updates.disableXpChannels = data.disableXpChannels;
+  if (data.levelRoles !== void 0) {
+    for (const roleId of Object.values(data.levelRoles)) {
+      if (!guild.roles.cache.has(roleId)) {
+        throw new HttpError(400, `Level reward role ${roleId} does not exist in this guild`);
+      }
+    }
+    updates.levelRoles = data.levelRoles;
+  }
+  let liveChanged = false;
+  if (data.liveLeaderboard !== void 0) {
+    const previous = {
+      enabled: current?.liveLeaderboard?.enabled ?? false,
+      channelId: current?.liveLeaderboard?.channelId ?? "",
+      messageId: current?.liveLeaderboard?.messageId ?? "",
+      intervalMinutes: current?.liveLeaderboard?.intervalMinutes ?? 10,
+      rows: current?.liveLeaderboard?.rows ?? 25,
+      title: current?.liveLeaderboard?.title ?? ""
+    };
+    const patch = data.liveLeaderboard;
+    if (patch.channelId && !guild.channels.cache.has(patch.channelId)) {
+      throw new HttpError(400, "Live leaderboard channel does not exist in this guild");
+    }
+    const channelId = patch.channelId === void 0 ? previous.channelId : patch.channelId ?? "";
+    updates.liveLeaderboard = {
+      enabled: patch.enabled ?? previous.enabled,
+      channelId,
+      // A channel change invalidates the stored message id: the old message is
+      // not in the new channel and would never be found again.
+      messageId: channelId === previous.channelId ? previous.messageId : "",
+      intervalMinutes: patch.intervalMinutes ?? previous.intervalMinutes,
+      rows: patch.rows ?? previous.rows,
+      title: patch.title === void 0 ? previous.title : patch.title ?? ""
+    };
+    liveChanged = true;
+  }
   if (Object.keys(updates).length === 0) throw new HttpError(400, "No changes supplied");
   await updateGuildConfig(guild.id, updates);
   const fresh = await readGuildConfig(guild.id);
   client.cacheSettings(guild.id, fresh ?? { modules: {} }, Date.now());
+  if (liveChanged) {
+    invalidateLiveLeaderboard(guild.id);
+    const live = fresh?.liveLeaderboard;
+    if (live?.enabled && live.channelId) {
+      void refreshLiveLeaderboard(client, guild.id, { force: true }).catch((err) => {
+        recordActivity("error", "Live leaderboard refresh failed", {
+          level: "error",
+          meta: { guildId: guild.id, error: String(err) }
+        });
+      });
+    }
+  }
   recordActivity("system", "Guild settings updated: " + guild.name, {
     level: "success",
     meta: { guildId: guild.id }
@@ -181727,10 +183546,20 @@ async function updateGuild(client, guild, req, res) {
   sendJson(res, 200, {
     guild: serializeGuild(guild),
     config: serializeGuildConfig(fresh),
-    channels: serializeChannels(guild)
+    channels: serializeChannels(guild),
+    roles: serializeRoles(guild)
   });
 }
 __name(updateGuild, "updateGuild");
+function serializeRoles(guild) {
+  return [...guild.roles.cache.values()].filter((role) => role.id !== guild.id && !role.managed).map((role) => ({
+    id: role.id,
+    name: role.name,
+    color: role.hexColor,
+    position: role.position
+  })).sort((a, b) => b.position - a.position);
+}
+__name(serializeRoles, "serializeRoles");
 function serializeGuild(guild) {
   return {
     id: guild.id,
@@ -181763,19 +183592,44 @@ function serializeChannels(guild) {
 }
 __name(serializeChannels, "serializeChannels");
 function serializeGuildConfig(row) {
+  const live = row?.liveLeaderboard ?? {};
   return {
     modules: normalizeModules(row?.modules),
     xpEnabled: row?.xpEnabled ?? true,
     xpCooldown: row?.xpCooldown ?? 60,
     xpMin: row?.xpMin ?? 15,
     xpMax: row?.xpMax ?? 25,
+    xpVoiceMin: row?.xpVoiceMin ?? 5,
+    xpVoiceMax: row?.xpVoiceMax ?? 8,
+    xpIgnoreBots: row?.xpIgnoreBots ?? true,
+    xpChannel: row?.xpChannel ?? null,
     levelUpChannel: row?.levelUpChannel ?? null,
     levelUpMessage: row?.levelUpMessage ?? null,
     disableXpChannels: Array.isArray(row?.disableXpChannels) ? row.disableXpChannels : [],
+    levelRoles: normalizeLevelRoles2(row?.levelRoles),
+    liveLeaderboard: {
+      enabled: live.enabled ?? false,
+      channelId: live.channelId ?? "",
+      messageId: live.messageId ?? "",
+      intervalMinutes: live.intervalMinutes ?? 10,
+      rows: live.rows ?? 25,
+      title: live.title ?? ""
+    },
     updatedAt: row?.updatedAt ?? null
   };
 }
 __name(serializeGuildConfig, "serializeGuildConfig");
+function normalizeLevelRoles2(value) {
+  const source = value instanceof Map ? Object.fromEntries(value) : value && typeof value === "object" ? value : {};
+  const result = {};
+  for (const [level, roleId] of Object.entries(source)) {
+    if (!/^\d+$/.test(level)) continue;
+    if (typeof roleId !== "string" || roleId === "") continue;
+    result[String(Number.parseInt(level, 10))] = roleId;
+  }
+  return result;
+}
+__name(normalizeLevelRoles2, "normalizeLevelRoles");
 function normalizeModules(value) {
   if (!value) return {};
   if (value instanceof Map) return Object.fromEntries(value);
@@ -182065,7 +183919,17 @@ async function updateUserDoc(userId, req, res) {
   const parsed = userPatchSchema.safeParse(await readJson(req));
   if (!parsed.success) throw new HttpError(400, "Invalid user update", parsed.error.flatten());
   if (Object.keys(parsed.data).length === 0) throw new HttpError(400, "No changes supplied");
-  const updated = await User.findOneAndUpdate({ userId }, { $set: parsed.data }, { new: true }).lean();
+  const data = { ...parsed.data };
+  const xpValue = data.totalXp ?? data.xp;
+  delete data.xp;
+  delete data.totalXp;
+  const exists = await User.exists({ userId });
+  if (!exists) throw new HttpError(404, "User not found");
+  if (Object.keys(data).length > 0) {
+    await User.findOneAndUpdate({ userId }, { $set: data }, { new: true });
+  }
+  if (xpValue !== void 0) await setUserXp(userId, xpValue);
+  const updated = await User.findOne({ userId }).lean();
   if (!updated) throw new HttpError(404, "User not found");
   recordActivity("system", "User economy record updated", {
     level: "warn",
@@ -182086,9 +183950,9 @@ function applySecurityHeaders(res) {
 }
 __name(applySecurityHeaders, "applySecurityHeaders");
 async function serveStatic(res, entry) {
-  const filePath = import_node_path.default.join(DASHBOARD_DIR, entry.file);
+  const filePath = import_node_path2.default.join(DASHBOARD_DIR, entry.file);
   try {
-    const content = await import_node_fs.default.promises.readFile(filePath);
+    const content = await import_node_fs2.default.promises.readFile(filePath);
     res.writeHead(200, {
       "Content-Type": entry.type,
       "Cache-Control": "no-store"
@@ -182184,8 +184048,236 @@ __name(toPlainObject, "toPlainObject");
 
 // src/events/ready.ts
 init_config();
-var ready = {
-  name: import_discord19.Events.ClientReady,
+
+// src/events/voiceStateUpdate.ts
+var import_discord27 = __toESM(require_src());
+
+// src/handlers/levelUp.ts
+function resolveLevelRoles(levelRoles, level) {
+  const tiers = Object.entries(levelRoles).filter(([key, roleId]) => /^\d+$/.test(key) && typeof roleId === "string" && roleId !== "").map(([key, roleId]) => ({ level: Number.parseInt(key, 10), roleId })).filter((tier) => tier.level <= level).sort((a, b) => a.level - b.level);
+  const best = tiers[tiers.length - 1];
+  if (!best) return { removeRoleIds: [] };
+  return {
+    grantRoleId: best.roleId,
+    // The same role can be configured for several levels; never queue the role
+    // we are granting for removal (add then remove would strip it again), and
+    // de-duplicate so Discord receives one id per role.
+    removeRoleIds: [
+      ...new Set(tiers.filter((tier) => tier.roleId !== best.roleId).map((tier) => tier.roleId))
+    ]
+  };
+}
+__name(resolveLevelRoles, "resolveLevelRoles");
+async function applyLevelRoles(guild, member, grantRoleId, removeRoleIds) {
+  if (!grantRoleId) return;
+  let role = guild.roles.cache.get(grantRoleId) ?? null;
+  if (!role) {
+    role = await guild.roles.fetch(grantRoleId).catch(() => null);
+  }
+  if (!role) {
+    console.warn(
+      `[LevelUp] Level role ${grantRoleId} no longer exists in guild ${guild.id}; nothing granted to ${member.id}.`
+    );
+    return;
+  }
+  const permissionError = canAssignRole(guild, role);
+  if (permissionError) {
+    console.warn(
+      `[LevelUp] Cannot grant "${role.name}" (${role.id}) to ${member.id}: ${permissionError}`
+    );
+    return;
+  }
+  if (!member.roles.cache.has(role.id)) {
+    try {
+      await member.roles.add(role.id, "Level reward");
+    } catch (err) {
+      console.error(`[LevelUp] Failed to grant "${role.name}" (${role.id}) to ${member.id}:`, err);
+      return;
+    }
+  }
+  const rewardRoleId = role.id;
+  const rolesToRemove = removeRoleIds.filter(
+    (roleId) => roleId !== rewardRoleId && member.roles.cache.has(roleId)
+  );
+  if (rolesToRemove.length === 0) return;
+  try {
+    await member.roles.remove(rolesToRemove, "Replaced by a higher level reward");
+  } catch (err) {
+    console.error(`[LevelUp] Failed to remove old level roles from ${member.id}:`, err);
+  }
+}
+__name(applyLevelRoles, "applyLevelRoles");
+async function syncLevelRoles(guild, member, level, levelRoles) {
+  const roles = levelRoles ?? (await loadGuildLevelSettings(guild.id)).levelRoles;
+  const { grantRoleId, removeRoleIds } = resolveLevelRoles(roles, level);
+  await applyLevelRoles(guild, member, grantRoleId, removeRoleIds);
+}
+__name(syncLevelRoles, "syncLevelRoles");
+async function loadGuildLevelSettings(guildId) {
+  const row = await readGuildConfig(guildId).catch(() => null);
+  return readLevelSettings(row ?? {});
+}
+__name(loadGuildLevelSettings, "loadGuildLevelSettings");
+async function handleLevelUp(guild, user, newLevel, oldLevel, channel, settings) {
+  const cfg = settings ?? await loadGuildLevelSettings(guild.id);
+  const { grantRoleId, removeRoleIds } = resolveLevelRoles(cfg.levelRoles, newLevel);
+  let member;
+  try {
+    member = await guild.members.fetch(user.id);
+  } catch (err) {
+    console.error(`[LevelUp] Failed to fetch member ${user.id} in guild ${guild.id}:`, err);
+  }
+  if (member) {
+    await applyLevelRoles(guild, member, grantRoleId, removeRoleIds);
+  }
+  let targetChannel;
+  if (cfg.levelUpChannel) {
+    targetChannel = guild.channels.cache.get(cfg.levelUpChannel);
+    if (!targetChannel) {
+      targetChannel = await guild.channels.fetch(cfg.levelUpChannel).catch(() => null);
+    }
+  }
+  if (!targetChannel && channel) {
+    targetChannel = channel;
+  }
+  if (!targetChannel) {
+    targetChannel = guild.systemChannel ?? null;
+  }
+  if (!targetChannel || !("send" in targetChannel) || typeof targetChannel.send !== "function") {
+    return;
+  }
+  const row = await getUserXp(user.id);
+  const info = levelFromXp(row?.xp ?? 0);
+  const template = cfg.levelUpMessage || "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
+  const content = template.replace(/\{user\}/g, `<@${user.id}>`).replace(/\{username\}/g, user.username).replace(/\{level\}/g, String(newLevel)).replace(/\{server\}/g, guild.name).replace(/\{role\}/g, grantRoleId ? `<@&${grantRoleId}>` : "").replace(/\{xp\}/g, info.xpInLevel.toLocaleString()).replace(/\{xpneeded\}/g, info.xpForNext.toLocaleString()).trim();
+  if (!content) return;
+  try {
+    await targetChannel.send({
+      content,
+      // Only the user who levelled up gets pinged.
+      allowedMentions: { users: [user.id] }
+    });
+  } catch (err) {
+    console.error("Failed to send level-up announcement:", err);
+  }
+}
+__name(handleLevelUp, "handleLevelUp");
+
+// src/events/voiceStateUpdate.ts
+var voiceSessions = /* @__PURE__ */ new Map();
+var tickInterval = null;
+async function awardVoiceXp(client, userId, minutes, guild, user, settings) {
+  if (minutes <= 0 || !guild || !user) return;
+  let cfg = settings;
+  if (!cfg) {
+    const row = await loadGuildConfig(client, guild.id);
+    cfg = readLevelSettings(row ?? {});
+  }
+  if (!cfg.enabled) return;
+  if (cfg.ignoreBots && user.bot) return;
+  const amount = randomXp(cfg.perVoiceMinuteMin, cfg.perVoiceMinuteMax) * minutes;
+  if (amount <= 0) return;
+  try {
+    const result = await addXp(userId, amount, "voice", minutes);
+    if (result.leveledUp) {
+      await handleLevelUp(guild, user, result.newLevel, result.oldLevel, void 0, cfg);
+    }
+  } catch (err) {
+    console.error(`Failed to award voice XP to ${userId}:`, err);
+  }
+}
+__name(awardVoiceXp, "awardVoiceXp");
+async function loadGuildConfig(client, guildId) {
+  const withConfig = client;
+  if (typeof withConfig.getConfig === "function") {
+    return withConfig.getConfig(guildId);
+  }
+  return null;
+}
+__name(loadGuildConfig, "loadGuildConfig");
+async function handleVoiceStateUpdate(client, oldState, newState) {
+  const userId = newState.member?.user?.id ?? oldState.member?.user?.id;
+  if (!userId) return;
+  const now = Date.now();
+  const changedChannel = oldState.channelId !== newState.channelId;
+  if (oldState.channelId && changedChannel) {
+    const joinTs = voiceSessions.get(userId);
+    if (joinTs) {
+      const minutes = Math.floor((now - joinTs) / 6e4);
+      voiceSessions.delete(userId);
+      await awardVoiceXp(
+        client,
+        userId,
+        minutes,
+        newState.guild ?? oldState.guild,
+        newState.member?.user ?? oldState.member?.user
+      );
+    }
+  }
+  if (changedChannel && newState.channelId && newState.member?.user) {
+    voiceSessions.set(userId, now);
+  }
+}
+__name(handleVoiceStateUpdate, "handleVoiceStateUpdate");
+function seedVoiceSessions(client) {
+  const now = Date.now();
+  for (const guild of client.guilds.cache.values()) {
+    for (const state of guild.voiceStates.cache.values()) {
+      if (!state.channelId || !state.member?.user) continue;
+      if (!voiceSessions.has(state.id)) voiceSessions.set(state.id, now);
+    }
+  }
+}
+__name(seedVoiceSessions, "seedVoiceSessions");
+async function handleVoiceTick(client) {
+  const now = Date.now();
+  const entries = [...voiceSessions.entries()];
+  for (const [userId, joinTs] of entries) {
+    const minutesElapsed = Math.floor((now - joinTs) / 6e4);
+    if (minutesElapsed < 1) continue;
+    let found = false;
+    for (const guild of client.guilds.cache.values()) {
+      const member = guild.voiceStates.cache.get(userId)?.member ?? guild.members.cache.get(userId) ?? null;
+      if (!member?.voice?.channelId) continue;
+      found = true;
+      await awardVoiceXp(client, userId, minutesElapsed, guild, member.user);
+      break;
+    }
+    if (found) {
+      voiceSessions.set(userId, now - (now - joinTs) % 6e4);
+    } else {
+      voiceSessions.delete(userId);
+    }
+  }
+}
+__name(handleVoiceTick, "handleVoiceTick");
+function startVoiceTracking(client) {
+  seedVoiceSessions(client);
+  stopVoiceTracking();
+  tickInterval = setInterval(() => {
+    void handleVoiceTick(client).catch((err) => {
+      console.error("Voice XP tick error:", err);
+    });
+  }, 6e4);
+}
+__name(startVoiceTracking, "startVoiceTracking");
+function stopVoiceTracking() {
+  if (tickInterval) {
+    clearInterval(tickInterval);
+    tickInterval = null;
+  }
+}
+__name(stopVoiceTracking, "stopVoiceTracking");
+var voiceStateUpdate = {
+  name: import_discord27.Events.VoiceStateUpdate,
+  execute: /* @__PURE__ */ __name(async (client, oldState, newState) => {
+    await handleVoiceStateUpdate(client, oldState, newState);
+  }, "execute")
+};
+
+// src/events/ready.ts
+var ready2 = {
+  name: import_discord28.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
@@ -182210,11 +184302,14 @@ var ready = {
     } else {
       client.logger.info("[Sukuna] AI persona disabled");
     }
+    startVoiceTracking(client);
+    startLiveLeaderboard(client);
+    client.logger.info("[Levels] Voice tracking and live leaderboard scheduler started");
   }, "execute")
 };
 
 // src/events/messageCreate.ts
-var import_discord20 = __toESM(require_src());
+var import_discord29 = __toESM(require_src());
 
 // src/utils/sukuna.ts
 init_config();
@@ -182773,47 +184868,104 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord20.Events.MessageCreate,
+  name: import_discord29.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
-    handleMessage(message);
-    if (message.author.bot) return;
+    try {
+      handleMessage(message);
+    } catch (err) {
+      client.logger?.warn({ err }, "sukuna handler failed");
+    }
     if (!message.guild) return;
-    bumpCounter("messagesSeen");
-    const guild = message.guild;
-    const config2 = await client.getConfig(guild.id);
-    if (config2.modules?.leveling === false) return;
-    const cooldownKey = `xp_${message.author.id}`;
+    if (!message.author?.bot) bumpCounter("messagesSeen");
+    let config2;
+    try {
+      config2 = await client.getConfig(message.guild.id);
+    } catch (err) {
+      client.logger?.warn({ err }, "guild settings load failed");
+      return;
+    }
+    if (config2?.modules?.leveling === false) return;
+    const settings = readLevelSettings(config2);
+    if (!settings.enabled) return;
+    if (settings.ignoreBots && message.author.bot) return;
+    if (settings.noXpChannels.includes(message.channelId)) return;
+    if (settings.xpChannel && message.channelId !== settings.xpChannel) return;
+    const userId = message.author.id;
+    const guildId = message.guild.id;
     const now = Date.now();
+    const cooldownMs = Math.max(0, settings.cooldownSeconds) * 1e3;
     const xpCooldowns = client.xpCooldowns || /* @__PURE__ */ new Map();
     client.xpCooldowns = xpCooldowns;
-    const cooldownSeconds = config2.xpCooldown ?? 60;
-    if (xpCooldowns.has(cooldownKey)) {
-      if (now - xpCooldowns.get(cooldownKey) < cooldownSeconds * 1e3) return;
+    const cooldownKey = `xp_${guildId}_${userId}`;
+    const memoryExpiry = xpCooldowns.get(cooldownKey) ?? 0;
+    if (memoryExpiry > now) return;
+    let storedExpiry = 0;
+    if (cooldownMs > 0) {
+      try {
+        const stored = await getUserXp(userId);
+        storedExpiry = (stored?.lastMessageAt?.getTime?.() ?? 0) + cooldownMs;
+      } catch (err) {
+        client.logger?.warn({ err, userId }, "xp cooldown read failed");
+      }
     }
-    xpCooldowns.set(cooldownKey, now);
-    const xpGain = Math.floor(Math.random() * ((config2.xpMax ?? 25) - (config2.xpMin ?? 15) + 1)) + (config2.xpMin ?? 15);
-    const user = await getUser(message.author.id);
-    const oldLevel = user.level;
-    user.xp += xpGain;
-    user.totalXp += xpGain;
-    let newLevel = oldLevel;
-    while (user.xp >= xpForLevel(newLevel + 1)) {
-      newLevel += 1;
+    if (storedExpiry > now) {
+      xpCooldowns.set(cooldownKey, storedExpiry);
+      return;
     }
-    if (newLevel > oldLevel) {
-      user.level = newLevel;
-      const levelUpMsg = (config2.levelUpMessage ?? "Congrats {user}! You reached level {level}!").replace("{user}", `<@${message.author.id}>`).replace("{level}", String(newLevel)).replace("{guild}", guild.name);
-      const channel = config2.levelUpChannel && guild.channels.cache.has(config2.levelUpChannel) ? guild.channels.cache.get(config2.levelUpChannel) : message.channel;
-      await channel.send(`\u{1F38A} ${levelUpMsg}`).catch(() => {
-      });
+    const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
+    if (amount <= 0) return;
+    try {
+      const result = await addXp(userId, amount, "message");
+      xpCooldowns.set(cooldownKey, now + cooldownMs);
+      if (xpCooldowns.size > 1e4) cleanupCooldowns(xpCooldowns, now);
+      if (result.leveledUp) {
+        await handleLevelUp(
+          message.guild,
+          message.author,
+          result.newLevel,
+          result.oldLevel,
+          message.channel,
+          settings
+        );
+      }
+    } catch (err) {
+      client.logger?.error({ err, userId }, "failed to process XP for message");
     }
-    await user.save().catch(() => {
-    });
+  }, "execute")
+};
+function cleanupCooldowns(cooldowns2, now) {
+  for (const [key, expiry] of cooldowns2.entries()) {
+    if (expiry <= now) cooldowns2.delete(key);
+  }
+}
+__name(cleanupCooldowns, "cleanupCooldowns");
+
+// src/events/guildMemberAdd.ts
+var import_discord30 = __toESM(require_src());
+var guildMemberAdd = {
+  name: import_discord30.Events.GuildMemberAdd,
+  execute: /* @__PURE__ */ __name(async (_client, member) => {
+    if (!member || member.user?.bot) return;
+    try {
+      const row = await getUserXp(member.id);
+      if (!row || row.xp <= 0) return;
+      const full = member.partial || !("roles" in member) ? await member.guild.members.fetch(member.id).catch(() => null) : member;
+      if (!full) return;
+      await syncLevelRoles(member.guild, full, levelFromXp(row.xp).level);
+    } catch (err) {
+      console.error("[LevelUp] Failed to restore level roles on join:", err);
+    }
   }, "execute")
 };
 
 // src/events/index.ts
-var events2 = [ready, interactionCreate, messageCreate];
+var events2 = [
+  ready2,
+  interactionCreate,
+  messageCreate,
+  guildMemberAdd,
+  voiceStateUpdate
+];
 
 // src/index.ts
 async function main() {
@@ -182824,6 +184976,8 @@ async function main() {
   async function shutdown(reason, exitCode = 0) {
     logger2.info({ reason, exitCode }, "shutting down");
     closeSukuna();
+    stopVoiceTracking();
+    stopLiveLeaderboard();
     await shutdownVoiceSafely();
     if (client) {
       stopSettingsPoller(client);

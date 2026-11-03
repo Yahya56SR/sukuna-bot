@@ -1,65 +1,116 @@
 import { Events, type ClientEvents } from 'discord.js';
-import { getUser, xpForLevel } from '../db/index.js';
 import { bumpCounter } from '../core/metrics.js';
-import { handleSukunaMessage, isSukunaActive } from '../utils/sukuna.js';
+import { addXp, getUserXp } from '../db/utils.js';
+import { handleLevelUp } from '../handlers/levelUp.js';
+import { randomXp } from '../utils/level.js';
+import { readLevelSettings } from '../utils/levelSettings.js';
+import { handleSukunaMessage } from '../utils/sukuna.js';
 
+/**
+ * MEE6-style XP earning:
+ *  - random XP per message (15-25 by default)
+ *  - max one XP-earning message per cooldown (60s by default) per user
+ *  - no XP in excluded channels
+ *  - if an XP channel is configured, only that channel gives XP
+ *  - bots can be excluded
+ */
 export const messageCreate = {
   name: Events.MessageCreate as keyof ClientEvents,
   execute: async (client: any, message: any) => {
-    // Run Sukuna AI persona
-    handleSukunaMessage(message);
+    // Run the Sukuna AI persona first: it also records bot messages as context.
+    try {
+      handleSukunaMessage(message);
+    } catch (err) {
+      client.logger?.warn({ err }, 'sukuna handler failed');
+    }
 
-    if (message.author.bot) return;
     if (!message.guild) return;
+    if (!message.author?.bot) bumpCounter('messagesSeen');
 
-    bumpCounter('messagesSeen');
+    let config: any;
+    try {
+      config = await client.getConfig(message.guild.id);
+    } catch (err) {
+      client.logger?.warn({ err }, 'guild settings load failed');
+      return;
+    }
 
-    const guild = message.guild;
-    const config = await client.getConfig(guild.id);
+    // Leveling always on unless explicitly disabled.
+    if (config?.modules?.leveling === false) return;
 
-    // Leveling always on unless explicitly disabled
-    if (config.modules?.leveling === false) return;
+    const settings = readLevelSettings(config);
+    if (!settings.enabled) return;
 
-    // Cooldown per user
-    const cooldownKey = `xp_${message.author.id}`;
+    // Optionally ignore bots for text-channel XP.
+    if (settings.ignoreBots && message.author.bot) return;
+
+    // Excluded channels never give XP.
+    if (settings.noXpChannels.includes(message.channelId)) return;
+
+    // When an XP channel is configured, only that channel gives XP.
+    if (settings.xpChannel && message.channelId !== settings.xpChannel) return;
+
+    const userId = message.author.id as string;
+    const guildId = message.guild.id as string;
     const now = Date.now();
+    const cooldownMs = Math.max(0, settings.cooldownSeconds) * 1000;
+
     const xpCooldowns: Map<string, number> = client.xpCooldowns || new Map();
     client.xpCooldowns = xpCooldowns;
+    const cooldownKey = `xp_${guildId}_${userId}`;
 
-    const cooldownSeconds = config.xpCooldown ?? 60;
-    if (xpCooldowns.has(cooldownKey)) {
-      if (now - xpCooldowns.get(cooldownKey)! < cooldownSeconds * 1000) return;
+    // Fast in-memory path first. Only touch the database once the in-memory
+    // window has elapsed, so the persisted `lastMessageAt` can still enforce the
+    // cooldown across restarts without costing a query per message.
+    const memoryExpiry = xpCooldowns.get(cooldownKey) ?? 0;
+    if (memoryExpiry > now) return;
+
+    let storedExpiry = 0;
+    if (cooldownMs > 0) {
+      try {
+        const stored = await getUserXp(userId);
+        storedExpiry = (stored?.lastMessageAt?.getTime?.() ?? 0) + cooldownMs;
+      } catch (err) {
+        client.logger?.warn({ err, userId }, 'xp cooldown read failed');
+      }
     }
-    xpCooldowns.set(cooldownKey, now);
-
-    const xpGain = Math.floor(Math.random() * ((config.xpMax ?? 25) - (config.xpMin ?? 15) + 1)) + (config.xpMin ?? 15);
-
-    const user = await getUser(message.author.id);
-    const oldLevel = user.level;
-    user.xp += xpGain;
-    user.totalXp += xpGain;
-
-    let newLevel = oldLevel;
-    while (user.xp >= xpForLevel(newLevel + 1)) {
-      newLevel += 1;
-    }
-
-    if (newLevel > oldLevel) {
-      user.level = newLevel;
-
-      const levelUpMsg = (config.levelUpMessage ?? "Congrats {user}! You reached level {level}!")
-        .replace("{user}", `<@${message.author.id}>`)
-        .replace("{level}", String(newLevel))
-        .replace("{guild}", guild.name);
-
-      const channel =
-        config.levelUpChannel && guild.channels.cache.has(config.levelUpChannel)
-          ? guild.channels.cache.get(config.levelUpChannel)
-          : message.channel;
-
-      await channel.send(`🎊 ${levelUpMsg}`).catch(() => {});
+    if (storedExpiry > now) {
+      xpCooldowns.set(cooldownKey, storedExpiry);
+      return;
     }
 
-    await user.save().catch(() => {});
+    const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
+    if (amount <= 0) return;
+
+    try {
+      const result = await addXp(userId, amount, 'message');
+
+      // Start the cooldown only once XP was actually awarded, so a failed write
+      // does not silently cost the member their next message.
+      xpCooldowns.set(cooldownKey, now + cooldownMs);
+
+      // Periodically clean up expired entries to prevent a memory leak.
+      if (xpCooldowns.size > 10000) cleanupCooldowns(xpCooldowns, now);
+
+      if (result.leveledUp) {
+        await handleLevelUp(
+          message.guild,
+          message.author,
+          result.newLevel,
+          result.oldLevel,
+          message.channel,
+          settings,
+        );
+      }
+    } catch (err) {
+      client.logger?.error({ err, userId }, 'failed to process XP for message');
+    }
   },
 };
+
+/** Remove expired cooldown entries to prevent memory leaks. */
+function cleanupCooldowns(cooldowns: Map<string, number>, now: number): void {
+  for (const [key, expiry] of cooldowns.entries()) {
+    if (expiry <= now) cooldowns.delete(key);
+  }
+}

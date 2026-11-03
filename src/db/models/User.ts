@@ -5,9 +5,14 @@ export interface IUser extends Document {
   balance: number;
   bank: number;
   bankLimit: number;
+  /** Total XP (kept in sync with `totalXp` for older dashboard queries). */
   xp: number;
   level: number;
   totalXp: number;
+  /** Last message that granted XP — persists the cooldown across restarts. */
+  lastMessageAt?: Date;
+  /** Lifetime voice minutes that granted XP. */
+  voiceMinutes: number;
   lastDaily?: Date;
   lastWork?: Date;
   createdAt: Date;
@@ -23,11 +28,17 @@ const userSchema = new Schema<IUser>(
     xp: { type: Number, default: 0 },
     level: { type: Number, default: 0 },
     totalXp: { type: Number, default: 0 },
+    lastMessageAt: { type: Date },
+    voiceMinutes: { type: Number, default: 0 },
     lastDaily: { type: Date },
     lastWork: { type: Date },
   },
   { timestamps: true },
 );
+
+// Leaderboard / rank position scans sort by total XP.
+userSchema.index({ totalXp: -1 });
+userSchema.index({ xp: -1 });
 
 export const User = model<IUser>("User", userSchema);
 

@@ -20,4 +20,14 @@ export type Database = typeof mongoose;
 
 export { readGuildConfig, getGuildId, updateGuildConfig } from './models/Guild.js';
 export { getUser, updateUser } from './models/User.js';
-export { xpForLevel, getUserXp, getLeaderboard, countRanked, getRankPosition } from './utils.js';
+export {
+  xpForLevel,
+  effectiveXp,
+  getUserXp,
+  addXp,
+  setUserXp,
+  getLeaderboard,
+  countRanked,
+  getRankPosition,
+} from './utils.js';
+export type { AddXpResult, UserXpRow, XpRow } from './utils.js';

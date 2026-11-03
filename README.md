@@ -9,7 +9,7 @@ A modular, slash-command-first Discord bot with moderation, economy, leveling, t
 | **Utility** | `ping`, `help`, `userinfo`, `serverinfo`, `voice` |
 | **Moderation** | `kick`, `ban`, `timeout`, `clear`, `warn` |
 | **Economy** | `balance`, `daily`, `work` |
-| **Leveling** | `rank` (XP gained on messages) |
+| **Leveling** | `rank`, `leaderboard`, `levels` (setup / `role` / `leaderboard`), `xp` (`channel` / `nocxp`) |
 | **Fun** | `8ball`, `coinflip`, `dice` |
 | **Configuration** | `setup` (owner only) |
 
@@ -173,11 +173,13 @@ HttpOnly cookie; `Authorization: Bearer <token>` also works for scripting.
 What you can do from it:
 
 - **Overview** – guild/member counts, uptime, ping, memory, DB state, live counters
-- **Guilds** – per-server modules, XP/level-up settings, memories, rules, FAQ,
-  announcements, scheduled messages
+- **Guilds** – per-server modules, XP/level-up settings (message and voice
+  rates, cooldowns, no-XP channels, level reward roles, live leaderboard),
+  memories, rules, FAQ, announcements, scheduled messages
 - **Persona** – enable/disable, model, temperature, system prompt, activation
   channels, rate limits, and a sandbox that runs one real Gemini call
-- **Economy** – search/sort user balances and levels, edit records
+- **Economy** – search/sort user balances and levels, edit records (XP edits
+  re-derive the level)
 - **Commands / Activity / System** – command registry, live in-memory log feed,
   runtime and security details
 
@@ -219,6 +221,46 @@ Notes:
   they must be present in `node_modules` next to `index.js` (prism-media itself
   is bundled).
 
+## 📈 Leveling
+
+The XP system uses MEE6's curve (`5·level² + 50·level + 100` XP to advance) and
+matches MEE6's defaults:
+
+- **Message XP** – random 15-25 XP per message, one XP-earning message per user
+  per 60 s. The cooldown is persisted on the user row, so it survives restarts.
+- **Voice XP** – random 5-8 XP per minute while connected, awarded by a
+  one-minute tick. Sessions are seeded at startup, so members already in voice
+  keep earning after a restart.
+- **Filters** – bots can be excluded, channels can be excluded from XP, or a
+  single channel can be made the only XP source.
+- **Level rewards** – `/levels role add level: <n> role: @Role` grants a role on
+  reaching a level. Tiers are exclusive: the highest reached role is granted and
+  lower tiers are removed. Roles are restored when a member rejoins.
+- **Announcements** – configurable channel and template with `{user}`,
+  `{username}`, `{level}`, `{server}`, `{role}`, `{xp}` and `{xpneeded}`.
+- **Rank cards** – `/rank` renders a PNG card and `/leaderboard` a PNG board
+  (falls back to an embed when the canvas renderer is unavailable).
+- **Live leaderboard** – `/levels leaderboard start channel:#board` posts one
+  message and edits it on an interval (default 10 min, 25 rows) with a top-3
+  podium image. `/levels leaderboard stop|status` manage it; it is also
+  configurable from the dashboard.
+
+```
+/rank [user]                              # XP card
+/leaderboard [limit]                      # top members
+/levels setup                             # XP rates, cooldown, announce channel/message
+/levels role add|remove|list              # level reward roles
+/levels leaderboard start|stop|status     # self-updating board
+/xp channel [channel]                     # only earn XP in one channel
+/xp nocxp add|remove|list                 # exclude channels from XP
+```
+
+`@napi-rs/canvas` is a native package, so it stays outside the esbuild bundle
+(next to `index.js` in `node_modules`) and is loaded lazily: if it is missing,
+rank cards silently fall back to embeds. Bundled Noto fonts live in
+`assets/fonts`; larger scripts and the colour emoji face are downloaded once into
+`data/fonts` (gitignored).
+
 ## 📜 Scripts
 
 | Script | Description |
@@ -232,7 +274,7 @@ Notes:
 - [x] Core scaffolding (client, handlers, database)
 - [x] Moderation (kick, ban, timeout, clear, warn)
 - [x] Economy (balance, daily, work)
-- [x] Leveling (XP on messages, rank)
+- [x] Leveling (message + voice XP, rank cards, level rewards, live leaderboard)
 - [x] Utility (ping, userinfo, serverinfo, help)
 - [x] Fun (8ball, coinflip, dice)
 - [ ] Tickets (button-based, transcripts)

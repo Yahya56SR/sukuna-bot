@@ -793,6 +793,14 @@ function renderGuildTabBody() {
   if (host) host.innerHTML = guildTabHtml();
 }
 
+function applyGuildConfig(result) {
+  if (!result) return;
+  if (result.config) state.guildDetail.config = result.config;
+  if (result.roles) state.guildDetail.roles = result.roles;
+  if (result.channels) state.guildDetail.channels = result.channels;
+  renderGuildDetail();
+}
+
 async function setGuildTab(tab) {
   state.guildTab = tab;
   renderGuildDetail();
@@ -828,31 +836,48 @@ function guildModulesHtml() {
 /* ---- Leveling ---- */
 
 function guildLevelingHtml() {
-  const { config, channels } = state.guildDetail;
+  const { config, channels, roles } = state.guildDetail;
   const disabled = new Set(config.disableXpChannels || []);
+  const live = config.liveLeaderboard || {};
   const channelOptions = channels.map((channel) =>
     '<option value="' + esc(channel.id) + '" ' + (config.levelUpChannel === channel.id ? 'selected' : '') + '>#' +
     esc(channel.name) + '</option>',
   ).join('');
+  const xpChannelOptions = channels.map((channel) =>
+    '<option value="' + esc(channel.id) + '" ' + (config.xpChannel === channel.id ? 'selected' : '') + '>#' +
+    esc(channel.name) + '</option>',
+  ).join('');
+  const liveChannelOptions = channels.map((channel) =>
+    '<option value="' + esc(channel.id) + '" ' + (live.channelId === channel.id ? 'selected' : '') + '>#' +
+    esc(channel.name) + '</option>',
+  ).join('');
 
-  return '<div class="card pad">' +
+  return '<div class="stack">' +
+    '<div class="card pad">' +
     '<div class="section-head"><div><p class="eyebrow">Leveling</p><h2>XP and level-up behavior</h2>' +
-    '<p>Members gain XP for messages, subject to a per-user cooldown.</p></div></div>' +
+    '<p>Members gain XP for messages and for time spent in voice, subject to a per-user cooldown.</p></div></div>' +
     '<form id="guild-leveling-form" class="stack" style="margin-top:16px">' +
-    switchRow('xpEnabled', 'XP enabled', 'Award XP for messages in this guild', config.xpEnabled !== false) +
+    switchRow('xpEnabled', 'XP enabled', 'Award XP for messages and voice time in this guild', config.xpEnabled !== false) +
     '<div class="form-grid" style="margin-top:6px">' +
-    fieldNumber('xpCooldown', 'Cooldown (seconds)', config.xpCooldown, 0, 3600, 'Minimum seconds between XP gains per user') +
-    fieldNumber('xpMin', 'Minimum XP per message', config.xpMin, 1, 1000, 'Lower bound of the random XP roll') +
-    fieldNumber('xpMax', 'Maximum XP per message', config.xpMax, 1, 1000, 'Upper bound of the random XP roll') +
+    fieldNumber('xpCooldown', 'Cooldown (seconds)', config.xpCooldown, 0, 3600, 'Minimum seconds between message XP gains per user') +
+    fieldNumber('xpMin', 'Minimum XP per message', config.xpMin, 0, 1000, 'Lower bound of the random message XP roll') +
+    fieldNumber('xpMax', 'Maximum XP per message', config.xpMax, 0, 1000, 'Upper bound of the random message XP roll') +
+    fieldNumber('xpVoiceMin', 'Minimum XP per voice minute', config.xpVoiceMin, 0, 1000, 'Lower bound of the random voice XP roll') +
+    fieldNumber('xpVoiceMax', 'Maximum XP per voice minute', config.xpVoiceMax, 0, 1000, 'Upper bound of the random voice XP roll') +
     '<div class="field"><label class="field-label" for="f-levelUpChannel">Level-up channel</label>' +
     '<select class="select" id="f-levelUpChannel" name="levelUpChannel">' +
     '<option value="">Same channel as the message</option>' + channelOptions + '</select>' +
     '<span class="field-hint">Where level-up announcements are posted.</span></div>' +
+    '<div class="field"><label class="field-label" for="f-xpChannel">XP only in channel</label>' +
+    '<select class="select" id="f-xpChannel" name="xpChannel">' +
+    '<option value="">Any text channel</option>' + xpChannelOptions + '</select>' +
+    '<span class="field-hint">When set, voice and message XP only count in this channel.</span></div>' +
     '<div class="field span-2"><label class="field-label" for="f-levelUpMessage">Level-up message</label>' +
     '<input class="input" id="f-levelUpMessage" name="levelUpMessage" maxlength="500" ' +
     'value="' + esc(config.levelUpMessage || '') + '" placeholder="Congrats {user}! You reached level {level}!">' +
-    '<span class="field-hint">Placeholders: {user}, {level}, {guild}</span></div>' +
+    '<span class="field-hint">Placeholders: {user}, {username}, {level}, {server}, {role}, {xp}, {xpneeded}</span></div>' +
     '</div>' +
+    switchRow('xpIgnoreBots', 'Ignore bots', 'Bots never gain XP, even when they post or sit in voice', config.xpIgnoreBots !== false) +
     '<div class="field" style="margin-top:4px"><span class="field-label">Channels excluded from XP</span>' +
     '<div class="channel-picker scroll"><div class="check-list">' +
     (channels.length
@@ -863,10 +888,73 @@ function guildLevelingHtml() {
         ).join('')
       : '<div class="empty">No text channels found.</div>') +
     '</div></div><span class="field-hint">Checked channels will not award XP.</span></div>' +
+    '<div class="field" style="margin-top:4px"><span class="field-label">Level reward roles</span>' +
+    '<div class="stack" style="gap:8px">' + levelRoleRowsHtml(config.levelRoles, roles) + '</div>' +
+    '<span class="field-hint">A member reaching a level gets its role. Higher levels replace lower reward roles; ' +
+    'leave the role empty to remove a reward.</span></div>' +
     '<div class="sticky-actions"><span class="muted small">XP settings are stored per guild in MongoDB.</span>' +
     '<button class="btn primary" type="submit">Save leveling</button></div>' +
     '</form>' +
+    '</div>' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><p class="eyebrow">Live leaderboard</p><h2>Auto-updating top members</h2>' +
+    '<p>The bot posts a single ranking message and edits it on a schedule instead of spamming new ones.</p></div>' +
+    '<span class="badge ' + (live.enabled ? 'green' : 'red') + '">' + (live.enabled ? 'on' : 'off') + '</span></div>' +
+    '<form id="guild-live-leaderboard-form" class="stack" style="margin-top:16px">' +
+    switchRow('liveEnabled', 'Live leaderboard enabled', 'Keep one ranking message up to date in the channel below', live.enabled === true) +
+    '<div class="form-grid" style="margin-top:6px">' +
+    '<div class="field"><label class="field-label" for="f-liveChannelId">Channel</label>' +
+    '<select class="select" id="f-liveChannelId" name="liveChannelId">' +
+    '<option value="">Choose a channel</option>' + liveChannelOptions + '</select>' +
+    '<span class="field-hint">Changing the channel reposts the leaderboard.</span></div>' +
+    fieldNumber('liveIntervalMinutes', 'Refresh interval (minutes)', live.intervalMinutes ?? 10, 1, 1440, 'How often the message is recomputed') +
+    fieldNumber('liveRows', 'Rows to show', live.rows ?? 25, 3, 25, 'Number of members in the ranking') +
+    '<div class="field span-2"><label class="field-label" for="f-liveTitle">Title</label>' +
+    '<input class="input" id="f-liveTitle" name="liveTitle" maxlength="100" ' +
+    'value="' + esc(live.title || '') + '" placeholder="Leaderboard">' +
+    '<span class="field-hint">Optional heading used above the ranking.</span></div>' +
+    '</div>' +
+    '<div class="sticky-actions"><span class="muted small">' +
+    (live.messageId ? 'Message <span class="mono">' + esc(live.messageId) + '</span> is being updated.' : 'No message posted yet.') +
+    '</span><button class="btn primary" type="submit">Save leaderboard</button></div>' +
+    '</form>' +
+    '</div>' +
     '</div>';
+}
+
+function levelRoleRowsHtml(levelRoles, roles) {
+  const entries = Object.entries(levelRoles || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+  const blanks = entries.length >= 8 ? 1 : 3;
+  const rows = entries.map(([level, roleId]) => levelRoleRowHtml(level, roleId, roles));
+  for (let index = 0; index < blanks; index += 1) rows.push(levelRoleRowHtml('', '', roles));
+  return rows.join('');
+}
+
+function levelRoleRowHtml(level, roleId, roles) {
+  const options = '<option value="">— none —</option>' + (roles || []).map((role) =>
+    '<option value="' + esc(role.id) + '" ' + (role.id === roleId ? 'selected' : '') + '>' +
+    esc(role.name) + '</option>',
+  ).join('');
+
+  return '<div class="row wrap" style="gap:8px;align-items:center">' +
+    '<input class="input sm" style="max-width:110px" type="number" min="1" max="500" ' +
+    'name="levelRoleLevel" value="' + esc(level) + '" placeholder="Level">' +
+    '<select class="select sm" style="max-width:260px" name="levelRoleId">' + options + '</select>' +
+    '</div>';
+}
+
+function collectLevelRoles(form) {
+  const levels = $$('input[name="levelRoleLevel"]', form);
+  const roles = $$('select[name="levelRoleId"]', form);
+  const result = {};
+  levels.forEach((input, index) => {
+    const level = Number.parseInt(String(input.value || ''), 10);
+    const select = roles[index];
+    const roleId = select ? String(select.value || '') : '';
+    if (!Number.isFinite(level) || level < 1 || !roleId) return;
+    result[String(level)] = roleId;
+  });
+  return result;
 }
 
 function fieldNumber(name, label, value, min, max, hint) {
@@ -1391,7 +1479,7 @@ function usersHtml() {
     '<div class="card-body"><div class="toolbar">' +
     '<div class="search"><input class="input sm" id="user-search" placeholder="Search by user ID…" value="' + esc(state.userQuery) + '"></div>' +
     '<select class="select sm" id="user-sort">' +
-    [['totalXp', 'Total XP'], ['balance', 'Wallet'], ['level', 'Level'], ['xp', 'XP'], ['createdAt', 'Newest']]
+    [['totalXp', 'Total XP'], ['balance', 'Wallet'], ['level', 'Level'], ['createdAt', 'Newest']]
       .map(([value, label]) => '<option value="' + value + '" ' + (data.sort === value ? 'selected' : '') + '>' + label + '</option>').join('') +
     '</select>' +
     '<select class="select sm" id="user-order">' +
@@ -1471,11 +1559,10 @@ function openUserModal(userId) {
     modalNumber('balance', 'Wallet balance', user.balance) +
     modalNumber('bank', 'Bank balance', user.bank) +
     modalNumber('bankLimit', 'Bank limit', user.bankLimit) +
-    modalNumber('level', 'Level', user.level) +
-    modalNumber('xp', 'XP toward next level', user.xp) +
     modalNumber('totalXp', 'Total XP', user.totalXp) +
     '</div>' +
-    '<div class="notice warn">Direct edits bypass normal economy rules. Use sparingly.</div>' +
+    '<div class="notice warn">Direct edits bypass normal economy rules. Level (' +
+    esc(num(user.level)) + ') is derived from total XP with the MEE6 curve and is recalculated on save.</div>' +
     '<div class="modal-foot" style="padding:0">' +
     '<button class="btn ghost" type="button" data-action="modal-close">Cancel</button>' +
     '<button class="btn primary" type="submit">Save changes</button></div>' +
@@ -1492,7 +1579,7 @@ async function saveUser(form) {
   const data = new FormData(form);
   const userId = String(data.get('userId') || '');
   const patch = {};
-  for (const key of ['balance', 'bank', 'bankLimit', 'level', 'xp', 'totalXp']) {
+  for (const key of ['balance', 'bank', 'bankLimit', 'totalXp']) {
     const raw = data.get(key);
     if (raw !== null && raw !== '') patch[key] = Math.max(0, Math.round(Number(raw)));
   }
@@ -1806,16 +1893,41 @@ document.addEventListener('submit', async (event) => {
           const data = new FormData(form);
           const body = {
             xpEnabled: data.get('xpEnabled') === 'on',
+            xpIgnoreBots: data.get('xpIgnoreBots') === 'on',
             xpCooldown: Number(data.get('xpCooldown')),
             xpMin: Number(data.get('xpMin')),
             xpMax: Number(data.get('xpMax')),
+            xpVoiceMin: Number(data.get('xpVoiceMin')),
+            xpVoiceMax: Number(data.get('xpVoiceMax')),
+            xpChannel: String(data.get('xpChannel') || '') || null,
             levelUpChannel: String(data.get('levelUpChannel') || '') || null,
             levelUpMessage: String(data.get('levelUpMessage') || '').trim() || null,
             disableXpChannels: data.getAll('disableXpChannels').map(String),
+            levelRoles: collectLevelRoles(form),
           };
           const result = await api('/api/guilds/' + encodeURIComponent(guildId), { method: 'PATCH', body });
-          state.guildDetail.config = result.config;
+          applyGuildConfig(result);
           showToast('Leveling settings saved', 'success');
+        });
+        break;
+      }
+
+      case 'guild-live-leaderboard-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            liveLeaderboard: {
+              enabled: data.get('liveEnabled') === 'on',
+              channelId: String(data.get('liveChannelId') || '') || null,
+              intervalMinutes: Number(data.get('liveIntervalMinutes')),
+              rows: Number(data.get('liveRows')),
+              title: String(data.get('liveTitle') || '').trim() || null,
+            },
+          };
+          const result = await api('/api/guilds/' + encodeURIComponent(guildId), { method: 'PATCH', body });
+          applyGuildConfig(result);
+          showToast('Live leaderboard saved', 'success');
         });
         break;
       }

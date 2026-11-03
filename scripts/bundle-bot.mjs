@@ -16,6 +16,10 @@ const EXTERNALS = [
   "sodium-native",
   "opusscript",
   "@google/genai",
+  // Native NAPI package with per-platform prebuilt binaries; the host installs
+  // it from package.json. Loaded lazily so a missing addon only disables rank
+  // card images (embeds are used as the fallback).
+  "@napi-rs/canvas",
   // Only reached by prism-media's FFmpeg helper, which the bot never uses; the
   // package is not installed, so keep the require unresolved instead of failing.
   "ffmpeg-static",

@@ -33,6 +33,8 @@ import {
 } from '../src/config/index.js';
 import { readGuildConfig, updateGuildConfig } from '../src/db/models/Guild.js';
 import { User } from '../src/db/models/User.js';
+import { setUserXp } from '../src/db/utils.js';
+import { invalidateLiveLeaderboard, refreshLiveLeaderboard } from '../src/utils/liveLeaderboard.js';
 import { SukunaMemory } from '../src/db/models/SukunaMemory.js';
 import { clearMemories, countMemories } from '../src/utils/sukuna-memory.js';
 import {
@@ -745,6 +747,7 @@ async function sendGuildDetail(
     guild: serializeGuild(guild),
     config: serializeGuildConfig(row),
     channels: serializeChannels(guild),
+    roles: serializeRoles(guild),
     counts: {
       memories: memoryCount,
       faq: faqCount,
@@ -759,11 +762,28 @@ const guildPatchSchema = z
     modules: z.record(z.string().min(1).max(40), z.boolean()).optional(),
     xpEnabled: z.boolean().optional(),
     xpCooldown: z.number().int().min(0).max(3600).optional(),
-    xpMin: z.number().int().min(1).max(1000).optional(),
-    xpMax: z.number().int().min(1).max(1000).optional(),
+    xpMin: z.number().int().min(0).max(1000).optional(),
+    xpMax: z.number().int().min(0).max(1000).optional(),
+    xpVoiceMin: z.number().int().min(0).max(1000).optional(),
+    xpVoiceMax: z.number().int().min(0).max(1000).optional(),
+    xpIgnoreBots: z.boolean().optional(),
+    xpChannel: z.string().regex(/^\d{5,25}$/).nullable().optional(),
     levelUpChannel: z.string().regex(/^\d{5,25}$/).nullable().optional(),
-    levelUpMessage: z.string().max(500).nullable().optional(),
+    levelUpMessage: z.string().max(2000).nullable().optional(),
     disableXpChannels: z.array(z.string().regex(/^\d{5,25}$/)).max(200).optional(),
+    levelRoles: z
+      .record(z.string().regex(/^\d+$/).max(10), z.string().regex(/^\d{5,25}$/))
+      .optional(),
+    liveLeaderboard: z
+      .object({
+        enabled: z.boolean().optional(),
+        channelId: z.string().regex(/^\d{5,25}$/).nullable().optional(),
+        intervalMinutes: z.number().int().min(1).max(1440).optional(),
+        rows: z.number().int().min(3).max(25).optional(),
+        title: z.string().max(100).nullable().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -798,6 +818,22 @@ async function updateGuild(
   if (data.xpMin !== undefined) updates.xpMin = data.xpMin;
   if (data.xpMax !== undefined) updates.xpMax = data.xpMax;
 
+  const nextVoiceMin = data.xpVoiceMin ?? current?.xpVoiceMin ?? 5;
+  const nextVoiceMax = data.xpVoiceMax ?? current?.xpVoiceMax ?? 8;
+  if (nextVoiceMin > nextVoiceMax) {
+    throw new HttpError(400, 'Minimum voice XP cannot exceed maximum voice XP');
+  }
+  if (data.xpVoiceMin !== undefined) updates.xpVoiceMin = data.xpVoiceMin;
+  if (data.xpVoiceMax !== undefined) updates.xpVoiceMax = data.xpVoiceMax;
+  if (data.xpIgnoreBots !== undefined) updates.xpIgnoreBots = data.xpIgnoreBots;
+
+  if (data.xpChannel !== undefined) {
+    if (data.xpChannel && !guild.channels.cache.has(data.xpChannel)) {
+      throw new HttpError(400, 'XP channel does not exist in this guild');
+    }
+    updates.xpChannel = data.xpChannel ?? '';
+  }
+
   if (data.levelUpChannel !== undefined) {
     if (data.levelUpChannel && !guild.channels.cache.has(data.levelUpChannel)) {
       throw new HttpError(400, 'Level-up channel does not exist in this guild');
@@ -807,11 +843,61 @@ async function updateGuild(
   if (data.levelUpMessage !== undefined) updates.levelUpMessage = data.levelUpMessage;
   if (data.disableXpChannels !== undefined) updates.disableXpChannels = data.disableXpChannels;
 
+  if (data.levelRoles !== undefined) {
+    for (const roleId of Object.values(data.levelRoles)) {
+      if (!guild.roles.cache.has(roleId)) {
+        throw new HttpError(400, `Level reward role ${roleId} does not exist in this guild`);
+      }
+    }
+    updates.levelRoles = data.levelRoles;
+  }
+
+  let liveChanged = false;
+  if (data.liveLeaderboard !== undefined) {
+    const previous = {
+      enabled: current?.liveLeaderboard?.enabled ?? false,
+      channelId: current?.liveLeaderboard?.channelId ?? '',
+      messageId: current?.liveLeaderboard?.messageId ?? '',
+      intervalMinutes: current?.liveLeaderboard?.intervalMinutes ?? 10,
+      rows: current?.liveLeaderboard?.rows ?? 25,
+      title: current?.liveLeaderboard?.title ?? '',
+    };
+    const patch = data.liveLeaderboard;
+    if (patch.channelId && !guild.channels.cache.has(patch.channelId)) {
+      throw new HttpError(400, 'Live leaderboard channel does not exist in this guild');
+    }
+    const channelId = patch.channelId === undefined ? previous.channelId : (patch.channelId ?? '');
+    updates.liveLeaderboard = {
+      enabled: patch.enabled ?? previous.enabled,
+      channelId,
+      // A channel change invalidates the stored message id: the old message is
+      // not in the new channel and would never be found again.
+      messageId: channelId === previous.channelId ? previous.messageId : '',
+      intervalMinutes: patch.intervalMinutes ?? previous.intervalMinutes,
+      rows: patch.rows ?? previous.rows,
+      title: patch.title === undefined ? previous.title : (patch.title ?? ''),
+    };
+    liveChanged = true;
+  }
+
   if (Object.keys(updates).length === 0) throw new HttpError(400, 'No changes supplied');
 
   await updateGuildConfig(guild.id, updates);
   const fresh = await readGuildConfig(guild.id);
   client.cacheSettings(guild.id, fresh ?? { modules: {} }, Date.now());
+
+  if (liveChanged) {
+    invalidateLiveLeaderboard(guild.id);
+    const live = fresh?.liveLeaderboard;
+    if (live?.enabled && live.channelId) {
+      void refreshLiveLeaderboard(client, guild.id, { force: true }).catch((err) => {
+        recordActivity('error', 'Live leaderboard refresh failed', {
+          level: 'error',
+          meta: { guildId: guild.id, error: String(err) },
+        });
+      });
+    }
+  }
 
   recordActivity('system', 'Guild settings updated: ' + guild.name, {
     level: 'success',
@@ -822,7 +908,20 @@ async function updateGuild(
     guild: serializeGuild(guild),
     config: serializeGuildConfig(fresh),
     channels: serializeChannels(guild),
+    roles: serializeRoles(guild),
   });
+}
+
+function serializeRoles(guild: Guild) {
+  return [...guild.roles.cache.values()]
+    .filter((role) => role.id !== guild.id && !role.managed)
+    .map((role) => ({
+      id: role.id,
+      name: role.name,
+      color: role.hexColor,
+      position: role.position,
+    }))
+    .sort((a, b) => b.position - a.position);
 }
 
 function serializeGuild(guild: Guild) {
@@ -874,25 +973,68 @@ function serializeGuildConfig(
         xpCooldown?: number;
         xpMin?: number;
         xpMax?: number;
+        xpVoiceMin?: number;
+        xpVoiceMax?: number;
+        xpIgnoreBots?: boolean;
+        xpChannel?: string | null;
         levelUpChannel?: string | null;
         levelUpMessage?: string | null;
         disableXpChannels?: string[];
+        levelRoles?: unknown;
+        liveLeaderboard?: {
+          enabled?: boolean;
+          channelId?: string;
+          messageId?: string;
+          intervalMinutes?: number;
+          rows?: number;
+          title?: string;
+        };
         updatedAt?: unknown;
       }
     | null
     | undefined,
 ) {
+  const live = row?.liveLeaderboard ?? {};
   return {
     modules: normalizeModules(row?.modules),
     xpEnabled: row?.xpEnabled ?? true,
     xpCooldown: row?.xpCooldown ?? 60,
     xpMin: row?.xpMin ?? 15,
     xpMax: row?.xpMax ?? 25,
+    xpVoiceMin: row?.xpVoiceMin ?? 5,
+    xpVoiceMax: row?.xpVoiceMax ?? 8,
+    xpIgnoreBots: row?.xpIgnoreBots ?? true,
+    xpChannel: row?.xpChannel ?? null,
     levelUpChannel: row?.levelUpChannel ?? null,
     levelUpMessage: row?.levelUpMessage ?? null,
     disableXpChannels: Array.isArray(row?.disableXpChannels) ? row.disableXpChannels : [],
+    levelRoles: normalizeLevelRoles(row?.levelRoles),
+    liveLeaderboard: {
+      enabled: live.enabled ?? false,
+      channelId: live.channelId ?? '',
+      messageId: live.messageId ?? '',
+      intervalMinutes: live.intervalMinutes ?? 10,
+      rows: live.rows ?? 25,
+      title: live.title ?? '',
+    },
     updatedAt: row?.updatedAt ?? null,
   };
+}
+
+function normalizeLevelRoles(value: unknown): Record<string, string> {
+  const source =
+    value instanceof Map
+      ? (Object.fromEntries(value as Map<string, unknown>) as Record<string, unknown>)
+      : value && typeof value === 'object'
+        ? (value as Record<string, unknown>)
+        : {};
+  const result: Record<string, string> = {};
+  for (const [level, roleId] of Object.entries(source)) {
+    if (!/^\d+$/.test(level)) continue;
+    if (typeof roleId !== 'string' || roleId === '') continue;
+    result[String(Number.parseInt(level, 10))] = roleId;
+  }
+  return result;
 }
 
 function normalizeModules(value: unknown): Record<string, boolean> {
@@ -1275,7 +1417,22 @@ async function updateUserDoc(
   if (!parsed.success) throw new HttpError(400, 'Invalid user update', parsed.error.flatten());
   if (Object.keys(parsed.data).length === 0) throw new HttpError(400, 'No changes supplied');
 
-  const updated = await User.findOneAndUpdate({ userId }, { $set: parsed.data }, { new: true }).lean();
+  const data = { ...parsed.data };
+  const xpValue = data.totalXp ?? data.xp;
+  delete data.xp;
+  delete data.totalXp;
+
+  const exists = await User.exists({ userId });
+  if (!exists) throw new HttpError(404, 'User not found');
+
+  if (Object.keys(data).length > 0) {
+    await User.findOneAndUpdate({ userId }, { $set: data }, { new: true });
+  }
+  // XP edits go through setUserXp so `level` is re-derived instead of left
+  // stale, which would otherwise swallow every future level-up.
+  if (xpValue !== undefined) await setUserXp(userId, xpValue);
+
+  const updated = await User.findOne({ userId }).lean();
   if (!updated) throw new HttpError(404, 'User not found');
 
   recordActivity('system', 'User economy record updated', {
