@@ -36,6 +36,9 @@ export class SukunaClient extends Client {
       ],
       partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
+      // Always appear as "Do Not Disturb" with no activity text. Sent with the
+      // IDENTIFY payload, so it applies on login and on every reconnect.
+      presence: { status: 'dnd' },
     });
   }
 
