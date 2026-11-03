@@ -84,6 +84,32 @@ export async function countMemories(guildId: string): Promise<number> {
   return SukunaMemory.countDocuments({ guildId });
 }
 
+/**
+ * Free-text search over stored notes (fact text, member name, member id).
+ * `recallMemories` only matches the `about` fields; this is what the
+ * `search_memory` tool uses.
+ */
+export async function searchMemories(
+  guildId: string,
+  query: string,
+  limit = 10,
+): Promise<ISukunaMemory[]> {
+  const capped = Math.min(Math.max(limit, 1), 100);
+  const trimmed = query.trim();
+
+  const filter: any = { guildId };
+  if (trimmed) {
+    const safe = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(safe, 'i');
+    filter.$or = [{ fact: pattern }, { aboutName: pattern }, { aboutUserId: trimmed }];
+  }
+
+  return SukunaMemory.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(capped)
+    .lean() as Promise<ISukunaMemory[]>;
+}
+
 export async function clearMemories(guildId: string): Promise<number> {
   return SukunaMemory.deleteMany({ guildId }).then((result) => result.deletedCount);
 }

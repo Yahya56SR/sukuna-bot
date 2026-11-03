@@ -1,0 +1,56 @@
+# Sukuna Bot — Agent Notes
+
+## Runtime pattern (vernova-bot style)
+- Dev: `npm run dev` → `tsx watch src/index.ts`
+- Production: `node index.js` (single esbuild CJS bundle committed at repo root)
+- Bundle: `npm run bundle:bot` → esbuild bundles `src/index.ts` → `index.js` (~6.9MB, gated at 20MB)
+- **`package.json` has NO `"type": "module"`** — the bundle runs as CJS (required for `mongoose require()`)
+
+## Commands that matter
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | tsx watch, dev mode |
+| `npm run bundle:bot` | esbuild single-file bundle at `index.js` |
+| `npm run typecheck` | `tsc --noEmit` (no build step needed) |
+
+CI runs `typecheck` → `bundle:bot`, then auto-commits `index.js` on push to `main` if changed.
+
+## Architecture gotchas (easy to miss)
+
+**1. Command registry is static — not filesystem scanned**
+`src/commands/index.ts` imports every command file and registers them in a `readonly Command[]` array. Adding a new command file is NOT enough; you must add the import and array entry in `src/commands/index.ts`. Dynamic loading breaks esbuild bundling.
+
+**2. `@google/genai` is an external bundle dependency**
+`scripts/bundle-bot.mjs` externalizes `@google/genai` (plus native addons). It must remain `require()`-able at runtime. Do not bundle it into `index.js`.
+
+**3. Dashboard binds to `0.0.0.0:$SERVER_PORT`**
+`dashboard/server.ts` reads `process.env.SERVER_PORT` (bot-hosting.net sets this). Falls back to `3001`. Starts only when `SUKUNA_ENABLED=true` (checked in `src/events/ready.ts`).
+
+**4. Sukuna AI persona = Gemini Live API only (no `generateContent`)**
+`src/core/gemini-live.ts` talks to Gemini over `ai.live.connect` (WebSocket / `bidiGenerateContent`) and every turn must end in one decision tool call (`send_message`, `send_sticker` or `stay_silent`). The configured model **must be a Live model** (e.g. `gemini-3.8-live`); `models.generateContent*` is intentionally absent from the codebase because Live-only models reject it with HTTP 400. `src/utils/sukuna.ts` owns the session cache, history, rate limiting and Discord delivery; `src/utils/sukuna-tools.ts` holds the information tools (`get_server_info`, `get_member_info`, `search_discord_messages`, memory, …). Sessions are kept warm and recycled on request/time limits or config change.
+
+**5. Env loading**
+`src/config/env.ts` uses `process.loadEnvFile(".env")` (Node >=20.6) then validates via zod. `.env` is gitignored; `.env.example` is the template. Production host injects vars directly.
+
+**6. MongoDB Atlas only**
+Mongoose connection in `src/db/index.ts`. No local MongoDB, no Supabase.
+
+**7. Slash commands registered at startup**
+`registerApplicationCommands()` runs after `client.login()`. Set `DEV_GUILD_ID` for instant per-guild registration during dev; omit for global (takes up to 1 hour to propagate).
+
+## File locations
+- Entry: `src/index.ts`
+- Client: `src/core/client.ts` (`SukunaClient` extends `discord.js.Client`)
+- Commands: `src/commands/<category>/<name>.ts` + registry in `src/commands/index.ts`
+- Events: `src/events/<name>.ts` + registry in `src/events/index.ts`
+- Config: `src/config/env.ts` (env schema), `src/config/index.ts` (Sukuna persona config)
+- DB: `src/db/index.ts` + `src/db/models/*.ts`
+- AI persona: `src/utils/sukuna.ts`, `src/core/gemini-live.ts`, `src/utils/sukuna-tools.ts`, `src/utils/sukuna-memory.ts`, `src/prompts/sukuna.ts`
+- Dashboard: `dashboard/server.ts` + `dashboard/{index.html,styles.css,app.js}`
+- Bundle script: `scripts/bundle-bot.mjs`
+
+## Common mistakes to avoid
+- Adding a command file without updating `src/commands/index.ts` → command won't be bundled/registered
+- Editing `index.js` directly → it's generated; always edit `src/` then re-bundle
+- Setting `"type": "module"` → breaks CJS `require()` for mongoose
+- Forgetting `SUKUNA_ENABLED=true` + `GEMINI_API_KEY` on bot-hosting.net → dashboard won't start, Sukuna won't respond

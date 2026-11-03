@@ -25,7 +25,7 @@ const EnvSchema = z.object({
     z.array(z.string()).default([]),
   ),
   SUKUNA_DISPLAY_NAME: z.string().default("Sukuna"),
-  SUKUNA_MODEL: z.string().default("gemini-3.1-flash"),
+  SUKUNA_MODEL: z.string().default("gemini-3.8-live"),
   SUKUNA_TEMPERATURE: z.preprocess(
     (v) => typeof v === 'number' ? v : Number(v ?? 1),
     z.number().min(0).max(2).default(1),

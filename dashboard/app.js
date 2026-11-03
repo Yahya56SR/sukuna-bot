@@ -1127,14 +1127,14 @@ function personaHtml() {
     '<input class="input" id="f-displayName" name="displayName" maxlength="64" value="' + esc(config.displayName) + '" required></div>' +
     '<div class="field"><label class="field-label" for="f-model">Gemini model</label>' +
     '<input class="input mono" id="f-model" name="model" list="persona-model-options" maxlength="100" ' +
-    'value="' + esc(config.model) + '" placeholder="gemini-3.1-flash" required>' +
+    'value="' + esc(config.model) + '" placeholder="gemini-3.8-live" required>' +
     '<datalist id="persona-model-options">' +
     state.personaModels.map((model) =>
       '<option value="' + esc(model.id) + '">' + esc(model.label) + '</option>',
     ).join('') +
     '</datalist>' +
     '<span class="field-hint">' + (state.hasGeminiKey ? 'Gemini API key is configured.' : 'No GEMINI_API_KEY on the host — the persona cannot reply.') +
-    ' Pick a suggestion or type any model id.</span></div>' +
+    ' Pick a suggestion or type any model id. Only Gemini Live models (bidiGenerateContent) work.</span></div>' +
     '<div class="field"><label class="field-label" for="f-thinkingLevel">Thinking level</label>' +
     '<select class="select" id="f-thinkingLevel" name="thinkingLevel">' +
     '<option value="" ' + (!config.thinkingLevel ? 'selected' : '') + '>None</option>' +

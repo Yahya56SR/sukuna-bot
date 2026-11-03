@@ -39,7 +39,7 @@ export const defaultSukunaConfig: SukunaConfig = {
   enabled: process.env.SUKUNA_ENABLED === 'true' || false,
   displayName: process.env.SUKUNA_DISPLAY_NAME || 'Sukuna',
   channelIds: process.env.SUKUNA_CHANNELS?.split(',').map((s) => s.trim()).filter(Boolean) || [],
-  model: process.env.SUKUNA_MODEL || 'gemini-3.1-flash',
+  model: process.env.SUKUNA_MODEL || 'gemini-3.8-live',
   temperature: Number(process.env.SUKUNA_TEMPERATURE) || 1,
   requestTimeoutMs: 20000,
   maxMessageLength: Number(process.env.SUKUNA_MAX_MESSAGE_LENGTH) || 2000,
@@ -74,7 +74,7 @@ export function normalizeSukunaConfig(input: Partial<SukunaConfig>): SukunaConfi
     ? [...new Set(merged.channelIds.map(String).filter((id) => /^\d{5,25}$/.test(id)))]
     : [];
   merged.displayName = String(merged.displayName || 'Sukuna').slice(0, 64);
-  merged.model = String(merged.model || 'gemini-3.1-flash').slice(0, 100);
+  merged.model = String(merged.model || 'gemini-3.8-live').slice(0, 100);
   if (merged.systemPrompt === null || merged.systemPrompt === undefined) {
     merged.systemPrompt = undefined;
   } else {

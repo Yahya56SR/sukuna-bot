@@ -173470,7 +173470,7 @@ var EnvSchema = external_exports.object({
     external_exports.array(external_exports.string()).default([])
   ),
   SUKUNA_DISPLAY_NAME: external_exports.string().default("Sukuna"),
-  SUKUNA_MODEL: external_exports.string().default("gemini-3.1-flash"),
+  SUKUNA_MODEL: external_exports.string().default("gemini-3.8-live"),
   SUKUNA_TEMPERATURE: external_exports.preprocess(
     (v) => typeof v === "number" ? v : Number(v ?? 1),
     external_exports.number().min(0).max(2).default(1)
@@ -173537,7 +173537,7 @@ var defaultSukunaConfig = {
   enabled: process.env.SUKUNA_ENABLED === "true" || false,
   displayName: process.env.SUKUNA_DISPLAY_NAME || "Sukuna",
   channelIds: process.env.SUKUNA_CHANNELS?.split(",").map((s) => s.trim()).filter(Boolean) || [],
-  model: process.env.SUKUNA_MODEL || "gemini-3.1-flash",
+  model: process.env.SUKUNA_MODEL || "gemini-3.8-live",
   temperature: Number(process.env.SUKUNA_TEMPERATURE) || 1,
   requestTimeoutMs: 2e4,
   maxMessageLength: Number(process.env.SUKUNA_MAX_MESSAGE_LENGTH) || 2e3,
@@ -173569,7 +173569,7 @@ function normalizeSukunaConfig(input2) {
   merged.maxRepliesPerHour = Math.round(clamp(Number(merged.maxRepliesPerHour) || 10, 1, 1e3));
   merged.channelIds = Array.isArray(merged.channelIds) ? [...new Set(merged.channelIds.map(String).filter((id) => /^\d{5,25}$/.test(id)))] : [];
   merged.displayName = String(merged.displayName || "Sukuna").slice(0, 64);
-  merged.model = String(merged.model || "gemini-3.1-flash").slice(0, 100);
+  merged.model = String(merged.model || "gemini-3.8-live").slice(0, 100);
   if (merged.systemPrompt === null || merged.systemPrompt === void 0) {
     merged.systemPrompt = void 0;
   } else {
@@ -174018,10 +174018,52 @@ memorySchema.index({ guildId: 1, fact: 1, aboutUserId: 1 }, { unique: true });
 var SukunaMemory = (0, import_mongoose5.model)("SukunaMemory", memorySchema);
 
 // src/utils/sukuna-memory.ts
+var MAX_NOTES_PER_GUILD = 300;
+var MAX_FACT_LENGTH = 400;
+async function addMemory(guildId, input2) {
+  const fact = String(input2.fact || "").replace(/\s+/g, " ").trim().slice(0, MAX_FACT_LENGTH);
+  if (!fact) {
+    return { guildId, fact: "", createdAt: 0 };
+  }
+  const duplicate = await SukunaMemory.findOne({
+    guildId,
+    fact,
+    aboutUserId: input2.aboutUserId ?? null
+  });
+  if (duplicate) return duplicate;
+  const note = await SukunaMemory.create({
+    guildId,
+    fact,
+    aboutUserId: input2.aboutUserId || void 0,
+    aboutName: input2.aboutName?.slice(0, 80),
+    createdAt: Date.now()
+  });
+  const count = await SukunaMemory.countDocuments({ guildId });
+  if (count > MAX_NOTES_PER_GUILD) {
+    const excess = count - MAX_NOTES_PER_GUILD;
+    const oldest = await SukunaMemory.find({ guildId }).sort({ createdAt: 1 }).limit(excess).select("_id");
+    const ids = oldest.map((n) => n._id);
+    await SukunaMemory.deleteMany({ _id: { $in: ids } });
+  }
+  return note;
+}
+__name(addMemory, "addMemory");
 async function countMemories(guildId) {
   return SukunaMemory.countDocuments({ guildId });
 }
 __name(countMemories, "countMemories");
+async function searchMemories(guildId, query, limit = 10) {
+  const capped = Math.min(Math.max(limit, 1), 100);
+  const trimmed = query.trim();
+  const filter = { guildId };
+  if (trimmed) {
+    const safe = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(safe, "i");
+    filter.$or = [{ fact: pattern }, { aboutName: pattern }, { aboutUserId: trimmed }];
+  }
+  return SukunaMemory.find(filter).sort({ createdAt: -1 }).limit(capped).lean();
+}
+__name(searchMemories, "searchMemories");
 async function clearMemories(guildId) {
   return SukunaMemory.deleteMany({ guildId }).then((result) => result.deletedCount);
 }
@@ -174250,95 +174292,853 @@ Silence is the default.
 
 ### 11. OUTPUT FORMAT
 
-Return exactly one valid JSON object for every incoming event.
+Never type a visible message as plain text. Every turn ends with exactly one tool call:
 
-When replying: {"action":"reply","message":"Your natural message here"}
-When staying silent: {"action":"silent","message":""}
+- \`send_message\` \u2014 reply with the exact text to post.
+- \`send_sticker\` \u2014 reply with a real server sticker id (optional text).
+- \`stay_silent\` \u2014 do not post anything.
 
 Rules:
-- Output JSON only, no markdown code fences
-- Use "reply" or "silent" exactly as shown
-- Escape JSON strings correctly
+- Call exactly one of the three, once per turn.
+- Never include reasoning, labels, JSON envelopes or fake message wrappers.
+- Text that is not passed to \`send_message\` is never posted to Discord.
 
 ### 12. FINAL DIRECTIVE
 
 Be Sukuna. Read the room. Speak when it makes sense. Stay quiet when it doesn't.`;
 function buildSukunaRuntimePrompt(options) {
-  const infoTools = [
-    "get_server_info - server name, member count, creation date",
-    "get_channel_info - channel name, topic, category",
-    "get_member_info - roles, join date, account age for a member",
-    "get_recent_messages - read more channel history",
-    "search_discord_messages - search for a keyword",
-    "send_message - send a Discord message",
-    "send_sticker - send a server sticker",
-    "stay_silent - choose not to respond"
-  ];
+  const infoTools = [];
+  if (options.toolsEnabled) {
+    infoTools.push(
+      "get_server_info - server name, member count, creation date",
+      "get_channel_info - channel name, topic, category",
+      "get_member_info - roles, join date, account age for a member",
+      "get_recent_messages - read more channel history",
+      "search_discord_messages - search recent channel messages for a keyword",
+      "get_server_stickers - list real server sticker ids for send_sticker"
+    );
+    if (options.memoryEnabled) {
+      infoTools.push(
+        "remember_information - store a durable note about a member or event",
+        "search_memory - search notes stored for this server"
+      );
+    }
+  }
   const toolSection = infoTools.length ? "You may call these tools before deciding:\n" + infoTools.map((line) => "- " + line).join("\n") : "No information tools are enabled this turn. Decide from the context you were given.";
   const botIdLine = options.botId ? "Your own Discord user ID is " + options.botId + ". A direct <@" + options.botId + "> mention is addressed to you." : "Your own messages appear with the robot marker in the history; a [reply to your message] marker means the member is replying to you.";
   return "---\n\n# RUNTIME INTEGRATION - DISCORD\n\nYou are running as **" + options.displayName + "**, a live character inside one Discord channel. The text you receive is a snapshot of a real conversation.\n\n## THE DECISION CONTRACT\n\nEvery event must end with exactly one decision tool call:\n\n- Call send_message exactly once when you choose to REPLY. Put only the Discord message in message.\n- Call send_sticker exactly once when you choose to reply with a sticker.\n- Call stay_silent exactly once when you choose SILENT.\n\n" + botIdLine + "\n\n## AVAILABLE INFORMATION TOOLS\n\n" + toolSection + "\n\n## DISCORD NATIVE FORMATTING\n\nUser mentions: <@USER_ID>\nRole mentions: <@&ROLE_ID>\nChannel references: <#CHANNEL_ID>\n\nUse formatting sparingly: **bold**, *italic*, `inline code`, > quoted, ||spoiler||\n\n## OUTPUT COMPATIBILITY\n\n- To respond: call exactly one of send_message or send_sticker.\n- To remain silent: call stay_silent exactly once.\n- Never include internal reasoning, labels, or fake message envelopes.";
 }
 __name(buildSukunaRuntimePrompt, "buildSukunaRuntimePrompt");
 
-// src/core/gemini-stream.ts
+// src/core/gemini-live.ts
 var import_genai = require("@google/genai");
-var GeminiStreamSukuna = class {
+var DEFAULT_REQUEST_TIMEOUT_MS = 2e4;
+var CONNECT_TIMEOUT_MS = 12e3;
+var MAX_RECONNECT_ATTEMPTS = 4;
+var RECONNECT_BASE_DELAY_MS = 1e3;
+var MAX_RECONNECT_DELAY_MS = 2e4;
+var DEFAULT_MAX_QUEUE_SIZE = 10;
+var DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
+var DEFAULT_SESSION_MAX_AGE_MS = 5 * 6e4;
+var MAX_EVENT_LENGTH = 24e3;
+var MAX_REPLY_LENGTH = 2e3;
+var SEND_MESSAGE_TOOL = "send_message";
+var SEND_STICKER_TOOL = "send_sticker";
+var STAY_SILENT_TOOL = "stay_silent";
+var DECISION_TOOL_DECLARATIONS = [
+  {
+    name: SEND_MESSAGE_TOOL,
+    description: "Send one Discord message as this character. Call exactly once when you choose to speak.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        message: {
+          type: import_genai.Type.STRING,
+          description: "The exact Discord message to send. Plain text, no labels or JSON."
+        },
+        reply: {
+          type: import_genai.Type.BOOLEAN,
+          description: "True to send as a native Discord reply to the triggering message. False or omitted for a bare channel message."
+        }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: SEND_STICKER_TOOL,
+    description: "Send one real server sticker as this character. Call get_server_stickers first to obtain a real sticker id.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        sticker_id: {
+          type: import_genai.Type.STRING,
+          description: "A real sticker id returned by get_server_stickers."
+        },
+        message: {
+          type: import_genai.Type.STRING,
+          description: "Optional text to send with the sticker."
+        },
+        reply: {
+          type: import_genai.Type.BOOLEAN,
+          description: "True to send as a native Discord reply to the triggering message."
+        }
+      },
+      required: ["sticker_id"]
+    }
+  },
+  {
+    name: STAY_SILENT_TOOL,
+    description: "Choose not to speak this turn.",
+    parameters: {
+      type: import_genai.Type.OBJECT,
+      properties: {
+        reason: {
+          type: import_genai.Type.STRING,
+          description: "Optional one-line note for logs. Never shown in Discord."
+        }
+      }
+    }
+  }
+];
+var GeminiLiveSukuna = class {
   static {
-    __name(this, "GeminiStreamSukuna");
+    __name(this, "GeminiLiveSukuna");
   }
   ai;
   model;
   systemPrompt;
+  declarations;
+  thinkingLevel;
   temperature;
-  maxTokens;
   requestTimeoutMs;
+  maxQueueSize;
+  maxRequestsPerSession;
+  sessionMaxAgeMs;
+  /** Native-audio Live models reject `TEXT`; they stay on audio + transcription. */
+  audioOnlyModel;
+  session = null;
+  connected = false;
+  sessionGeneration = 0;
+  sessionOpenedAt = 0;
+  requestsInSession = 0;
+  connectPromise = null;
+  queue = [];
+  inFlight = null;
+  pumping = false;
+  retryTimer = null;
+  reconnectAttempts = 0;
+  textBuffer = "";
+  transcriptBuffer = "";
+  turnCompleteSeen = false;
+  toolRoundInFlight = false;
+  toolExecuting = false;
+  goAway = false;
+  closed = false;
   constructor(options) {
     if (!options.apiKey) {
-      throw new Error("GeminiStreamSukuna requires an API key");
+      throw new Error("GeminiLiveSukuna requires an API key");
+    }
+    if (!looksLikeLiveModel(options.model)) {
+      console.warn(
+        `[Sukuna:Live] Model "${options.model}" does not look like a Live API model. Sukuna only talks to Gemini over bidiGenerateContent (WebSocket); models that only support generateContent will fail to connect.`
+      );
     }
     this.ai = new import_genai.GoogleGenAI({ apiKey: options.apiKey });
     this.model = options.model;
     this.systemPrompt = options.systemPrompt;
+    this.declarations = [...DECISION_TOOL_DECLARATIONS, ...options.tools ?? []];
+    this.audioOnlyModel = /native-audio/i.test(options.model);
+    this.thinkingLevel = resolveThinkingLevel(options.model, options.thinkingLevel);
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
-    this.maxTokens = options.maxTokens;
-    this.requestTimeoutMs = options.requestTimeoutMs ?? 3e4;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
+    this.maxQueueSize = options.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE;
+    this.maxRequestsPerSession = options.maxRequestsPerSession ?? DEFAULT_MAX_REQUESTS_PER_SESSION;
+    this.sessionMaxAgeMs = options.sessionMaxAgeMs ?? DEFAULT_SESSION_MAX_AGE_MS;
   }
-  /**
-   * Send one prompt and stream text chunks via the handler.
-   * Resolves with the full assembled text.
-   * No persistent connection — the stream closes when done.
-   */
-  async stream(prompt, onChunk, abortSignal) {
-    const contents = [
-      { role: "user", parts: [{ text: this.systemPrompt + "\n\n" + prompt }] }
-    ];
-    const config2 = {
-      temperature: this.temperature
-    };
-    if (this.maxTokens) {
-      config2.maxOutputTokens = this.maxTokens;
+  ask(text, executeTool, timeoutMs, media = []) {
+    if (!text || !text.trim() || this.closed) return Promise.resolve(null);
+    if (this.queue.length >= this.maxQueueSize) {
+      console.warn("[Sukuna:Live] Queue full \u2014 skipping this event", {
+        queueLength: this.queue.length,
+        maxQueueSize: this.maxQueueSize
+      });
+      return Promise.resolve(null);
     }
-    const stream = await this.ai.models.generateContentStream({
-      model: this.model,
-      contents,
-      config: config2
+    const effectiveTimeout = Math.max(timeoutMs ?? this.requestTimeoutMs, 1e3);
+    return new Promise((resolve) => {
+      const item = {
+        text,
+        media: media.slice(0, 4),
+        executeTool,
+        resolve,
+        settled: false,
+        timeoutMs: effectiveTimeout,
+        deadline: Date.now() + effectiveTimeout,
+        timer: null,
+        decision: null,
+        toolCallNames: [],
+        toolCalls: 0,
+        decisionNudges: 0
+      };
+      item.timer = setTimeout(() => this.onItemDeadline(item, "queued"), effectiveTimeout);
+      this.queue.push(item);
+      void this.pump();
     });
-    let fullText = "";
-    for await (const chunk of stream) {
-      if (abortSignal?.aborted) {
-        break;
-      }
-      const text = chunk.text ?? "";
-      if (text) {
-        fullText += text;
-        onChunk(text);
-      }
-    }
-    return fullText;
   }
   close() {
+    this.closed = true;
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+    this.failAllQueued("persona closed");
+    this.teardownSession("closed");
+  }
+  async pump() {
+    if (this.pumping || this.closed) return;
+    this.pumping = true;
+    try {
+      while (!this.closed && !this.inFlight && this.queue.length > 0) {
+        if (!this.connected || !this.session) {
+          try {
+            await this.ensureConnected();
+          } catch (err) {
+            console.warn("[Sukuna:Live] Connection attempt failed:", describeError(err));
+            this.scheduleRetry();
+            return;
+          }
+        }
+        const item = this.queue[0];
+        if (!item) return;
+        if (item.settled) {
+          this.removeFromQueue(item);
+          continue;
+        }
+        if (Date.now() >= item.deadline) {
+          this.failItem(item, "expired while queued");
+          continue;
+        }
+        this.dispatch(item);
+        return;
+      }
+    } finally {
+      this.pumping = false;
+    }
+  }
+  dispatch(item) {
+    const session = this.session;
+    if (!session) return;
+    item.deadline = Date.now() + item.timeoutMs;
+    if (item.timer) clearTimeout(item.timer);
+    item.timer = setTimeout(() => this.onItemDeadline(item, "in flight"), item.timeoutMs);
+    this.inFlight = item;
+    this.resetTurnBuffers();
+    this.requestsInSession += 1;
+    try {
+      const parts = [
+        ...item.media.map((media) => ({
+          inlineData: { mimeType: media.mimeType, data: media.data }
+        })),
+        { text: this.buildPayload(item.text) }
+      ];
+      session.sendClientContent({
+        turns: [{ role: "user", parts }],
+        turnComplete: true
+      });
+    } catch (err) {
+      console.warn("[Sukuna:Live] Failed to send event:", describeError(err));
+      this.failItem(item, "send failed");
+      this.teardownSession("send failed");
+      void this.pump();
+    }
+  }
+  onItemDeadline(item, stage) {
+    if (item.settled) return;
+    const wasInFlight = this.inFlight === item;
+    this.failItem(item, `timed out (${stage})`);
+    if (wasInFlight) {
+      this.teardownSession("request timeout");
+      void this.pump();
+    }
+  }
+  failItem(item, reason) {
+    if (item.settled) return;
+    item.settled = true;
+    if (item.timer) {
+      clearTimeout(item.timer);
+      item.timer = null;
+    }
+    if (this.inFlight === item) this.inFlight = null;
+    this.removeFromQueue(item);
+    item.resolve(null);
+  }
+  failAllQueued(reason) {
+    const pending = [...this.queue];
+    this.queue = [];
+    this.inFlight = null;
+    for (const item of pending) {
+      if (item.settled) continue;
+      item.settled = true;
+      if (item.timer) {
+        clearTimeout(item.timer);
+        item.timer = null;
+      }
+      item.resolve(null);
+    }
+  }
+  removeFromQueue(item) {
+    const idx = this.queue.indexOf(item);
+    if (idx >= 0) this.queue.splice(idx, 1);
+  }
+  async ensureConnected() {
+    if (this.closed) throw new Error("Gemini Live Sukuna is closed");
+    if (this.connected && this.session) return;
+    if (this.connectPromise) return this.connectPromise;
+    const promise2 = this.openSession();
+    this.connectPromise = promise2;
+    try {
+      await promise2;
+    } finally {
+      if (this.connectPromise === promise2) this.connectPromise = null;
+    }
+  }
+  async openSession() {
+    const generation = ++this.sessionGeneration;
+    let rejectAttempt = /* @__PURE__ */ __name(() => {
+    }, "rejectAttempt");
+    const attemptFailed = new Promise((_, reject) => {
+      rejectAttempt = reject;
+    });
+    void attemptFailed.catch(() => {
+    });
+    const connectPromise = this.ai.live.connect({
+      model: this.model,
+      config: this.buildConnectConfig(),
+      callbacks: {
+        onmessage: /* @__PURE__ */ __name((message) => {
+          if (generation !== this.sessionGeneration) return;
+          try {
+            this.handleServerMessage(message);
+          } catch (err) {
+            console.warn("[Sukuna:Live] Failed to handle server message:", describeError(err));
+          }
+        }, "onmessage"),
+        onclose: /* @__PURE__ */ __name((event) => {
+          if (generation !== this.sessionGeneration) return;
+          rejectAttempt(new Error(this.describeClose(event)));
+          this.handleConnectionLost(generation, event);
+        }, "onclose"),
+        onerror: /* @__PURE__ */ __name((event) => {
+          if (generation !== this.sessionGeneration) return;
+          const err = event?.error ?? event;
+          rejectAttempt(err instanceof Error ? err : new Error(String(err)));
+          this.handleConnectionLost(generation, err);
+        }, "onerror")
+      }
+    });
+    const timer = setTimeout(
+      () => rejectAttempt(new Error(`connect timeout after ${CONNECT_TIMEOUT_MS}ms`)),
+      CONNECT_TIMEOUT_MS
+    );
+    try {
+      const session = await Promise.race([connectPromise, attemptFailed]);
+      if (generation !== this.sessionGeneration) {
+        try {
+          session.close();
+        } catch {
+        }
+        throw new Error("Live session was superseded");
+      }
+      this.session = session;
+      this.connected = true;
+      this.sessionOpenedAt = Date.now();
+      this.requestsInSession = 0;
+      this.reconnectAttempts = 0;
+      this.goAway = false;
+      this.resetTurnBuffers();
+    } catch (err) {
+      void connectPromise.then((session) => {
+        try {
+          session.close();
+        } catch {
+        }
+      }).catch(() => {
+      });
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  handleConnectionLost(generation, event) {
+    if (generation !== this.sessionGeneration) return;
+    this.sessionGeneration += 1;
+    this.session = null;
+    this.connected = false;
+    this.resetTurnBuffers();
+    if (this.inFlight) {
+      this.failItem(this.inFlight, "connection lost");
+    }
+    if (this.queue.length > 0 && !this.closed) {
+      this.scheduleRetry();
+    }
+  }
+  teardownSession(reason) {
+    this.sessionGeneration += 1;
+    const session = this.session;
+    this.session = null;
+    this.connected = false;
+    this.goAway = false;
+    this.resetTurnBuffers();
+    if (this.inFlight) {
+      this.failItem(this.inFlight, reason);
+    }
+    if (session) {
+      try {
+        session.close();
+      } catch {
+      }
+    }
+  }
+  scheduleRetry() {
+    if (this.closed || this.retryTimer) return;
+    if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      this.reconnectAttempts = 0;
+      this.failAllQueued("connection unavailable");
+      return;
+    }
+    this.reconnectAttempts += 1;
+    const delay = Math.min(
+      RECONNECT_BASE_DELAY_MS * 2 ** (this.reconnectAttempts - 1),
+      MAX_RECONNECT_DELAY_MS
+    );
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      void this.pump();
+    }, delay);
+  }
+  buildConnectConfig() {
+    const config2 = {
+      systemInstruction: { parts: [{ text: this.systemPrompt }] },
+      temperature: this.temperature,
+      // Discord is a text surface, so ask for text tokens. Only native-audio
+      // models (which reject TEXT) fall back to audio + transcription.
+      responseModalities: [this.audioOnlyModel ? import_genai.Modality.AUDIO : import_genai.Modality.TEXT],
+      contextWindowCompression: { slidingWindow: {} },
+      tools: [{ functionDeclarations: this.declarations }]
+    };
+    if (this.audioOnlyModel) {
+      config2.outputAudioTranscription = {};
+    }
+    if (this.thinkingLevel) {
+      config2.thinkingConfig = {
+        thinkingLevel: this.thinkingLevel
+      };
+    }
+    return config2;
+  }
+  buildPayload(text) {
+    const safe = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ").slice(-MAX_EVENT_LENGTH);
+    return `${safe}
+
+Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}\` or \`${STAY_SILENT_TOOL}\`.`;
+  }
+  handleServerMessage(message) {
+    if (this.closed) return;
+    if (message.goAway) {
+      this.goAway = true;
+    }
+    const item = this.inFlight;
+    if (!item) return;
+    if (message.toolCall?.functionCalls?.length) {
+      if (this.toolRoundInFlight && !this.toolExecuting) {
+        this.toolRoundInFlight = false;
+      }
+      void this.handleToolCalls(item, message.toolCall.functionCalls);
+      return;
+    }
+    const serverContent = message.serverContent;
+    if (!serverContent) return;
+    const hasFollowUpContent = (serverContent.modelTurn?.parts?.length ?? 0) > 0 || Boolean(serverContent.outputTranscription?.text) || Boolean(serverContent.interrupted);
+    if (this.toolRoundInFlight && hasFollowUpContent) {
+      this.toolRoundInFlight = false;
+    }
+    for (const part of serverContent.modelTurn?.parts ?? []) {
+      if (part.text && !part.thought) {
+        this.textBuffer += part.text;
+      }
+    }
+    if (serverContent.outputTranscription?.text) {
+      this.transcriptBuffer += serverContent.outputTranscription.text;
+    }
+    if (serverContent.interrupted) {
+      this.finishTurn(item, "interrupted", true);
+      return;
+    }
+    if (serverContent.turnComplete) {
+      this.turnCompleteSeen = true;
+      if (serverContent.interactionStatus === import_genai.InteractionStatus.IN_PROGRESS) {
+        return;
+      }
+      this.finishTurn(item, "turnComplete");
+      return;
+    }
+    if (this.turnCompleteSeen && serverContent.interactionStatus === import_genai.InteractionStatus.IDLE) {
+      this.finishTurn(item, "idle");
+    }
+  }
+  async handleToolCalls(item, calls) {
+    if (this.toolRoundInFlight || item.settled) return;
+    this.toolRoundInFlight = true;
+    this.turnCompleteSeen = false;
+    this.toolExecuting = true;
+    const generation = this.sessionGeneration;
+    const responses = [];
+    for (const call of calls.slice(0, 6)) {
+      const name = call.name || "unknown";
+      item.toolCallNames.push(name);
+      item.toolCalls += 1;
+      const response = await this.runTool(item, call);
+      responses.push({
+        id: call.id,
+        name,
+        response
+      });
+      if (item.decision) break;
+    }
+    if (generation !== this.sessionGeneration || this.inFlight !== item || item.settled) {
+      this.toolRoundInFlight = false;
+      this.toolExecuting = false;
+      return;
+    }
+    if (item.toolCalls > 10 && !item.decision) {
+      this.toolExecuting = false;
+      this.finishTurn(item, "tool limit", true);
+      return;
+    }
+    if (item.decision) {
+      this.toolExecuting = false;
+      this.finishTurn(item, "decision", true);
+      return;
+    }
+    try {
+      this.session?.sendToolResponse({ functionResponses: responses });
+    } catch (err) {
+      console.warn("[Sukuna:Live] Failed to send tool responses:", describeError(err));
+      this.toolExecuting = false;
+      this.failItem(item, "tool response failed");
+      this.teardownSession("tool response failed");
+      void this.pump();
+      return;
+    }
+    this.toolExecuting = false;
+  }
+  async runTool(item, call) {
+    const name = call.name || "";
+    if (name === SEND_MESSAGE_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      const raw = typeof call.args?.message === "string" ? call.args.message : "";
+      const message = sanitizeReply(raw);
+      if (!message) {
+        return { ok: false, error: "The message argument was empty." };
+      }
+      item.decision = {
+        action: "reply",
+        message: message.length > MAX_REPLY_LENGTH ? message.slice(0, MAX_REPLY_LENGTH) : message,
+        replyToTrigger: toBoolean(call.args?.reply),
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "queued" };
+    }
+    if (name === SEND_STICKER_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      const rawStickerId = call.args?.sticker_id;
+      const stickerId = typeof rawStickerId === "string" ? rawStickerId.trim() : typeof rawStickerId === "number" ? String(rawStickerId) : "";
+      if (!/^\d{15,25}$/.test(stickerId)) {
+        return {
+          ok: false,
+          error: "A real numeric sticker id is required."
+        };
+      }
+      const raw = typeof call.args?.message === "string" ? call.args.message : "";
+      const message = sanitizeReply(raw);
+      item.decision = {
+        action: "reply",
+        message: message.length > MAX_REPLY_LENGTH ? message.slice(0, MAX_REPLY_LENGTH) : message,
+        stickerId,
+        replyToTrigger: toBoolean(call.args?.reply),
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "queued" };
+    }
+    if (name === STAY_SILENT_TOOL) {
+      if (item.decision) {
+        return { ok: false, error: "A decision was already made for this turn." };
+      }
+      item.decision = {
+        action: "silent",
+        message: "",
+        toolCalls: [...item.toolCallNames]
+      };
+      return { ok: true, status: "silent" };
+    }
+    if (item.toolCalls > 10) {
+      return { ok: false, error: "Tool-call limit reached." };
+    }
+    try {
+      const result = await item.executeTool({
+        id: call.id,
+        name,
+        args: call.args ?? {}
+      });
+      return result && typeof result === "object" ? result : { result: String(result) };
+    } catch (err) {
+      console.warn(`[Sukuna:Live] Tool "${name}" failed:`, describeError(err));
+      return { ok: false, error: describeError(err) };
+    }
+  }
+  finishTurn(item, reason, forceReset = false) {
+    const target = item ?? this.inFlight;
+    const responseText = (this.transcriptBuffer || this.textBuffer).trim();
+    const decision = target?.decision ?? this.parseDecision(responseText);
+    const toolCalls = target?.toolCallNames ?? [];
+    if (target && !decision && !target.settled && !forceReset && target.toolCallNames.length > 0 && target.decisionNudges < 1 && (reason === "turnComplete" || reason === "idle") && this.session) {
+      this.resetTurnBuffers();
+      target.decisionNudges += 1;
+      try {
+        this.session.sendClientContent({
+          turns: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: "You have the tool result. Do not describe it. Call exactly one decision tool now: send_message, send_sticker, or stay_silent."
+                }
+              ]
+            }
+          ],
+          turnComplete: true
+        });
+      } catch {
+      }
+      return;
+    }
+    this.resetTurnBuffers();
+    if (!target) return;
+    this.inFlight = null;
+    if (target.timer) {
+      clearTimeout(target.timer);
+      target.timer = null;
+    }
+    this.removeFromQueue(target);
+    if (!target.settled) {
+      target.settled = true;
+      target.resolve(decision ? { ...decision, toolCalls } : null);
+    }
+    const expired = forceReset || this.goAway || this.requestsInSession >= this.maxRequestsPerSession || Date.now() - this.sessionOpenedAt >= this.sessionMaxAgeMs;
+    if (expired) {
+      this.teardownSession(expired ? "recycle" : reason);
+    }
+    void this.pump();
+  }
+  resetTurnBuffers() {
+    this.textBuffer = "";
+    this.transcriptBuffer = "";
+    this.turnCompleteSeen = false;
+    this.toolRoundInFlight = false;
+    this.toolExecuting = false;
+  }
+  describeClose(event) {
+    const close = event;
+    return `Live session closed (code ${close?.code ?? "?"}): ${close?.reason || "no reason provided"}`;
+  }
+  parseDecision(raw) {
+    const json2 = extractJsonObject(raw);
+    if (!json2) return null;
+    try {
+      const parsed = JSON.parse(json2);
+      const action = typeof parsed.action === "string" ? parsed.action.trim().toLowerCase() : "";
+      if (action === "silent") {
+        return { action: "silent", message: "", toolCalls: [] };
+      }
+      if (action === "reply") {
+        const message = sanitizeReply(typeof parsed.message === "string" ? parsed.message : "");
+        return message ? { action: "reply", message, toolCalls: [] } : null;
+      }
+    } catch {
+    }
+    return null;
   }
 };
+function toBoolean(value) {
+  return value === true || value === 1 || value === "true" || value === "1";
+}
+__name(toBoolean, "toBoolean");
+function sanitizeReply(value) {
+  return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ").replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").replace(/[ \t]{2,}/g, " ").trim();
+}
+__name(sanitizeReply, "sanitizeReply");
+function extractJsonObject(text) {
+  const cleaned = text.replace(/```(?:json)?/gi, "");
+  const start = cleaned.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < cleaned.length; i += 1) {
+    const char = cleaned[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return cleaned.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+__name(extractJsonObject, "extractJsonObject");
+function looksLikeLiveModel(model6) {
+  const name = model6.replace(/^models\//, "").toLowerCase();
+  return name.includes("live") || name.includes("native-audio");
+}
+__name(looksLikeLiveModel, "looksLikeLiveModel");
+function resolveThinkingLevel(model6, level) {
+  const normalisedModel = model6.replace(/^models\//, "");
+  const explicit = level?.trim().toLowerCase() || null;
+  if (normalisedModel === "gemini-3.8-live") return null;
+  if (normalisedModel === "gemini-3.8-live-extended-thinking") return explicit ?? "low";
+  return explicit;
+}
+__name(resolveThinkingLevel, "resolveThinkingLevel");
+function describeError(err) {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object") {
+    const record2 = err;
+    return record2.reason || record2.message || JSON.stringify(record2);
+  }
+  return String(err);
+}
+__name(describeError, "describeError");
+async function generateLiveText(options) {
+  if (!options.apiKey) throw new Error("generateLiveText requires an API key");
+  const ai = new import_genai.GoogleGenAI({ apiKey: options.apiKey });
+  const timeoutMs = Math.max(options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS, 1e3);
+  const audioOnly = /native-audio/i.test(options.model);
+  let session = null;
+  let settled = false;
+  let collected = "";
+  return new Promise((resolve, reject) => {
+    function finish(error62) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      const open2 = session;
+      session = null;
+      if (open2) {
+        try {
+          open2.close();
+        } catch {
+        }
+      }
+      if (error62) reject(error62);
+      else resolve(collected.trim());
+    }
+    __name(finish, "finish");
+    const timer = setTimeout(() => {
+      finish(new Error(`Live request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    const config2 = {
+      systemInstruction: { parts: [{ text: options.systemPrompt }] },
+      responseModalities: [audioOnly ? import_genai.Modality.AUDIO : import_genai.Modality.TEXT],
+      temperature: Math.min(Math.max(options.temperature ?? 1, 0), 2),
+      // Same decision contract as production, so the test exercises the real path.
+      tools: [{ functionDeclarations: DECISION_TOOL_DECLARATIONS }]
+    };
+    if (audioOnly) config2.outputAudioTranscription = {};
+    ai.live.connect({
+      model: options.model,
+      config: config2,
+      callbacks: {
+        onmessage: /* @__PURE__ */ __name((message) => {
+          for (const call of message.toolCall?.functionCalls ?? []) {
+            if (call.name === STAY_SILENT_TOOL) {
+              collected = "";
+              finish(null);
+              return;
+            }
+            if (call.name === SEND_MESSAGE_TOOL || call.name === SEND_STICKER_TOOL) {
+              const raw = typeof call.args?.message === "string" ? call.args.message : "";
+              collected = sanitizeReply(raw);
+              finish(null);
+              return;
+            }
+          }
+          for (const part of message.serverContent?.modelTurn?.parts ?? []) {
+            if (part.text && !part.thought) collected += part.text;
+          }
+          if (audioOnly && message.serverContent?.outputTranscription?.text) {
+            collected += message.serverContent.outputTranscription.text;
+          }
+          if (message.serverContent?.turnComplete) finish(null);
+        }, "onmessage"),
+        onerror: /* @__PURE__ */ __name((event) => {
+          const err = event?.error ?? event;
+          finish(err instanceof Error ? err : new Error(describeError(err)));
+        }, "onerror"),
+        onclose: /* @__PURE__ */ __name((event) => {
+          const close = event;
+          if (collected.trim()) {
+            finish(null);
+            return;
+          }
+          finish(
+            new Error(
+              `Live session closed (code ${close?.code ?? "?"}): ${close?.reason || "no reason provided"}`
+            )
+          );
+        }, "onclose")
+      }
+    }).then((opened) => {
+      if (settled) {
+        try {
+          opened.close();
+        } catch {
+        }
+        return;
+      }
+      session = opened;
+      try {
+        opened.sendClientContent({
+          turns: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: options.prompt + `
+
+Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}\` or \`${STAY_SILENT_TOOL}\`.`
+                }
+              ]
+            }
+          ],
+          turnComplete: true
+        });
+      } catch (error62) {
+        finish(error62 instanceof Error ? error62 : new Error(String(error62)));
+      }
+    }).catch((error62) => finish(error62 instanceof Error ? error62 : new Error(describeError(error62))));
+  });
+}
+__name(generateLiveText, "generateLiveText");
 
 // dashboard/server.ts
 var DASHBOARD_HOST = "0.0.0.0";
@@ -174353,11 +175153,9 @@ var ALLOWED_MODULES = ["economy", "leveling", "fun", "music", "tickets", "ai"];
 var USER_SORT_FIELDS = ["totalXp", "balance", "level", "xp", "createdAt"];
 var ACTIVITY_KINDS = ["all", "system", "command", "ai", "error", "log"];
 var SUGGESTED_MODELS = [
-  { id: "gemini-3.1-flash", label: "Gemini 3.1 Flash" },
-  { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro" },
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
-  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash" }
+  { id: "gemini-3.8-live", label: "Gemini 3.8 Live" },
+  { id: "gemini-3.8-live-extended-thinking", label: "Gemini 3.8 Live (extended thinking)" },
+  { id: "gemini-live-2.5-flash-preview", label: "Gemini Live 2.5 Flash (preview)" }
 ];
 var STATIC_FILES = {
   "/": { file: "index.html", type: "text/html; charset=utf-8" },
@@ -174838,40 +175636,31 @@ async function testPersona(req, res) {
   }
   const config2 = getSukunaConfig();
   const systemPrompt = (config2.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT) + "\n\n" + buildRuntimePrompt(config2, clientRef?.user?.id);
-  const streamer = new GeminiStreamSukuna({
-    apiKey,
-    model: config2.model,
-    systemPrompt,
-    temperature: config2.temperature,
-    requestTimeoutMs: config2.requestTimeoutMs
-  });
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    Math.min(Math.max(config2.requestTimeoutMs, 5e3), 6e4)
-  );
   const startedAt = Date.now();
   let response = "";
   try {
-    response = await streamer.stream(prompt, () => {
-    }, controller.signal);
+    response = await generateLiveText({
+      apiKey,
+      model: config2.model,
+      systemPrompt,
+      prompt,
+      temperature: config2.temperature,
+      timeoutMs: Math.min(Math.max(config2.requestTimeoutMs, 5e3), 6e4)
+    });
   } catch (error62) {
     throw new HttpError(
       502,
-      "Gemini request failed: " + (error62 instanceof Error ? error62.message : "unknown error")
+      "Gemini Live request failed: " + (error62 instanceof Error ? error62.message : "unknown error")
     );
-  } finally {
-    clearTimeout(timeout);
   }
   const elapsedMs = Date.now() - startedAt;
-  if (!response.trim()) {
-    throw new HttpError(502, "Gemini returned an empty response");
-  }
-  recordActivity("ai", "Persona test succeeded", {
+  const silent = !response.trim();
+  const answer = silent ? "(Sukuna chose to stay silent for this prompt \u2014 that is a valid decision.)" : response.slice(0, 1e4);
+  recordActivity("ai", silent ? "Persona test: stayed silent" : "Persona test succeeded", {
     level: "success",
     meta: { model: config2.model, ms: elapsedMs, chars: response.length }
   });
-  sendJson(res, 200, { response: response.slice(0, 1e4), model: config2.model, elapsedMs });
+  sendJson(res, 200, { response: answer, silent, model: config2.model, elapsedMs });
 }
 __name(testPersona, "testPersona");
 function buildRuntimePrompt(config2, botId) {
@@ -175456,14 +176245,280 @@ var ready = {
 // src/events/messageCreate.ts
 var import_discord19 = __toESM(require_src());
 
+// src/utils/sukuna-tools.ts
+var import_genai2 = require("@google/genai");
+function buildSukunaToolDeclarations(cfg) {
+  const tools = [
+    {
+      name: "get_server_info",
+      description: "Get server information (name, member count, creation date, owner).",
+      parameters: { type: import_genai2.Type.OBJECT, properties: {} }
+    },
+    {
+      name: "get_channel_info",
+      description: "Get information about the current channel (name, topic, category).",
+      parameters: { type: import_genai2.Type.OBJECT, properties: {} }
+    },
+    {
+      name: "get_member_info",
+      description: 'Get display name, roles, join date and account age for a member. Omit "user" to inspect whoever triggered this turn.',
+      parameters: {
+        type: import_genai2.Type.OBJECT,
+        properties: {
+          user: {
+            type: import_genai2.Type.STRING,
+            description: "A member id, mention or username. Omit for the triggering member."
+          }
+        }
+      }
+    },
+    {
+      name: "get_recent_messages",
+      description: "Read recent messages in the current channel.",
+      parameters: {
+        type: import_genai2.Type.OBJECT,
+        properties: {
+          limit: { type: import_genai2.Type.INTEGER, description: "How many messages to read (1-25)." }
+        }
+      }
+    },
+    {
+      name: "search_discord_messages",
+      description: "Search recent messages in the current channel for a keyword.",
+      parameters: {
+        type: import_genai2.Type.OBJECT,
+        properties: {
+          query: { type: import_genai2.Type.STRING, description: "Keyword or phrase to look for." },
+          limit: { type: import_genai2.Type.INTEGER, description: "How many recent messages to scan (1-100)." }
+        },
+        required: ["query"]
+      }
+    },
+    {
+      name: "get_server_stickers",
+      description: "List this server's stickers with their ids, for use with send_sticker.",
+      parameters: { type: import_genai2.Type.OBJECT, properties: {} }
+    }
+  ];
+  if (cfg.memoryEnabled) {
+    tools.push(
+      {
+        name: "remember_information",
+        description: "Store a durable note about a member, a running joke or a server event.",
+        parameters: {
+          type: import_genai2.Type.OBJECT,
+          properties: {
+            fact: { type: import_genai2.Type.STRING, description: "Fact to remember (max 400 characters)." },
+            about: {
+              type: import_genai2.Type.STRING,
+              description: "Member id, mention, username or topic the fact is about."
+            }
+          },
+          required: ["fact"]
+        }
+      },
+      {
+        name: "search_memory",
+        description: "Search notes previously stored for this server.",
+        parameters: {
+          type: import_genai2.Type.OBJECT,
+          properties: {
+            query: { type: import_genai2.Type.STRING, description: "Keyword to search for." },
+            limit: { type: import_genai2.Type.INTEGER, description: "How many notes to return (1-100)." }
+          }
+        }
+      }
+    );
+  }
+  return tools;
+}
+__name(buildSukunaToolDeclarations, "buildSukunaToolDeclarations");
+function createSukunaToolExecutor(context) {
+  return async (call) => {
+    const name = call.name ?? "";
+    const args = call.args ?? {};
+    try {
+      return await handleTool(name, args, context);
+    } catch (error62) {
+      console.error("[Sukuna Tool] Failed: " + String(error62));
+      return { ok: false, error: String(error62) };
+    }
+  };
+}
+__name(createSukunaToolExecutor, "createSukunaToolExecutor");
+async function handleTool(name, args, context) {
+  const { guild, channel, trigger } = context;
+  switch (name) {
+    case "get_server_info":
+      return {
+        ok: true,
+        name: guild.name,
+        id: guild.id,
+        memberCount: guild.memberCount,
+        createdAt: guild.createdAt.toISOString(),
+        ownerId: guild.ownerId
+      };
+    case "get_channel_info":
+      return {
+        ok: true,
+        id: channel.id,
+        name: channel.name,
+        topic: channel.topic ?? null,
+        category: channel.parent?.name ?? null,
+        nsfw: channel.nsfw ?? false,
+        position: channel.position ?? null
+      };
+    case "get_member_info": {
+      const raw = typeof args.user === "string" ? args.user : "";
+      const member = (raw ? await resolveMember(guild, raw) : null) ?? trigger?.member ?? null;
+      if (!member) return { ok: false, error: "Member not found." };
+      return {
+        ok: true,
+        id: member.id,
+        displayName: member.displayName,
+        username: member.user.username,
+        bot: member.user.bot,
+        roles: member.roles.cache.filter((role) => role.id !== guild.id).map((role) => role.name).slice(0, 25),
+        joinedAt: member.joinedAt?.toISOString() ?? null,
+        accountCreatedAt: member.user.createdAt.toISOString()
+      };
+    }
+    case "get_recent_messages": {
+      const limit = clampInt(args.limit, 1, 25, 10);
+      const messages = await channel.messages.fetch({ limit }).catch(() => null);
+      if (!messages) return { ok: false, error: "Could not read channel history." };
+      return {
+        ok: true,
+        messages: [...messages.values()].map((m) => ({
+          id: m.id,
+          authorId: m.author.id,
+          authorName: m.member?.displayName ?? m.author.username,
+          content: m.content,
+          timestamp: m.createdTimestamp
+        }))
+      };
+    }
+    case "search_discord_messages": {
+      const query = typeof args.query === "string" ? args.query.trim().toLowerCase() : "";
+      if (!query) return { ok: false, error: "A search query is required." };
+      const limit = clampInt(args.limit, 1, 100, 50);
+      const messages = await channel.messages.fetch({ limit }).catch(() => null);
+      if (!messages) return { ok: false, error: "Could not read channel history." };
+      const matches = [...messages.values()].filter((m) => m.content.toLowerCase().includes(query)).slice(0, 10).map((m) => ({
+        id: m.id,
+        authorId: m.author.id,
+        authorName: m.member?.displayName ?? m.author.username,
+        content: m.content.slice(0, 300),
+        timestamp: m.createdTimestamp
+      }));
+      return { ok: true, query, matches, scanned: messages.size };
+    }
+    case "get_server_stickers": {
+      const stickers = [...guild.stickers.cache.values()].slice(0, 25).map((sticker) => ({
+        id: sticker.id,
+        name: sticker.name,
+        description: sticker.description ?? null
+      }));
+      return { ok: true, stickers, total: guild.stickers.cache.size };
+    }
+    case "remember_information": {
+      const fact = typeof args.fact === "string" ? args.fact.trim() : "";
+      if (!fact) return { ok: false, error: "Fact is required" };
+      const rawAbout = typeof args.about === "string" ? args.about.trim() : "";
+      const member = rawAbout ? await resolveMember(guild, rawAbout) : trigger?.member ?? null;
+      const aboutName = member?.displayName ?? (rawAbout || void 0);
+      const note = await addMemory(guild.id, {
+        fact,
+        aboutUserId: member?.id,
+        aboutName
+      });
+      return { ok: true, id: note._id?.toString() ?? String(Date.now()), fact: note.fact };
+    }
+    case "search_memory": {
+      const query = typeof args.query === "string" ? args.query.trim() : "";
+      const limit = clampInt(args.limit, 1, 100, 10);
+      const memories = await searchMemories(guild.id, query, limit);
+      return {
+        ok: true,
+        notes: memories.map((note) => ({
+          fact: note.fact,
+          aboutName: note.aboutName ?? null,
+          createdAt: new Date(note.createdAt).toISOString()
+        })),
+        total: await countMemories(guild.id)
+      };
+    }
+    default:
+      return { ok: false, error: "Unknown tool: " + name };
+  }
+}
+__name(handleTool, "handleTool");
+async function resolveMember(guild, query) {
+  const cleaned = query.replace(/[<@!>]/g, "").trim();
+  if (!cleaned) return null;
+  if (/^\d{15,25}$/.test(cleaned)) {
+    const cached3 = guild.members.cache.get(cleaned);
+    if (cached3) return cached3;
+    return guild.members.fetch(cleaned).catch(() => null);
+  }
+  const needle = cleaned.replace(/^@/, "").trim().toLowerCase();
+  if (!needle) return null;
+  const cached2 = guild.members.cache.find(
+    (member) => member.displayName.toLowerCase() === needle || member.user.username.toLowerCase() === needle || member.displayName.toLowerCase().includes(needle)
+  );
+  if (cached2) return cached2;
+  const results = await guild.members.fetch({ query: needle, limit: 5 }).catch(() => null);
+  return results?.first() ?? null;
+}
+__name(resolveMember, "resolveMember");
+function clampInt(value, min, max, fallback) {
+  const parsed = Math.floor(Number(value ?? fallback));
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, min), max);
+}
+__name(clampInt, "clampInt");
+
+// src/utils/sukuna-media.ts
+var MAX_MEDIA_PER_MESSAGE = 3;
+async function collectSukunaMedia(messages) {
+  const media = [];
+  for (const message of messages) {
+    if (media.length >= MAX_MEDIA_PER_MESSAGE) break;
+    for (const attachment of message.attachments.values()) {
+      if (media.length >= MAX_MEDIA_PER_MESSAGE) break;
+      const type = (attachment.contentType ?? "").toLowerCase();
+      const name = attachment.name ?? "attachment";
+      if (!type.startsWith("image/") && !type.startsWith("video/") && !name.toLowerCase().endsWith(".gif")) {
+        continue;
+      }
+      try {
+        const response = await fetch(attachment.url, { signal: AbortSignal.timeout(8e3) });
+        if (!response.ok) continue;
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const base643 = buffer.toString("base64");
+        media.push({
+          mimeType: type,
+          data: base643,
+          label: name
+        });
+      } catch {
+      }
+    }
+  }
+  return media;
+}
+__name(collectSukunaMedia, "collectSukunaMedia");
+
 // src/utils/sukuna.ts
-var MAX_REPLY_LENGTH = 2e3;
+var MAX_REPLY_LENGTH2 = 2e3;
 var channelHistory = /* @__PURE__ */ new Map();
 var channelHistoryIds = /* @__PURE__ */ new Map();
 var lastReplyAt = 0;
 var lastDecisionAt = 0;
 var replyTimestamps = [];
 var apiKeyCache = "";
+var liveClient = null;
+var liveSignature = "";
 function handleMessage(message) {
   const cfg = getSukunaConfig2();
   if (!cfg.enabled) return;
@@ -175480,6 +176535,14 @@ function handleMessage(message) {
   void processMessage(message, cfg);
 }
 __name(handleMessage, "handleMessage");
+function closeSukuna() {
+  liveClient?.close();
+  liveClient = null;
+  liveSignature = "";
+  channelHistory.clear();
+  channelHistoryIds.clear();
+}
+__name(closeSukuna, "closeSukuna");
 function addToHistory(message, cfg) {
   const content = describeMessage(message);
   if (!content) return;
@@ -175518,6 +176581,40 @@ function getSukunaConfig2() {
   return getSukunaConfig();
 }
 __name(getSukunaConfig2, "getSukunaConfig");
+function getLiveClient(cfg, apiKey, botId) {
+  const systemPrompt = buildSystemPrompt(cfg, botId);
+  const tools = cfg.toolsEnabled === false ? [] : buildSukunaToolDeclarations(cfg);
+  const signature = [
+    apiKey,
+    cfg.model,
+    String(cfg.temperature),
+    String(cfg.requestTimeoutMs),
+    cfg.thinkingLevel ?? "",
+    tools.map((tool) => tool.name).join(","),
+    systemPrompt
+  ].join("|");
+  if (liveClient && liveSignature === signature) return liveClient;
+  liveClient?.close();
+  liveClient = null;
+  liveSignature = "";
+  try {
+    liveClient = new GeminiLiveSukuna({
+      apiKey,
+      model: cfg.model,
+      systemPrompt,
+      tools,
+      thinkingLevel: cfg.thinkingLevel,
+      temperature: cfg.temperature,
+      requestTimeoutMs: cfg.requestTimeoutMs
+    });
+    liveSignature = signature;
+  } catch (error62) {
+    console.error("[Sukuna] Could not create the Live client:", error62);
+    return null;
+  }
+  return liveClient;
+}
+__name(getLiveClient, "getLiveClient");
 async function processMessage(message, cfg) {
   if (isRateLimited(cfg)) return;
   if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1e3) {
@@ -175528,53 +176625,31 @@ async function processMessage(message, cfg) {
     console.warn("[Sukuna] Enabled but no Gemini API key");
     return;
   }
-  const channel = message.channel;
-  const entries = channelHistory.get(message.channelId) ?? [];
   const guild = message.guild;
   if (!guild) return;
-  const payload = buildPayload(guild, channel, entries, message);
+  const channel = message.channel;
+  const live = getLiveClient(cfg, apiKey, message.client.user?.id || "");
+  if (!live) return;
+  const executeTool = createSukunaToolExecutor({
+    client: message.client,
+    guild,
+    channel,
+    trigger: message
+  });
+  let media = [];
+  if (cfg.attachmentsEnabled) {
+    media = await collectSukunaMedia([message]).catch(() => []);
+  }
+  const payload = buildPayload(guild, channel, channelHistory.get(message.channelId) ?? [], message);
   if (cfg.showTyping) {
     channel.sendTyping().catch(() => {
     });
   }
-  let fullResponse = "";
-  const state = { msg: null };
-  let editLock = false;
-  let lastEditAt = 0;
+  let decision = null;
   try {
-    const streamer = new GeminiStreamSukuna({
-      apiKey,
-      model: cfg.model || "gemini-3.1-flash",
-      systemPrompt: buildSystemPrompt(cfg, message.client.user?.id || ""),
-      temperature: cfg.temperature,
-      requestTimeoutMs: cfg.requestTimeoutMs
-    });
-    await streamer.stream(payload, async (chunk) => {
-      fullResponse += chunk;
-      const now2 = Date.now();
-      if (now2 - lastEditAt < 1e3 || editLock) return;
-      lastEditAt = now2;
-      editLock = true;
-      try {
-        const text = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
-        if (!text) return;
-        if (state.msg) {
-          await state.msg.edit({ content: text }).catch(() => {
-          });
-        } else {
-          state.msg = await message.reply({ content: text, failIfNotExists: false }).catch(() => {
-            return channel.send({ content: text });
-          });
-        }
-      } catch (err) {
-        console.error("[Sukuna] Stream edit/send failed:", err);
-      } finally {
-        editLock = false;
-      }
-    });
-    lastDecisionAt = Date.now();
-  } catch (err) {
-    console.error("[Sukuna] Stream failed:", err);
+    decision = await live.ask(payload, executeTool, cfg.requestTimeoutMs, media);
+  } catch (error62) {
+    console.error("[Sukuna] Live request failed:", error62);
     bumpCounter("errors");
     recordActivity("error", "AI reply failed", {
       level: "error",
@@ -175582,46 +176657,68 @@ async function processMessage(message, cfg) {
     });
     return;
   }
-  if (fullResponse.trim() && state.msg) {
-    try {
-      const finalText = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
-      await state.msg.edit({ content: finalText }).catch(() => {
-      });
-    } catch (err) {
-      console.error("[Sukuna] Final edit failed:", err);
-    }
-  }
-  if (!state.msg) return;
+  lastDecisionAt = Date.now();
+  if (!decision || decision.action !== "reply") return;
+  const sent = await deliverDecision(message, channel, decision, cfg);
+  if (!sent) return;
   const now = Date.now();
   lastReplyAt = now;
   replyTimestamps.push(now);
   bumpCounter("aiReplies");
-  recordActivity("ai", "Replied in #" + (message.channel.name || "channel"), {
+  recordActivity("ai", "Replied in #" + (channel.name || "channel"), {
     level: "success",
     meta: {
       guildId: message.guildId,
       channelId: message.channelId,
-      chars: fullResponse.length,
+      chars: decision.message.length,
       model: cfg.model
     }
   });
   addHistoryEntry(message.channelId, {
-    id: state.msg.id,
+    id: sent.id,
     authorId: message.client.user?.id || "unknown",
     authorName: cfg.displayName || "Sukuna",
-    content: fullResponse.slice(0, MAX_REPLY_LENGTH).trim(),
+    content: decision.message.slice(0, MAX_REPLY_LENGTH2).trim(),
     timestamp: now,
     bot: true
   });
 }
 __name(processMessage, "processMessage");
+async function deliverDecision(message, channel, decision, cfg) {
+  const maxLength = Math.min(cfg.maxMessageLength || MAX_REPLY_LENGTH2, MAX_REPLY_LENGTH2);
+  const content = decision.message.slice(0, maxLength).trim();
+  const stickerId = decision.stickerId;
+  if (stickerId) {
+    const sticker = message.guild?.stickers.cache.get(stickerId);
+    if (sticker) {
+      try {
+        return await channel.send({
+          content: content || void 0,
+          stickers: [sticker.id]
+        });
+      } catch (error62) {
+        console.warn("[Sukuna] Sticker send failed, falling back to text:", error62);
+      }
+    }
+  }
+  if (!content) return null;
+  if (decision.replyToTrigger) {
+    const reply = await message.reply({ content, failIfNotExists: false }).catch(() => null);
+    if (reply) return reply;
+  }
+  return channel.send({ content }).catch((error62) => {
+    console.error("[Sukuna] Send failed:", error62);
+    return null;
+  });
+}
+__name(deliverDecision, "deliverDecision");
 function buildSystemPrompt(cfg, botId) {
   const runtime = buildSukunaRuntimePrompt({
     displayName: cfg.displayName || "Sukuna",
     botId,
     toolsEnabled: cfg.toolsEnabled ?? true,
     memoryEnabled: cfg.memoryEnabled ?? true,
-    maxMessageLength: MAX_REPLY_LENGTH
+    maxMessageLength: MAX_REPLY_LENGTH2
   });
   const character = cfg.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT;
   return character + "\n\n" + runtime;
@@ -175728,6 +176825,7 @@ async function main() {
   let client = null;
   async function shutdown(reason, exitCode = 0) {
     logger2.info({ reason, exitCode }, "shutting down");
+    closeSukuna();
     if (client) {
       stopSettingsPoller(client);
       await client.destroy().catch((error62) => {

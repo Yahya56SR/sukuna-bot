@@ -160,6 +160,8 @@ export class GeminiLiveSukuna {
   private readonly maxQueueSize: number;
   private readonly maxRequestsPerSession: number;
   private readonly sessionMaxAgeMs: number;
+  /** Native-audio Live models reject `TEXT`; they stay on audio + transcription. */
+  private readonly audioOnlyModel: boolean;
 
   private session: Session | null = null;
   private connected = false;
@@ -186,10 +188,19 @@ export class GeminiLiveSukuna {
     if (!options.apiKey) {
       throw new Error('GeminiLiveSukuna requires an API key');
     }
+    if (!looksLikeLiveModel(options.model)) {
+      console.warn(
+        `[Sukuna:Live] Model "${options.model}" does not look like a Live API model. ` +
+          'Sukuna only talks to Gemini over bidiGenerateContent (WebSocket); ' +
+          'models that only support generateContent will fail to connect.',
+      );
+    }
+
     this.ai = new GoogleGenAI({ apiKey: options.apiKey });
     this.model = options.model;
     this.systemPrompt = options.systemPrompt;
     this.declarations = [...DECISION_TOOL_DECLARATIONS, ...(options.tools ?? [])];
+    this.audioOnlyModel = /native-audio/i.test(options.model);
     this.thinkingLevel = resolveThinkingLevel(options.model, options.thinkingLevel);
     this.temperature = Math.min(Math.max(options.temperature ?? 1, 0), 2);
     this.requestTimeoutMs = options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
@@ -517,11 +528,16 @@ export class GeminiLiveSukuna {
     const config: LiveConnectConfig = {
       systemInstruction: { parts: [{ text: this.systemPrompt }] },
       temperature: this.temperature,
-      responseModalities: [Modality.AUDIO],
-      outputAudioTranscription: {},
+      // Discord is a text surface, so ask for text tokens. Only native-audio
+      // models (which reject TEXT) fall back to audio + transcription.
+      responseModalities: [this.audioOnlyModel ? Modality.AUDIO : Modality.TEXT],
       contextWindowCompression: { slidingWindow: {} },
       tools: [{ functionDeclarations: this.declarations }],
     };
+
+    if (this.audioOnlyModel) {
+      config.outputAudioTranscription = {};
+    }
 
     if (this.thinkingLevel) {
       config.thinkingConfig = {
@@ -535,7 +551,8 @@ export class GeminiLiveSukuna {
   private buildPayload(text: string): string {
     const safe = text
       .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ')
-      .slice(0, MAX_EVENT_LENGTH);
+      // Keep the tail: the newest messages matter more than the header.
+      .slice(-MAX_EVENT_LENGTH);
 
     return `${safe}\n\nDecide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}\` or \`${STAY_SILENT_TOOL}\`.`;
   }
@@ -895,6 +912,11 @@ function extractJsonObject(text: string): string | null {
   return null;
 }
 
+function looksLikeLiveModel(model: string): boolean {
+  const name = model.replace(/^models\//, '').toLowerCase();
+  return name.includes('live') || name.includes('native-audio');
+}
+
 function resolveThinkingLevel(model: string, level: string | undefined): string | null {
   const normalisedModel = model.replace(/^models\//, '');
   const explicit = level?.trim().toLowerCase() || null;
@@ -911,4 +933,150 @@ function describeError(err: unknown): string {
     return record.reason || record.message || JSON.stringify(record);
   }
   return String(err);
+}
+
+/* ---------------------------------------------------------------------------
+ * One-shot Live text turn (dashboard persona test)
+ * ------------------------------------------------------------------------- */
+
+export interface GeminiLiveTextOptions {
+  apiKey: string;
+  model: string;
+  systemPrompt: string;
+  prompt: string;
+  temperature?: number;
+  timeoutMs?: number;
+}
+
+/**
+ * Run one real Sukuna turn against a Live model and return the text it would
+ * post to Discord ('' when it chooses to stay silent).
+ *
+ * Opens a WebSocket (bidiGenerateContent) session, sends a single event,
+ * executes nothing, and closes. Sukuna never calls `generateContent`, because
+ * Live-only models reject it.
+ */
+export async function generateLiveText(options: GeminiLiveTextOptions): Promise<string> {
+  if (!options.apiKey) throw new Error('generateLiveText requires an API key');
+
+  const ai = new GoogleGenAI({ apiKey: options.apiKey });
+  const timeoutMs = Math.max(options.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS, 1_000);
+  const audioOnly = /native-audio/i.test(options.model);
+
+  let session: Session | null = null;
+  let settled = false;
+  let collected = '';
+
+  return new Promise<string>((resolve, reject) => {
+    function finish(error: Error | null): void {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
+      const open = session;
+      session = null;
+      if (open) {
+        try {
+          open.close();
+        } catch {
+          /* ignore */
+        }
+      }
+
+      if (error) reject(error);
+      else resolve(collected.trim());
+    }
+
+    const timer = setTimeout(() => {
+      finish(new Error(`Live request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    const config: LiveConnectConfig = {
+      systemInstruction: { parts: [{ text: options.systemPrompt }] },
+      responseModalities: [audioOnly ? Modality.AUDIO : Modality.TEXT],
+      temperature: Math.min(Math.max(options.temperature ?? 1, 0), 2),
+      // Same decision contract as production, so the test exercises the real path.
+      tools: [{ functionDeclarations: DECISION_TOOL_DECLARATIONS }],
+    };
+    if (audioOnly) config.outputAudioTranscription = {};
+
+    ai.live
+      .connect({
+        model: options.model,
+        config,
+        callbacks: {
+          onmessage: (message) => {
+            for (const call of message.toolCall?.functionCalls ?? []) {
+              if (call.name === STAY_SILENT_TOOL) {
+                collected = '';
+                finish(null);
+                return;
+              }
+              if (call.name === SEND_MESSAGE_TOOL || call.name === SEND_STICKER_TOOL) {
+                const raw = typeof call.args?.message === 'string' ? call.args.message : '';
+                collected = sanitizeReply(raw);
+                finish(null);
+                return;
+              }
+            }
+
+            for (const part of message.serverContent?.modelTurn?.parts ?? []) {
+              if (part.text && !(part as { thought?: boolean }).thought) collected += part.text;
+            }
+            if (audioOnly && message.serverContent?.outputTranscription?.text) {
+              collected += message.serverContent.outputTranscription.text;
+            }
+            if (message.serverContent?.turnComplete) finish(null);
+          },
+          onerror: (event) => {
+            const err = (event as { error?: unknown } | undefined)?.error ?? event;
+            finish(err instanceof Error ? err : new Error(describeError(err)));
+          },
+          onclose: (event) => {
+            const close = event as { code?: number; reason?: string } | undefined;
+            if (collected.trim()) {
+              finish(null);
+              return;
+            }
+            finish(
+              new Error(
+                `Live session closed (code ${close?.code ?? '?'}): ${close?.reason || 'no reason provided'}`,
+              ),
+            );
+          },
+        },
+      })
+      .then((opened) => {
+        if (settled) {
+          try {
+            opened.close();
+          } catch {
+            /* ignore */
+          }
+          return;
+        }
+
+        session = opened;
+        try {
+          opened.sendClientContent({
+            turns: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    text:
+                      options.prompt +
+                      `\n\nDecide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}\` or \`${STAY_SILENT_TOOL}\`.`,
+                  },
+                ],
+              },
+            ],
+            turnComplete: true,
+          });
+        } catch (error) {
+          finish(error instanceof Error ? error : new Error(String(error)));
+        }
+      })
+      .catch((error) => finish(error instanceof Error ? error : new Error(describeError(error))));
+  });
 }

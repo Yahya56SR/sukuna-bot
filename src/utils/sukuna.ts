@@ -1,22 +1,29 @@
 /**
- * Sukuna — community persona with real-time streaming to/from Gemini.
+ * Sukuna — community persona driven by the Gemini Live API.
  *
- * Each Discord message triggers ONE streaming Gemini call.
- * Chunks flow back to Discord immediately (edited into one message).
- * No persistent WebSocket, no batching.
+ * Live models (e.g. `gemini-3.8-live`) only support real-time bidirectional
+ * streaming (`bidiGenerateContent` over WebSocket), so every turn goes through
+ * `GeminiLiveSukuna`. `generateContent` is never used.
+ *
+ * One Discord message = one Live turn that must end in a decision:
+ * `send_message`, `send_sticker` or `stay_silent`.
  */
 
-import type { TextChannel, Guild, Message, Client } from 'discord.js';
+import type { Client, Guild, Message, TextChannel } from 'discord.js';
 import { getSukunaConfig as readSukunaConfig, type SukunaConfig } from '../config/index.js';
 import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../prompts/sukuna.js';
-import { GeminiStreamSukuna } from '../core/gemini-stream.js';
+import {
+  GeminiLiveSukuna,
+  type SukunaDecision,
+  type SukunaMedia,
+} from '../core/gemini-live.js';
+import { buildSukunaToolDeclarations, createSukunaToolExecutor } from './sukuna-tools.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
-import { addMemory, countMemories, recallMemories } from './sukuna-memory.js';
 import { collectSukunaMedia } from './sukuna-media.js';
 
 const MAX_REPLY_LENGTH = 2000;
 
-// In-memory channel history (for context only, not batching)
+// In-memory channel history (context only)
 const channelHistory = new Map<string, HistoryEntry[]>();
 const channelHistoryIds = new Map<string, Set<string>>();
 
@@ -25,6 +32,10 @@ let lastReplyAt = 0;
 let lastDecisionAt = 0;
 const replyTimestamps: number[] = [];
 let apiKeyCache = '';
+
+// One persistent Live session per configuration; recreated when config changes.
+let liveClient: GeminiLiveSukuna | null = null;
+let liveSignature = '';
 
 interface HistoryEntry {
   id: string;
@@ -36,7 +47,7 @@ interface HistoryEntry {
 }
 
 /**
- * Feed one Discord message to Sukuna — starts a streaming response immediately.
+ * Feed one Discord message to Sukuna.
  */
 function handleMessage(message: Message): void {
   const cfg = getSukunaConfig();
@@ -64,6 +75,9 @@ function handleMessage(message: Message): void {
  * Close Sukuna (for shutdown).
  */
 function closeSukuna(): void {
+  liveClient?.close();
+  liveClient = null;
+  liveSignature = '';
   channelHistory.clear();
   channelHistoryIds.clear();
 }
@@ -130,6 +144,47 @@ function getSukunaConfig(): SukunaConfig {
   return readSukunaConfig();
 }
 
+/**
+ * Reuse one Live session while the persona configuration is unchanged.
+ */
+function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): GeminiLiveSukuna | null {
+  const systemPrompt = buildSystemPrompt(cfg, botId);
+  const tools = cfg.toolsEnabled === false ? [] : buildSukunaToolDeclarations(cfg);
+  const signature = [
+    apiKey,
+    cfg.model,
+    String(cfg.temperature),
+    String(cfg.requestTimeoutMs),
+    cfg.thinkingLevel ?? '',
+    tools.map((tool) => tool.name).join(','),
+    systemPrompt,
+  ].join('|');
+
+  if (liveClient && liveSignature === signature) return liveClient;
+
+  liveClient?.close();
+  liveClient = null;
+  liveSignature = '';
+
+  try {
+    liveClient = new GeminiLiveSukuna({
+      apiKey,
+      model: cfg.model,
+      systemPrompt,
+      tools,
+      thinkingLevel: cfg.thinkingLevel,
+      temperature: cfg.temperature,
+      requestTimeoutMs: cfg.requestTimeoutMs,
+    });
+    liveSignature = signature;
+  } catch (error) {
+    console.error('[Sukuna] Could not create the Live client:', error);
+    return null;
+  }
+
+  return liveClient;
+}
+
 async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
   if (isRateLimited(cfg)) return;
   if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1000) {
@@ -142,63 +197,36 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     return;
   }
 
-  const channel = message.channel as TextChannel;
-  const entries = channelHistory.get(message.channelId) ?? [];
-
   const guild = message.guild;
   if (!guild) return;
+  const channel = message.channel as TextChannel;
 
-  const payload = buildPayload(guild, channel, entries, message);
+  const live = getLiveClient(cfg, apiKey, message.client.user?.id || '');
+  if (!live) return;
+
+  const executeTool = createSukunaToolExecutor({
+    client: message.client,
+    guild,
+    channel,
+    trigger: message,
+  });
+
+  let media: SukunaMedia[] = [];
+  if (cfg.attachmentsEnabled) {
+    media = await collectSukunaMedia([message]).catch(() => []);
+  }
+
+  const payload = buildPayload(guild, channel, channelHistory.get(message.channelId) ?? [], message);
 
   if (cfg.showTyping) {
     channel.sendTyping().catch(() => {});
   }
 
-  let fullResponse = '';
-  const state: { msg: Message | null } = { msg: null };
-  let editLock = false;
-  let lastEditAt = 0;
-
+  let decision: SukunaDecision | null = null;
   try {
-    const streamer = new GeminiStreamSukuna({
-      apiKey,
-      model: cfg.model || 'gemini-3.1-flash',
-      systemPrompt: buildSystemPrompt(cfg, message.client.user?.id || ''),
-      temperature: cfg.temperature,
-      requestTimeoutMs: cfg.requestTimeoutMs,
-    });
-
-    // Stream chunks to Discord in real time
-    await streamer.stream(payload, async (chunk) => {
-      fullResponse += chunk;
-      const now = Date.now();
-
-      // Throttle: max one edit per second, serialize edits
-      if (now - lastEditAt < 1000 || editLock) return;
-      lastEditAt = now;
-      editLock = true;
-
-      try {
-        const text = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
-        if (!text) return;
-
-        if (state.msg) {
-          await state.msg.edit({ content: text }).catch(() => {});
-        } else {
-          state.msg = await message.reply({ content: text, failIfNotExists: false }).catch(() => {
-            return channel.send({ content: text });
-          }) as Message | null;
-        }
-      } catch (err) {
-        console.error('[Sukuna] Stream edit/send failed:', err);
-      } finally {
-        editLock = false;
-      }
-    });
-
-    lastDecisionAt = Date.now();
-  } catch (err) {
-    console.error('[Sukuna] Stream failed:', err);
+    decision = await live.ask(payload, executeTool, cfg.requestTimeoutMs, media);
+  } catch (error) {
+    console.error('[Sukuna] Live request failed:', error);
     bumpCounter('errors');
     recordActivity('error', 'AI reply failed', {
       level: 'error',
@@ -207,41 +235,77 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     return;
   }
 
-  // Final edit to ensure complete message
-  if (fullResponse.trim() && state.msg) {
-    try {
-      const finalText = fullResponse.slice(0, MAX_REPLY_LENGTH).trim();
-      await state.msg.edit({ content: finalText }).catch(() => {});
-    } catch (err) {
-      console.error('[Sukuna] Final edit failed:', err);
-    }
-  }
+  lastDecisionAt = Date.now();
 
-  if (!state.msg) return;
+  if (!decision || decision.action !== 'reply') return;
 
-  // Rate limit + history
+  const sent = await deliverDecision(message, channel, decision, cfg);
+  if (!sent) return;
+
   const now = Date.now();
   lastReplyAt = now;
   replyTimestamps.push(now);
   bumpCounter('aiReplies');
 
-  recordActivity('ai', 'Replied in #' + ((message.channel as TextChannel).name || 'channel'), {
+  recordActivity('ai', 'Replied in #' + (channel.name || 'channel'), {
     level: 'success',
     meta: {
       guildId: message.guildId,
       channelId: message.channelId,
-      chars: fullResponse.length,
+      chars: decision.message.length,
       model: cfg.model,
     },
   });
 
   addHistoryEntry(message.channelId, {
-    id: state.msg.id,
+    id: sent.id,
     authorId: message.client.user?.id || 'unknown',
     authorName: cfg.displayName || 'Sukuna',
-    content: fullResponse.slice(0, MAX_REPLY_LENGTH).trim(),
+    content: decision.message.slice(0, MAX_REPLY_LENGTH).trim(),
     timestamp: now,
     bot: true,
+  });
+}
+
+/**
+ * Send the decision's message/sticker and return the Discord message we created.
+ */
+async function deliverDecision(
+  message: Message,
+  channel: TextChannel,
+  decision: SukunaDecision,
+  cfg: SukunaConfig,
+): Promise<Message | null> {
+  const maxLength = Math.min(cfg.maxMessageLength || MAX_REPLY_LENGTH, MAX_REPLY_LENGTH);
+  const content = decision.message.slice(0, maxLength).trim();
+
+  const stickerId = decision.stickerId;
+  if (stickerId) {
+    const sticker = message.guild?.stickers.cache.get(stickerId);
+    if (sticker) {
+      try {
+        return await channel.send({
+          content: content || undefined,
+          stickers: [sticker.id],
+        });
+      } catch (error) {
+        console.warn('[Sukuna] Sticker send failed, falling back to text:', error);
+      }
+    }
+  }
+
+  if (!content) return null;
+
+  if (decision.replyToTrigger) {
+    const reply = await message
+      .reply({ content, failIfNotExists: false })
+      .catch(() => null);
+    if (reply) return reply;
+  }
+
+  return channel.send({ content }).catch((error) => {
+    console.error('[Sukuna] Send failed:', error);
+    return null;
   });
 }
 

@@ -88,15 +88,16 @@ Silence is the default.
 
 ### 11. OUTPUT FORMAT
 
-Return exactly one valid JSON object for every incoming event.
+Never type a visible message as plain text. Every turn ends with exactly one tool call:
 
-When replying: {"action":"reply","message":"Your natural message here"}
-When staying silent: {"action":"silent","message":""}
+- \`send_message\` — reply with the exact text to post.
+- \`send_sticker\` — reply with a real server sticker id (optional text).
+- \`stay_silent\` — do not post anything.
 
 Rules:
-- Output JSON only, no markdown code fences
-- Use "reply" or "silent" exactly as shown
-- Escape JSON strings correctly
+- Call exactly one of the three, once per turn.
+- Never include reasoning, labels, JSON envelopes or fake message wrappers.
+- Text that is not passed to \`send_message\` is never posted to Discord.
 
 ### 12. FINAL DIRECTIVE
 
@@ -119,16 +120,26 @@ export interface SukunaRuntimeOptions {
  * The runtime contract appended to the character prompt.
  */
 export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string {
-  const infoTools = [
-    'get_server_info - server name, member count, creation date',
-    'get_channel_info - channel name, topic, category',
-    'get_member_info - roles, join date, account age for a member',
-    'get_recent_messages - read more channel history',
-    'search_discord_messages - search for a keyword',
-    'send_message - send a Discord message',
-    'send_sticker - send a server sticker',
-    'stay_silent - choose not to respond',
-  ];
+  // Keep in sync with buildSukunaToolDeclarations() in utils/sukuna-tools.ts.
+  const infoTools: string[] = [];
+
+  if (options.toolsEnabled) {
+    infoTools.push(
+      'get_server_info - server name, member count, creation date',
+      'get_channel_info - channel name, topic, category',
+      'get_member_info - roles, join date, account age for a member',
+      'get_recent_messages - read more channel history',
+      'search_discord_messages - search recent channel messages for a keyword',
+      'get_server_stickers - list real server sticker ids for send_sticker',
+    );
+
+    if (options.memoryEnabled) {
+      infoTools.push(
+        'remember_information - store a durable note about a member or event',
+        'search_memory - search notes stored for this server',
+      );
+    }
+  }
 
   const toolSection = infoTools.length
     ? 'You may call these tools before deciding:\n' + infoTools.map((line) => '- ' + line).join('\n')

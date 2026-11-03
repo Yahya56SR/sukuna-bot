@@ -54,7 +54,7 @@ import {
   upsertServerRules,
 } from '../src/utils/sukuna-storage.js';
 import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../src/prompts/sukuna.js';
-import { GeminiStreamSukuna } from '../src/core/gemini-stream.js';
+import { generateLiveText } from '../src/core/gemini-live.js';
 import { getActivity, getCounters, recordActivity, type ActivityKind } from '../src/core/metrics.js';
 
 /* ------------------------------------------------------------------ */
@@ -76,15 +76,15 @@ const USER_SORT_FIELDS = ['totalXp', 'balance', 'level', 'xp', 'createdAt'] as c
 const ACTIVITY_KINDS: Array<ActivityKind | 'all'> = ['all', 'system', 'command', 'ai', 'error', 'log'];
 
 /**
- * Suggestions only. The persona model field is free-form so a newly released
- * Gemini model can be used without shipping a dashboard update.
+ * Suggestions only, and all of them are Live API models: the persona talks to
+ * Gemini over `bidiGenerateContent` (WebSocket) and cannot use generateContent.
+ * The model field stays free-form so a newly released Live model can be used
+ * without shipping a dashboard update.
  */
 const SUGGESTED_MODELS = [
-  { id: 'gemini-3.1-flash', label: 'Gemini 3.1 Flash' },
-  { id: 'gemini-3.1-pro', label: 'Gemini 3.1 Pro' },
-  { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-  { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-  { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+  { id: 'gemini-3.8-live', label: 'Gemini 3.8 Live' },
+  { id: 'gemini-3.8-live-extended-thinking', label: 'Gemini 3.8 Live (extended thinking)' },
+  { id: 'gemini-live-2.5-flash-preview', label: 'Gemini Live 2.5 Flash (preview)' },
 ];
 
 const STATIC_FILES: Record<string, { file: string; type: string }> = {
@@ -667,42 +667,36 @@ async function testPersona(req: http.IncomingMessage, res: http.ServerResponse):
   const systemPrompt =
     (config.systemPrompt?.trim() || SUKUNA_DEFAULT_PROMPT) + '\n\n' + buildRuntimePrompt(config, clientRef?.user?.id);
 
-  const streamer = new GeminiStreamSukuna({
-    apiKey,
-    model: config.model,
-    systemPrompt,
-    temperature: config.temperature,
-    requestTimeoutMs: config.requestTimeoutMs,
-  });
-
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(),
-    Math.min(Math.max(config.requestTimeoutMs, 5000), 60000),
-  );
   const startedAt = Date.now();
   let response = '';
   try {
-    response = await streamer.stream(prompt, () => {}, controller.signal);
+    // Live models reject generateContent, so the test runs a real Live turn.
+    response = await generateLiveText({
+      apiKey,
+      model: config.model,
+      systemPrompt,
+      prompt,
+      temperature: config.temperature,
+      timeoutMs: Math.min(Math.max(config.requestTimeoutMs, 5000), 60000),
+    });
   } catch (error) {
     throw new HttpError(
       502,
-      'Gemini request failed: ' + (error instanceof Error ? error.message : 'unknown error'),
+      'Gemini Live request failed: ' + (error instanceof Error ? error.message : 'unknown error'),
     );
-  } finally {
-    clearTimeout(timeout);
   }
 
   const elapsedMs = Date.now() - startedAt;
-  if (!response.trim()) {
-    throw new HttpError(502, 'Gemini returned an empty response');
-  }
+  const silent = !response.trim();
+  const answer = silent
+    ? '(Sukuna chose to stay silent for this prompt — that is a valid decision.)'
+    : response.slice(0, 10000);
 
-  recordActivity('ai', 'Persona test succeeded', {
+  recordActivity('ai', silent ? 'Persona test: stayed silent' : 'Persona test succeeded', {
     level: 'success',
     meta: { model: config.model, ms: elapsedMs, chars: response.length },
   });
-  sendJson(res, 200, { response: response.slice(0, 10000), model: config.model, elapsedMs });
+  sendJson(res, 200, { response: answer, silent, model: config.model, elapsedMs });
 }
 
 function buildRuntimePrompt(config: SukunaConfig, botId?: string): string {
