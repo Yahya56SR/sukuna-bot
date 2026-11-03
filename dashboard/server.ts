@@ -9,8 +9,8 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 
-const DASHBOARD_PORT = 3001;
-const DASHBOARD_HOST = '127.0.0.1';
+const DASHBOARD_PORT = Number(process.env.SERVER_PORT) || 3001;
+const DASHBOARD_HOST = '0.0.0.0';
 
 let sukunaActive = false;
 
@@ -19,6 +19,10 @@ export function startDashboard(): void {
 
   server.listen(DASHBOARD_PORT, DASHBOARD_HOST, () => {
     console.log('[Sukuna Dashboard] Listening on http://' + DASHBOARD_HOST + ':' + DASHBOARD_PORT);
+  });
+
+  server.on('error', (err: any) => {
+    console.error('[Sukuna Dashboard] Server error:', err.message);
   });
 
   // Handle graceful shutdown

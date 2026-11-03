@@ -1,6 +1,5 @@
 import { Events, type ClientEvents } from 'discord.js';
-import { setSukunaActive } from '../../dashboard/server.js';
-import { isSukunaActive } from '../utils/sukuna.js';
+import { startDashboard, setSukunaActive } from '../../dashboard/server.js';
 import { defaultSukunaConfig } from '../config/index.js';
 
 export const ready = {
@@ -13,9 +12,13 @@ export const ready = {
     );
 
     // Start the dashboard if Sukuna is enabled
-    if (defaultSukunaConfig.enabled) {
+    const isEnabled = defaultSukunaConfig.enabled === true;
+    if (isEnabled) {
+      startDashboard();
       setSukunaActive(true);
-      client.logger.info('[Sukuna] AI persona enabled');
+      client.logger.info('[Sukuna] AI persona enabled — dashboard started');
+    } else {
+      client.logger.info('[Sukuna] AI persona disabled — dashboard not started');
     }
   },
 };
