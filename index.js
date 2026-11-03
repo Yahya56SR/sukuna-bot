@@ -35910,12 +35910,12 @@ var require_bulkSaveIncompleteError = __commonJS({
       constructor(modelName, documents, bulkWriteResult) {
         const matchedCount = bulkWriteResult?.matchedCount ?? 0;
         const insertedCount = bulkWriteResult?.insertedCount ?? 0;
-        let preview = documents.map((doc) => doc._id).join(", ");
-        if (preview.length > 100) {
-          preview = preview.slice(0, 100) + "...";
+        let preview4 = documents.map((doc) => doc._id).join(", ");
+        if (preview4.length > 100) {
+          preview4 = preview4.slice(0, 100) + "...";
         }
         const numDocumentsNotUpdated = documents.length - matchedCount - insertedCount;
-        super(`${modelName}.bulkSave() was not able to update ${numDocumentsNotUpdated} of the given documents due to incorrect version or optimistic concurrency, document ids: ${preview}`);
+        super(`${modelName}.bulkSave() was not able to update ${numDocumentsNotUpdated} of the given documents due to incorrect version or optimistic concurrency, document ids: ${preview4}`);
         this.modelName = modelName;
         this.documents = documents;
         this.bulkWriteResult = bulkWriteResult;
@@ -53306,11 +53306,11 @@ var require_bulkWriteError = __commonJS({
         __name(this, "MongooseBulkWriteError");
       }
       constructor(validationErrors, results, rawResult, operation) {
-        let preview = validationErrors.map((e) => e.message).join(", ");
-        if (preview.length > 200) {
-          preview = preview.slice(0, 200) + "...";
+        let preview4 = validationErrors.map((e) => e.message).join(", ");
+        if (preview4.length > 200) {
+          preview4 = preview4.slice(0, 200) + "...";
         }
-        super(`${operation} failed with ${validationErrors.length} Mongoose validation errors: ${preview}`);
+        super(`${operation} failed with ${validationErrors.length} Mongoose validation errors: ${preview4}`);
         this.validationErrors = validationErrors;
         this.results = results;
         this.rawResult = rawResult;
@@ -56369,11 +56369,11 @@ var require_eachAsyncMultiError = __commonJS({
        * @param {string} connectionString
        */
       constructor(errors) {
-        let preview = errors.map((e) => e.message).join(", ");
-        if (preview.length > 50) {
-          preview = preview.slice(0, 50) + "...";
+        let preview4 = errors.map((e) => e.message).join(", ");
+        if (preview4.length > 50) {
+          preview4 = preview4.slice(0, 50) + "...";
         }
-        super(`eachAsync() finished with ${errors.length} errors: ${preview}`);
+        super(`eachAsync() finished with ${errors.length} errors: ${preview4}`);
         this.errors = errors;
       }
     };
@@ -60565,16 +60565,16 @@ var require_query = __commonJS({
       }
     };
     function _previewUpdate(update) {
-      const preview = util.inspect(update, {
+      const preview4 = util.inspect(update, {
         depth: 2,
         maxArrayLength: 5,
         breakLength: 80,
         compact: true
       });
-      if (preview.length > 200) {
-        return `${preview.slice(0, 197)}...`;
+      if (preview4.length > 200) {
+        return `${preview4.slice(0, 197)}...`;
       }
-      return preview;
+      return preview4;
     }
     __name(_previewUpdate, "_previewUpdate");
     Query.prototype.validate = /* @__PURE__ */ __name(async function validate2(castedDoc, options, isOverwriting) {
@@ -101668,7 +101668,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101680,13 +101680,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits6;
+      static Flags = PermissionFlagsBits7;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits6).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits7).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101698,7 +101698,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits6.ManageChannels | PermissionFlagsBits6.MuteMembers | PermissionFlagsBits6.MoveMembers;
+      static StageModerator = PermissionFlagsBits7.ManageChannels | PermissionFlagsBits7.MuteMembers | PermissionFlagsBits7.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101725,7 +101725,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits6.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits7.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101734,7 +101734,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits6.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits7.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101743,7 +101743,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits6.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits7.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -102154,7 +102154,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102224,7 +102224,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits6.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits7.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102792,7 +102792,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits6, ChannelType: ChannelType4 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7, ChannelType: ChannelType4 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102936,7 +102936,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits6.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits7.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -102951,7 +102951,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits6.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits7.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -102977,7 +102977,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits6.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits7.ViewChannel, false)
         );
       }
       /**
@@ -103111,10 +103111,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits6.ViewChannel | PermissionFlagsBits6.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits6.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits7.ViewChannel | PermissionFlagsBits7.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits7.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103126,7 +103126,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits6.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits7.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -105767,7 +105767,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection2 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105918,7 +105918,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits6.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits6.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits7.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits7.ManageGuild)
         );
       }
       /**
@@ -119285,7 +119285,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119321,7 +119321,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits6.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits7.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -120740,7 +120740,7 @@ var require_Message = __commonJS({
       ChannelType: ChannelType4,
       MessageType: MessageType2,
       MessageFlags: MessageFlags5,
-      PermissionFlagsBits: PermissionFlagsBits6,
+      PermissionFlagsBits: PermissionFlagsBits7,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121199,7 +121199,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits6.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits7.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121219,8 +121219,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits6.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits7.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121231,7 +121231,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits6.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits7.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121245,7 +121245,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits6.ReadMessageHistory | PermissionFlagsBits6.PinMessages);
+        return permissions.has(PermissionFlagsBits7.ReadMessageHistory | PermissionFlagsBits7.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121266,7 +121266,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits6.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits6.ManageMessages);
+        const bitfield = PermissionFlagsBits7.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits7.ManageMessages);
         const { channel } = this;
         return Boolean(
           channel?.type === ChannelType4.GuildAnnouncement && !this.flags.has(MessageFlags5.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
@@ -122474,7 +122474,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122729,7 +122729,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits6.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits7.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122738,7 +122738,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits6.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits7.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122746,7 +122746,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits6.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits6.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits7.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits7.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -125708,7 +125708,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType4, PermissionFlagsBits: PermissionFlagsBits6, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType4, PermissionFlagsBits: PermissionFlagsBits7, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -126071,7 +126071,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType4.PrivateThread ? PermissionFlagsBits6.ManageThreads : PermissionFlagsBits6.ViewChannel,
+          this.type === ChannelType4.PrivateThread ? PermissionFlagsBits7.ManageThreads : PermissionFlagsBits7.ViewChannel,
           false
         );
       }
@@ -126083,8 +126083,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126095,7 +126095,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits6.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits7.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126105,8 +126105,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType4.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits6.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType4.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits7.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126615,7 +126615,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126689,8 +126689,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.Connect, false);
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126880,7 +126880,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits6, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits7, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126893,7 +126893,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits6.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits7.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126904,8 +126904,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits6.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits6.Speak, false);
+        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -141013,7 +141013,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits6 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141155,7 +141155,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits6.CreateGuildExpressions | PermissionFlagsBits6.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits7.CreateGuildExpressions | PermissionFlagsBits7.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -173519,7 +173519,8 @@ function buildSukunaRuntimePrompt(options) {
       "get_member_info - roles, join date, account age for a member",
       "get_recent_messages - read more channel history",
       "search_discord_messages - search recent channel messages for a keyword",
-      "get_server_stickers - list real server sticker ids for send_sticker"
+      "get_server_stickers - list real server sticker ids for send_sticker",
+      "send_dm - send one private DM to someone who asked for it (side effect, not a reply)"
     );
     if (options.memoryEnabled) {
       infoTools.push(
@@ -173529,8 +173530,9 @@ function buildSukunaRuntimePrompt(options) {
     }
   }
   const toolSection = infoTools.length ? "You may call these tools before deciding:\n" + infoTools.map((line) => "- " + line).join("\n") : "No information tools are enabled this turn. Decide from the context you were given.";
+  const dmSection = options.toolsEnabled ? "\n\n## DIRECT MESSAGES\n\nsend_dm sends one private message to a member and never replaces your decision:\n\n- Only DM the member who triggered this turn, someone they @mentioned, or a member when a moderator asks you to.\n- Never DM people you only saw in the history or in a tool result.\n- One DM per member per turn. No spam, no secrets, no private data \u2014 if you would not say it in the channel, do not DM it.\n- After send_dm, still end the turn with exactly one decision tool (usually stay_silent)." : "";
   const botIdLine = options.botId ? "Your own Discord user ID is " + options.botId + ". A direct <@" + options.botId + "> mention is addressed to you." : "Your own messages appear with the robot marker in the history; a [reply to your message] marker means the member is replying to you.";
-  return "---\n\n# RUNTIME INTEGRATION - DISCORD\n\nYou are running as **" + options.displayName + "**, a live character inside one Discord channel. The text you receive is a snapshot of a real conversation.\n\n## THE DECISION CONTRACT\n\nEvery event must end with exactly one decision tool call:\n\n- Call send_message exactly once when you choose to REPLY. Put only the Discord message in message.\n- Call send_sticker exactly once when you choose to reply with a sticker.\n- Call stay_silent exactly once when you choose SILENT.\n\n" + botIdLine + "\n\n## AVAILABLE INFORMATION TOOLS\n\n" + toolSection + "\n\n## DISCORD NATIVE FORMATTING\n\nUser mentions: <@USER_ID>\nRole mentions: <@&ROLE_ID>\nChannel references: <#CHANNEL_ID>\n\nUse formatting sparingly: **bold**, *italic*, `inline code`, > quoted, ||spoiler||\n\n## OUTPUT COMPATIBILITY\n\n- To respond: call exactly one of send_message or send_sticker.\n- To remain silent: call stay_silent exactly once.\n- Never include internal reasoning, labels, or fake message envelopes.";
+  return "---\n\n# RUNTIME INTEGRATION - DISCORD\n\nYou are running as **" + options.displayName + "**, a live character inside one Discord channel. The text you receive is a snapshot of a real conversation.\n\n## THE DECISION CONTRACT\n\nEvery event must end with exactly one decision tool call:\n\n- Call send_message exactly once when you choose to REPLY. Put only the Discord message in message.\n- Call send_sticker exactly once when you choose to reply with a sticker.\n- Call stay_silent exactly once when you choose SILENT.\n\n" + botIdLine + "\n\n## AVAILABLE INFORMATION TOOLS\n\n" + toolSection + dmSection + "\n\n## DISCORD NATIVE FORMATTING\n\nUser mentions: <@USER_ID>\nRole mentions: <@&ROLE_ID>\nChannel references: <#CHANNEL_ID>\n\nUse formatting sparingly: **bold**, *italic*, `inline code`, > quoted, ||spoiler||\n\n## OUTPUT COMPATIBILITY\n\n- To respond: call exactly one of send_message or send_sticker.\n- To remain silent: call stay_silent exactly once.\n- Never include internal reasoning, labels, or fake message envelopes.";
 }
 function buildSukunaVoicePrompt(options) {
   const custom2 = options.character?.trim();
@@ -173644,6 +173646,8 @@ Never type a visible message as plain text. Every turn ends with exactly one too
 - \`send_message\` \u2014 reply with the exact text to post.
 - \`send_sticker\` \u2014 reply with a real server sticker id (optional text).
 - \`stay_silent\` \u2014 do not post anything.
+
+Private messages are a side effect, never a reply: call \`send_dm\` only when someone asks you to DM them (or a moderator asks you to message a member), then still end the turn with exactly one of the three actions above.
 
 Rules:
 - Call exactly one of the three, once per turn.
@@ -182043,6 +182047,9 @@ var CONNECT_TIMEOUT_MS = 12e3;
 var MAX_RECONNECT_ATTEMPTS = 4;
 var RECONNECT_BASE_DELAY_MS = 1e3;
 var MAX_RECONNECT_DELAY_MS = 2e4;
+var QUOTA_BASE_BACKOFF_MS = 6e4;
+var MAX_QUOTA_BACKOFF_MS = 15 * 6e4;
+var QUOTA_LOG_INTERVAL_MS = 3e4;
 var DEFAULT_MAX_QUEUE_SIZE = 10;
 var DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
 var DEFAULT_SESSION_MAX_AGE_MS = 5 * 6e4;
@@ -182131,6 +182138,10 @@ var GeminiLiveSukuna = class {
   pumping = false;
   retryTimer = null;
   reconnectAttempts = 0;
+  /** Epoch ms until which no Live request is attempted (quota circuit breaker). */
+  unavailableUntil = 0;
+  quotaBackoffMs = 0;
+  lastQuotaLogAt = 0;
   textBuffer = "";
   transcriptBuffer = "";
   turnCompleteSeen = false;
@@ -182161,6 +182172,16 @@ var GeminiLiveSukuna = class {
   }
   ask(text, executeTool, timeoutMs, media = []) {
     if (!text || !text.trim() || this.closed) return Promise.resolve(null);
+    if (this.unavailableUntil > Date.now()) {
+      const waitMs = this.unavailableUntil - Date.now();
+      if (Date.now() - this.lastQuotaLogAt >= QUOTA_LOG_INTERVAL_MS) {
+        this.lastQuotaLogAt = Date.now();
+        console.warn(
+          `[Sukuna:Live] Skipping event \u2014 Gemini quota cooldown still active for ${Math.ceil(waitMs / 1e3)}s`
+        );
+      }
+      return Promise.resolve(null);
+    }
     if (this.queue.length >= this.maxQueueSize) {
       console.warn("[Sukuna:Live] Queue full \u2014 skipping this event", {
         queueLength: this.queue.length,
@@ -182169,6 +182190,11 @@ var GeminiLiveSukuna = class {
       return Promise.resolve(null);
     }
     const effectiveTimeout = Math.max(timeoutMs ?? this.requestTimeoutMs, 1e3);
+    logLive("event queued", {
+      chars: text.length,
+      media: media.length,
+      queueLength: this.queue.length + 1
+    });
     return new Promise((resolve2) => {
       const item = {
         text,
@@ -182207,7 +182233,13 @@ var GeminiLiveSukuna = class {
           try {
             await this.ensureConnected();
           } catch (err) {
-            console.warn("[Sukuna:Live] Connection attempt failed:", describeError(err));
+            const description = describeError(err);
+            console.warn("[Sukuna:Live] Connection attempt failed:", description);
+            if (isQuotaError(description)) {
+              this.startQuotaCooldown(description);
+              this.failAllQueued("quota exhausted");
+              return;
+            }
             this.scheduleRetry();
             return;
           }
@@ -182238,6 +182270,15 @@ var GeminiLiveSukuna = class {
     this.inFlight = item;
     this.resetTurnBuffers();
     this.requestsInSession += 1;
+    logLive("turn start", {
+      model: this.model,
+      requestInSession: this.requestsInSession,
+      maxRequestsPerSession: this.maxRequestsPerSession,
+      chars: item.text.length,
+      media: item.media.length,
+      timeoutMs: item.timeoutMs
+    });
+    logLive("prompt sent", { preview: preview(item.text, 1200) });
     try {
       const parts = [
         ...item.media.map((media) => ({
@@ -182274,12 +182315,16 @@ var GeminiLiveSukuna = class {
     }
     if (this.inFlight === item) this.inFlight = null;
     this.removeFromQueue(item);
+    console.warn(`[Sukuna:Live] Event dropped (${reason})`);
     item.resolve(null);
   }
   failAllQueued(reason) {
     const pending = [...this.queue];
     this.queue = [];
     this.inFlight = null;
+    if (pending.length > 0) {
+      console.warn(`[Sukuna:Live] Dropping ${pending.length} queued event(s): ${reason}`);
+    }
     for (const item of pending) {
       if (item.settled) continue;
       item.settled = true;
@@ -182360,6 +182405,12 @@ var GeminiLiveSukuna = class {
       this.reconnectAttempts = 0;
       this.goAway = false;
       this.resetTurnBuffers();
+      logLive("session ready", {
+        model: this.model,
+        thinkingLevel: this.thinkingLevel ?? "(none)",
+        output: "audio+transcription",
+        tools: this.declarations.length
+      });
     } catch (err) {
       void connectPromise.then((session) => {
         try {
@@ -182379,12 +182430,42 @@ var GeminiLiveSukuna = class {
     this.session = null;
     this.connected = false;
     this.resetTurnBuffers();
+    console.warn("[Sukuna:Live] Session lost:", describeError(event));
     if (this.inFlight) {
       this.failItem(this.inFlight, "connection lost");
+    }
+    const description = describeError(event);
+    if (isQuotaError(description)) {
+      this.startQuotaCooldown(description);
+      this.failAllQueued("quota exhausted");
+      return;
     }
     if (this.queue.length > 0 && !this.closed) {
       this.scheduleRetry();
     }
+  }
+  /**
+   * Stop talking to Gemini for a while after the key runs out. The delay
+   * escalates while the outage lasts (60s → 15min) and resets as soon as a
+   * request succeeds again.
+   */
+  startQuotaCooldown(detail) {
+    const now = Date.now();
+    if (now < this.unavailableUntil) return;
+    this.quotaBackoffMs = this.quotaBackoffMs ? Math.min(this.quotaBackoffMs * 2, MAX_QUOTA_BACKOFF_MS) : QUOTA_BASE_BACKOFF_MS;
+    this.unavailableUntil = now + this.quotaBackoffMs;
+    this.lastQuotaLogAt = now;
+    console.error(
+      `[Sukuna:Live] Gemini quota exhausted \u2014 pausing Live requests for ${Math.round(this.quotaBackoffMs / 1e3)}s. The persona stays silent until then. Check the API key limits (per-minute and per-day quotas, and any other bot or the voice mode sharing the same key). Server said: ${detail}`
+    );
+    recordActivity("error", "Gemini quota exhausted \u2014 persona paused", {
+      level: "error",
+      meta: {
+        model: this.model,
+        cooldownSeconds: Math.round(this.quotaBackoffMs / 1e3),
+        detail: preview(detail, 300)
+      }
+    });
   }
   teardownSession(reason) {
     this.sessionGeneration += 1;
@@ -182414,6 +182495,9 @@ var GeminiLiveSukuna = class {
     const delay = Math.min(
       RECONNECT_BASE_DELAY_MS * 2 ** (this.reconnectAttempts - 1),
       MAX_RECONNECT_DELAY_MS
+    );
+    console.warn(
+      `[Sukuna:Live] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`
     );
     this.retryTimer = setTimeout(() => {
       this.retryTimer = null;
@@ -182504,7 +182588,15 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
       const name = call.name || "unknown";
       item.toolCallNames.push(name);
       item.toolCalls += 1;
+      logLive("tool call", {
+        name,
+        args: preview(JSON.stringify(call.args ?? {}), 600)
+      });
       const response = await this.runTool(item, call);
+      logLive("tool result", {
+        name,
+        result: preview(JSON.stringify(response), 600)
+      });
       responses.push({
         id: call.id,
         name,
@@ -182612,6 +182704,11 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
     const responseText = (this.transcriptBuffer || this.textBuffer).trim();
     const decision = target?.decision ?? this.parseDecision(responseText);
     const toolCalls = target?.toolCallNames ?? [];
+    logLive("model output", {
+      reason,
+      toolCalls: toolCalls.length ? toolCalls.join(",") : "(none)",
+      text: responseText ? preview(responseText, 2e3) : "(no text or transcript)"
+    });
     if (target && !decision && !target.settled && !forceReset && target.toolCallNames.length > 0 && target.decisionNudges < 1 && (reason === "turnComplete" || reason === "idle") && this.session) {
       this.resetTurnBuffers();
       target.decisionNudges += 1;
@@ -182644,6 +182741,24 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
     if (!target.settled) {
       target.settled = true;
       target.resolve(decision ? { ...decision, toolCalls } : null);
+    }
+    this.quotaBackoffMs = 0;
+    this.unavailableUntil = 0;
+    if (decision) {
+      logLive("decision", {
+        action: decision.action,
+        source: target.decision ? "tool call" : "transcript fallback",
+        reply: Boolean(decision.replyToTrigger),
+        stickerId: decision.stickerId ?? null,
+        chars: decision.message.length,
+        text: decision.message ? preview(decision.message, 2e3) : "(silent)"
+      });
+    } else {
+      logLive("decision", {
+        action: "none \u2014 failing silent",
+        reason,
+        toolCalls: toolCalls.length ? toolCalls.join(",") : "(none)"
+      });
     }
     const expired = forceReset || this.goAway || this.requestsInSession >= this.maxRequestsPerSession || Date.now() - this.sessionOpenedAt >= this.sessionMaxAgeMs;
     if (expired) {
@@ -182688,6 +182803,22 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
     return null;
   }
 };
+function preview(text, max = 600) {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (!flat) return "(empty)";
+  return flat.length <= max ? flat : `${flat.slice(0, max)}\u2026 (${flat.length} chars)`;
+}
+__name(preview, "preview");
+function logLive(event, data) {
+  if (data) console.log(`[Sukuna:Live] ${event}`, data);
+  else console.log(`[Sukuna:Live] ${event}`);
+}
+__name(logLive, "logLive");
+function isQuotaError(text) {
+  if (/\b429\b/.test(text)) return true;
+  return /(quota|exhausted|rate.?limit)/i.test(text);
+}
+__name(isQuotaError, "isQuotaError");
 function toBoolean(value) {
   return value === true || value === 1 || value === "true" || value === "1";
 }
@@ -182763,8 +182894,15 @@ async function generateLiveText(options) {
         } catch {
         }
       }
-      if (error62) reject(error62);
-      else resolve2(collected.trim());
+      if (error62) {
+        console.warn("[Sukuna:Live] Persona test failed:", error62.message);
+        reject(error62);
+      } else {
+        logLive("persona test result", {
+          reply: collected.trim() ? preview(collected, 2e3) : "(stayed silent)"
+        });
+        resolve2(collected.trim());
+      }
     }
     __name(finish, "finish");
     const timer = setTimeout(() => {
@@ -182785,6 +182923,10 @@ async function generateLiveText(options) {
       callbacks: {
         onmessage: /* @__PURE__ */ __name((message) => {
           for (const call of message.toolCall?.functionCalls ?? []) {
+            logLive("persona test tool call", {
+              name: call.name ?? "unknown",
+              args: preview(JSON.stringify(call.args ?? {}), 600)
+            });
             if (call.name === STAY_SILENT_TOOL) {
               collected = "";
               finish(null);
@@ -182831,6 +182973,7 @@ async function generateLiveText(options) {
         return;
       }
       session = opened;
+      logLive("persona test session ready", { model: options.model });
       try {
         opened.sendClientContent({
           turns: [
@@ -184309,7 +184452,7 @@ var ready2 = {
 };
 
 // src/events/messageCreate.ts
-var import_discord29 = __toESM(require_src());
+var import_discord30 = __toESM(require_src());
 
 // src/utils/sukuna.ts
 init_config();
@@ -184317,6 +184460,12 @@ init_sukuna();
 
 // src/utils/sukuna-tools.ts
 var import_genai4 = require("@google/genai");
+var import_discord29 = __toESM(require_src());
+var DM_MAX_CHARS = 1500;
+var DM_RATE_LIMIT_PER_HOUR = 10;
+var DM_MIN_INTERVAL_PER_USER_MS = 6e4;
+var dmTimestamps = /* @__PURE__ */ new Map();
+var dmPerUser = /* @__PURE__ */ new Map();
 function buildSukunaToolDeclarations(cfg) {
   const tools = [
     {
@@ -184368,6 +184517,24 @@ function buildSukunaToolDeclarations(cfg) {
       name: "get_server_stickers",
       description: "List this server's stickers with their ids, for use with send_sticker.",
       parameters: { type: import_genai4.Type.OBJECT, properties: {} }
+    },
+    {
+      name: "send_dm",
+      description: "Send one private direct message to a member of this server. You may only DM the member who triggered this turn, someone they @mentioned, or any member when a moderator asks you to. This is a side effect: the turn still ends with a decision tool (usually stay_silent).",
+      parameters: {
+        type: import_genai4.Type.OBJECT,
+        properties: {
+          user: {
+            type: import_genai4.Type.STRING,
+            description: "Member id, @mention or username to message. Omit to DM the member who triggered this turn."
+          },
+          message: {
+            type: import_genai4.Type.STRING,
+            description: "The exact private message to send (max 1500 characters)."
+          }
+        },
+        required: ["message"]
+      }
     }
   ];
   if (cfg.memoryEnabled) {
@@ -184491,6 +184658,47 @@ async function handleTool(name, args, context) {
       }));
       return { ok: true, stickers, total: guild.stickers.cache.size };
     }
+    case "send_dm": {
+      const text = typeof args.message === "string" ? args.message.trim() : "";
+      if (!text) return { ok: false, error: "The message argument is required." };
+      const rawTarget = typeof args.user === "string" ? args.user.trim() : "";
+      const member = (rawTarget ? await resolveMember(guild, rawTarget) : null) ?? trigger?.member ?? null;
+      if (!member) return { ok: false, error: "Member not found in this server." };
+      if (member.id === context.client.user?.id) {
+        return { ok: false, error: "You cannot DM yourself." };
+      }
+      if (member.user.bot) return { ok: false, error: "Bots cannot receive these DMs." };
+      if (!isDmTargetAllowed(member, trigger)) {
+        return {
+          ok: false,
+          error: "You may only DM the member who triggered this turn, someone they mentioned, or a member when a moderator asks. Say it in the channel instead."
+        };
+      }
+      const blocked = checkDmLimit(guild.id, member.id);
+      if (blocked) return { ok: false, error: blocked };
+      const content = text.slice(0, DM_MAX_CHARS);
+      try {
+        await member.send({ content, allowedMentions: { parse: [] } });
+      } catch (error62) {
+        const code = error62.code;
+        console.warn("[Sukuna] DM failed:", member.user.tag, code ?? String(error62));
+        if (code === 50007) {
+          return {
+            ok: false,
+            error: "This member has direct messages closed, so the DM was not delivered. Tell them in the channel instead."
+          };
+        }
+        return { ok: false, error: "The DM could not be delivered." };
+      }
+      recordDm(guild.id, member.id);
+      console.log("[Sukuna] DM sent", {
+        guild: guild.name,
+        to: member.user.tag,
+        chars: content.length,
+        text: preview2(content, 500)
+      });
+      return { ok: true, delivered: true, to: member.user.tag, chars: content.length };
+    }
     case "remember_information": {
       const fact = typeof args.fact === "string" ? args.fact.trim() : "";
       if (!fact) return { ok: false, error: "Fact is required" };
@@ -184523,6 +184731,46 @@ async function handleTool(name, args, context) {
   }
 }
 __name(handleTool, "handleTool");
+function isDmTargetAllowed(member, trigger) {
+  if (!trigger) return false;
+  if (trigger.author.id === member.id) return true;
+  if (trigger.mentions.members?.has(member.id)) return true;
+  const haystack = trigger.content?.toLowerCase() ?? "";
+  for (const candidate of [member.user.username, member.displayName]) {
+    const needle = candidate.toLowerCase();
+    if (needle.length >= 3 && haystack.includes(needle)) return true;
+  }
+  return trigger.member?.permissions.has(import_discord29.PermissionFlagsBits.ManageGuild) ?? false;
+}
+__name(isDmTargetAllowed, "isDmTargetAllowed");
+function checkDmLimit(guildId, userId) {
+  const now = Date.now();
+  const recent = (dmTimestamps.get(guildId) ?? []).filter((at) => now - at < 60 * 60 * 1e3);
+  dmTimestamps.set(guildId, recent);
+  if (recent.length >= DM_RATE_LIMIT_PER_HOUR) {
+    return `DM limit reached (${DM_RATE_LIMIT_PER_HOUR} per hour). Do not retry and do not announce it.`;
+  }
+  const last = dmPerUser.get(guildId + ":" + userId) ?? 0;
+  if (now - last < DM_MIN_INTERVAL_PER_USER_MS) {
+    return "You already DMed this member a moment ago. Do not send another one.";
+  }
+  return null;
+}
+__name(checkDmLimit, "checkDmLimit");
+function recordDm(guildId, userId) {
+  const now = Date.now();
+  const recent = (dmTimestamps.get(guildId) ?? []).filter((at) => now - at < 60 * 60 * 1e3);
+  recent.push(now);
+  dmTimestamps.set(guildId, recent);
+  dmPerUser.set(guildId + ":" + userId, now);
+}
+__name(recordDm, "recordDm");
+function preview2(text, max = 600) {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (!flat) return "(empty)";
+  return flat.length <= max ? flat : `${flat.slice(0, max)}\u2026 (${flat.length} chars)`;
+}
+__name(preview2, "preview");
 async function resolveMember(guild, query) {
   const cleaned = query.replace(/[<@!>]/g, "").trim();
   if (!cleaned) return null;
@@ -184581,6 +184829,17 @@ __name(collectSukunaMedia, "collectSukunaMedia");
 
 // src/utils/sukuna.ts
 var MAX_REPLY_LENGTH2 = 2e3;
+function preview3(text, max = 600) {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (!flat) return "(empty)";
+  return flat.length <= max ? flat : `${flat.slice(0, max)}\u2026 (${flat.length} chars)`;
+}
+__name(preview3, "preview");
+function logPersona(event, data) {
+  if (data) console.log(`[Sukuna] ${event}`, data);
+  else console.log(`[Sukuna] ${event}`);
+}
+__name(logPersona, "logPersona");
 var channelHistory = /* @__PURE__ */ new Map();
 var channelHistoryIds = /* @__PURE__ */ new Map();
 var lastReplyAt = 0;
@@ -184606,6 +184865,7 @@ function handleMessage(message) {
 }
 __name(handleMessage, "handleMessage");
 function closeSukuna() {
+  logPersona("closing Live session");
   liveClient?.close();
   liveClient = null;
   liveSignature = "";
@@ -184678,6 +184938,13 @@ function getLiveClient(cfg, apiKey, botId) {
       requestTimeoutMs: cfg.requestTimeoutMs
     });
     liveSignature = signature;
+    logPersona("live client created", {
+      model: cfg.model,
+      tools: tools.length,
+      thinkingLevel: cfg.thinkingLevel ?? "(model default)",
+      temperature: cfg.temperature,
+      promptChars: systemPrompt.length
+    });
   } catch (error62) {
     console.error("[Sukuna] Could not create the Live client:", error62);
     return null;
@@ -184686,8 +184953,21 @@ function getLiveClient(cfg, apiKey, botId) {
 }
 __name(getLiveClient, "getLiveClient");
 async function processMessage(message, cfg) {
-  if (isRateLimited(cfg)) return;
+  const channelName = message.channel.name || message.channelId;
+  if (isRateLimited(cfg)) {
+    logPersona("skipped \u2014 reply rate limit", {
+      channel: channelName,
+      replyCooldownSeconds: cfg.replyCooldownSeconds,
+      maxRepliesPerHour: cfg.maxRepliesPerHour,
+      repliesLastHour: replyTimestamps.length
+    });
+    return;
+  }
   if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1e3) {
+    logPersona("skipped \u2014 decision cooldown", {
+      channel: channelName,
+      decisionCooldownSeconds: cfg.decisionCooldownSeconds
+    });
     return;
   }
   const apiKey = apiKeyCache || process.env.GEMINI_API_KEY || "";
@@ -184711,10 +184991,20 @@ async function processMessage(message, cfg) {
     media = await collectSukunaMedia([message]).catch(() => []);
   }
   const payload = buildPayload(guild, channel, channelHistory.get(message.channelId) ?? [], message);
+  logPersona("incoming", {
+    guild: guild.name,
+    channel: channelName,
+    author: message.author.tag,
+    attachments: message.attachments.size,
+    media: media.length,
+    model: cfg.model,
+    message: preview3(message.content || "(empty)", 500)
+  });
   if (cfg.showTyping) {
     channel.sendTyping().catch(() => {
     });
   }
+  const startedAt = Date.now();
   let decision = null;
   try {
     decision = await live.ask(payload, executeTool, cfg.requestTimeoutMs, media);
@@ -184727,10 +185017,43 @@ async function processMessage(message, cfg) {
     });
     return;
   }
+  const elapsedMs = Date.now() - startedAt;
   lastDecisionAt = Date.now();
-  if (!decision || decision.action !== "reply") return;
+  if (!decision) {
+    logPersona("stayed silent \u2014 no decision", {
+      channel: channelName,
+      author: message.author.tag,
+      elapsedMs,
+      hint: "timeout, dropped connection or exhausted Gemini quota (see [Sukuna:Live] logs)"
+    });
+    return;
+  }
+  if (decision.action !== "reply") {
+    logPersona("stayed silent \u2014 stay_silent", {
+      channel: channelName,
+      author: message.author.tag,
+      elapsedMs,
+      toolCalls: decision.toolCalls.join(",") || "(none)"
+    });
+    return;
+  }
+  logPersona("decision", {
+    channel: channelName,
+    author: message.author.tag,
+    elapsedMs,
+    chars: decision.message.length,
+    stickerId: decision.stickerId ?? null,
+    nativeReply: Boolean(decision.replyToTrigger),
+    toolCalls: decision.toolCalls.join(",") || "(none)"
+  });
+  logPersona("reply text", {
+    text: preview3(decision.message, MAX_REPLY_LENGTH2) || "(no text \u2014 sticker only)"
+  });
   const sent = await deliverDecision(message, channel, decision, cfg);
-  if (!sent) return;
+  if (!sent) {
+    console.warn("[Sukuna] Decision produced nothing sendable \u2014 dropped");
+    return;
+  }
   const now = Date.now();
   lastReplyAt = now;
   replyTimestamps.push(now);
@@ -184756,6 +185079,13 @@ async function processMessage(message, cfg) {
     content: historyContent,
     timestamp: now,
     bot: true
+  });
+  logPersona("posted", {
+    channel: channelName,
+    messageId: sent.id,
+    nativeReply: Boolean(decision.replyToTrigger),
+    stickerId: sticker?.id ?? null,
+    text: preview3(decision.message, MAX_REPLY_LENGTH2) || "(sticker only)"
   });
   if (message.guildId) {
     void speakReplyInVoice(message.guildId, decision.message.slice(0, MAX_REPLY_LENGTH2), apiKey, cfg);
@@ -184868,7 +185198,7 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord29.Events.MessageCreate,
+  name: import_discord30.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     try {
       handleMessage(message);
@@ -184941,9 +185271,9 @@ function cleanupCooldowns(cooldowns2, now) {
 __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
-var import_discord30 = __toESM(require_src());
+var import_discord31 = __toESM(require_src());
 var guildMemberAdd = {
-  name: import_discord30.Events.GuildMemberAdd,
+  name: import_discord31.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     if (!member || member.user?.bot) return;
     try {

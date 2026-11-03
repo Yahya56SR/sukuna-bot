@@ -21,6 +21,7 @@ import {
   type ThinkingConfig,
   Type,
 } from '@google/genai';
+import { recordActivity } from './metrics.js';
 
 export interface SukunaToolCall {
   id?: string;
@@ -64,6 +65,11 @@ const CONNECT_TIMEOUT_MS = 12_000;
 const MAX_RECONNECT_ATTEMPTS = 4;
 const RECONNECT_BASE_DELAY_MS = 1_000;
 const MAX_RECONNECT_DELAY_MS = 20_000;
+// Gemini answers a spent key with close code 1011 / RESOURCE_EXHAUSTED. Retrying
+// that immediately only burns the quota further, so park the client instead.
+const QUOTA_BASE_BACKOFF_MS = 60_000;
+const MAX_QUOTA_BACKOFF_MS = 15 * 60_000;
+const QUOTA_LOG_INTERVAL_MS = 30_000;
 const DEFAULT_MAX_QUEUE_SIZE = 10;
 const DEFAULT_MAX_REQUESTS_PER_SESSION = 20;
 const DEFAULT_SESSION_MAX_AGE_MS = 5 * 60_000;
@@ -174,6 +180,11 @@ export class GeminiLiveSukuna {
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
 
+  /** Epoch ms until which no Live request is attempted (quota circuit breaker). */
+  private unavailableUntil = 0;
+  private quotaBackoffMs = 0;
+  private lastQuotaLogAt = 0;
+
   private textBuffer = '';
   private transcriptBuffer = '';
   private turnCompleteSeen = false;
@@ -215,6 +226,17 @@ export class GeminiLiveSukuna {
   ): Promise<SukunaDecision | null> {
     if (!text || !text.trim() || this.closed) return Promise.resolve(null);
 
+    if (this.unavailableUntil > Date.now()) {
+      const waitMs = this.unavailableUntil - Date.now();
+      if (Date.now() - this.lastQuotaLogAt >= QUOTA_LOG_INTERVAL_MS) {
+        this.lastQuotaLogAt = Date.now();
+        console.warn(
+          `[Sukuna:Live] Skipping event — Gemini quota cooldown still active for ${Math.ceil(waitMs / 1000)}s`,
+        );
+      }
+      return Promise.resolve(null);
+    }
+
     if (this.queue.length >= this.maxQueueSize) {
       console.warn('[Sukuna:Live] Queue full — skipping this event', {
         queueLength: this.queue.length,
@@ -224,6 +246,12 @@ export class GeminiLiveSukuna {
     }
 
     const effectiveTimeout = Math.max(timeoutMs ?? this.requestTimeoutMs, 1_000);
+
+    logLive('event queued', {
+      chars: text.length,
+      media: media.length,
+      queueLength: this.queue.length + 1,
+    });
 
     return new Promise<SukunaDecision | null>((resolve) => {
       const item: QueuedItem = {
@@ -267,7 +295,13 @@ export class GeminiLiveSukuna {
           try {
             await this.ensureConnected();
           } catch (err) {
-            console.warn('[Sukuna:Live] Connection attempt failed:', describeError(err));
+            const description = describeError(err);
+            console.warn('[Sukuna:Live] Connection attempt failed:', description);
+            if (isQuotaError(description)) {
+              this.startQuotaCooldown(description);
+              this.failAllQueued('quota exhausted');
+              return;
+            }
             this.scheduleRetry();
             return;
           }
@@ -304,6 +338,16 @@ export class GeminiLiveSukuna {
     this.inFlight = item;
     this.resetTurnBuffers();
     this.requestsInSession += 1;
+
+    logLive('turn start', {
+      model: this.model,
+      requestInSession: this.requestsInSession,
+      maxRequestsPerSession: this.maxRequestsPerSession,
+      chars: item.text.length,
+      media: item.media.length,
+      timeoutMs: item.timeoutMs,
+    });
+    logLive('prompt sent', { preview: preview(item.text, 1_200) });
 
     try {
       const parts: Part[] = [
@@ -348,6 +392,8 @@ export class GeminiLiveSukuna {
     if (this.inFlight === item) this.inFlight = null;
     this.removeFromQueue(item);
 
+    console.warn(`[Sukuna:Live] Event dropped (${reason})`);
+
     item.resolve(null);
   }
 
@@ -355,6 +401,9 @@ export class GeminiLiveSukuna {
     const pending = [...this.queue];
     this.queue = [];
     this.inFlight = null;
+    if (pending.length > 0) {
+      console.warn(`[Sukuna:Live] Dropping ${pending.length} queued event(s): ${reason}`);
+    }
     for (const item of pending) {
       if (item.settled) continue;
       item.settled = true;
@@ -444,6 +493,13 @@ export class GeminiLiveSukuna {
       this.reconnectAttempts = 0;
       this.goAway = false;
       this.resetTurnBuffers();
+
+      logLive('session ready', {
+        model: this.model,
+        thinkingLevel: this.thinkingLevel ?? '(none)',
+        output: 'audio+transcription',
+        tools: this.declarations.length,
+      });
     } catch (err) {
       void connectPromise
         .then((session) => {
@@ -470,13 +526,56 @@ export class GeminiLiveSukuna {
     this.connected = false;
     this.resetTurnBuffers();
 
+    console.warn('[Sukuna:Live] Session lost:', describeError(event));
+
     if (this.inFlight) {
       this.failItem(this.inFlight, 'connection lost');
+    }
+
+    // A spent quota is not a transient socket failure: park the client instead
+    // of reconnecting in a loop that keeps failing (code 1011 Resource exhausted).
+    const description = describeError(event);
+    if (isQuotaError(description)) {
+      this.startQuotaCooldown(description);
+      this.failAllQueued('quota exhausted');
+      return;
     }
 
     if (this.queue.length > 0 && !this.closed) {
       this.scheduleRetry();
     }
+  }
+
+  /**
+   * Stop talking to Gemini for a while after the key runs out. The delay
+   * escalates while the outage lasts (60s → 15min) and resets as soon as a
+   * request succeeds again.
+   */
+  private startQuotaCooldown(detail: string): void {
+    const now = Date.now();
+    if (now < this.unavailableUntil) return;
+
+    this.quotaBackoffMs = this.quotaBackoffMs
+      ? Math.min(this.quotaBackoffMs * 2, MAX_QUOTA_BACKOFF_MS)
+      : QUOTA_BASE_BACKOFF_MS;
+    this.unavailableUntil = now + this.quotaBackoffMs;
+    this.lastQuotaLogAt = now;
+
+    console.error(
+      `[Sukuna:Live] Gemini quota exhausted — pausing Live requests for ` +
+        `${Math.round(this.quotaBackoffMs / 1000)}s. The persona stays silent until then. ` +
+        `Check the API key limits (per-minute and per-day quotas, and any other bot or the ` +
+        `voice mode sharing the same key). Server said: ${detail}`,
+    );
+
+    recordActivity('error', 'Gemini quota exhausted — persona paused', {
+      level: 'error',
+      meta: {
+        model: this.model,
+        cooldownSeconds: Math.round(this.quotaBackoffMs / 1000),
+        detail: preview(detail, 300),
+      },
+    });
   }
 
   private teardownSession(reason: string): void {
@@ -514,6 +613,10 @@ export class GeminiLiveSukuna {
     const delay = Math.min(
       RECONNECT_BASE_DELAY_MS * 2 ** (this.reconnectAttempts - 1),
       MAX_RECONNECT_DELAY_MS,
+    );
+
+    console.warn(
+      `[Sukuna:Live] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
     );
 
     this.retryTimer = setTimeout(() => {
@@ -634,7 +737,18 @@ export class GeminiLiveSukuna {
       item.toolCallNames.push(name);
       item.toolCalls += 1;
 
+      logLive('tool call', {
+        name,
+        args: preview(JSON.stringify(call.args ?? {}), 600),
+      });
+
       const response = await this.runTool(item, call);
+
+      logLive('tool result', {
+        name,
+        result: preview(JSON.stringify(response), 600),
+      });
+
       responses.push({
         id: call.id,
         name,
@@ -765,6 +879,12 @@ export class GeminiLiveSukuna {
     const decision = target?.decision ?? this.parseDecision(responseText);
     const toolCalls = target?.toolCallNames ?? [];
 
+    logLive('model output', {
+      reason,
+      toolCalls: toolCalls.length ? toolCalls.join(',') : '(none)',
+      text: responseText ? preview(responseText, 2_000) : '(no text or transcript)',
+    });
+
     if (
       target &&
       !decision &&
@@ -814,6 +934,27 @@ export class GeminiLiveSukuna {
     if (!target.settled) {
       target.settled = true;
       target.resolve(decision ? { ...decision, toolCalls } : null);
+    }
+
+    // A real answer proves the key is usable again; stop backing off.
+    this.quotaBackoffMs = 0;
+    this.unavailableUntil = 0;
+
+    if (decision) {
+      logLive('decision', {
+        action: decision.action,
+        source: target.decision ? 'tool call' : 'transcript fallback',
+        reply: Boolean(decision.replyToTrigger),
+        stickerId: decision.stickerId ?? null,
+        chars: decision.message.length,
+        text: decision.message ? preview(decision.message, 2_000) : '(silent)',
+      });
+    } else {
+      logLive('decision', {
+        action: 'none — failing silent',
+        reason,
+        toolCalls: toolCalls.length ? toolCalls.join(',') : '(none)',
+      });
     }
 
     const expired =
@@ -881,6 +1022,24 @@ export class GeminiLiveSukuna {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+/** Flatten and shorten text for console logging. */
+function preview(text: string, max = 600): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  if (!flat) return '(empty)';
+  return flat.length <= max ? flat : `${flat.slice(0, max)}… (${flat.length} chars)`;
+}
+
+function logLive(event: string, data?: Record<string, unknown>): void {
+  if (data) console.log(`[Sukuna:Live] ${event}`, data);
+  else console.log(`[Sukuna:Live] ${event}`);
+}
+
+/** RESOURCE_EXHAUSTED / 429 style failures must not be retried in a loop. */
+function isQuotaError(text: string): boolean {
+  if (/\b429\b/.test(text)) return true;
+  return /(quota|exhausted|rate.?limit)/i.test(text);
 }
 
 function toBoolean(value: unknown): boolean {
@@ -996,8 +1155,15 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
         }
       }
 
-      if (error) reject(error);
-      else resolve(collected.trim());
+      if (error) {
+        console.warn('[Sukuna:Live] Persona test failed:', error.message);
+        reject(error);
+      } else {
+        logLive('persona test result', {
+          reply: collected.trim() ? preview(collected, 2_000) : '(stayed silent)',
+        });
+        resolve(collected.trim());
+      }
     }
 
     const timer = setTimeout(() => {
@@ -1021,6 +1187,10 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
         callbacks: {
           onmessage: (message) => {
             for (const call of message.toolCall?.functionCalls ?? []) {
+              logLive('persona test tool call', {
+                name: call.name ?? 'unknown',
+                args: preview(JSON.stringify(call.args ?? {}), 600),
+              });
               if (call.name === STAY_SILENT_TOOL) {
                 collected = '';
                 finish(null);
@@ -1071,6 +1241,7 @@ export async function generateLiveText(options: GeminiLiveTextOptions): Promise<
         }
 
         session = opened;
+        logLive('persona test session ready', { model: options.model });
         try {
           opened.sendClientContent({
             turns: [

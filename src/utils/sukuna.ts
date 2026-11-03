@@ -27,6 +27,18 @@ import { collectSukunaMedia } from './sukuna-media.js';
 
 const MAX_REPLY_LENGTH = 2000;
 
+/** Flatten and shorten text for console logging. */
+function preview(text: string, max = 600): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  if (!flat) return '(empty)';
+  return flat.length <= max ? flat : `${flat.slice(0, max)}… (${flat.length} chars)`;
+}
+
+function logPersona(event: string, data?: Record<string, unknown>): void {
+  if (data) console.log(`[Sukuna] ${event}`, data);
+  else console.log(`[Sukuna] ${event}`);
+}
+
 // In-memory channel history (context only)
 const channelHistory = new Map<string, HistoryEntry[]>();
 const channelHistoryIds = new Map<string, Set<string>>();
@@ -79,6 +91,7 @@ function handleMessage(message: Message): void {
  * Close Sukuna (for shutdown).
  */
 function closeSukuna(): void {
+  logPersona('closing Live session');
   liveClient?.close();
   liveClient = null;
   liveSignature = '';
@@ -181,6 +194,13 @@ function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): Gemini
       requestTimeoutMs: cfg.requestTimeoutMs,
     });
     liveSignature = signature;
+    logPersona('live client created', {
+      model: cfg.model,
+      tools: tools.length,
+      thinkingLevel: cfg.thinkingLevel ?? '(model default)',
+      temperature: cfg.temperature,
+      promptChars: systemPrompt.length,
+    });
   } catch (error) {
     console.error('[Sukuna] Could not create the Live client:', error);
     return null;
@@ -190,8 +210,22 @@ function getLiveClient(cfg: SukunaConfig, apiKey: string, botId: string): Gemini
 }
 
 async function processMessage(message: Message, cfg: SukunaConfig): Promise<void> {
-  if (isRateLimited(cfg)) return;
+  const channelName = (message.channel as TextChannel).name || message.channelId;
+
+  if (isRateLimited(cfg)) {
+    logPersona('skipped — reply rate limit', {
+      channel: channelName,
+      replyCooldownSeconds: cfg.replyCooldownSeconds,
+      maxRepliesPerHour: cfg.maxRepliesPerHour,
+      repliesLastHour: replyTimestamps.length,
+    });
+    return;
+  }
   if (cfg.decisionCooldownSeconds > 0 && Date.now() - lastDecisionAt < cfg.decisionCooldownSeconds * 1000) {
+    logPersona('skipped — decision cooldown', {
+      channel: channelName,
+      decisionCooldownSeconds: cfg.decisionCooldownSeconds,
+    });
     return;
   }
 
@@ -222,10 +256,21 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
 
   const payload = buildPayload(guild, channel, channelHistory.get(message.channelId) ?? [], message);
 
+  logPersona('incoming', {
+    guild: guild.name,
+    channel: channelName,
+    author: message.author.tag,
+    attachments: message.attachments.size,
+    media: media.length,
+    model: cfg.model,
+    message: preview(message.content || '(empty)', 500),
+  });
+
   if (cfg.showTyping) {
     channel.sendTyping().catch(() => {});
   }
 
+  const startedAt = Date.now();
   let decision: SukunaDecision | null = null;
   try {
     decision = await live.ask(payload, executeTool, cfg.requestTimeoutMs, media);
@@ -239,12 +284,47 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     return;
   }
 
+  const elapsedMs = Date.now() - startedAt;
   lastDecisionAt = Date.now();
 
-  if (!decision || decision.action !== 'reply') return;
+  if (!decision) {
+    logPersona('stayed silent — no decision', {
+      channel: channelName,
+      author: message.author.tag,
+      elapsedMs,
+      hint: 'timeout, dropped connection or exhausted Gemini quota (see [Sukuna:Live] logs)',
+    });
+    return;
+  }
+
+  if (decision.action !== 'reply') {
+    logPersona('stayed silent — stay_silent', {
+      channel: channelName,
+      author: message.author.tag,
+      elapsedMs,
+      toolCalls: decision.toolCalls.join(',') || '(none)',
+    });
+    return;
+  }
+
+  logPersona('decision', {
+    channel: channelName,
+    author: message.author.tag,
+    elapsedMs,
+    chars: decision.message.length,
+    stickerId: decision.stickerId ?? null,
+    nativeReply: Boolean(decision.replyToTrigger),
+    toolCalls: decision.toolCalls.join(',') || '(none)',
+  });
+  logPersona('reply text', {
+    text: preview(decision.message, MAX_REPLY_LENGTH) || '(no text — sticker only)',
+  });
 
   const sent = await deliverDecision(message, channel, decision, cfg);
-  if (!sent) return;
+  if (!sent) {
+    console.warn('[Sukuna] Decision produced nothing sendable — dropped');
+    return;
+  }
 
   const now = Date.now();
   lastReplyAt = now;
@@ -280,6 +360,14 @@ async function processMessage(message: Message, cfg: SukunaConfig): Promise<void
     content: historyContent,
     timestamp: now,
     bot: true,
+  });
+
+  logPersona('posted', {
+    channel: channelName,
+    messageId: sent.id,
+    nativeReply: Boolean(decision.replyToTrigger),
+    stickerId: sticker?.id ?? null,
+    text: preview(decision.message, MAX_REPLY_LENGTH) || '(sticker only)',
   });
 
   // Voice is opt-in and only speaks in `tts` mode; when the guild runs a live

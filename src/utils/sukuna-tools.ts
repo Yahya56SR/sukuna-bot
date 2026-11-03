@@ -7,6 +7,7 @@
  */
 
 import { Type, type FunctionDeclaration } from '@google/genai';
+import { PermissionFlagsBits } from 'discord.js';
 import type {
   Client,
   Guild,
@@ -17,6 +18,15 @@ import type {
 import type { SukunaConfig } from '../config/index.js';
 import type { SukunaToolCall, SukunaToolExecutor } from '../core/gemini-live.js';
 import { addMemory, countMemories, searchMemories } from './sukuna-memory.js';
+
+const DM_MAX_CHARS = 1_500;
+const DM_RATE_LIMIT_PER_HOUR = 10;
+const DM_MIN_INTERVAL_PER_USER_MS = 60_000;
+
+/** guildId → timestamps of delivered DMs in the last hour. */
+const dmTimestamps = new Map<string, number[]>();
+/** `${guildId}:${userId}` → when the last DM to that member was delivered. */
+const dmPerUser = new Map<string, number>();
 
 export interface SukunaToolContext {
   client: Client;
@@ -81,6 +91,26 @@ export function buildSukunaToolDeclarations(cfg: SukunaConfig): FunctionDeclarat
       name: 'get_server_stickers',
       description: 'List this server\'s stickers with their ids, for use with send_sticker.',
       parameters: { type: Type.OBJECT, properties: {} },
+    },
+    {
+      name: 'send_dm',
+      description:
+        'Send one private direct message to a member of this server. You may only DM the member who triggered this turn, someone they @mentioned, or any member when a moderator asks you to. This is a side effect: the turn still ends with a decision tool (usually stay_silent).',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          user: {
+            type: Type.STRING,
+            description:
+              'Member id, @mention or username to message. Omit to DM the member who triggered this turn.',
+          },
+          message: {
+            type: Type.STRING,
+            description: 'The exact private message to send (max 1500 characters).',
+          },
+        },
+        required: ['message'],
+      },
     },
   ];
 
@@ -232,6 +262,61 @@ async function handleTool(
       return { ok: true, stickers, total: guild.stickers.cache.size };
     }
 
+    case 'send_dm': {
+      const text = typeof args.message === 'string' ? args.message.trim() : '';
+      if (!text) return { ok: false, error: 'The message argument is required.' };
+
+      const rawTarget = typeof args.user === 'string' ? args.user.trim() : '';
+      const member =
+        (rawTarget ? await resolveMember(guild, rawTarget) : null) ?? trigger?.member ?? null;
+
+      if (!member) return { ok: false, error: 'Member not found in this server.' };
+      if (member.id === context.client.user?.id) {
+        return { ok: false, error: 'You cannot DM yourself.' };
+      }
+      if (member.user.bot) return { ok: false, error: 'Bots cannot receive these DMs.' };
+
+      if (!isDmTargetAllowed(member, trigger)) {
+        return {
+          ok: false,
+          error:
+            'You may only DM the member who triggered this turn, someone they mentioned, or a member when a moderator asks. Say it in the channel instead.',
+        };
+      }
+
+      const blocked = checkDmLimit(guild.id, member.id);
+      if (blocked) return { ok: false, error: blocked };
+
+      const content = text.slice(0, DM_MAX_CHARS);
+
+      try {
+        await member.send({ content, allowedMentions: { parse: [] } });
+      } catch (error) {
+        const code = (error as { code?: number }).code;
+        console.warn('[Sukuna] DM failed:', member.user.tag, code ?? String(error));
+
+        if (code === 50007) {
+          return {
+            ok: false,
+            error:
+              'This member has direct messages closed, so the DM was not delivered. Tell them in the channel instead.',
+          };
+        }
+        return { ok: false, error: 'The DM could not be delivered.' };
+      }
+
+      recordDm(guild.id, member.id);
+
+      console.log('[Sukuna] DM sent', {
+        guild: guild.name,
+        to: member.user.tag,
+        chars: content.length,
+        text: preview(content, 500),
+      });
+
+      return { ok: true, delivered: true, to: member.user.tag, chars: content.length };
+    }
+
     case 'remember_information': {
       const fact = typeof args.fact === 'string' ? args.fact.trim() : '';
       if (!fact) return { ok: false, error: 'Fact is required' };
@@ -267,6 +352,58 @@ async function handleTool(
     default:
       return { ok: false, error: 'Unknown tool: ' + name };
   }
+}
+
+/**
+ * A DM is only allowed to the member who asked, someone they mentioned, or any
+ * member when a moderator is the one asking. This stops prompt-injected or
+ * history-derived targets from being mass-messaged.
+ */
+function isDmTargetAllowed(member: GuildMember, trigger?: Message | null): boolean {
+  if (!trigger) return false;
+  if (trigger.author.id === member.id) return true;
+  if (trigger.mentions.members?.has(member.id)) return true;
+
+  const haystack = trigger.content?.toLowerCase() ?? '';
+  for (const candidate of [member.user.username, member.displayName]) {
+    const needle = candidate.toLowerCase();
+    if (needle.length >= 3 && haystack.includes(needle)) return true;
+  }
+
+  return trigger.member?.permissions.has(PermissionFlagsBits.ManageGuild) ?? false;
+}
+
+/** Returns an error string when a DM must be refused, otherwise null. */
+function checkDmLimit(guildId: string, userId: string): string | null {
+  const now = Date.now();
+
+  const recent = (dmTimestamps.get(guildId) ?? []).filter((at) => now - at < 60 * 60 * 1000);
+  dmTimestamps.set(guildId, recent);
+  if (recent.length >= DM_RATE_LIMIT_PER_HOUR) {
+    return `DM limit reached (${DM_RATE_LIMIT_PER_HOUR} per hour). Do not retry and do not announce it.`;
+  }
+
+  const last = dmPerUser.get(guildId + ':' + userId) ?? 0;
+  if (now - last < DM_MIN_INTERVAL_PER_USER_MS) {
+    return 'You already DMed this member a moment ago. Do not send another one.';
+  }
+
+  return null;
+}
+
+function recordDm(guildId: string, userId: string): void {
+  const now = Date.now();
+  const recent = (dmTimestamps.get(guildId) ?? []).filter((at) => now - at < 60 * 60 * 1000);
+  recent.push(now);
+  dmTimestamps.set(guildId, recent);
+  dmPerUser.set(guildId + ':' + userId, now);
+}
+
+/** Flatten and shorten text for console logging. */
+function preview(text: string, max = 600): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  if (!flat) return '(empty)';
+  return flat.length <= max ? flat : `${flat.slice(0, max)}… (${flat.length} chars)`;
 }
 
 async function resolveMember(guild: Guild, query: string): Promise<GuildMember | null> {

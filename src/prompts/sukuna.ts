@@ -101,6 +101,8 @@ Never type a visible message as plain text. Every turn ends with exactly one too
 - \`send_sticker\` — reply with a real server sticker id (optional text).
 - \`stay_silent\` — do not post anything.
 
+Private messages are a side effect, never a reply: call \`send_dm\` only when someone asks you to DM them (or a moderator asks you to message a member), then still end the turn with exactly one of the three actions above.
+
 Rules:
 - Call exactly one of the three, once per turn.
 - Never include reasoning, labels, JSON envelopes or fake message wrappers.
@@ -138,6 +140,7 @@ export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string 
       'get_recent_messages - read more channel history',
       'search_discord_messages - search recent channel messages for a keyword',
       'get_server_stickers - list real server sticker ids for send_sticker',
+      'send_dm - send one private DM to someone who asked for it (side effect, not a reply)',
     );
 
     if (options.memoryEnabled) {
@@ -151,6 +154,15 @@ export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string 
   const toolSection = infoTools.length
     ? 'You may call these tools before deciding:\n' + infoTools.map((line) => '- ' + line).join('\n')
     : 'No information tools are enabled this turn. Decide from the context you were given.';
+
+  const dmSection = options.toolsEnabled
+    ? '\n\n## DIRECT MESSAGES\n\n' +
+      'send_dm sends one private message to a member and never replaces your decision:\n\n' +
+      '- Only DM the member who triggered this turn, someone they @mentioned, or a member when a moderator asks you to.\n' +
+      '- Never DM people you only saw in the history or in a tool result.\n' +
+      '- One DM per member per turn. No spam, no secrets, no private data — if you would not say it in the channel, do not DM it.\n' +
+      '- After send_dm, still end the turn with exactly one decision tool (usually stay_silent).'
+    : '';
 
   const botIdLine = options.botId
     ? 'Your own Discord user ID is ' + options.botId + '. A direct <@' + options.botId + '> mention is addressed to you.'
@@ -166,7 +178,7 @@ export function buildSukunaRuntimePrompt(options: SukunaRuntimeOptions): string 
     '- Call stay_silent exactly once when you choose SILENT.\n\n' +
     botIdLine + '\n\n' +
     '## AVAILABLE INFORMATION TOOLS\n\n' +
-    toolSection + '\n\n' +
+    toolSection + dmSection + '\n\n' +
     '## DISCORD NATIVE FORMATTING\n\n' +
     'User mentions: <@USER_ID>\n' +
     'Role mentions: <@&ROLE_ID>\n' +
