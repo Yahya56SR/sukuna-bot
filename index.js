@@ -168972,6 +168972,7 @@ var init_env = __esm({
     EnvSchema = external_exports.object({
       DISCORD_TOKEN: external_exports.string().min(1),
       DISCORD_CLIENT_ID: external_exports.string().min(1),
+      GUILD_ID: external_exports.string().optional(),
       DEV_GUILD_ID: external_exports.string().optional(),
       OWNER_IDS: external_exports.string().default(""),
       MONGO_URI: external_exports.string().min(1),
@@ -182501,6 +182502,10 @@ __name(newErrorId, "newErrorId");
 var interactionCreate = {
   name: import_discord29.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
+    const allowedGuildId = client.env?.GUILD_ID;
+    if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
+      return;
+    }
     if (interaction.isButton()) {
       await handleButtonInteraction(client, interaction);
       return;

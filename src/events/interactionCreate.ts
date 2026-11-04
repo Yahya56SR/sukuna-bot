@@ -15,6 +15,12 @@ import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/m
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
   execute: async (client: any, interaction: any) => {
+    // Restrict the bot to a single guild when GUILD_ID is set.
+    const allowedGuildId = client.env?.GUILD_ID;
+    if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
+      return;
+    }
+
     // Handle button interactions (ticket system)
     if (interaction.isButton()) {
       await handleButtonInteraction(client, interaction);

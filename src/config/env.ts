@@ -3,6 +3,7 @@ import { z } from "zod";
 const EnvSchema = z.object({
   DISCORD_TOKEN: z.string().min(1),
   DISCORD_CLIENT_ID: z.string().min(1),
+  GUILD_ID: z.string().optional(),
   DEV_GUILD_ID: z.string().optional(),
   OWNER_IDS: z.string().default(""),
   MONGO_URI: z.string().min(1),
@@ -53,6 +54,7 @@ const EnvSchema = z.object({
 export interface Env {
   DISCORD_TOKEN: string;
   DISCORD_CLIENT_ID: string;
+  GUILD_ID?: string;
   DEV_GUILD_ID?: string;
   OWNER_IDS: string;
   MONGO_URI: string;
