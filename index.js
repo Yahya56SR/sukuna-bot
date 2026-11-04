@@ -179706,7 +179706,7 @@ var vcPanelSchema = new import_mongoose6.Schema(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true },
-    messageId: { type: String, required: true },
+    messageId: { type: String },
     embedTitle: { type: String, required: true, default: "\u{1F50A} One Tap Voice" },
     embedDescription: {
       type: String,
@@ -179718,7 +179718,7 @@ var vcPanelSchema = new import_mongoose6.Schema(
   },
   { timestamps: true }
 );
-vcPanelSchema.index({ guildId: 1, messageId: 1 }, { unique: true });
+vcPanelSchema.index({ guildId: 1 });
 var VcPanel = (0, import_mongoose6.model)("VcPanel", vcPanelSchema);
 async function readVcPanel(guildId, messageId) {
   return VcPanel.findOne({ guildId, messageId }).lean();
@@ -179732,14 +179732,14 @@ async function createVcPanel(data) {
   return VcPanel.create(data);
 }
 __name(createVcPanel, "createVcPanel");
-async function updateVcPanel(guildId, messageId, updates) {
-  return VcPanel.findOneAndUpdate({ guildId, messageId }, updates, { new: true }).lean();
+async function updateVcPanelById(panelId, updates) {
+  return VcPanel.findByIdAndUpdate(panelId, updates, { new: true }).lean();
 }
-__name(updateVcPanel, "updateVcPanel");
-async function deleteVcPanel(guildId, messageId) {
-  return VcPanel.deleteOne({ guildId, messageId });
+__name(updateVcPanelById, "updateVcPanelById");
+async function deleteVcPanelById(panelId) {
+  return VcPanel.deleteOne({ _id: panelId });
 }
-__name(deleteVcPanel, "deleteVcPanel");
+__name(deleteVcPanelById, "deleteVcPanelById");
 
 // src/core/respond.ts
 var import_discord4 = __toESM(require_src());
@@ -179791,7 +179791,6 @@ async function handleSetup(context) {
   const panel = await createVcPanel({
     guildId: guild.id,
     channelId: targetChannel.id,
-    messageId: "",
     embedTitle: title,
     embedDescription: description,
     embedColor: 5793266,
@@ -179808,10 +179807,10 @@ async function handleSetup(context) {
     });
   } catch {
     await replyError(interaction, "\u274C I cannot post in that channel.");
-    await deleteVcPanel(guild.id, "");
+    await deleteVcPanelById(panelId);
     return;
   }
-  await updateVcPanel(guild.id, "", { messageId: message.id });
+  await updateVcPanelById(panelId, { messageId: message.id });
   await interaction.reply({
     content: `\u2705 One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon \u611B Doctora.`,
     flags: import_discord5.MessageFlags.Ephemeral
@@ -179833,7 +179832,7 @@ async function handleRemove(context) {
     } catch {
     }
   }
-  await deleteVcPanel(guild.id, messageId);
+  await deleteVcPanelById(panel._id.toString());
   await interaction.reply({
     content: "\u2705 One-tap VC panel removed.",
     flags: import_discord5.MessageFlags.Ephemeral

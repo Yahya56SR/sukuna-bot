@@ -12,9 +12,9 @@ import {
 import type { Command } from '../../core/commands.js';
 import {
   createVcPanel,
-  updateVcPanel,
+  updateVcPanelById,
   readVcPanel,
-  deleteVcPanel,
+  deleteVcPanelById,
 } from '../../db/models/Vc.js';
 import { replyError } from '../../core/respond.js';
 
@@ -104,10 +104,10 @@ async function handleSetup(context: {
     .setTimestamp();
 
   // Create the panel record first so we have a stable _id for the button customId.
+  // messageId is filled in after the message is sent.
   const panel = await createVcPanel({
     guildId: guild.id,
     channelId: targetChannel.id,
-    messageId: '',
     embedTitle: title,
     embedDescription: description,
     embedColor: 0x5865f2,
@@ -132,11 +132,11 @@ async function handleSetup(context: {
     });
   } catch {
     await replyError(interaction, '❌ I cannot post in that channel.');
-    await deleteVcPanel(guild.id, '');
+    await deleteVcPanelById(panelId);
     return;
   }
 
-  await updateVcPanel(guild.id, '', { messageId: message.id });
+  await updateVcPanelById(panelId, { messageId: message.id });
 
   await interaction.reply({
     content: `✅ One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon 愛 Doctora.`,
@@ -167,7 +167,7 @@ async function handleRemove(context: {
     }
   }
 
-  await deleteVcPanel(guild.id, messageId);
+  await deleteVcPanelById(panel._id.toString());
 
   await interaction.reply({
     content: '✅ One-tap VC panel removed.',

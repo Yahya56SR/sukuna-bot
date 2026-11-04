@@ -3,7 +3,7 @@ import { model, Schema, type Document } from 'mongoose';
 export interface IVcPanel extends Document {
   guildId: string;
   channelId: string;
-  messageId: string;
+  messageId?: string; // filled in after the panel message is sent
   embedTitle: string;
   embedDescription: string;
   embedColor: number;
@@ -16,7 +16,7 @@ const vcPanelSchema = new Schema<IVcPanel>(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true },
-    messageId: { type: String, required: true },
+    messageId: { type: String },
     embedTitle: { type: String, required: true, default: '🔊 One Tap Voice' },
     embedDescription: {
       type: String,
@@ -31,7 +31,7 @@ const vcPanelSchema = new Schema<IVcPanel>(
   { timestamps: true },
 );
 
-vcPanelSchema.index({ guildId: 1, messageId: 1 }, { unique: true });
+vcPanelSchema.index({ guildId: 1 });
 
 export const VcPanel = model<IVcPanel>('VcPanel', vcPanelSchema);
 
@@ -51,14 +51,10 @@ export async function createVcPanel(data: Partial<IVcPanel>) {
   return VcPanel.create(data);
 }
 
-export async function updateVcPanel(
-  guildId: string,
-  messageId: string,
-  updates: Partial<IVcPanel>,
-) {
-  return VcPanel.findOneAndUpdate({ guildId, messageId }, updates, { new: true }).lean();
+export async function updateVcPanelById(panelId: string, updates: Partial<IVcPanel>) {
+  return VcPanel.findByIdAndUpdate(panelId, updates, { new: true }).lean();
 }
 
-export async function deleteVcPanel(guildId: string, messageId: string) {
-  return VcPanel.deleteOne({ guildId, messageId });
+export async function deleteVcPanelById(panelId: string) {
+  return VcPanel.deleteOne({ _id: panelId });
 }
