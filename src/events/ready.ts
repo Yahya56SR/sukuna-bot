@@ -48,5 +48,23 @@ export const ready = {
     startLiveLeaderboard(client);
     startTicketScheduler(client);
     client.logger.info('[Tickets] Voice tracking, live leaderboard and auto-close scheduler started');
+
+    // When GUILD_ID is set, leave any guild the bot is not meant to run in.
+    const allowedGuildId = client.env?.GUILD_ID;
+    if (allowedGuildId) {
+      const toLeave = [...client.guilds.cache.values()].filter((g) => g.id !== allowedGuildId);
+      for (const guild of toLeave) {
+        try {
+          await guild.leave();
+          client.logger.info({ guildId: guild.id, guildName: guild.name }, 'left unallowed guild');
+        } catch (error) {
+          client.logger.warn({ err: error, guildId: guild.id }, 'failed to leave unallowed guild');
+        }
+      }
+      client.logger.info(
+        { allowedGuildId, left: toLeave.length, remaining: client.guilds.cache.size },
+        'guild restriction applied',
+      );
+    }
   },
 };

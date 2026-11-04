@@ -184232,7 +184232,7 @@ function isHttps(req) {
 __name(isHttps, "isHttps");
 function sendOverview(client, res) {
   const user = client.user;
-  const guilds = [...client.guilds.cache.values()];
+  const guilds = filterDashboardGuilds(client);
   const memory = process.memoryUsage();
   const config2 = getSukunaConfig();
   sendJson(res, 200, {
@@ -184450,10 +184450,17 @@ function resolveGuild(client, guildId) {
 }
 __name(resolveGuild, "resolveGuild");
 function sendGuilds(client, res) {
-  const guilds = [...client.guilds.cache.values()].map(serializeGuild).sort((a, b) => b.members - a.members || a.name.localeCompare(b.name));
+  const guilds = filterDashboardGuilds(client).map(serializeGuild).sort((a, b) => b.members - a.members || a.name.localeCompare(b.name));
   sendJson(res, 200, { guilds });
 }
 __name(sendGuilds, "sendGuilds");
+function filterDashboardGuilds(client) {
+  const allowed = client.env?.GUILD_ID;
+  const all = [...client.guilds.cache.values()];
+  if (!allowed) return all;
+  return all.filter((guild) => guild.id === allowed);
+}
+__name(filterDashboardGuilds, "filterDashboardGuilds");
 async function sendGuildDetail(client, guild, res) {
   const row = await readGuildConfig(guild.id);
   const [memoryCount, faqCount, announcementCount, scheduledCount] = await Promise.all([
@@ -185442,6 +185449,22 @@ var ready2 = {
     startLiveLeaderboard(client);
     startTicketScheduler(client);
     client.logger.info("[Tickets] Voice tracking, live leaderboard and auto-close scheduler started");
+    const allowedGuildId = client.env?.GUILD_ID;
+    if (allowedGuildId) {
+      const toLeave = [...client.guilds.cache.values()].filter((g) => g.id !== allowedGuildId);
+      for (const guild of toLeave) {
+        try {
+          await guild.leave();
+          client.logger.info({ guildId: guild.id, guildName: guild.name }, "left unallowed guild");
+        } catch (error62) {
+          client.logger.warn({ err: error62, guildId: guild.id }, "failed to leave unallowed guild");
+        }
+      }
+      client.logger.info(
+        { allowedGuildId, left: toLeave.length, remaining: client.guilds.cache.size },
+        "guild restriction applied"
+      );
+    }
   }, "execute")
 };
 

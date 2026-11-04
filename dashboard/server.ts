@@ -477,7 +477,7 @@ function isHttps(req: http.IncomingMessage): boolean {
 
 function sendOverview(client: SukunaClient, res: http.ServerResponse): void {
   const user = client.user;
-  const guilds = [...client.guilds.cache.values()];
+  const guilds = filterDashboardGuilds(client);
   const memory = process.memoryUsage();
   const config = getSukunaConfig();
 
@@ -724,10 +724,21 @@ function resolveGuild(client: SukunaClient, guildId: string): Guild {
 }
 
 function sendGuilds(client: SukunaClient, res: http.ServerResponse): void {
-  const guilds = [...client.guilds.cache.values()]
+  const guilds = filterDashboardGuilds(client)
     .map(serializeGuild)
     .sort((a, b) => b.members - a.members || a.name.localeCompare(b.name));
   sendJson(res, 200, { guilds });
+}
+
+/**
+ * When GUILD_ID is set, the dashboard only surfaces that single guild so the
+ * control panel never lists guilds the bot is not meant to run in.
+ */
+function filterDashboardGuilds(client: SukunaClient): Guild[] {
+  const allowed = client.env?.GUILD_ID;
+  const all = [...client.guilds.cache.values()];
+  if (!allowed) return all;
+  return all.filter((guild) => guild.id === allowed);
 }
 
 async function sendGuildDetail(
