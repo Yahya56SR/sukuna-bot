@@ -2348,22 +2348,24 @@ document.addEventListener('click', (event) => {
       break;
 
     case 'delete-ticket-dept': {
-      const confirmed = await confirmAction(
-        'Delete department',
-        'Remove this ticket department? It cannot be used by panels anymore.',
-        'Delete',
-      );
-      if (!confirmed) return;
-      try {
-        await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/tickets/departments/' + encodeURIComponent(trigger.dataset.id), {
-          method: 'DELETE',
-        });
-        showToast('Department deleted', 'success');
-        state.guildData.tickets = null;
-        await reloadTickets();
-      } catch (error) {
-        showToast(error.message, 'error');
-      }
+      (async () => {
+        const confirmed = await confirmAction(
+          'Delete department',
+          'Remove this ticket department? It cannot be used by panels anymore.',
+          'Delete',
+        );
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/tickets/departments/' + encodeURIComponent(trigger.dataset.id), {
+            method: 'DELETE',
+          });
+          showToast('Department deleted', 'success');
+          state.guildData.tickets = null;
+          await reloadTickets();
+        } catch (error) {
+          showToast(error.message, 'error');
+        }
+      })();
       break;
     }
 
