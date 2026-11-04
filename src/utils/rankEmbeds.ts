@@ -16,27 +16,28 @@ export function buildRankCard(opts: RankCardOptions): EmbedBuilder {
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
 
+  // Color based on level parity for fun visual variety
+  const levelColor = info.level % 2 === 0 ? 0x5865f2 : 0xa033ff;
+
   const embed = new EmbedBuilder()
-    .setColor(0x5865f2)
+    .setColor(levelColor)
     .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-    .setDescription(
-      [
-        `**Level ${info.level}**`,
-        `${progressBar(percent)}  \`${percent}%\``,
-        '',
-        `\`${info.xpInLevel.toLocaleString()}\` / \`${info.xpForNext.toLocaleString()}\` XP`,
-      ].join('\n'),
-    )
+    .setDescription(`[${'▰'.repeat(Math.round(percent / 5))}${'▱'.repeat(20 - Math.round(percent / 5))}] \`${percent}%\``)
+    .setTitle(`🏆 Level ${info.level}`)
     .addFields(
-      { name: 'XP to next level', value: `${remaining.toLocaleString()} XP`, inline: true },
+      { name: 'Progress', value: `${info.xpInLevel.toLocaleString()} / ${info.xpForNext.toLocaleString()} XP`, inline: true },
       { name: 'Total XP', value: info.totalXp.toLocaleString(), inline: true },
     )
-    .setFooter({ text: opts.guildName })
+    .setFooter({ text: `Rank #${opts.position || ''} • ${opts.guildName}` })
     .setTimestamp();
 
   if (opts.position && opts.position > 0) {
-    embed.addFields({ name: 'Rank', value: `#${opts.position}`, inline: true });
+    embed.addFields({ name: 'Overall Rank', value: `#${opts.position}`, inline: true });
   }
+
+  // Add level-up progress bar at the bottom as a description supplement
+  const bar = progressBar(percent, 15);
+  embed.setFooter({ text: `${opts.guildName} • ${bar} • Level ${info.level}` });
 
   return embed;
 }

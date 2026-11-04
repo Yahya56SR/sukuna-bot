@@ -110,11 +110,17 @@ export const voiceCommand: Command = {
 
       const channel = status.channelId ? guild.channels.cache.get(status.channelId) : null;
       const mode = status.mode === 'duplex' ? 'live conversation' : 'reading replies';
+      const modeEmoji = status.mode === 'duplex' ? '🎤' : '🔊';
+      const modeText = status.mode === 'duplex' ? 'Live Duplex' : 'TTS Reading';
+
+      // Build a visual bar for listening members
+      const listeningBar = '▰'.repeat(Math.min(5, status.listening)) + '▱'.repeat(5 - Math.min(5, status.listening));
+
       await interaction.reply({
         content:
-          `🔊 **${channel?.name ?? 'unknown channel'}** · ${mode} · ` +
-          `${status.listening} member(s) heard · ${status.speaking ? 'speaking' : 'idle'}` +
-          (status.queued > 0 ? ` · ${status.queued} queued` : ''),
+          `🔊 **${channel?.name ?? 'unknown channel'}** · ${modeEmoji} ${modeText} · ` +
+          `${listeningBar} ${status.listening} member(s) heard · ${status.speaking ? '🎙️ speaking' : '💤 idle'}` +
+          (status.queued > 0 ? ` · 📦 ${status.queued} queued` : ''),
         flags: 64,
       });
       return;

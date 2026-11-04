@@ -102,11 +102,32 @@ export class RankCardCanvas {
       ctx.fillText(this.fitText(ctx, data.guildName, 650), textX, 284);
     }
 
-    // Subtle border on top of everything
+    // Decorative border with gradient accent
     this.roundedRect(ctx, 2, 2, this.width - 4, this.height - 4, 24);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.10)';
+    const borderGradient = ctx.createLinearGradient(2, 2, 2, this.height - 4);
+    borderGradient.addColorStop(0, 'rgba(160, 51, 255, 0.25)');
+    borderGradient.addColorStop(1, 'rgba(160, 51, 255, 0)');
+    ctx.strokeStyle = borderGradient;
     ctx.lineWidth = 4;
     ctx.stroke();
+
+    // Corner accent stickers (small stars)
+    for (let i = 0; i < 4; i++) {
+      const size = 8;
+      const x = i * (this.width / 4) + (this.width / 4 - size) / 2;
+      const y = i * (this.height / 4) + (this.height / 4 - size) / 2;
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.fill();
+    }
+
+    // Bottom-left decorative tag
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    ctx.font = `16px ${FONT_STACK}`;
+    ctx.fillStyle = 'rgba(160, 51, 255, 0.3)';
+    ctx.fillText('💜', 16, this.height - 16);
 
     return canvas.toBuffer('image/png');
   }

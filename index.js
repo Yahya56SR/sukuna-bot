@@ -90244,23 +90244,23 @@ var require_message = __commonJS({
       MessageReferenceType3[MessageReferenceType3["Default"] = 0] = "Default";
       MessageReferenceType3[MessageReferenceType3["Forward"] = 1] = "Forward";
     })(MessageReferenceType2 || (exports2.MessageReferenceType = MessageReferenceType2 = {}));
-    var MessageFlags9;
-    (function(MessageFlags10) {
-      MessageFlags10[MessageFlags10["Crossposted"] = 1] = "Crossposted";
-      MessageFlags10[MessageFlags10["IsCrosspost"] = 2] = "IsCrosspost";
-      MessageFlags10[MessageFlags10["SuppressEmbeds"] = 4] = "SuppressEmbeds";
-      MessageFlags10[MessageFlags10["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
-      MessageFlags10[MessageFlags10["Urgent"] = 16] = "Urgent";
-      MessageFlags10[MessageFlags10["HasThread"] = 32] = "HasThread";
-      MessageFlags10[MessageFlags10["Ephemeral"] = 64] = "Ephemeral";
-      MessageFlags10[MessageFlags10["Loading"] = 128] = "Loading";
-      MessageFlags10[MessageFlags10["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
-      MessageFlags10[MessageFlags10["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
-      MessageFlags10[MessageFlags10["SuppressNotifications"] = 4096] = "SuppressNotifications";
-      MessageFlags10[MessageFlags10["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
-      MessageFlags10[MessageFlags10["HasSnapshot"] = 16384] = "HasSnapshot";
-      MessageFlags10[MessageFlags10["IsComponentsV2"] = 32768] = "IsComponentsV2";
-    })(MessageFlags9 || (exports2.MessageFlags = MessageFlags9 = {}));
+    var MessageFlags31;
+    (function(MessageFlags32) {
+      MessageFlags32[MessageFlags32["Crossposted"] = 1] = "Crossposted";
+      MessageFlags32[MessageFlags32["IsCrosspost"] = 2] = "IsCrosspost";
+      MessageFlags32[MessageFlags32["SuppressEmbeds"] = 4] = "SuppressEmbeds";
+      MessageFlags32[MessageFlags32["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
+      MessageFlags32[MessageFlags32["Urgent"] = 16] = "Urgent";
+      MessageFlags32[MessageFlags32["HasThread"] = 32] = "HasThread";
+      MessageFlags32[MessageFlags32["Ephemeral"] = 64] = "Ephemeral";
+      MessageFlags32[MessageFlags32["Loading"] = 128] = "Loading";
+      MessageFlags32[MessageFlags32["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
+      MessageFlags32[MessageFlags32["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
+      MessageFlags32[MessageFlags32["SuppressNotifications"] = 4096] = "SuppressNotifications";
+      MessageFlags32[MessageFlags32["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
+      MessageFlags32[MessageFlags32["HasSnapshot"] = 16384] = "HasSnapshot";
+      MessageFlags32[MessageFlags32["IsComponentsV2"] = 32768] = "IsComponentsV2";
+    })(MessageFlags31 || (exports2.MessageFlags = MessageFlags31 = {}));
     var BaseThemeType2;
     (function(BaseThemeType3) {
       BaseThemeType3[BaseThemeType3["Unset"] = 0] = "Unset";
@@ -90327,15 +90327,15 @@ var require_message = __commonJS({
       ComponentType3[ComponentType3["Checkbox"] = 23] = "Checkbox";
       ComponentType3[ComponentType3["SelectMenu"] = 3] = "SelectMenu";
     })(ComponentType2 || (exports2.ComponentType = ComponentType2 = {}));
-    var ButtonStyle4;
-    (function(ButtonStyle5) {
-      ButtonStyle5[ButtonStyle5["Primary"] = 1] = "Primary";
-      ButtonStyle5[ButtonStyle5["Secondary"] = 2] = "Secondary";
-      ButtonStyle5[ButtonStyle5["Success"] = 3] = "Success";
-      ButtonStyle5[ButtonStyle5["Danger"] = 4] = "Danger";
-      ButtonStyle5[ButtonStyle5["Link"] = 5] = "Link";
-      ButtonStyle5[ButtonStyle5["Premium"] = 6] = "Premium";
-    })(ButtonStyle4 || (exports2.ButtonStyle = ButtonStyle4 = {}));
+    var ButtonStyle5;
+    (function(ButtonStyle6) {
+      ButtonStyle6[ButtonStyle6["Primary"] = 1] = "Primary";
+      ButtonStyle6[ButtonStyle6["Secondary"] = 2] = "Secondary";
+      ButtonStyle6[ButtonStyle6["Success"] = 3] = "Success";
+      ButtonStyle6[ButtonStyle6["Danger"] = 4] = "Danger";
+      ButtonStyle6[ButtonStyle6["Link"] = 5] = "Link";
+      ButtonStyle6[ButtonStyle6["Premium"] = 6] = "Premium";
+    })(ButtonStyle5 || (exports2.ButtonStyle = ButtonStyle5 = {}));
     var TextInputStyle2;
     (function(TextInputStyle3) {
       TextInputStyle3[TextInputStyle3["Short"] = 1] = "Short";
@@ -101668,7 +101668,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101680,13 +101680,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits7;
+      static Flags = PermissionFlagsBits29;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits7).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits29).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101698,7 +101698,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits7.ManageChannels | PermissionFlagsBits7.MuteMembers | PermissionFlagsBits7.MoveMembers;
+      static StageModerator = PermissionFlagsBits29.ManageChannels | PermissionFlagsBits29.MuteMembers | PermissionFlagsBits29.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101725,7 +101725,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits7.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits29.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101734,7 +101734,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits7.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits29.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101743,7 +101743,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits7.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits29.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -102154,7 +102154,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102224,7 +102224,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits7.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits29.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102792,7 +102792,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits7, ChannelType: ChannelType6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29, ChannelType: ChannelType6 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102936,7 +102936,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits7.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits29.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -102951,7 +102951,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits7.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits29.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -102977,7 +102977,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits7.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits29.ViewChannel, false)
         );
       }
       /**
@@ -103111,10 +103111,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits7.ViewChannel | PermissionFlagsBits7.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits7.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits29.ViewChannel | PermissionFlagsBits29.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits29.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103126,7 +103126,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits7.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits29.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -105767,7 +105767,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection2 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105918,7 +105918,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits7.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits7.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits29.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits29.ManageGuild)
         );
       }
       /**
@@ -106113,7 +106113,7 @@ var require_DataResolver = __commonJS({
 var require_MessageFlagsBitField = __commonJS({
   "node_modules/discord.js/src/util/MessageFlagsBitField.js"(exports2, module2) {
     "use strict";
-    var { MessageFlags: MessageFlags9 } = require_v106();
+    var { MessageFlags: MessageFlags31 } = require_v106();
     var BitField = require_BitField();
     var MessageFlagsBitField = class extends BitField {
       static {
@@ -106124,7 +106124,7 @@ var require_MessageFlagsBitField = __commonJS({
        * @type {MessageFlags}
        * @memberof MessageFlagsBitField
        */
-      static Flags = MessageFlags9;
+      static Flags = MessageFlags31;
     };
     module2.exports = MessageFlagsBitField;
   }
@@ -113567,14 +113567,14 @@ var require_dist9 = __commonJS({
     }, "__decorateClass");
     var index_exports = {};
     __export2(index_exports, {
-      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder3, "ActionRowBuilder"),
+      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder4, "ActionRowBuilder"),
       ApplicationCommandNumericOptionMinMaxValueMixin: /* @__PURE__ */ __name(() => ApplicationCommandNumericOptionMinMaxValueMixin, "ApplicationCommandNumericOptionMinMaxValueMixin"),
       ApplicationCommandOptionBase: /* @__PURE__ */ __name(() => ApplicationCommandOptionBase, "ApplicationCommandOptionBase"),
       ApplicationCommandOptionChannelTypesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionChannelTypesMixin, "ApplicationCommandOptionChannelTypesMixin"),
       ApplicationCommandOptionWithAutocompleteMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithAutocompleteMixin, "ApplicationCommandOptionWithAutocompleteMixin"),
       ApplicationCommandOptionWithChoicesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithChoicesMixin, "ApplicationCommandOptionWithChoicesMixin"),
       BaseSelectMenuBuilder: /* @__PURE__ */ __name(() => BaseSelectMenuBuilder, "BaseSelectMenuBuilder"),
-      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder3, "ButtonBuilder"),
+      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder4, "ButtonBuilder"),
       ChannelSelectMenuBuilder: /* @__PURE__ */ __name(() => ChannelSelectMenuBuilder, "ChannelSelectMenuBuilder"),
       CheckboxAssertions: /* @__PURE__ */ __name(() => Assertions_exports3, "CheckboxAssertions"),
       CheckboxBuilder: /* @__PURE__ */ __name(() => CheckboxBuilder, "CheckboxBuilder"),
@@ -113587,7 +113587,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder10, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder32, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113613,7 +113613,7 @@ var require_dist9 = __commonJS({
       SlashCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports10, "SlashCommandAssertions"),
       SlashCommandAttachmentOption: /* @__PURE__ */ __name(() => SlashCommandAttachmentOption, "SlashCommandAttachmentOption"),
       SlashCommandBooleanOption: /* @__PURE__ */ __name(() => SlashCommandBooleanOption, "SlashCommandBooleanOption"),
-      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder23, "SlashCommandBuilder"),
+      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder45, "SlashCommandBuilder"),
       SlashCommandChannelOption: /* @__PURE__ */ __name(() => SlashCommandChannelOption, "SlashCommandChannelOption"),
       SlashCommandIntegerOption: /* @__PURE__ */ __name(() => SlashCommandIntegerOption, "SlashCommandIntegerOption"),
       SlashCommandMentionableOption: /* @__PURE__ */ __name(() => SlashCommandMentionableOption, "SlashCommandMentionableOption"),
@@ -113721,7 +113721,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder10 = class {
+    var EmbedBuilder32 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -114158,7 +114158,7 @@ var require_dist9 = __commonJS({
     };
     var import_v1027 = require_v106();
     var import_v1022 = require_v106();
-    var ButtonBuilder3 = class extends ComponentBuilder {
+    var ButtonBuilder4 = class extends ComponentBuilder {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -116036,7 +116036,7 @@ var require_dist9 = __commonJS({
     var dividerPredicate = import_shapeshift9.s.boolean();
     var spacingPredicate = import_shapeshift9.s.nativeEnum(import_v1020.SeparatorSpacingSize);
     var textDisplayContentPredicate = import_shapeshift9.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(4e3).setValidationEnabled(isValidationEnabled);
-    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder3).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
+    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder4).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
     var containerColorPredicate = colorPredicate.nullish();
     function assertReturnOfBuilder(input2, ExpectedInstanceOf) {
       import_shapeshift9.s.instance(ExpectedInstanceOf).setValidationEnabled(isValidationEnabled).parse(input2);
@@ -116303,7 +116303,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         this.components.push(
-          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder3))
+          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder4))
         );
         return this;
       }
@@ -116634,7 +116634,7 @@ var require_dist9 = __commonJS({
        * @param accessory - The accessory to use
        */
       setButtonAccessory(accessory) {
-        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder3)));
+        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder4)));
         return this;
       }
       /**
@@ -116698,9 +116698,9 @@ var require_dist9 = __commonJS({
       }
       switch (data.type) {
         case import_v1027.ComponentType.ActionRow:
-          return new ActionRowBuilder3(data);
+          return new ActionRowBuilder4(data);
         case import_v1027.ComponentType.Button:
-          return new ButtonBuilder3(data);
+          return new ButtonBuilder4(data);
         case import_v1027.ComponentType.StringSelect:
           return new StringSelectMenuBuilder(data);
         case import_v1027.ComponentType.TextInput:
@@ -116759,7 +116759,7 @@ var require_dist9 = __commonJS({
     }
     __name(resolveBuilder, "resolveBuilder");
     __name3(resolveBuilder, "resolveBuilder");
-    var ActionRowBuilder3 = class extends ComponentBuilder {
+    var ActionRowBuilder4 = class extends ComponentBuilder {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -116845,7 +116845,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift10 = require_cjs3();
     var titleValidator = import_shapeshift10.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(45).setValidationEnabled(isValidationEnabled);
-    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder3), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
+    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder4), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
     function validateRequiredParameters2(customId, title, components) {
       customIdValidator.parse(customId);
       titleValidator.parse(title);
@@ -116904,15 +116904,15 @@ var require_dist9 = __commonJS({
       addComponents(...components) {
         this.components.push(
           ...normalizeArray(components).map((component, idx) => {
-            if (component instanceof ActionRowBuilder3 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
+            if (component instanceof ActionRowBuilder4 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
               return component;
             }
             if (component instanceof TextInputBuilder) {
-              return new ActionRowBuilder3().addComponents(component);
+              return new ActionRowBuilder4().addComponents(component);
             }
             if ("type" in component) {
               if (component.type === import_v1029.ComponentType.ActionRow) {
-                return new ActionRowBuilder3(component);
+                return new ActionRowBuilder4(component);
               }
               if (component.type === import_v1029.ComponentType.Label) {
                 return new LabelBuilder(component);
@@ -116921,7 +116921,7 @@ var require_dist9 = __commonJS({
                 return new TextDisplayBuilder(component);
               }
               if (component.type === import_v1029.ComponentType.TextInput) {
-                return new ActionRowBuilder3().addComponents(
+                return new ActionRowBuilder4().addComponents(
                   new TextInputBuilder(component)
                 );
               }
@@ -116961,7 +116961,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         const normalized = normalizeArray(components);
-        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder3));
+        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder4));
         this.components.push(...resolved);
         return this;
       }
@@ -118091,7 +118091,7 @@ var require_dist9 = __commonJS({
         return this;
       }
     };
-    var SlashCommandBuilder23 = class {
+    var SlashCommandBuilder45 = class {
       static {
         __name(this, "SlashCommandBuilder");
       }
@@ -118147,10 +118147,10 @@ var require_dist9 = __commonJS({
        */
       nsfw = void 0;
     };
-    __name3(SlashCommandBuilder23, "SlashCommandBuilder");
-    SlashCommandBuilder23 = __decorateClass([
+    __name3(SlashCommandBuilder45, "SlashCommandBuilder");
+    SlashCommandBuilder45 = __decorateClass([
       (0, import_ts_mixer6.mix)(SharedSlashCommandOptions, SharedNameAndDescription, SharedSlashCommandSubcommands, SharedSlashCommand)
-    ], SlashCommandBuilder23);
+    ], SlashCommandBuilder45);
     var Assertions_exports11 = {};
     __export2(Assertions_exports11, {
       contextsPredicate: /* @__PURE__ */ __name(() => contextsPredicate2, "contextsPredicate"),
@@ -119285,7 +119285,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119321,7 +119321,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits7.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits29.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -119786,7 +119786,7 @@ var require_ActionRowBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { createComponentBuilder } = require_Components();
     var { toSnakeCase } = require_Transformers();
-    var ActionRowBuilder3 = class extends BuildersActionRow {
+    var ActionRowBuilder4 = class extends BuildersActionRow {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -119805,7 +119805,7 @@ var require_ActionRowBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ActionRowBuilder3;
+    module2.exports = ActionRowBuilder4;
   }
 });
 
@@ -119817,7 +119817,7 @@ var require_ButtonBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var ButtonBuilder3 = class extends BuildersButton {
+    var ButtonBuilder4 = class extends BuildersButton {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -119844,7 +119844,7 @@ var require_ButtonBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ButtonBuilder3;
+    module2.exports = ButtonBuilder4;
   }
 });
 
@@ -120673,8 +120673,8 @@ var require_Components = __commonJS({
     __name(findComponentByCustomId, "findComponentByCustomId");
     module2.exports = { createComponent, createComponentBuilder, findComponentByCustomId };
     var ActionRow = require_ActionRow();
-    var ActionRowBuilder3 = require_ActionRowBuilder();
-    var ButtonBuilder3 = require_ButtonBuilder();
+    var ActionRowBuilder4 = require_ActionRowBuilder();
+    var ButtonBuilder4 = require_ButtonBuilder();
     var ButtonComponent = require_ButtonComponent();
     var ChannelSelectMenuBuilder = require_ChannelSelectMenuBuilder();
     var ChannelSelectMenuComponent = require_ChannelSelectMenuComponent();
@@ -120716,8 +120716,8 @@ var require_Components = __commonJS({
       [ComponentType2.Label]: LabelComponent
     };
     var ComponentTypeToBuilder = {
-      [ComponentType2.ActionRow]: ActionRowBuilder3,
-      [ComponentType2.Button]: ButtonBuilder3,
+      [ComponentType2.ActionRow]: ActionRowBuilder4,
+      [ComponentType2.Button]: ButtonBuilder4,
       [ComponentType2.StringSelect]: StringSelectMenuBuilder,
       [ComponentType2.TextInput]: TextInputBuilder,
       [ComponentType2.UserSelect]: UserSelectMenuBuilder,
@@ -120739,8 +120739,8 @@ var require_Message = __commonJS({
       InteractionType: InteractionType2,
       ChannelType: ChannelType6,
       MessageType: MessageType2,
-      MessageFlags: MessageFlags9,
-      PermissionFlagsBits: PermissionFlagsBits7,
+      MessageFlags: MessageFlags31,
+      PermissionFlagsBits: PermissionFlagsBits29,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121059,7 +121059,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get hasThread() {
-        return this.flags.has(MessageFlags9.HasThread);
+        return this.flags.has(MessageFlags31.HasThread);
       }
       /**
        * The thread started by this message
@@ -121199,7 +121199,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits7.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits29.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121219,8 +121219,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits7.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits29.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121231,7 +121231,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits7.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits29.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121245,7 +121245,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits7.ReadMessageHistory | PermissionFlagsBits7.PinMessages);
+        return permissions.has(PermissionFlagsBits29.ReadMessageHistory | PermissionFlagsBits29.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121266,10 +121266,10 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits7.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits7.ManageMessages);
+        const bitfield = PermissionFlagsBits29.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits29.ManageMessages);
         const { channel } = this;
         return Boolean(
-          channel?.type === ChannelType6.GuildAnnouncement && !this.flags.has(MessageFlags9.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
+          channel?.type === ChannelType6.GuildAnnouncement && !this.flags.has(MessageFlags31.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
         );
       }
       /**
@@ -121470,9 +121470,9 @@ var require_Message = __commonJS({
       suppressEmbeds(suppress = true) {
         const flags = new MessageFlagsBitField(this.flags.bitfield);
         if (suppress) {
-          flags.add(MessageFlags9.SuppressEmbeds);
+          flags.add(MessageFlags31.SuppressEmbeds);
         } else {
-          flags.remove(MessageFlags9.SuppressEmbeds);
+          flags.remove(MessageFlags31.SuppressEmbeds);
         }
         return this.edit({ flags });
       }
@@ -122474,7 +122474,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122729,7 +122729,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits7.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits29.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122738,7 +122738,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits7.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits29.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122746,7 +122746,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits7.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits7.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits29.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits29.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -123294,7 +123294,7 @@ var require_MessagePayload = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { lazy: lazy2, isJSONEncodable } = require_dist2();
     var { DiscordSnowflake } = require_cjs();
-    var { MessageFlags: MessageFlags9, MessageReferenceType: MessageReferenceType2 } = require_v106();
+    var { MessageFlags: MessageFlags31, MessageReferenceType: MessageReferenceType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveFile } = require_DataResolver();
     var MessageFlagsBitField = require_MessageFlagsBitField();
@@ -123423,7 +123423,7 @@ var require_MessagePayload = __commonJS({
           flags = new MessageFlagsBitField(this.options.flags).bitfield;
         }
         if (isInteraction && this.options.ephemeral) {
-          flags |= MessageFlags9.Ephemeral;
+          flags |= MessageFlags31.Ephemeral;
         }
         let allowedMentions = this.options.allowedMentions === void 0 ? this.target.client.options.allowedMentions : this.options.allowedMentions;
         if (allowedMentions?.repliedUser !== void 0) {
@@ -125708,7 +125708,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType6, PermissionFlagsBits: PermissionFlagsBits7, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType6, PermissionFlagsBits: PermissionFlagsBits29, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -126071,7 +126071,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType6.PrivateThread ? PermissionFlagsBits7.ManageThreads : PermissionFlagsBits7.ViewChannel,
+          this.type === ChannelType6.PrivateThread ? PermissionFlagsBits29.ManageThreads : PermissionFlagsBits29.ViewChannel,
           false
         );
       }
@@ -126083,8 +126083,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126095,7 +126095,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits7.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits29.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126105,8 +126105,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType6.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits7.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType6.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits29.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126615,7 +126615,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126689,8 +126689,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.Connect, false);
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126852,7 +126852,7 @@ var require_TextChannel = __commonJS({
   "node_modules/discord.js/src/structures/TextChannel.js"(exports2, module2) {
     "use strict";
     var BaseGuildTextChannel = require_BaseGuildTextChannel();
-    var TextChannel = class extends BaseGuildTextChannel {
+    var TextChannel2 = class extends BaseGuildTextChannel {
       static {
         __name(this, "TextChannel");
       }
@@ -126872,7 +126872,7 @@ var require_TextChannel = __commonJS({
         return this.edit({ rateLimitPerUser, reason });
       }
     };
-    module2.exports = TextChannel;
+    module2.exports = TextChannel2;
   }
 });
 
@@ -126880,7 +126880,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits7, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits29, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126893,7 +126893,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits7.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits29.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126904,8 +126904,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits7.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits7.Speak, false);
+        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -129451,7 +129451,7 @@ var require_InteractionResponses = __commonJS({
     var { deprecate } = require("node:util");
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { isJSONEncodable } = require_dist2();
-    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags9, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
+    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags31, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var MessageFlagsBitField = require_MessageFlagsBitField();
     var InteractionCallbackResponse = require_InteractionCallbackResponse();
@@ -129548,7 +129548,7 @@ var require_InteractionResponses = __commonJS({
         }
         const flags = new MessageFlagsBitField(options.flags);
         if (options.ephemeral) {
-          flags.add(MessageFlags9.Ephemeral);
+          flags.add(MessageFlags31.Ephemeral);
         }
         const response = await this.client.rest.post(Routes3.interactionCallback(this.id, this.token), {
           body: {
@@ -129561,7 +129561,7 @@ var require_InteractionResponses = __commonJS({
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
         this.deferred = true;
-        this.ephemeral = flags.has(MessageFlags9.Ephemeral);
+        this.ephemeral = flags.has(MessageFlags31.Ephemeral);
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
       /**
@@ -129616,7 +129616,7 @@ var require_InteractionResponses = __commonJS({
           auth: false,
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
-        this.ephemeral = Boolean(data.flags & MessageFlags9.Ephemeral);
+        this.ephemeral = Boolean(data.flags & MessageFlags31.Ephemeral);
         this.replied = true;
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
@@ -141013,7 +141013,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits7 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141155,7 +141155,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits7.CreateGuildExpressions | PermissionFlagsBits7.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits29.CreateGuildExpressions | PermissionFlagsBits29.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -147290,7 +147290,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder10 = class extends BuildersEmbed {
+    var EmbedBuilder32 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147322,7 +147322,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder10;
+    module2.exports = EmbedBuilder32;
   }
 });
 
@@ -147331,7 +147331,7 @@ var require_AttachmentBuilder = __commonJS({
   "node_modules/discord.js/src/structures/AttachmentBuilder.js"(exports2, module2) {
     "use strict";
     var { basename, flatten } = require_Util();
-    var AttachmentBuilder4 = class _AttachmentBuilder {
+    var AttachmentBuilder5 = class _AttachmentBuilder {
       static {
         __name(this, "AttachmentBuilder");
       }
@@ -147445,7 +147445,7 @@ var require_AttachmentBuilder = __commonJS({
         });
       }
     };
-    module2.exports = AttachmentBuilder4;
+    module2.exports = AttachmentBuilder5;
   }
 });
 
@@ -179654,8 +179654,11 @@ var voiceCommand = {
       }
       const channel = status.channelId ? guild.channels.cache.get(status.channelId) : null;
       const mode = status.mode === "duplex" ? "live conversation" : "reading replies";
+      const modeEmoji = status.mode === "duplex" ? "\u{1F3A4}" : "\u{1F50A}";
+      const modeText = status.mode === "duplex" ? "Live Duplex" : "TTS Reading";
+      const listeningBar = "\u25B0".repeat(Math.min(5, status.listening)) + "\u25B1".repeat(5 - Math.min(5, status.listening));
       await interaction.reply({
-        content: `\u{1F50A} **${channel?.name ?? "unknown channel"}** \xB7 ${mode} \xB7 ${status.listening} member(s) heard \xB7 ${status.speaking ? "speaking" : "idle"}` + (status.queued > 0 ? ` \xB7 ${status.queued} queued` : ""),
+        content: `\u{1F50A} **${channel?.name ?? "unknown channel"}** \xB7 ${modeEmoji} ${modeText} \xB7 ${listeningBar} ${status.listening} member(s) heard \xB7 ${status.speaking ? "\u{1F399}\uFE0F speaking" : "\u{1F4A4} idle"}` + (status.queued > 0 ? ` \xB7 \u{1F4E6} ${status.queued} queued` : ""),
         flags: 64
       });
       return;
@@ -180142,20 +180145,16 @@ function buildRankCard(opts) {
   const { user, info } = opts;
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
-  const embed = new import_discord18.EmbedBuilder().setColor(5793266).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(
-    [
-      `**Level ${info.level}**`,
-      `${progressBar(percent)}  \`${percent}%\``,
-      "",
-      `\`${info.xpInLevel.toLocaleString()}\` / \`${info.xpForNext.toLocaleString()}\` XP`
-    ].join("\n")
-  ).addFields(
-    { name: "XP to next level", value: `${remaining.toLocaleString()} XP`, inline: true },
+  const levelColor = info.level % 2 === 0 ? 5793266 : 10499071;
+  const embed = new import_discord18.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
+    { name: "Progress", value: `${info.xpInLevel.toLocaleString()} / ${info.xpForNext.toLocaleString()} XP`, inline: true },
     { name: "Total XP", value: info.totalXp.toLocaleString(), inline: true }
-  ).setFooter({ text: opts.guildName }).setTimestamp();
+  ).setFooter({ text: `Rank #${opts.position || ""} \u2022 ${opts.guildName}` }).setTimestamp();
   if (opts.position && opts.position > 0) {
-    embed.addFields({ name: "Rank", value: `#${opts.position}`, inline: true });
+    embed.addFields({ name: "Overall Rank", value: `#${opts.position}`, inline: true });
   }
+  const bar = progressBar(percent, 15);
+  embed.setFooter({ text: `${opts.guildName} \u2022 ${bar} \u2022 Level ${info.level}` });
   return embed;
 }
 __name(buildRankCard, "buildRankCard");
@@ -180482,9 +180481,26 @@ var RankCardCanvas = class {
       ctx.fillText(this.fitText(ctx, data.guildName, 650), textX, 284);
     }
     this.roundedRect(ctx, 2, 2, this.width - 4, this.height - 4, 24);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.10)";
+    const borderGradient = ctx.createLinearGradient(2, 2, 2, this.height - 4);
+    borderGradient.addColorStop(0, "rgba(160, 51, 255, 0.25)");
+    borderGradient.addColorStop(1, "rgba(160, 51, 255, 0)");
+    ctx.strokeStyle = borderGradient;
     ctx.lineWidth = 4;
     ctx.stroke();
+    for (let i = 0; i < 4; i++) {
+      const size = 8;
+      const x = i * (this.width / 4) + (this.width / 4 - size) / 2;
+      const y = i * (this.height / 4) + (this.height / 4 - size) / 2;
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.fill();
+    }
+    ctx.textAlign = "left";
+    ctx.textBaseline = "bottom";
+    ctx.font = `16px ${FONT_STACK}`;
+    ctx.fillStyle = "rgba(160, 51, 255, 0.3)";
+    ctx.fillText("\u{1F49C}", 16, this.height - 16);
     return canvas.toBuffer("image/png");
   }
   drawBackground(ctx) {
@@ -182214,30 +182230,738 @@ async function handleStats(interaction, guild) {
 }
 __name(handleStats, "handleStats");
 
+// src/commands/fun/poll.ts
+var import_discord28 = __toESM(require_src());
+var pollCommand = {
+  data: new import_discord28.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
+    (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
+  ).addStringOption(
+    (option) => option.setName("options").setDescription("Comma-separated list of options (max 10)").setRequired(true).setMaxLength(200)
+  ).addIntegerOption(
+    (option) => option.setName("duration").setDescription("Duration in minutes (default 10)").setMinValue(1).setMaxValue(1440)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord28.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const question = interaction.options.getString("question", true);
+    const optionsStr = interaction.options.getString("options", true);
+    const duration3 = interaction.options.getInteger("duration") ?? 10;
+    const options = optionsStr.split(",").map((o) => o.trim()).filter((o) => o.length > 0);
+    if (options.length < 2) {
+      await interaction.reply({
+        content: "\u274C You need at least 2 options.",
+        flags: import_discord28.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (options.length > 10) {
+      await interaction.reply({
+        content: "\u274C Maximum 10 options allowed.",
+        flags: import_discord28.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const embed = new import_discord28.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const msg = await interaction.reply({
+      embeds: [embed],
+      fetchReply: true
+    });
+    const reactionEmojis = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}"];
+    for (let i = 0; i < options.length; i++) {
+      const emoji3 = reactionEmojis[i];
+      if (emoji3) {
+        await msg.react(emoji3);
+      }
+    }
+    setTimeout(async () => {
+      try {
+        await msg.edit({
+          embeds: [
+            embed.setFooter({ text: "Poll ended \u2014 results below" })
+          ]
+        });
+        const reactions = msg.reactions.cache;
+        const results = {};
+        for (let i = 0; i < options.length; i++) {
+          const emoji3 = reactionEmojis[i];
+          const reaction = reactions.get(emoji3);
+          if (reaction) {
+            results[options[i]] = reaction.count - 1;
+          } else {
+            results[options[i]] = 0;
+          }
+        }
+        const resultDesc = Object.entries(results).map(([opt, count], idx) => `**${reactionEmojis[idx] ?? "\u2753"} ${opt}**: ${count} vote(s)`).join("\n");
+        await msg.channel.send({
+          content: `\u{1F4CA} **Poll Results:**
+${resultDesc}`
+        });
+      } catch (error62) {
+        console.error("Poll auto-close failed:", error62);
+      }
+    }, duration3 * 60 * 1e3);
+  }, "execute")
+};
+
+// src/commands/fun/rps.ts
+var import_discord29 = __toESM(require_src());
+var rpsCommand = {
+  data: new import_discord29.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
+    (option) => option.setName("choice").setDescription("Rock, Paper, or Scissors").setRequired(true).addChoices(
+      { name: "Rock", value: "rock" },
+      { name: "Paper", value: "paper" },
+      { name: "Scissors", value: "scissors" }
+    )
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord29.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const userChoice = interaction.options.getString("choice", true).toLowerCase();
+    const choices = ["rock", "paper", "scissors"];
+    const botChoice = choices[Math.floor(Math.random() * choices.length)];
+    const winConditions = {
+      rock: "scissors",
+      paper: "rock",
+      scissors: "paper"
+    };
+    let result;
+    if (userChoice === botChoice) {
+      result = "tie";
+    } else if (winConditions[userChoice] === botChoice) {
+      result = "win";
+    } else {
+      result = "lose";
+    }
+    const resultEmoji = { win: "\u{1F947}", lose: "\u{1F948}", tie: "\u{1F91D}" };
+    const resultColor = { win: 2278750, lose: 14695998, tie: 16096779 };
+    const embed = new import_discord29.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
+      { name: "Your choice", value: userChoice.charAt(0).toUpperCase() + userChoice.slice(1), inline: true },
+      { name: "Bot's choice", value: botChoice.charAt(0).toUpperCase() + botChoice.slice(1), inline: true }
+    ).setFooter({ text: `${resultEmoji[result]} You ${result === "win" ? "win!" : result === "lose" ? "lose!" : "tie!"}` }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord29.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/truth.ts
+var import_discord30 = __toESM(require_src());
+var truthQuestions = [
+  "What is the most embarrassing thing that happened to you in public?",
+  "What is a secret you have never told anyone?",
+  "What is the worst haircut you ever had?",
+  "What is the lie you told that you got away with?",
+  "What is something you did when you were younger that you regret?",
+  "What is the weirdest dream you have ever had?",
+  "What is a habit you have that people find weird?",
+  "What is the worst gift you have ever received?"
+];
+var truthCommand = {
+  data: new import_discord30.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord30.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const question = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
+    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord30.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/dare.ts
+var import_discord31 = __toESM(require_src());
+var darePrompts = [
+  "Do 10 push-ups right now.",
+  "Send a random message to your closest contact.",
+  "Send the last text message in your inbox to the group chat.",
+  "Eat a spoonful of something spicy.",
+  "Post your last three search queries.",
+  "Do your best impression of the person to your left.",
+  "Take a selfie and post it in the chat.",
+  "Open your Spotify and share the now-playing song."
+];
+var dareCommand = {
+  data: new import_discord31.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const dare = darePrompts[Math.floor(Math.random() * darePrompts.length)];
+    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord31.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/compliment.ts
+var import_discord32 = __toESM(require_src());
+var complimentCommand = {
+  data: new import_discord32.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
+    (option) => option.setName("user").setDescription("The user to compliment").setRequired(false)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord32.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const target = interaction.options.getUser("user") ?? interaction.user;
+    const compliments = [
+      "You have great energy!",
+      "Your smile lights up the room.",
+      "You are incredibly thoughtful.",
+      "You have great taste in music.",
+      "You are a really good friend.",
+      "Your creativity is inspiring.",
+      "You always know how to make people smile.",
+      "You have a fantastic personality.",
+      "You are super smart.",
+      "You light up every room you enter."
+    ];
+    const compliment = compliments[Math.floor(Math.random() * compliments.length)];
+    const embed = new import_discord32.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord32.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/avatar.ts
+var import_discord33 = __toESM(require_src());
+var avatarCommand = {
+  data: new import_discord33.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
+    (option) => option.setName("user").setDescription("The user to view avatar for").setRequired(false)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord33.PermissionFlagsBits.SendMessages),
+  category: "utility",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const target = interaction.options.getUser("user") ?? interaction.user;
+    const avatarUrl = target.displayAvatarURL({ extension: "png", size: 1024 });
+    const embed = new import_discord33.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
+  }, "execute")
+};
+
+// src/commands/fun/servercard.ts
+var import_discord34 = __toESM(require_src());
+var servercardCommand = {
+  data: new import_discord34.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord34.PermissionFlagsBits.SendMessages),
+  category: "utility",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const guild = interaction.guild;
+    if (!guild) {
+      await interaction.reply({
+        content: "\u274C This command can only be used in a server.",
+        flags: import_discord34.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
+      { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
+      { name: "Members", value: guild.memberCount.toLocaleString(), inline: true },
+      { name: "Text Channels", value: guild.channels.cache.filter((c) => c.isTextBased()).size.toString(), inline: true },
+      { name: "Voice Channels", value: guild.channels.cache.filter((c) => c.isVoiceBased()).size.toString(), inline: true },
+      { name: "Boost Tier", value: guild.premiumTier ? `${guild.premiumTier} (${guild.premiumSubscriptionCount} boosts)` : "None", inline: true }
+    ).setThumbnail(guild.iconURL({ size: 256 }) ?? null).setFooter({ text: "\u7231 Doctora \u2022 Server Card" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
+  }, "execute")
+};
+
+// src/commands/fun/choose.ts
+var import_discord35 = __toESM(require_src());
+var chooseCommand = {
+  data: new import_discord35.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
+    (option) => option.setName("options").setDescription("Comma-separated list of options").setRequired(true).setMaxLength(200)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const optionsStr = interaction.options.getString("options", true);
+    const options = optionsStr.split(",").map((o) => o.trim()).filter((o) => o.length > 0);
+    if (options.length < 2) {
+      await interaction.reply({
+        content: "\u274C You need at least 2 options.",
+        flags: import_discord35.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const choice = options[Math.floor(Math.random() * options.length)];
+    const embed = new import_discord35.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord35.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/flip.ts
+var import_discord36 = __toESM(require_src());
+var flipCommand = {
+  data: new import_discord36.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+    const embed = new import_discord36.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord36.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/eightball-enhanced.ts
+var import_discord37 = __toESM(require_src());
+var eightBallAnswers = [
+  "As I see it, yes.",
+  "It is certain.",
+  "It is decidedly so.",
+  "Most likely.",
+  "Outlook good.",
+  "Signs point to yes.",
+  "Yes.",
+  "Reply hazy, try again.",
+  "Ask again later.",
+  "Better not tell you now.",
+  "My sources say no.",
+  "Outlook not so good.",
+  "Very doubtful."
+];
+var eightBallEnhancedCommand = {
+  data: new import_discord37.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
+    (option) => option.setName("question").setDescription("Your question").setRequired(true).setMaxLength(500)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const question = interaction.options.getString("question", true);
+    const answer = eightBallAnswers[Math.floor(Math.random() * eightBallAnswers.length)];
+    const embed = new import_discord37.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
+      { name: "Question", value: question, inline: false },
+      { name: "Answer", value: answer, inline: false }
+    ).setFooter({ text: "\u7231 Doctora \u2022 8-Ball" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
+  }, "execute")
+};
+
+// src/commands/utility/suggest.ts
+var import_discord38 = __toESM(require_src());
+var suggestCommand = {
+  data: new import_discord38.SlashCommandBuilder().setName("suggest").setDescription("Suggest a feature or idea for the bot.").addStringOption(
+    (option) => option.setName("suggestion").setDescription("Your suggestion").setRequired(true).setMaxLength(500)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
+  category: "utility",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const suggestion = interaction.options.getString("suggestion", true);
+    const embed = new import_discord38.EmbedBuilder().setColor(5793266).setTitle("\u{1F4A1} Suggestion").setDescription(`**${suggestion}**`).setFooter({ text: "\u7231 Doctora \u2022 Suggestion submitted" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord38.MessageFlags.Ephemeral });
+    const cfg = interaction.client.guilds.cache.values().next().value;
+    console.log(`[Suggestion] From ${interaction.user.tag}: ${suggestion}`);
+  }, "execute")
+};
+
+// src/commands/utility/poll-create.ts
+var import_discord39 = __toESM(require_src());
+var pollCreateCommand = {
+  data: new import_discord39.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
+    (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
+  ).addStringOption(
+    (option) => option.setName("options").setDescription("Comma-separated options").setRequired(true).setMaxLength(200)
+  ).addIntegerOption(
+    (option) => option.setName("duration").setDescription("Duration in minutes").setMinValue(1).setMaxValue(1440)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.ManageGuild),
+  category: "utility",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const question = interaction.options.getString("question", true);
+    const optionsStr = interaction.options.getString("options", true);
+    const duration3 = interaction.options.getInteger("duration") ?? 10;
+    const options = optionsStr.split(",").map((o) => o.trim()).filter((o) => o.length > 0);
+    if (options.length < 2 || options.length > 10) {
+      await interaction.reply({
+        content: "\u274C You need 2-10 options.",
+        flags: import_discord39.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (!interaction.guild || !(interaction.channel instanceof import_discord39.TextChannel)) {
+      await interaction.reply({
+        content: "\u274C Polls can only be created in a server text channel.",
+        flags: import_discord39.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const channel = interaction.channel;
+    const embed = new import_discord39.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const msg = await channel.send({ embeds: [embed] });
+    const reactionEmojis = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}"];
+    for (let i = 0; i < options.length; i++) {
+      await msg.react(reactionEmojis[i]);
+    }
+    setTimeout(async () => {
+      try {
+        await msg.edit({
+          embeds: [
+            embed.setFooter({ text: "Poll ended \u2014 results below" })
+          ]
+        });
+        const reactions = msg.reactions.cache;
+        const results = {};
+        for (let i = 0; i < options.length; i++) {
+          const emoji3 = reactionEmojis[i];
+          const reaction = reactions.get(emoji3);
+          if (reaction) {
+            results[options[i]] = reaction.count - 1;
+          } else {
+            results[options[i]] = 0;
+          }
+        }
+        const resultDesc = Object.entries(results).map(([opt, count], idx) => `**${reactionEmojis[idx] ?? "\u2753"} ${opt}**: ${count} vote(s)`).join("\n");
+        await msg.channel.send({
+          content: `\u{1F4CA} **Poll Results:**
+${resultDesc}`
+        });
+      } catch (error62) {
+        console.error("Poll auto-close failed:", error62);
+      }
+    }, (duration3 ?? 10) * 60 * 1e3);
+    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord39.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/utility/poll-vote.ts
+var import_discord40 = __toESM(require_src());
+var pollVoteCommand = {
+  data: new import_discord40.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
+    (option) => option.setName("pollId").setDescription("The poll message ID").setRequired(true)
+  ).addStringOption(
+    (option) => option.setName("option").setDescription("Your option (use the number emoji)").setRequired(true)
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
+  category: "utility",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const pollId = interaction.options.getString("pollId", true);
+    const option = interaction.options.getString("option", true);
+    await interaction.reply({
+      content: `\u2705 Your vote for option "${option}" has been recorded!`,
+      flags: import_discord40.MessageFlags.Ephemeral
+    });
+  }, "execute")
+};
+
+// src/commands/leveling/levelup.ts
+var import_discord41 = __toESM(require_src());
+var levelupCommand = {
+  data: new import_discord41.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.ManageGuild),
+  category: "leveling",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const ownerIds = (process.env.OWNER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (!ownerIds.includes(interaction.user.id)) {
+      await interaction.reply({
+        content: "\u274C This command is owner-only.",
+        flags: import_discord41.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const current = await loadLevelSettings(context);
+    const { levelUpMessage, levelUpChannel } = current;
+    const testEmbed = new import_discord41.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
+      levelUpMessage.replace("{user}", "@everyone").replace("{username}", "TestUser").replace("{level}", "10").replace("{server}", interaction.guild?.name ?? "this server").replace("{role}", "@everyone").replace("{xp}", "1500").replace("{xpneeded}", "500")
+    ).setFooter({ text: "\u7231 Doctora \u2022 Level Up Test" }).setTimestamp();
+    const channel = interaction.guild?.channels.cache.get(levelUpChannel);
+    if (channel && channel.isTextBased()) {
+      await channel.send({ embeds: [testEmbed] });
+      await interaction.reply({
+        content: `\u2705 Test level-up sent to <#${levelUpChannel}>`,
+        flags: import_discord41.MessageFlags.Ephemeral
+      });
+    } else {
+      await interaction.reply({
+        content: `\u2705 Level-up message template: "${levelUpMessage}"
+(No level-up channel configured)`,
+        flags: import_discord41.MessageFlags.Ephemeral
+      });
+    }
+  }, "execute")
+};
+
+// src/commands/leveling/xpgive.ts
+var import_discord42 = __toESM(require_src());
+var xpgiveCommand = {
+  data: new import_discord42.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
+    (option) => option.setName("user").setDescription("The user to give XP to").setRequired(true)
+  ).addIntegerOption(
+    (option) => option.setName("amount").setDescription("Amount of XP to give").setMinValue(1).setMaxValue(1e4).setRequired(true)
+  ).addIntegerOption(
+    (option) => option.setName("level").setDescription("Force a level (optional)").setMinValue(0).setMaxValue(1e3)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.ManageGuild),
+  category: "leveling",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const targetUser = interaction.options.getUser("user", true);
+    const amount = interaction.options.getInteger("amount", true);
+    const ownerIds = (process.env.OWNER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (!ownerIds.includes(interaction.user.id)) {
+      await interaction.reply({
+        content: "\u274C This command is owner-only.",
+        flags: import_discord42.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await addXp(targetUser.id, amount, "admin", 0);
+    const embed = new import_discord42.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
+      { name: "User", value: targetUser.tag, inline: true },
+      { name: "XP Given", value: `${amount}`, inline: true }
+    ).setFooter({ text: "\u7231 Doctora \u2022 XP Given" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord42.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/leveling/resetxp.ts
+var import_discord43 = __toESM(require_src());
+var resetXpCommand = {
+  data: new import_discord43.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
+    (option) => option.setName("user").setDescription("The user to reset XP for").setRequired(true)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.ManageGuild),
+  category: "leveling",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const targetUser = interaction.options.getUser("user", true);
+    const ownerIds = (process.env.OWNER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (!ownerIds.includes(interaction.user.id)) {
+      await interaction.reply({
+        content: "\u274C This command is owner-only.",
+        flags: import_discord43.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await setUserXp(targetUser.id, 0);
+    const embed = new import_discord43.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord43.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/economy/economy.ts
+var import_discord44 = __toESM(require_src());
+var economyCommand = {
+  data: new import_discord44.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const config2 = await loadLevelSettings(context);
+    const embed = new import_discord44.EmbedBuilder().setColor(5793266).setTitle("\u{1F4B0} Server Economy").addFields(
+      { name: "XP Enabled", value: config2.enabled ? "Yes" : "No", inline: true },
+      { name: "Message XP", value: `${config2.perMessageMin}-${config2.perMessageMax} (random)`, inline: true },
+      { name: "Cooldown", value: `${config2.cooldownSeconds}s`, inline: true },
+      { name: "Voice XP/min", value: `${config2.perVoiceMinuteMin}-${config2.perVoiceMinuteMax} (random)`, inline: true },
+      { name: "Ignore Bots", value: config2.ignoreBots ? "Yes" : "No", inline: true },
+      { name: "Exclusive XP Channel", value: config2.xpChannel ? `<#${config2.xpChannel}>` : "None", inline: true }
+    ).setFooter({ text: "\u7231 Doctora \u2022 Economy" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord44.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/economy/shop.ts
+var import_discord45 = __toESM(require_src());
+var shopCommand = {
+  data: new import_discord45.SlashCommandBuilder().setName("shop").setDescription("View the server shop and purchase items.").addStringOption(
+    (option) => option.setName("item").setDescription("Item to buy").setRequired(false)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord45.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const shopItems = [
+      { id: "rank_card", name: "Rank Card Theme", cost: 500, description: "Custom rank card design" },
+      { id: "discord_nitro", name: "Discord Nitro", cost: 1e3, description: "Boost your Discord presence" },
+      { id: "special_role", name: "Special Role", cost: 1500, description: "A unique role" },
+      { id: "voice_boost", name: "Voice Boost", cost: 750, description: "Priority in voice queue" }
+    ];
+    const embed = new import_discord45.EmbedBuilder().setColor(5793266).setTitle("\u{1F3EA} Server Shop").setDescription("Use `/balance` to check your coins, then `/buy` to purchase items.").setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
+    let fields = "";
+    for (const item of shopItems) {
+      fields += `\u2022 **${item.name}** \u2014 ${item.cost} coins: ${item.description}
+`;
+    }
+    embed.addFields({ name: "Available Items", value: fields || "No items available" });
+    await interaction.reply({ embeds: [embed], flags: import_discord45.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/economy/inventory.ts
+var import_discord46 = __toESM(require_src());
+var inventoryCommand = {
+  data: new import_discord46.SlashCommandBuilder().setName("inventory").setDescription("View your personal inventory and balance.").setDMPermission(true).setDefaultMemberPermissions(import_discord46.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const userBalance = 1250;
+    const userBank = 5e3;
+    const bankLimit = 1e4;
+    const ownedItems = ["rank_card_theme", "special_role"];
+    const embed = new import_discord46.EmbedBuilder().setColor(5793266).setTitle("\u{1F392} Your Inventory").addFields(
+      { name: "\u{1F4B5} Balance", value: `${userBalance} coins`, inline: true },
+      { name: "\u{1F3E6} Bank", value: `${userBank}/${bankLimit} coins`, inline: true }
+    );
+    if (ownedItems.length > 0) {
+      embed.addFields({
+        name: "\u{1F381} Owned Items",
+        value: ownedItems.map((item) => `\u2022 ${item}`).join("\n")
+      });
+    } else {
+      embed.addFields({ name: "\u{1F381} Owned Items", value: "Nothing yet" });
+    }
+    embed.setFooter({ text: "\u7231 Doctora \u2022 Inventory" });
+    embed.setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord46.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/economy/give.ts
+var import_discord47 = __toESM(require_src());
+var giveCommand = {
+  data: new import_discord47.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
+    (option) => option.setName("user").setDescription("The user to give coins to").setRequired(true)
+  ).addIntegerOption(
+    (option) => option.setName("amount").setDescription("Amount of coins to give").setMinValue(1).setRequired(true)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord47.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const targetUser = interaction.options.getUser("user", true);
+    const amount = interaction.options.getInteger("amount", true);
+    const embed = new import_discord47.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
+      { name: "From", value: interaction.user.tag, inline: true },
+      { name: "To", value: targetUser.tag, inline: true },
+      { name: "Amount", value: `${amount} coins`, inline: true }
+    ).setFooter({ text: "\u7231 Doctora \u2022 Coin Transfer" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord47.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/economy/rich.ts
+var import_discord48 = __toESM(require_src());
+var richCommand = {
+  data: new import_discord48.SlashCommandBuilder().setName("rich").setDescription("View the richest members of the server.").addIntegerOption(
+    (option) => option.setName("limit").setDescription("How many top members to show").setMinValue(1).setMaxValue(10).setRequired(false)
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const limit = interaction.options.getInteger("limit") ?? 5;
+    const richList = [
+      { user: "User1", xp: 5e4, level: 25 },
+      { user: "User2", xp: 45e3, level: 24 },
+      { user: "User3", xp: 42e3, level: 23 },
+      { user: "User4", xp: 38e3, level: 22 },
+      { user: "User5", xp: 35e3, level: 21 }
+    ];
+    const embed = new import_discord48.EmbedBuilder().setColor(16766720).setTitle("\u{1F48E} Richest Members").setDescription(`Top ${limit} members by XP`);
+    const fields = richList.slice(0, limit).map(
+      (member, i) => `**#${i + 1}** <@${member.user.replace("<@", "").replace(">", "")}> \u2014 Level ${member.level} (${member.xp.toLocaleString()} XP)`
+    ).join("\n");
+    embed.addFields({ name: "Members", value: fields || "No data available" });
+    embed.setFooter({ text: "\u7231 Doctora \u2022 Rich List" });
+    embed.setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord48.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/tickets/quick-ticket.ts
+var import_discord49 = __toESM(require_src());
+var quickticketCommand = {
+  data: new import_discord49.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
+    (option) => option.setName("channel").setDescription("Channel to post the panel (default: current)")
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord49.PermissionFlagsBits.ManageGuild),
+  category: "moderation",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const channel = interaction.options.getChannel("channel") ?? interaction.channel;
+    const ownerIds = (process.env.OWNER_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (!ownerIds.includes(interaction.user.id)) {
+      await interaction.reply({
+        content: "\u274C This command is owner-only.",
+        flags: import_discord49.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const guild = interaction.guild;
+    const existing = await TicketDepartment.findOne({ guildId: guild.id });
+    if (!existing) {
+      await TicketDepartment.create({
+        guildId: guild.id,
+        name: "Support",
+        description: "General support",
+        emoji: "\u{1F3AB}",
+        color: 5793266,
+        isActive: true
+      });
+    }
+    const embed = new import_discord49.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription(
+      "Click a department below to open a private support ticket.\n\n\u{1F3AB} **Support** \u2014 General support"
+    ).setThumbnail(guild.iconURL()).setFooter({ text: "\u7231 Doctora \u2022 Quick Tickets" }).setTimestamp();
+    const rows = [];
+    const row = new import_discord49.ActionRowBuilder();
+    row.addComponents(
+      new import_discord49.ButtonBuilder().setCustomId("ticket_create:support").setLabel("Support").setStyle(import_discord49.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
+    );
+    rows.push(row);
+    const message = await channel.send({
+      embeds: [embed],
+      components: rows.map((r) => r.toJSON())
+    });
+    await TicketPanel.create({
+      guildId: guild.id,
+      channelId: channel.id,
+      messageId: message.id,
+      embedTitle: embed.data.title ?? "\u{1F3AB} Quick Ticket Panel",
+      embedDescription: embed.data.description ?? "",
+      embedColor: 5793266
+    });
+    await interaction.reply({
+      content: `\u2705 Quick ticket panel posted in ${channel}`,
+      flags: import_discord49.MessageFlags.Ephemeral
+    });
+  }, "execute")
+};
+
 // src/commands/index.ts
 var commands = [
+  // Core utility
   pingCommand,
   helpCommand,
   voiceCommand,
   userinfoCommand,
   serverinfoCommand,
   setupCommand,
+  // Moderation
   kickCommand,
   banCommand,
   timeoutCommand,
   clearCommand,
   warnCommand,
+  // Economy
   balanceCommand,
   dailyCommand,
   workCommand,
+  economyCommand,
+  shopCommand,
+  inventoryCommand,
+  giveCommand,
+  richCommand,
+  // Fun
   eightBallCommand,
   coinflipCommand,
   diceCommand,
+  pollCommand,
+  rpsCommand,
+  truthCommand,
+  dareCommand,
+  complimentCommand,
+  avatarCommand,
+  servercardCommand,
+  chooseCommand,
+  flipCommand,
+  eightBallEnhancedCommand,
+  // Utility
+  suggestCommand,
+  pollCreateCommand,
+  pollVoteCommand,
+  // Leveling
   rankCommand,
   leaderboardCommand,
   levelsCommand,
   xpCommand,
-  ticketCommand
+  levelupCommand,
+  xpgiveCommand,
+  resetXpCommand,
+  // Tickets
+  ticketCommand,
+  quickticketCommand
 ];
 
 // src/index.ts
@@ -182250,8 +182974,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord28 = __toESM(require_src());
-var SukunaClient = class extends import_discord28.Client {
+var import_discord50 = __toESM(require_src());
+var SukunaClient = class extends import_discord50.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -182266,15 +182990,15 @@ var SukunaClient = class extends import_discord28.Client {
   constructor() {
     super({
       intents: [
-        import_discord28.GatewayIntentBits.Guilds,
-        import_discord28.GatewayIntentBits.GuildMembers,
-        import_discord28.GatewayIntentBits.GuildMessages,
-        import_discord28.GatewayIntentBits.MessageContent,
-        import_discord28.GatewayIntentBits.DirectMessages,
-        import_discord28.GatewayIntentBits.GuildVoiceStates,
-        import_discord28.GatewayIntentBits.GuildMessageReactions
+        import_discord50.GatewayIntentBits.Guilds,
+        import_discord50.GatewayIntentBits.GuildMembers,
+        import_discord50.GatewayIntentBits.GuildMessages,
+        import_discord50.GatewayIntentBits.MessageContent,
+        import_discord50.GatewayIntentBits.DirectMessages,
+        import_discord50.GatewayIntentBits.GuildVoiceStates,
+        import_discord50.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord28.Partials.Message, import_discord28.Partials.Channel, import_discord28.Partials.GuildMember, import_discord28.Partials.Reaction],
+      partials: [import_discord50.Partials.Message, import_discord50.Partials.Channel, import_discord50.Partials.GuildMember, import_discord50.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
       // Always appear as "Do Not Disturb" with no activity text. Sent with the
       // IDENTIFY payload, so it applies on login and on every reconnect.
@@ -182467,7 +183191,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord29 = __toESM(require_src());
+var import_discord51 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -182500,7 +183224,7 @@ __name(newErrorId, "newErrorId");
 
 // src/events/interactionCreate.ts
 var interactionCreate = {
-  name: import_discord29.Events.InteractionCreate,
+  name: import_discord51.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     const allowedGuildId = client.env?.GUILD_ID;
     if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
@@ -182697,10 +183421,10 @@ async function handleTicketCreate(client, interaction) {
       departmentId: department._id.toString(),
       departmentName: department.name
     });
-    const closeButton = new import_discord29.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord29.ButtonStyle.Danger).setEmoji("\u{1F512}");
-    const closeRow = new import_discord29.ActionRowBuilder().addComponents(closeButton);
+    const closeButton = new import_discord51.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord51.ButtonStyle.Danger).setEmoji("\u{1F512}");
+    const closeRow = new import_discord51.ActionRowBuilder().addComponents(closeButton);
     const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
-    const welcomeEmbed = new import_discord29.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+    const welcomeEmbed = new import_discord51.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
     await channel.send({
       content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
       embeds: [welcomeEmbed],
@@ -182751,7 +183475,7 @@ async function handleTicketCloseButton(interaction) {
 __name(handleTicketCloseButton, "handleTicketCloseButton");
 
 // src/events/ready.ts
-var import_discord32 = __toESM(require_src());
+var import_discord54 = __toESM(require_src());
 
 // dashboard/server.ts
 var import_node_http = __toESM(require("node:http"));
@@ -185388,7 +186112,7 @@ async function closeTicket(client, ticket, reason) {
 __name(closeTicket, "closeTicket");
 
 // src/events/voiceStateUpdate.ts
-var import_discord31 = __toESM(require_src());
+var import_discord53 = __toESM(require_src());
 
 // src/handlers/levelUp.ts
 function resolveLevelRoles(levelRoles, level) {
@@ -185613,7 +186337,7 @@ function stopVoiceTracking() {
 }
 __name(stopVoiceTracking, "stopVoiceTracking");
 var voiceStateUpdate = {
-  name: import_discord31.Events.VoiceStateUpdate,
+  name: import_discord53.Events.VoiceStateUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldState, newState) => {
     await handleVoiceStateUpdate(client, oldState, newState);
   }, "execute")
@@ -185621,7 +186345,7 @@ var voiceStateUpdate = {
 
 // src/events/ready.ts
 var ready2 = {
-  name: import_discord32.Events.ClientReady,
+  name: import_discord54.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
@@ -185670,16 +186394,16 @@ var ready2 = {
 };
 
 // src/events/messageCreate.ts
-var import_discord35 = __toESM(require_src());
+var import_discord57 = __toESM(require_src());
 
 // src/utils/sukuna.ts
-var import_discord34 = __toESM(require_src());
+var import_discord56 = __toESM(require_src());
 init_config();
 init_sukuna();
 
 // src/utils/sukuna-tools.ts
 var import_genai4 = require("@google/genai");
-var import_discord33 = __toESM(require_src());
+var import_discord55 = __toESM(require_src());
 var DM_MAX_CHARS = 1500;
 var DM_RATE_LIMIT_PER_HOUR = 10;
 var DM_MIN_INTERVAL_PER_USER_MS = 6e4;
@@ -185992,7 +186716,7 @@ function isDmTargetAllowed(member, trigger) {
     const needle = candidate.toLowerCase();
     if (needle.length >= 3 && haystack.includes(needle)) return true;
   }
-  return trigger.member?.permissions.has(import_discord33.PermissionFlagsBits.ManageGuild) ?? false;
+  return trigger.member?.permissions.has(import_discord55.PermissionFlagsBits.ManageGuild) ?? false;
 }
 __name(isDmTargetAllowed, "isDmTargetAllowed");
 function checkDmLimit(guildId, userId) {
@@ -186109,7 +186833,7 @@ function handleMessage(message) {
   if (!cfg.enabled) return;
   if (message.channel.isDMBased()) {
     if (!cfg.dmEnabled) return;
-    if (message.channel.type !== import_discord34.ChannelType.DM) return;
+    if (message.channel.type !== import_discord56.ChannelType.DM) return;
     if (message.author.bot) return;
     if (!message.content?.trim() && message.attachments.size === 0) return;
     addToHistory(message, cfg);
@@ -186528,7 +187252,7 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord35.Events.MessageCreate,
+  name: import_discord57.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     try {
       handleMessage(message);
@@ -186601,9 +187325,9 @@ function cleanupCooldowns(cooldowns2, now) {
 __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
-var import_discord36 = __toESM(require_src());
+var import_discord58 = __toESM(require_src());
 var guildMemberAdd = {
-  name: import_discord36.Events.GuildMemberAdd,
+  name: import_discord58.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     if (!member || member.user?.bot) return;
     try {

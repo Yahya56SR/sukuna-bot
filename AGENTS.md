@@ -54,15 +54,31 @@ Per-platform native binaries, so it is external in the bundle (host runs `npm in
 
 **8. Dashboard binds to `0.0.0.0:$SERVER_PORT`**
 `dashboard/server.ts` reads `process.env.SERVER_PORT` (bot-hosting.net sets this). Falls back to `3001`. Starts only when `SUKUNA_ENABLED=true` or `DASHBOARD_ENABLED=true` (checked in `src/events/ready.ts`). Token-protected JSON API + SPA; generated access token printed at startup unless `DASHBOARD_TOKEN` is set. Session is a signed HttpOnly cookie.
+- The dashboard is also **single-guild aware**: when `GUILD_ID` is set, `sendGuilds`/`sendOverview` only surface that guild, and there are ticket API endpoints under `/api/guilds/:id/tickets/*` (config, departments CRUD).
+- Dashboard static assets (`index.html`, `styles.css`, `app.js`) are served from `process.cwd()`, not bundled.
 
 **9. Env loading**
 `src/config/env.ts` uses `process.loadEnvFile(".env")` (Node >=20.6) then validates via zod. `.env` is gitignored; `.env.example` is the template. Production host injects vars directly.
+- `GUILD_ID` (optional): when set, the bot auto-leaves any guild that doesn't match on ready, ignores interactions from other guilds, and the dashboard only lists the allowed guild.
 
 **10. MongoDB Atlas only**
-Mongoose connection in `src/db/index.ts`. Models: `Guild`, `User`, `SukunaMemory`, `BotConfig`. No local MongoDB, no Supabase.
+Mongoose connection in `src/db/index.ts`. Models: `Guild`, `User`, `SukunaMemory`, `BotConfig`, plus ticket models (`TicketPanel`, `TicketDepartment`, `OpenTicket`, `TicketConfig`). No local MongoDB, no Supabase.
 
 **11. Slash commands registered at startup**
 `registerApplicationCommands()` runs after `client.login()`. Set `DEV_GUILD_ID` for instant per-guild registration during dev; omit for global (takes up to 1 hour to propagate).
+
+**12. Ticket system**
+`src/db/models/Ticket.ts` defines four models:
+- `TicketPanel` — posted panel per channel with stored embed + optional animated GIF/image decoration.
+- `TicketDepartment` — department with emoji, color, description, staff role, `{user}` welcome message, active flag.
+- `OpenTicket` — active/closed ticket mapped to owner + department, with claim state, close info, staff notes, transcript flag.
+- `TicketConfig` — per-guild settings: `maxTicketsPerUser`, `cooldownSeconds`, `dmTranscript`, `transcriptChannelId`, `autoCloseMinutes`, `staffRoleIds`.
+
+`src/commands/tickets/ticket.ts` — `/ticket` subcommands: `setup` (live decorated panel), `department` (create/edit/list/delete), `close`, `claim`, `add`, `remove`, `transcript` (channel / DM / log channel), `config`, `stats`.
+
+`src/events/interactionCreate.ts` — buttons route `ticket_create:<departmentId>` → creates a ticket in that department (department staff role + `ManageGuild` staff get access; welcome embed + close button posted); `ticket_close` → closes and deletes after 10s.
+
+`src/utils/ticketScheduler.ts` — auto-close scheduler: respects `autoCloseMinutes`, warns 5 minutes before closing, then deletes the channel. Started in `ready.ts`, stopped in `index.ts`.
 
 ## File locations
 - Entry: `src/index.ts`
@@ -74,8 +90,8 @@ Mongoose connection in `src/db/index.ts`. Models: `Guild`, `User`, `SukunaMemory
 - AI persona: `src/utils/sukuna.ts`, `src/core/gemini-live.ts`, `src/utils/sukuna-tools.ts`, `src/utils/sukuna-memory.ts`, `src/prompts/sukuna.ts`
 - Voice: `src/voice/manager.ts` (connections/queue), `src/voice/conversation.ts` (duplex Live call), `src/voice/speech.ts` (TTS turn), `src/voice/pcm.ts` (resamplers), `/voice` in `src/commands/core/voice.ts`
 - Leveling: `src/utils/level.ts` (MEE6 math), `src/utils/levelSettings.ts`, `src/db/utils.ts` (XP API), `src/handlers/levelUp.ts`, `src/utils/{rankcard,rankEmbeds,canvas-runtime,fonts}.ts`, `src/utils/liveLeaderboard.ts`, commands in `src/commands/leveling/`
-- Tickets: `src/db/models/Ticket.ts`, `src/commands/tickets/ticket.ts`, button handling in `src/events/interactionCreate.ts`
-- Dashboard: `dashboard/server.ts` + `dashboard/{index.html,styles.css,app.js}`
+- Tickets: `src/db/models/Ticket.ts`, `src/commands/tickets/ticket.ts`, button handling in `src/events/interactionCreate.ts`, `src/utils/ticketScheduler.ts` (auto-close)
+- Dashboard: `dashboard/server.ts` + `dashboard/{index.html,styles.css,app.js}` (ticket endpoints under `/api/guilds/:id/tickets/*`)
 - Bundle script: `scripts/bundle-bot.mjs`
 
 ## Common mistakes to avoid
@@ -85,3 +101,4 @@ Mongoose connection in `src/db/index.ts`. Models: `Guild`, `User`, `SukunaMemory
 - Forgetting `SUKUNA_ENABLED=true` + `GEMINI_API_KEY` on bot-hosting.net → dashboard won't start, Sukuna won't respond
 - Using `generateContent` or `TEXT` response modality with `gemini-3.8-live` → socket closed with code 1007
 - Editing the dashboard `index.html`/`app.js`/`styles.css` without re-bundling → they are served as static files from `process.cwd()`, not bundled
+- Forgetting that `GUILD_ID` makes the bot auto-leave other guilds on ready → test in the allowed guild only
