@@ -4,12 +4,13 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  EmbedBuilder,
 } from 'discord.js';
 import { takeCooldown } from '../core/cooldowns.js';
 import { newErrorId, UserFacingError } from '../core/errors.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
-import { TicketPanel, OpenTicket } from '../db/models/Ticket.js';
+import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
 
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
@@ -131,7 +132,7 @@ export const interactionCreate = {
 async function handleButtonInteraction(client: any, interaction: any): Promise<void> {
   const { customId } = interaction;
 
-  if (customId === 'ticket_create') {
+  if (customId.startsWith('ticket_create:')) {
     await handleTicketCreate(client, interaction);
     return;
   }
@@ -152,6 +153,19 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     return;
   }
 
+  // Parse department id from custom id: ticket_create:<departmentId>
+  const deptId = interaction.customId.split(':')[1];
+  if (!deptId) {
+    await interaction.editReply({ content: '❌ Invalid ticket department.' });
+    return;
+  }
+
+  const department = await TicketDepartment.findById(deptId);
+  if (!department || !department.isActive) {
+    await interaction.editReply({ content: '❌ That department is not available.' });
+    return;
+  }
+
   // Check if user already has an open ticket in this guild
   const existing = await OpenTicket.findOne({
     guildId: guild.id,
@@ -166,10 +180,18 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     return;
   }
 
-  // Find the panel to confirm this interaction is valid
-  const panel = await TicketPanel.findOne({ guildId: guild.id });
-  if (!panel) {
-    await interaction.editReply({ content: '❌ No ticket panel is configured.' });
+  // Enforce max tickets per user (soft cap over all-time open count)
+  const config = await TicketConfig.findOne({ guildId: guild.id });
+  const maxTickets = config?.maxTicketsPerUser ?? 3;
+  const totalOpen = await OpenTicket.countDocuments({
+    guildId: guild.id,
+    userId: user.id,
+    closedAt: null,
+  });
+  if (totalOpen >= maxTickets) {
+    await interaction.editReply({
+      content: `❌ You already have the maximum of ${maxTickets} open ticket(s). Close one before opening another.`,
+    });
     return;
   }
 
@@ -189,6 +211,15 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     },
   };
 
+  // Department staff role gets access
+  if (department.staffRoleId) {
+    overwrites[department.staffRoleId] = {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true,
+    };
+  }
+
   // Allow staff with ManageGuild to see all tickets
   for (const role of guild.roles.cache.values()) {
     if (role.permissions.has('ManageGuild') && !role.managed) {
@@ -198,18 +229,19 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
 
   try {
     const channel = await guild.channels.create({
-      name: `ticket-${user.username}`,
+      name: `ticket-${department.name.toLowerCase().replace(/\s+/g, '-')}-${user.username}`,
       type: 0, // GuildText
-      topic: `Support ticket for ${user.tag} (${user.id})`,
-      parent: undefined,
+      topic: `Support ticket for ${user.tag} (${user.id}) • ${department.name}`,
       permissionOverwrites: overwrites,
-      reason: `Ticket created by ${user.tag}`,
+      reason: `Ticket created by ${user.tag} in ${department.name}`,
     });
 
     await OpenTicket.create({
       guildId: guild.id,
       channelId: channel.id,
       userId: user.id,
+      departmentId: department._id.toString(),
+      departmentName: department.name,
     });
 
     const closeButton = new ButtonBuilder()
@@ -220,13 +252,24 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
 
     const closeRow = new ActionRowBuilder().addComponents(closeButton);
 
+    // Department welcome message, with {user} placeholder
+    const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
+
+    const welcomeEmbed = new EmbedBuilder()
+      .setColor(department.color)
+      .setTitle(`${department.emoji} Ticket Opened — ${department.name}`)
+      .setDescription(welcome)
+      .setFooter({ text: '愛 Doctora • Tickets' })
+      .setTimestamp();
+
     await channel.send({
-      content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly. Use the button below to close the ticket when done.`,
+      content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
+      embeds: [welcomeEmbed],
       components: [closeRow],
     });
 
     await interaction.editReply({
-      content: `✅ Ticket created: ${channel}.`,
+      content: `✅ Ticket created: ${channel} (${department.name}).`,
     });
   } catch (error) {
     await interaction.editReply({

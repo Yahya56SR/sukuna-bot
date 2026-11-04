@@ -113587,7 +113587,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder9, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder10, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113721,7 +113721,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder9 = class {
+    var EmbedBuilder10 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147290,7 +147290,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder9 = class extends BuildersEmbed {
+    var EmbedBuilder10 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147322,7 +147322,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder9;
+    module2.exports = EmbedBuilder10;
   }
 });
 
@@ -147488,7 +147488,7 @@ var require_SelectMenuBuilder = __commonJS({
     var process3 = require("node:process");
     var StringSelectMenuBuilder = require_StringSelectMenuBuilder();
     var deprecationEmitted = false;
-    var SelectMenuBuilder2 = class extends StringSelectMenuBuilder {
+    var SelectMenuBuilder3 = class extends StringSelectMenuBuilder {
       static {
         __name(this, "SelectMenuBuilder");
       }
@@ -147503,7 +147503,7 @@ var require_SelectMenuBuilder = __commonJS({
         }
       }
     };
-    module2.exports = SelectMenuBuilder2;
+    module2.exports = SelectMenuBuilder3;
   }
 });
 
@@ -179238,21 +179238,101 @@ var ticketPanelSchema = new import_mongoose2.Schema(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true },
-    messageId: { type: String, required: true }
+    messageId: { type: String, required: true },
+    embedTitle: { type: String, required: true, default: "\u{1F3AB} Support Tickets" },
+    embedDescription: {
+      type: String,
+      required: true,
+      default: "Click a department below to open a private support ticket. A support team member will be with you shortly."
+    },
+    embedColor: { type: Number, required: true, default: 5793266 },
+    embedImage: { type: String },
+    embedThumbnail: { type: String },
+    embedFooter: { type: String, default: "\u611B Doctora \u2022 Tickets" }
   },
   { timestamps: true }
 );
 var TicketPanel = (0, import_mongoose2.model)("TicketPanel", ticketPanelSchema);
+var ticketDepartmentSchema = new import_mongoose2.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    name: { type: String, required: true },
+    description: { type: String, required: true, default: "General support" },
+    emoji: { type: String, required: true, default: "\u{1F3AB}" },
+    color: { type: Number, required: true, default: 5793266 },
+    staffRoleId: { type: String },
+    welcomeMessage: {
+      type: String,
+      required: true,
+      default: "Hello {user}! Your ticket has been opened. Support staff will be with you shortly."
+    },
+    isActive: { type: Boolean, required: true, default: true }
+  },
+  { timestamps: true }
+);
+ticketDepartmentSchema.index({ guildId: 1, name: 1 }, { unique: true });
+var TicketDepartment = (0, import_mongoose2.model)(
+  "TicketDepartment",
+  ticketDepartmentSchema
+);
+var ticketNoteSchema = new import_mongoose2.Schema(
+  {
+    authorId: { type: String, required: true },
+    content: { type: String, required: true },
+    createdAt: { type: Date, default: /* @__PURE__ */ __name(() => /* @__PURE__ */ new Date(), "default") }
+  },
+  { _id: false }
+);
 var openTicketSchema = new import_mongoose2.Schema(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true, unique: true },
     userId: { type: String, required: true },
-    closedAt: { type: Date }
+    departmentId: { type: String, required: true },
+    departmentName: { type: String, required: true },
+    claimedBy: { type: String },
+    claimedAt: { type: Date },
+    closedAt: { type: Date },
+    closedBy: { type: String },
+    closeReason: { type: String },
+    transcriptSent: { type: Boolean, default: false },
+    notes: { type: [ticketNoteSchema], default: [] }
   },
   { timestamps: true }
 );
+openTicketSchema.index({ guildId: 1, userId: 1, closedAt: 1 });
 var OpenTicket = (0, import_mongoose2.model)("OpenTicket", openTicketSchema);
+var ticketConfigSchema = new import_mongoose2.Schema(
+  {
+    guildId: { type: String, required: true, unique: true, index: true },
+    transcriptChannelId: { type: String },
+    maxTicketsPerUser: { type: Number, required: true, default: 3 },
+    cooldownSeconds: { type: Number, required: true, default: 60 },
+    autoCloseMinutes: { type: Number, required: true, default: 0 },
+    dmTranscript: { type: Boolean, required: true, default: true },
+    staffRoleIds: { type: [String], required: true, default: [] }
+  },
+  { timestamps: true }
+);
+var TicketConfig = (0, import_mongoose2.model)("TicketConfig", ticketConfigSchema);
+var DEFAULT_DEPARTMENT = {
+  name: "Support",
+  description: "General support and questions",
+  emoji: "\u{1F3AB}",
+  color: 5793266,
+  welcomeMessage: "Hello {user}! Your ticket has been opened. Our support team will be with you shortly. Please describe your issue and attach any relevant screenshots."
+};
+function defaultTicketConfig(guildId) {
+  return {
+    guildId,
+    maxTicketsPerUser: 3,
+    cooldownSeconds: 60,
+    autoCloseMinutes: 0,
+    dmTranscript: true,
+    staffRoleIds: []
+  };
+}
+__name(defaultTicketConfig, "defaultTicketConfig");
 
 // src/db/models/User.ts
 var import_mongoose3 = __toESM(require_mongoose2());
@@ -181657,178 +181737,481 @@ async function nocxpList(context) {
 __name(nocxpList, "nocxpList");
 
 // src/commands/tickets/ticket.ts
+var import_discord27 = __toESM(require_src());
+
+// src/core/respond.ts
 var import_discord26 = __toESM(require_src());
+async function replyError(interaction, message, errorId) {
+  const content = errorId ? `${message} (ref: ${errorId})` : message;
+  await interaction.reply({ content, flags: import_discord26.MessageFlags.Ephemeral }).catch(() => {
+  });
+}
+__name(replyError, "replyError");
+
+// src/commands/tickets/ticket.ts
+function shortId() {
+  return Math.random().toString(36).slice(2, 8);
+}
+__name(shortId, "shortId");
+function requireStaff(interaction, guild) {
+  const member = interaction.member;
+  if (!member) return false;
+  return member.permissions.has("ManageGuild");
+}
+__name(requireStaff, "requireStaff");
+async function getTicketConfig(guildId) {
+  let config2 = await TicketConfig.findOne({ guildId });
+  if (!config2) {
+    config2 = await TicketConfig.create(defaultTicketConfig(guildId));
+  }
+  return config2;
+}
+__name(getTicketConfig, "getTicketConfig");
 var ticketCommand = {
-  data: new import_discord26.SlashCommandBuilder().setName("ticket").setDescription("Manage support tickets (button-based ticket system).").setDMPermission(false).addSubcommand(
-    (sub) => sub.setName("setup").setDescription("Post a ticket panel in the current channel").addChannelOption(
-      (option) => option.setName("channel").setDescription("Channel to post the panel in (default: current)")
+  data: new import_discord27.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
+    (sub) => sub.setName("setup").setDescription("Post the live ticket panel in a channel.").addChannelOption(
+      (o) => o.setName("channel").setDescription("Channel to post the panel (default: current)")
     )
   ).addSubcommand(
-    (sub) => sub.setName("close").setDescription("Close the current ticket channel")
-  ).addSubcommand(
-    (sub) => sub.setName("add").setDescription("Add a member to the current ticket").addUserOption(
-      (option) => option.setName("user").setDescription("The member to add").setRequired(true)
+    (sub) => sub.setName("department").setDescription("Manage ticket departments.").addStringOption(
+      (o) => o.setName("action").setDescription("What to do").setRequired(true).addChoices(
+        { name: "Create", value: "create" },
+        { name: "Edit", value: "edit" },
+        { name: "List", value: "list" },
+        { name: "Delete", value: "delete" }
+      )
+    ).addStringOption(
+      (o) => o.setName("name").setDescription("Department name").setRequired(false)
+    ).addStringOption(
+      (o) => o.setName("description").setDescription("Department description").setRequired(false)
+    ).addStringOption((o) => o.setName("emoji").setDescription("Department emoji").setRequired(false)).addRoleOption(
+      (o) => o.setName("staff-role").setDescription("Staff role for this department").setRequired(false)
     )
   ).addSubcommand(
-    (sub) => sub.setName("remove").setDescription("Remove a member from the current ticket").addUserOption(
-      (option) => option.setName("user").setDescription("The member to remove").setRequired(true)
+    (sub) => sub.setName("close").setDescription("Close the current ticket channel.")
+  ).addSubcommand(
+    (sub) => sub.setName("claim").setDescription("Claim the current ticket for yourself.")
+  ).addSubcommand(
+    (sub) => sub.setName("add").setDescription("Add a member to the current ticket.").addUserOption(
+      (o) => o.setName("user").setDescription("Member to add").setRequired(true)
     )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a member from the current ticket.").addUserOption(
+      (o) => o.setName("user").setDescription("Member to remove").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("transcript").setDescription("Send the ticket transcript (DM or channel).").addStringOption(
+      (o) => o.setName("target").setDescription("Where to send").addChoices(
+        { name: "Channel", value: "channel" },
+        { name: "DM", value: "dm" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("config").setDescription("Configure ticket system settings.").addStringOption(
+      (o) => o.setName("key").setDescription("Setting to change").setRequired(true).addChoices(
+        { name: "maxTicketsPerUser", value: "maxTicketsPerUser" },
+        { name: "cooldownSeconds", value: "cooldownSeconds" },
+        { name: "dmTranscript", value: "dmTranscript" },
+        { name: "transcriptChannel", value: "transcriptChannel" },
+        { name: "autoCloseMinutes", value: "autoCloseMinutes" },
+        { name: "staffRoles", value: "staffRoles" }
+      )
+    ).addStringOption(
+      (o) => o.setName("value").setDescription("New value").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("stats").setDescription("Show ticket system statistics.")
   ),
   category: "moderation",
   userPermissions: ["ManageGuild"],
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
     const subcommand = interaction.options.getSubcommand(true);
-    if (subcommand === "setup") {
-      await handleTicketSetup(interaction, guild);
-    } else if (subcommand === "close") {
-      await handleTicketClose(interaction, guild);
-    } else if (subcommand === "add") {
-      await handleTicketAdd(interaction, guild);
-    } else if (subcommand === "remove") {
-      await handleTicketRemove(interaction, guild);
+    try {
+      switch (subcommand) {
+        case "setup":
+          await handleSetup(interaction, guild);
+          break;
+        case "department":
+          await handleDepartment(interaction, guild);
+          break;
+        case "close":
+          await handleClose(interaction, guild);
+          break;
+        case "claim":
+          await handleClaim(interaction, guild);
+          break;
+        case "add":
+          await handleAdd(interaction, guild);
+          break;
+        case "remove":
+          await handleRemove(interaction, guild);
+          break;
+        case "transcript":
+          await handleTranscript(interaction, guild);
+          break;
+        case "config":
+          await handleConfig(interaction, guild);
+          break;
+        case "stats":
+          await handleStats(interaction, guild);
+          break;
+      }
+    } catch (error62) {
+      await replyError(interaction, `\u274C Ticket error: ${error62.message}`);
     }
   }, "execute")
 };
-async function handleTicketSetup(interaction, guild) {
+async function handleSetup(interaction, guild) {
+  if (!requireStaff(interaction, guild)) {
+    await replyError(interaction, "\u274C You need `Manage Server` permission.");
+    return;
+  }
   const channel = interaction.options.getChannel("channel") ?? interaction.channel;
   const existing = await TicketPanel.findOne({ guildId: guild.id, channelId: channel.id });
   if (existing) {
     await interaction.reply({
       content: "\u274C A ticket panel already exists in this channel.",
-      flags: import_discord26.MessageFlags.Ephemeral
+      flags: import_discord27.MessageFlags.Ephemeral
     });
     return;
   }
-  const embed = new import_discord26.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Support Tickets").setDescription(
-    "Click the button below to open a support ticket. A private channel will be created for you and the support team."
-  ).setFooter({ text: "\u7231 Doctora \u2022 Tickets" }).setTimestamp();
-  const row = new import_discord26.ActionRowBuilder().addComponents(
-    new import_discord26.ButtonBuilder().setCustomId("ticket_create").setLabel("Create Ticket").setStyle(import_discord26.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
-  );
+  let departments = await TicketDepartment.find({ guildId: guild.id, isActive: true }).lean();
+  if (departments.length === 0) {
+    await TicketDepartment.create({
+      guildId: guild.id,
+      ...DEFAULT_DEPARTMENT
+    });
+    departments = await TicketDepartment.find({ guildId: guild.id, isActive: true }).lean();
+  }
+  const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
+    "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" + departments.map((d) => `${d.emoji} **${d.name}** \u2014 ${d.description}`).join("\n")
+  ).setImage("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+  const rows = [];
+  let row = new import_discord27.ActionRowBuilder();
+  for (const dept of departments) {
+    row.addComponents(
+      new import_discord27.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord27.ButtonStyle.Primary).setEmoji(dept.emoji)
+    );
+    if (row.components.length >= 5) {
+      rows.push(row);
+      row = new import_discord27.ActionRowBuilder();
+    }
+  }
+  if (row.components.length > 0) rows.push(row);
   const message = await channel.send({
     embeds: [embed],
-    components: [row.toJSON()]
+    components: rows.map((r) => r.toJSON())
   });
   await TicketPanel.create({
     guildId: guild.id,
     channelId: channel.id,
-    messageId: message.id
+    messageId: message.id,
+    embedTitle: embed.data.title ?? "\u{1F3AB} \u611B Doctora Support Tickets",
+    embedDescription: embed.data.description ?? "",
+    embedColor: 5793266,
+    embedImage: embed.data.image?.url ?? void 0,
+    embedThumbnail: embed.data.thumbnail?.url ?? void 0,
+    embedFooter: "\u611B Doctora \u2022 Tickets"
   });
   await interaction.reply({
-    content: `\u2705 Ticket panel posted in ${channel}.`,
-    flags: import_discord26.MessageFlags.Ephemeral
+    content: `\u2705 Live ticket panel posted in ${channel} with ${departments.length} department(s).`,
+    flags: import_discord27.MessageFlags.Ephemeral
   });
 }
-__name(handleTicketSetup, "handleTicketSetup");
-async function handleTicketClose(interaction, guild) {
+__name(handleSetup, "handleSetup");
+async function handleDepartment(interaction, guild) {
+  if (!requireStaff(interaction, guild)) {
+    await replyError(interaction, "\u274C You need `Manage Server` permission.");
+    return;
+  }
+  const action = interaction.options.getString("action", true);
+  const name = interaction.options.getString("name");
+  if (action === "list") {
+    const departments = await TicketDepartment.find({ guildId: guild.id }).lean();
+    if (departments.length === 0) {
+      await interaction.reply({
+        content: "\u{1F4ED} No departments configured.",
+        flags: import_discord27.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
+      departments.map(
+        (d) => `${d.emoji} **${d.name}**${d.isActive ? "" : " (inactive)"} \u2014 ${d.description}${d.staffRoleId ? ` \u2022 Staff: <@&${d.staffRoleId}>` : ""}`
+      ).join("\n")
+    );
+    await interaction.reply({ embeds: [embed], flags: import_discord27.MessageFlags.Ephemeral });
+    return;
+  }
+  if (!name) {
+    await replyError(interaction, "\u274C A department name is required for this action.");
+    return;
+  }
+  if (action === "create") {
+    const existing = await TicketDepartment.findOne({ guildId: guild.id, name });
+    if (existing) {
+      await replyError(interaction, "\u274C A department with that name already exists.");
+      return;
+    }
+    const description = interaction.options.getString("description") ?? "General support";
+    const emoji3 = interaction.options.getString("emoji") ?? "\u{1F3AB}";
+    const staffRole = interaction.options.getRole("staff-role");
+    await TicketDepartment.create({
+      guildId: guild.id,
+      name,
+      description,
+      emoji: emoji3,
+      staffRoleId: staffRole?.id
+    });
+    await interaction.reply({
+      content: `\u2705 Department **${name}** created.`,
+      flags: import_discord27.MessageFlags.Ephemeral
+    });
+    return;
+  }
+  const dept = await TicketDepartment.findOne({ guildId: guild.id, name });
+  if (!dept) {
+    await replyError(interaction, "\u274C Department not found.");
+    return;
+  }
+  if (action === "edit") {
+    const description = interaction.options.getString("description");
+    const emoji3 = interaction.options.getString("emoji");
+    const staffRole = interaction.options.getRole("staff-role");
+    if (description) dept.description = description;
+    if (emoji3) dept.emoji = emoji3;
+    if (staffRole) dept.staffRoleId = staffRole.id;
+    await dept.save();
+    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord27.MessageFlags.Ephemeral });
+    return;
+  }
+  if (action === "delete") {
+    await TicketDepartment.deleteOne({ _id: dept._id });
+    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord27.MessageFlags.Ephemeral });
+    return;
+  }
+}
+__name(handleDepartment, "handleDepartment");
+async function handleClose(interaction, guild) {
   const ticket = await OpenTicket.findOne({
     guildId: guild.id,
     channelId: interaction.channelId,
     closedAt: null
   });
   if (!ticket) {
-    await interaction.reply({
-      content: "\u274C This is not an open ticket channel.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C This is not an open ticket channel.");
     return;
   }
   await OpenTicket.updateOne(
-    { guildId: guild.id, channelId: interaction.channelId },
-    { closedAt: /* @__PURE__ */ new Date() }
+    { _id: ticket._id },
+    { closedAt: /* @__PURE__ */ new Date(), closedBy: interaction.user.id, closeReason: "Manual close" }
   );
-  const channel = interaction.channel;
-  await channel.send(
-    "\u{1F512} This ticket is being closed. The channel will be deleted in 10 seconds..."
-  );
+  await interaction.reply("\u{1F512} Closing ticket in 10 seconds... Saving transcript.");
+  await sendTranscript(interaction, guild, ticket, "channel");
   setTimeout(async () => {
     try {
-      await channel.delete();
+      await interaction.channel.delete();
     } catch {
     }
   }, 1e4);
-  await interaction.reply({ content: "\u2705 Ticket closed.", flags: import_discord26.MessageFlags.Ephemeral });
 }
-__name(handleTicketClose, "handleTicketClose");
-async function handleTicketAdd(interaction, guild) {
+__name(handleClose, "handleClose");
+async function handleClaim(interaction, guild) {
   const ticket = await OpenTicket.findOne({
     guildId: guild.id,
     channelId: interaction.channelId,
     closedAt: null
   });
   if (!ticket) {
-    await interaction.reply({
-      content: "\u274C This is not an open ticket channel.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C This is not an open ticket channel.");
+    return;
+  }
+  if (ticket.claimedBy) {
+    await replyError(interaction, `\u274C Already claimed by <@${ticket.claimedBy}>.`);
+    return;
+  }
+  ticket.claimedBy = interaction.user.id;
+  ticket.claimedAt = /* @__PURE__ */ new Date();
+  await ticket.save();
+  await interaction.reply({
+    content: `\u2705 Ticket claimed by <@${interaction.user.id}>.`,
+    flags: import_discord27.MessageFlags.Ephemeral
+  });
+}
+__name(handleClaim, "handleClaim");
+async function handleAdd(interaction, guild) {
+  const ticket = await OpenTicket.findOne({
+    guildId: guild.id,
+    channelId: interaction.channelId,
+    closedAt: null
+  });
+  if (!ticket) {
+    await replyError(interaction, "\u274C This is not an open ticket channel.");
     return;
   }
   const user = interaction.options.getUser("user", true);
-  const member = guild.members.cache.get(user.id) ?? await guild.members.fetch(user.id).catch(() => null);
-  if (!member) {
-    await interaction.reply({
-      content: "\u274C Member not found in this server.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
-    return;
-  }
   const channel = interaction.channel;
   try {
-    await channel.permissionOverwrites.create(member.id, {
+    await channel.permissionOverwrites.create(user.id, {
       ViewChannel: true,
       SendMessages: true,
       ReadMessageHistory: true,
       AttachFiles: true
     });
-    await interaction.reply({
-      content: `\u2705 Added ${user.tag} to the ticket.`,
-      flags: import_discord26.MessageFlags.Ephemeral
+    await channel.send({
+      content: `\u2705 <@${user.id}> added to the ticket by <@${interaction.user.id}>.`
     });
+    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord27.MessageFlags.Ephemeral });
   } catch {
-    await interaction.reply({
-      content: "\u274C Failed to add member to the ticket.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C Failed to add member to the ticket.");
   }
 }
-__name(handleTicketAdd, "handleTicketAdd");
-async function handleTicketRemove(interaction, guild) {
+__name(handleAdd, "handleAdd");
+async function handleRemove(interaction, guild) {
   const ticket = await OpenTicket.findOne({
     guildId: guild.id,
     channelId: interaction.channelId,
     closedAt: null
   });
   if (!ticket) {
-    await interaction.reply({
-      content: "\u274C This is not an open ticket channel.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C This is not an open ticket channel.");
     return;
   }
   const user = interaction.options.getUser("user", true);
   if (user.id === ticket.userId) {
-    await interaction.reply({
-      content: "\u274C Cannot remove the ticket owner.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C Cannot remove the ticket owner.");
     return;
   }
   const channel = interaction.channel;
   try {
     await channel.permissionOverwrites.delete(user.id);
-    await interaction.reply({
-      content: `\u2705 Removed ${user.tag} from the ticket.`,
-      flags: import_discord26.MessageFlags.Ephemeral
+    await channel.send({
+      content: `\u2705 <@${user.id}> removed from the ticket by <@${interaction.user.id}>.`
     });
+    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord27.MessageFlags.Ephemeral });
   } catch {
-    await interaction.reply({
-      content: "\u274C Failed to remove member from the ticket.",
-      flags: import_discord26.MessageFlags.Ephemeral
-    });
+    await replyError(interaction, "\u274C Failed to remove member from the ticket.");
   }
 }
-__name(handleTicketRemove, "handleTicketRemove");
+__name(handleRemove, "handleRemove");
+async function handleTranscript(interaction, guild) {
+  const ticket = await OpenTicket.findOne({
+    guildId: guild.id,
+    channelId: interaction.channelId,
+    closedAt: null
+  });
+  if (!ticket) {
+    await replyError(interaction, "\u274C This is not an open ticket channel.");
+    return;
+  }
+  const target = interaction.options.getString("target") ?? "channel";
+  await sendTranscript(interaction, guild, ticket, target);
+  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord27.MessageFlags.Ephemeral });
+}
+__name(handleTranscript, "handleTranscript");
+async function sendTranscript(interaction, guild, ticket, target) {
+  const channel = guild.channels.cache.get(ticket.channelId);
+  if (!channel) return;
+  const messages = await channel.messages.fetch({ limit: 100 });
+  const lines = messages.reverse().map((m) => `[${m.createdAt.toISOString()}] ${m.author.tag}: ${m.content}`).join("\n");
+  const transcript = `TICKET TRANSCRIPT
+Guild: ${guild.name}
+Channel: #${channel.name}
+Owner: <@${ticket.userId}>
+Department: ${ticket.departmentName}
+Claimed by: ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : "none"}
+Closed by: <@${interaction.user.id}>
+
+${lines}`;
+  const attachment = Buffer.from(transcript);
+  const fileName = `ticket-${ticket.channelId}-${shortId()}.txt`;
+  if (target === "dm") {
+    const user = await guild.members.fetch(ticket.userId).catch(() => null);
+    if (user) {
+      await user.user.send({
+        content: `\u{1F4C4} Transcript for ticket #${channel.name}`,
+        files: [{ attachment, name: fileName }]
+      }).catch(() => {
+      });
+    }
+  } else {
+    await channel.send({
+      content: `\u{1F4C4} Ticket transcript generated by <@${interaction.user.id}>:`,
+      files: [{ attachment, name: fileName }]
+    });
+  }
+  const config2 = await TicketConfig.findOne({ guildId: guild.id });
+  const logChannelId = config2?.transcriptChannelId;
+  if (logChannelId) {
+    const logChannel = guild.channels.cache.get(logChannelId);
+    if (logChannel) {
+      try {
+        await logChannel.send({
+          content: `\u{1F4C4} Transcript for ticket #${channel.name} (${ticket.departmentName})`,
+          files: [{ attachment, name: fileName }]
+        });
+      } catch {
+      }
+    }
+  }
+  await OpenTicket.updateOne({ _id: ticket._id }, { transcriptSent: true });
+}
+__name(sendTranscript, "sendTranscript");
+async function handleConfig(interaction, guild) {
+  if (!requireStaff(interaction, guild)) {
+    await replyError(interaction, "\u274C You need `Manage Server` permission.");
+    return;
+  }
+  const key = interaction.options.getString("key", true);
+  const value = interaction.options.getString("value");
+  const config2 = await getTicketConfig(guild.id);
+  if (key === "maxTicketsPerUser") {
+    const n = parseInt(value ?? "", 10);
+    if (!Number.isFinite(n) || n < 1) {
+      await replyError(interaction, "\u274C Provide a positive number.");
+      return;
+    }
+    config2.maxTicketsPerUser = n;
+  } else if (key === "cooldownSeconds") {
+    const n = parseInt(value ?? "", 10);
+    if (!Number.isFinite(n) || n < 0) {
+      await replyError(interaction, "\u274C Provide a non-negative number.");
+      return;
+    }
+    config2.cooldownSeconds = n;
+  } else if (key === "dmTranscript") {
+    config2.dmTranscript = value?.toLowerCase() === "true";
+  } else if (key === "transcriptChannel") {
+    config2.transcriptChannelId = value ?? void 0;
+  } else if (key === "autoCloseMinutes") {
+    const n = parseInt(value ?? "", 10);
+    if (!Number.isFinite(n) || n < 0) {
+      await replyError(interaction, "\u274C Provide a non-negative number.");
+      return;
+    }
+    config2.autoCloseMinutes = n;
+  } else if (key === "staffRoles") {
+    config2.staffRoleIds = value ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  }
+  await config2.save();
+  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord27.MessageFlags.Ephemeral });
+}
+__name(handleConfig, "handleConfig");
+async function handleStats(interaction, guild) {
+  const open2 = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: null });
+  const closed = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: { $ne: null } });
+  const panels = await TicketPanel.countDocuments({ guildId: guild.id });
+  const departments = await TicketDepartment.countDocuments({ guildId: guild.id, isActive: true });
+  const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
+    { name: "Open tickets", value: String(open2), inline: true },
+    { name: "Closed tickets", value: String(closed), inline: true },
+    { name: "Panels posted", value: String(panels), inline: true },
+    { name: "Active departments", value: String(departments), inline: true }
+  ).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+  await interaction.reply({ embeds: [embed], flags: import_discord27.MessageFlags.Ephemeral });
+}
+__name(handleStats, "handleStats");
 
 // src/commands/index.ts
 var commands = [
@@ -181866,8 +182249,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord27 = __toESM(require_src());
-var SukunaClient = class extends import_discord27.Client {
+var import_discord28 = __toESM(require_src());
+var SukunaClient = class extends import_discord28.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -181882,15 +182265,15 @@ var SukunaClient = class extends import_discord27.Client {
   constructor() {
     super({
       intents: [
-        import_discord27.GatewayIntentBits.Guilds,
-        import_discord27.GatewayIntentBits.GuildMembers,
-        import_discord27.GatewayIntentBits.GuildMessages,
-        import_discord27.GatewayIntentBits.MessageContent,
-        import_discord27.GatewayIntentBits.DirectMessages,
-        import_discord27.GatewayIntentBits.GuildVoiceStates,
-        import_discord27.GatewayIntentBits.GuildMessageReactions
+        import_discord28.GatewayIntentBits.Guilds,
+        import_discord28.GatewayIntentBits.GuildMembers,
+        import_discord28.GatewayIntentBits.GuildMessages,
+        import_discord28.GatewayIntentBits.MessageContent,
+        import_discord28.GatewayIntentBits.DirectMessages,
+        import_discord28.GatewayIntentBits.GuildVoiceStates,
+        import_discord28.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord27.Partials.Message, import_discord27.Partials.Channel, import_discord27.Partials.GuildMember, import_discord27.Partials.Reaction],
+      partials: [import_discord28.Partials.Message, import_discord28.Partials.Channel, import_discord28.Partials.GuildMember, import_discord28.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
       // Always appear as "Do Not Disturb" with no activity text. Sent with the
       // IDENTIFY payload, so it applies on login and on every reconnect.
@@ -182114,15 +182497,6 @@ function newErrorId() {
 }
 __name(newErrorId, "newErrorId");
 
-// src/core/respond.ts
-var import_discord28 = __toESM(require_src());
-async function replyError(interaction, message, errorId) {
-  const content = errorId ? `${message} (ref: ${errorId})` : message;
-  await interaction.reply({ content, flags: import_discord28.MessageFlags.Ephemeral }).catch(() => {
-  });
-}
-__name(replyError, "replyError");
-
 // src/events/interactionCreate.ts
 var interactionCreate = {
   name: import_discord29.Events.InteractionCreate,
@@ -182221,7 +182595,7 @@ var interactionCreate = {
 };
 async function handleButtonInteraction(client, interaction) {
   const { customId } = interaction;
-  if (customId === "ticket_create") {
+  if (customId.startsWith("ticket_create:")) {
     await handleTicketCreate(client, interaction);
     return;
   }
@@ -182239,6 +182613,16 @@ async function handleTicketCreate(client, interaction) {
     await interaction.editReply({ content: "\u274C Server-only." });
     return;
   }
+  const deptId = interaction.customId.split(":")[1];
+  if (!deptId) {
+    await interaction.editReply({ content: "\u274C Invalid ticket department." });
+    return;
+  }
+  const department = await TicketDepartment.findById(deptId);
+  if (!department || !department.isActive) {
+    await interaction.editReply({ content: "\u274C That department is not available." });
+    return;
+  }
   const existing = await OpenTicket.findOne({
     guildId: guild.id,
     userId: user.id,
@@ -182251,9 +182635,17 @@ async function handleTicketCreate(client, interaction) {
     });
     return;
   }
-  const panel = await TicketPanel.findOne({ guildId: guild.id });
-  if (!panel) {
-    await interaction.editReply({ content: "\u274C No ticket panel is configured." });
+  const config2 = await TicketConfig.findOne({ guildId: guild.id });
+  const maxTickets = config2?.maxTicketsPerUser ?? 3;
+  const totalOpen = await OpenTicket.countDocuments({
+    guildId: guild.id,
+    userId: user.id,
+    closedAt: null
+  });
+  if (totalOpen >= maxTickets) {
+    await interaction.editReply({
+      content: `\u274C You already have the maximum of ${maxTickets} open ticket(s). Close one before opening another.`
+    });
     return;
   }
   const overwrites = {
@@ -182272,6 +182664,13 @@ async function handleTicketCreate(client, interaction) {
       ManageChannels: true
     }
   };
+  if (department.staffRoleId) {
+    overwrites[department.staffRoleId] = {
+      ViewChannel: true,
+      SendMessages: true,
+      ReadMessageHistory: true
+    };
+  }
   for (const role of guild.roles.cache.values()) {
     if (role.permissions.has("ManageGuild") && !role.managed) {
       overwrites[role.id] = { ViewChannel: true, SendMessages: true, ReadMessageHistory: true };
@@ -182279,27 +182678,31 @@ async function handleTicketCreate(client, interaction) {
   }
   try {
     const channel = await guild.channels.create({
-      name: `ticket-${user.username}`,
+      name: `ticket-${department.name.toLowerCase().replace(/\s+/g, "-")}-${user.username}`,
       type: 0,
       // GuildText
-      topic: `Support ticket for ${user.tag} (${user.id})`,
-      parent: void 0,
+      topic: `Support ticket for ${user.tag} (${user.id}) \u2022 ${department.name}`,
       permissionOverwrites: overwrites,
-      reason: `Ticket created by ${user.tag}`
+      reason: `Ticket created by ${user.tag} in ${department.name}`
     });
     await OpenTicket.create({
       guildId: guild.id,
       channelId: channel.id,
-      userId: user.id
+      userId: user.id,
+      departmentId: department._id.toString(),
+      departmentName: department.name
     });
     const closeButton = new import_discord29.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord29.ButtonStyle.Danger).setEmoji("\u{1F512}");
     const closeRow = new import_discord29.ActionRowBuilder().addComponents(closeButton);
+    const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
+    const welcomeEmbed = new import_discord29.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
     await channel.send({
-      content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly. Use the button below to close the ticket when done.`,
+      content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
+      embeds: [welcomeEmbed],
       components: [closeRow]
     });
     await interaction.editReply({
-      content: `\u2705 Ticket created: ${channel}.`
+      content: `\u2705 Ticket created: ${channel} (${department.name}).`
     });
   } catch (error62) {
     await interaction.editReply({
@@ -184695,6 +185098,82 @@ __name(toPlainObject, "toPlainObject");
 // src/events/ready.ts
 init_config();
 
+// src/utils/ticketScheduler.ts
+var _timer = null;
+var CHECK_INTERVAL_MS = 6e4;
+var WARN_BEFORE_MS = 5 * 6e4;
+function startTicketScheduler(client) {
+  if (_timer) return;
+  _timer = setInterval(async () => {
+    try {
+      await runAutoClose(client);
+    } catch (error62) {
+      client.logger?.warn({ err: error62 }, "ticket auto-close scheduler failed");
+    }
+  }, CHECK_INTERVAL_MS);
+  _timer.unref();
+}
+__name(startTicketScheduler, "startTicketScheduler");
+function stopTicketScheduler() {
+  if (_timer) {
+    clearInterval(_timer);
+    _timer = null;
+  }
+}
+__name(stopTicketScheduler, "stopTicketScheduler");
+async function runAutoClose(client) {
+  const now = Date.now();
+  const openTickets = await OpenTicket.find({ closedAt: null }).lean();
+  if (openTickets.length === 0) return;
+  const guildIds = [...new Set(openTickets.map((t) => t.guildId))];
+  const configs = await TicketConfig.find({ guildId: { $in: guildIds } }).lean();
+  const configByGuild = new Map(configs.map((c) => [c.guildId, c]));
+  for (const ticket of openTickets) {
+    const config2 = configByGuild.get(ticket.guildId);
+    const autoCloseMinutes = config2?.autoCloseMinutes ?? 0;
+    if (!autoCloseMinutes || autoCloseMinutes <= 0) continue;
+    const openedAt = new Date(ticket.createdAt).getTime();
+    const elapsed = now - openedAt;
+    const threshold = autoCloseMinutes * 6e4;
+    if (elapsed >= threshold) {
+      await closeTicket(client, ticket, "Auto-closed due to inactivity");
+    } else if (elapsed >= threshold - WARN_BEFORE_MS && elapsed < threshold) {
+      const channel = client.channels.cache.get(ticket.channelId);
+      if (channel && channel.send) {
+        try {
+          await channel.send(
+            `\u23F0 This ticket will be auto-closed in ${Math.ceil(
+              (threshold - elapsed) / 6e4
+            )} minute(s) due to inactivity.`
+          );
+        } catch {
+        }
+      }
+    }
+  }
+}
+__name(runAutoClose, "runAutoClose");
+async function closeTicket(client, ticket, reason) {
+  await OpenTicket.updateOne(
+    { _id: ticket._id },
+    { closedAt: /* @__PURE__ */ new Date(), closedBy: "system", closeReason: reason }
+  );
+  const channel = client.channels.cache.get(ticket.channelId);
+  if (channel && channel.send) {
+    try {
+      await channel.send(`\u{1F512} ${reason}. The channel will be deleted in 10 seconds.`);
+      setTimeout(async () => {
+        try {
+          await channel.delete();
+        } catch {
+        }
+      }, 1e4);
+    } catch {
+    }
+  }
+}
+__name(closeTicket, "closeTicket");
+
 // src/events/voiceStateUpdate.ts
 var import_discord31 = __toESM(require_src());
 
@@ -184956,7 +185435,8 @@ var ready2 = {
     }
     startVoiceTracking(client);
     startLiveLeaderboard(client);
-    client.logger.info("[Levels] Voice tracking and live leaderboard scheduler started");
+    startTicketScheduler(client);
+    client.logger.info("[Tickets] Voice tracking, live leaderboard and auto-close scheduler started");
   }, "execute")
 };
 
@@ -185929,6 +186409,7 @@ async function main() {
     closeSukuna();
     stopVoiceTracking();
     stopLiveLeaderboard();
+    stopTicketScheduler();
     await shutdownVoiceSafely();
     if (client) {
       stopSettingsPoller(client);

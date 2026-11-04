@@ -19,7 +19,19 @@ export { mongoose };
 export type Database = typeof mongoose;
 
 export { readGuildConfig, getGuildId, updateGuildConfig } from './models/Guild.js';
-export { TicketPanel, OpenTicket } from './models/Ticket.js';
+export {
+  TicketPanel,
+  TicketDepartment,
+  OpenTicket,
+  TicketConfig,
+  DEFAULT_DEPARTMENT,
+  DEFAULT_PANEL_IMAGE,
+  defaultTicketConfig,
+  type ITicketPanel,
+  type ITicketDepartment,
+  type IOpenTicket,
+  type ITicketConfig,
+} from './models/Ticket.js';
 export { getUser, updateUser } from './models/User.js';
 export {
   xpForLevel,

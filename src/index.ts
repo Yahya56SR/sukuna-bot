@@ -11,6 +11,7 @@ import { events } from './events/index.js';
 import { registerApplicationCommands } from './core/commands.js';
 import { closeSukuna } from './utils/sukuna.js';
 import { stopLiveLeaderboard } from './utils/liveLeaderboard.js';
+import { stopTicketScheduler } from './utils/ticketScheduler.js';
 import { stopVoiceTracking } from './events/voiceStateUpdate.js';
 
 async function main(): Promise<void> {
@@ -26,6 +27,7 @@ async function main(): Promise<void> {
     closeSukuna();
     stopVoiceTracking();
     stopLiveLeaderboard();
+    stopTicketScheduler();
     await shutdownVoiceSafely();
 
     if (client) {

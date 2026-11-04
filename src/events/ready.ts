@@ -3,6 +3,7 @@ import { startDashboard, setSukunaActive } from '../../dashboard/server.js';
 import { getSukunaConfig } from '../config/index.js';
 import { recordActivity } from '../core/metrics.js';
 import { startLiveLeaderboard } from '../utils/liveLeaderboard.js';
+import { startTicketScheduler } from '../utils/ticketScheduler.js';
 import { startVoiceTracking } from './voiceStateUpdate.js';
 
 export const ready = {
@@ -45,6 +46,7 @@ export const ready = {
     // leaderboard. Both are no-ops until a guild configures them.
     startVoiceTracking(client);
     startLiveLeaderboard(client);
-    client.logger.info('[Levels] Voice tracking and live leaderboard scheduler started');
+    startTicketScheduler(client);
+    client.logger.info('[Tickets] Voice tracking, live leaderboard and auto-close scheduler started');
   },
 };
