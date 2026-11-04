@@ -11,6 +11,8 @@ import { newErrorId, UserFacingError } from '../core/errors.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
 import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
+import { readVcPanelById } from '../db/models/Vc.js';
+import { connectVoice, disconnectVoice, isVoiceConnected } from '../voice/manager.js';
 
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
@@ -145,6 +147,11 @@ async function handleButtonInteraction(client: any, interaction: any): Promise<v
 
   if (customId === 'ticket_close') {
     await handleTicketCloseButton(interaction);
+    return;
+  }
+
+  if (customId.startsWith('vc_join:')) {
+    await handleVcJoin(client, interaction);
     return;
   }
 }
@@ -320,4 +327,68 @@ async function handleTicketCloseButton(interaction: any): Promise<void> {
       /* channel already deleted or missing permissions */
     }
   }, 10_000);
+}
+
+async function handleVcJoin(client: any, interaction: any): Promise<void> {
+  await interaction.deferReply({ flags: 64 });
+
+  const guild = interaction.guild;
+  const member = interaction.member as any;
+  const user = interaction.user;
+  if (!guild) {
+    await interaction.editReply({ content: '❌ Server-only.' });
+    return;
+  }
+
+  const panelId = interaction.customId.split(':')[1];
+  if (!panelId) {
+    await interaction.editReply({ content: '❌ Invalid VC panel.' });
+    return;
+  }
+
+  const panel = await readVcPanelById(panelId);
+  if (!panel || panel.guildId !== guild.id) {
+    await interaction.editReply({ content: '❌ That VC panel no longer exists.' });
+    return;
+  }
+
+  // One panel serves all voice channels: join the tapping user's current VC.
+  const channelId = member.voice?.channel?.id ?? null;
+  if (!channelId) {
+    await interaction.editReply({
+      content: '❌ You are not in a voice channel. Join one first, then tap again.',
+    });
+    return;
+  }
+
+  const channel = guild.channels.cache.get(channelId);
+  if (!channel || !channel.isVoiceBased()) {
+    await interaction.editReply({ content: '❌ Your voice channel could not be found.' });
+    return;
+  }
+
+  const me = guild.members.me;
+  const permissions = me ? channel.permissionsFor(me) : null;
+  if (permissions && !permissions.has(['Connect', 'Speak'])) {
+    await interaction.editReply({
+      content: `❌ I need **Connect** and **Speak** permissions in ${channel}.`,
+    });
+    return;
+  }
+
+  // Disconnect any existing voice session for this guild (one connection at a time).
+  if (isVoiceConnected(guild.id)) {
+    disconnectVoice(guild.id);
+  }
+
+  try {
+    await connectVoice(guild as any, channelId);
+    await interaction.editReply({
+      content: `🔊 愛 Doctora has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`,
+    });
+  } catch (error) {
+    await interaction.editReply({
+      content: '❌ Could not join the voice channel: ' + (error instanceof Error ? error.message : String(error)),
+    });
+  }
 }

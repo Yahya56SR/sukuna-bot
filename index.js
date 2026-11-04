@@ -30549,14 +30549,14 @@ var require_command_builder = __commonJS({
         const namespaces = /* @__PURE__ */ new Map();
         this.previousModelIndex = this.currentModelIndex;
         while (this.currentModelIndex < this.models.length) {
-          const model7 = this.models[this.currentModelIndex];
-          const ns = model7.namespace;
+          const model8 = this.models[this.currentModelIndex];
+          const ns = model8.namespace;
           const nsIndex = namespaces.get(ns);
-          if (model7.name === "deleteMany" || model7.name === "updateMany") {
+          if (model8.name === "deleteMany" || model8.name === "updateMany") {
             this.isBatchRetryable = false;
           }
           if (nsIndex != null) {
-            const operation = buildOperation(model7, nsIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model8, nsIndex, this.pkFactory, this.options);
             let operationBuffer;
             try {
               operationBuffer = bson_1.BSON.serialize(operation);
@@ -30573,7 +30573,7 @@ var require_command_builder = __commonJS({
           } else {
             namespaces.set(ns, currentNamespaceIndex);
             const nsInfo = { ns };
-            const operation = buildOperation(model7, currentNamespaceIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model8, currentNamespaceIndex, this.pkFactory, this.options);
             let nsInfoBuffer;
             let operationBuffer;
             try {
@@ -30623,44 +30623,44 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateBufferSize, "validateBufferSize");
-    var buildInsertOneOperation = /* @__PURE__ */ __name((model7, index, pkFactory) => {
+    var buildInsertOneOperation = /* @__PURE__ */ __name((model8, index, pkFactory) => {
       const document = {
         insert: index,
-        document: model7.document
+        document: model8.document
       };
-      document.document._id = model7.document._id ?? pkFactory.createPk();
+      document.document._id = model8.document._id ?? pkFactory.createPk();
       return document;
     }, "buildInsertOneOperation");
     exports2.buildInsertOneOperation = buildInsertOneOperation;
-    var buildDeleteOneOperation = /* @__PURE__ */ __name((model7, index) => {
-      return createDeleteOperation(model7, index, false);
+    var buildDeleteOneOperation = /* @__PURE__ */ __name((model8, index) => {
+      return createDeleteOperation(model8, index, false);
     }, "buildDeleteOneOperation");
     exports2.buildDeleteOneOperation = buildDeleteOneOperation;
-    var buildDeleteManyOperation = /* @__PURE__ */ __name((model7, index) => {
-      return createDeleteOperation(model7, index, true);
+    var buildDeleteManyOperation = /* @__PURE__ */ __name((model8, index) => {
+      return createDeleteOperation(model8, index, true);
     }, "buildDeleteManyOperation");
     exports2.buildDeleteManyOperation = buildDeleteManyOperation;
-    function createDeleteOperation(model7, index, multi) {
+    function createDeleteOperation(model8, index, multi) {
       const document = {
         delete: index,
         multi,
-        filter: model7.filter
+        filter: model8.filter
       };
-      if (model7.hint) {
-        document.hint = model7.hint;
+      if (model8.hint) {
+        document.hint = model8.hint;
       }
-      if (model7.collation) {
-        document.collation = model7.collation;
+      if (model8.collation) {
+        document.collation = model8.collation;
       }
       return document;
     }
     __name(createDeleteOperation, "createDeleteOperation");
-    var buildUpdateOneOperation = /* @__PURE__ */ __name((model7, index, options) => {
-      return createUpdateOperation(model7, index, false, options);
+    var buildUpdateOneOperation = /* @__PURE__ */ __name((model8, index, options) => {
+      return createUpdateOperation(model8, index, false, options);
     }, "buildUpdateOneOperation");
     exports2.buildUpdateOneOperation = buildUpdateOneOperation;
-    var buildUpdateManyOperation = /* @__PURE__ */ __name((model7, index, options) => {
-      return createUpdateOperation(model7, index, true, options);
+    var buildUpdateManyOperation = /* @__PURE__ */ __name((model8, index, options) => {
+      return createUpdateOperation(model8, index, true, options);
     }, "buildUpdateManyOperation");
     exports2.buildUpdateManyOperation = buildUpdateManyOperation;
     function validateUpdate(update, options) {
@@ -30669,71 +30669,71 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateUpdate, "validateUpdate");
-    function createUpdateOperation(model7, index, multi, options) {
-      validateUpdate(model7.update, options);
+    function createUpdateOperation(model8, index, multi, options) {
+      validateUpdate(model8.update, options);
       const document = {
         update: index,
         multi,
-        filter: model7.filter,
-        updateMods: model7.update
+        filter: model8.filter,
+        updateMods: model8.update
       };
-      if (model7.hint) {
-        document.hint = model7.hint;
+      if (model8.hint) {
+        document.hint = model8.hint;
       }
-      if (model7.upsert) {
-        document.upsert = model7.upsert;
+      if (model8.upsert) {
+        document.upsert = model8.upsert;
       }
-      if (model7.arrayFilters) {
-        document.arrayFilters = model7.arrayFilters;
+      if (model8.arrayFilters) {
+        document.arrayFilters = model8.arrayFilters;
       }
-      if (model7.collation) {
-        document.collation = model7.collation;
+      if (model8.collation) {
+        document.collation = model8.collation;
       }
-      if (!multi && "sort" in model7 && model7.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model7.sort);
+      if (!multi && "sort" in model8 && model8.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model8.sort);
       }
       return document;
     }
     __name(createUpdateOperation, "createUpdateOperation");
-    var buildReplaceOneOperation = /* @__PURE__ */ __name((model7, index) => {
-      if ((0, utils_1.hasAtomicOperators)(model7.replacement)) {
+    var buildReplaceOneOperation = /* @__PURE__ */ __name((model8, index) => {
+      if ((0, utils_1.hasAtomicOperators)(model8.replacement)) {
         throw new error_1.MongoAPIError("Client bulk write replace models must not contain atomic modifiers (start with $) and must not be empty.");
       }
       const document = {
         update: index,
         multi: false,
-        filter: model7.filter,
-        updateMods: model7.replacement
+        filter: model8.filter,
+        updateMods: model8.replacement
       };
-      if (model7.hint) {
-        document.hint = model7.hint;
+      if (model8.hint) {
+        document.hint = model8.hint;
       }
-      if (model7.upsert) {
-        document.upsert = model7.upsert;
+      if (model8.upsert) {
+        document.upsert = model8.upsert;
       }
-      if (model7.collation) {
-        document.collation = model7.collation;
+      if (model8.collation) {
+        document.collation = model8.collation;
       }
-      if (model7.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model7.sort);
+      if (model8.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model8.sort);
       }
       return document;
     }, "buildReplaceOneOperation");
     exports2.buildReplaceOneOperation = buildReplaceOneOperation;
-    function buildOperation(model7, index, pkFactory, options) {
-      switch (model7.name) {
+    function buildOperation(model8, index, pkFactory, options) {
+      switch (model8.name) {
         case "insertOne":
-          return (0, exports2.buildInsertOneOperation)(model7, index, pkFactory);
+          return (0, exports2.buildInsertOneOperation)(model8, index, pkFactory);
         case "deleteOne":
-          return (0, exports2.buildDeleteOneOperation)(model7, index);
+          return (0, exports2.buildDeleteOneOperation)(model8, index);
         case "deleteMany":
-          return (0, exports2.buildDeleteManyOperation)(model7, index);
+          return (0, exports2.buildDeleteManyOperation)(model8, index);
         case "updateOne":
-          return (0, exports2.buildUpdateOneOperation)(model7, index, options);
+          return (0, exports2.buildUpdateOneOperation)(model8, index, options);
         case "updateMany":
-          return (0, exports2.buildUpdateManyOperation)(model7, index, options);
+          return (0, exports2.buildUpdateManyOperation)(model8, index, options);
         case "replaceOne":
-          return (0, exports2.buildReplaceOneOperation)(model7, index);
+          return (0, exports2.buildReplaceOneOperation)(model8, index);
       }
     }
     __name(buildOperation, "buildOperation");
@@ -35553,9 +35553,9 @@ var require_cast = __commonJS({
       /*!
        * ignore
        */
-      setModel(model7) {
+      setModel(model8) {
         this.message = formatMessage(
-          model7,
+          model8,
           this.kind,
           this.value,
           this.path,
@@ -35598,22 +35598,22 @@ var require_cast = __commonJS({
       }
     }
     __name(getMessageFormat, "getMessageFormat");
-    function formatMessage(model7, kind, value, path3, messageFormat, valueType, reason) {
+    function formatMessage(model8, kind, value, path3, messageFormat, valueType, reason) {
       if (typeof messageFormat === "string") {
         const stringValue = getStringValue(value);
         let ret = messageFormat.replace("{KIND}", kind).replace("{VALUE}", stringValue).replace("{PATH}", path3);
-        if (model7 != null) {
-          ret = ret.replace("{MODEL}", model7.modelName);
+        if (model8 != null) {
+          ret = ret.replace("{MODEL}", model8.modelName);
         }
         return ret;
       } else if (typeof messageFormat === "function") {
-        return messageFormat(value, path3, model7, kind);
+        return messageFormat(value, path3, model8, kind);
       } else {
         const stringValue = getStringValue(value);
         const valueTypeMsg = valueType ? " (type " + valueType + ")" : "";
         let ret = "Cast to " + kind + " failed for value " + stringValue + valueTypeMsg + ' at path "' + path3 + '"';
-        if (model7 != null) {
-          ret += ' for model "' + model7.modelName + '"';
+        if (model8 != null) {
+          ret += ' for model "' + model8.modelName + '"';
         }
         if (reason != null && typeof reason.constructor === "function" && reason.constructor.name !== "AssertionError" && reason.constructor.name !== "Error" && reason.constructor.name !== "BSONError") {
           ret += ' because of "' + reason.constructor.name + '"';
@@ -35636,13 +35636,13 @@ var require_notFound = __commonJS({
       static {
         __name(this, "DocumentNotFoundError");
       }
-      constructor(filter, model7, numAffected, result) {
+      constructor(filter, model8, numAffected, result) {
         let msg;
         const messages = MongooseError.messages;
         if (messages.DocumentNotFoundError != null) {
-          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model7) : messages.DocumentNotFoundError;
+          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model8) : messages.DocumentNotFoundError;
         } else {
-          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model7 + '"';
+          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model8 + '"';
         }
         super(msg);
         this.result = result;
@@ -38185,9 +38185,9 @@ var require_queryHelpers = __commonJS({
       }
       return pop;
     }, "preparePopulationOptionsMQ");
-    exports2.createModel = /* @__PURE__ */ __name(function createModel(model7, doc, fields, userProvidedFields, options) {
-      model7.hooks.execPreSync("createModel", doc);
-      const discriminatorMapping = model7.schema ? model7.schema.discriminatorMapping : null;
+    exports2.createModel = /* @__PURE__ */ __name(function createModel(model8, doc, fields, userProvidedFields, options) {
+      model8.hooks.execPreSync("createModel", doc);
+      const discriminatorMapping = model8.schema ? model8.schema.discriminatorMapping : null;
       const key = discriminatorMapping?.isRoot ? discriminatorMapping.key : null;
       const _opts = {
         skipId: true,
@@ -38201,17 +38201,17 @@ var require_queryHelpers = __commonJS({
         _opts.strict = options.strict;
       }
       const value = doc[key];
-      if (key && value && model7.discriminators) {
-        const discriminator = getDiscriminatorByKey(model7.discriminators, value) || getDiscriminatorByValue(model7.discriminators, value);
+      if (key && value && model8.discriminators) {
+        const discriminator = getDiscriminatorByKey(model8.discriminators, value) || getDiscriminatorByValue(model8.discriminators, value);
         if (discriminator) {
           const _fields = clone2(userProvidedFields);
           exports2.applyPaths(_fields, discriminator.schema);
           return new discriminator(void 0, _fields, _opts);
         }
       }
-      return new model7(void 0, fields, _opts);
+      return new model8(void 0, fields, _opts);
     }, "createModel");
-    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model7, doc, fields, userProvidedFields, options, populatedIds, callback) {
+    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model8, doc, fields, userProvidedFields, options, populatedIds, callback) {
       const initOpts = {};
       if (populatedIds) {
         initOpts.populated = populatedIds;
@@ -38219,7 +38219,7 @@ var require_queryHelpers = __commonJS({
       if (options?.middleware != null) {
         initOpts.middleware = options.middleware;
       }
-      const casted = exports2.createModel(model7, doc, fields, userProvidedFields, options);
+      const casted = exports2.createModel(model8, doc, fields, userProvidedFields, options);
       try {
         casted.$init(doc, initOpts, callback);
       } catch (error62) {
@@ -39712,8 +39712,8 @@ var require_methods = __commonJS({
         if (arg == null) {
           return false;
         }
-        const model7 = arg.constructor;
-        if (!(arg instanceof Document5) || model7.modelName !== ref && model7.baseModelName !== ref) {
+        const model8 = arg.constructor;
+        if (!(arg instanceof Document5) || model8.modelName !== ref && model8.baseModelName !== ref) {
           return false;
         }
       }
@@ -40306,7 +40306,7 @@ var require_document2 = __commonJS({
     var ObjectParameterError = require_objectParameter();
     var ParallelValidateError = require_parallelValidate();
     var PathTrie = require_pathTrie();
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var StrictModeError = require_strict();
     var ValidationError = require_validation();
     var ValidatorError = require_validator();
@@ -40366,7 +40366,7 @@ var require_document2 = __commonJS({
       let skipId = options.skipId;
       this.$__ = new InternalCache();
       if (this.$__schema == null) {
-        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema7(fields) : fields;
+        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema8(fields) : fields;
         this.$__setSchema(_schema);
         fields = options;
         skipId = options.skipId;
@@ -41115,10 +41115,10 @@ var require_document2 = __commonJS({
           if (schema.options == null) {
             return false;
           }
-          const model7 = val.constructor;
+          const model8 = val.constructor;
           const refOpt = typeof schema.options.ref === "function" && !schema.options.ref[modelSymbol] ? schema.options.ref.call(this, this) : schema.options.ref;
           const ref = refOpt?.modelName || refOpt;
-          if (ref != null && (ref === model7.modelName || ref === model7.baseModelName)) {
+          if (ref != null && (ref === model8.modelName || ref === model8.baseModelName)) {
             return true;
           }
           let refPath = schema.options.refPath;
@@ -41137,7 +41137,7 @@ var require_document2 = __commonJS({
             throw new MongooseError("`refPath` must be a string or a function that returns a string, got " + inspect(refPath));
           }
           const modelName = this.ownerDocument().get(refPath);
-          return modelName === model7.modelName || modelName === model7.baseModelName;
+          return modelName === model8.modelName || modelName === model8.baseModelName;
         })();
         let didPopulate = false;
         if (refMatches && val instanceof Document5 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
@@ -42683,8 +42683,8 @@ var require_document2 = __commonJS({
       const subDocs = [];
       function getSubdocs(doc) {
         const newSubdocs = [];
-        for (const { model: model7 } of doc.$__schema.childSchemas) {
-          const val = doc.$__getValue(model7.path);
+        for (const { model: model8 } of doc.$__schema.childSchemas) {
+          const val = doc.$__getValue(model8.path);
           if (val == null) {
             continue;
           }
@@ -43967,7 +43967,7 @@ var require_utils3 = __commonJS({
       object2.expireAfterSeconds = typeof object2.expires !== "string" ? object2.expires : Math.round(ms(object2.expires) / 1e3);
       delete object2.expires;
     }, "expires");
-    exports2.populate = /* @__PURE__ */ __name(function populate(path3, select, model7, match, options, subPopulate, justOne, count) {
+    exports2.populate = /* @__PURE__ */ __name(function populate(path3, select, model8, match, options, subPopulate, justOne, count) {
       let obj = null;
       if (arguments.length === 1) {
         if (path3 instanceof PopulateOptions) {
@@ -43984,18 +43984,18 @@ var require_utils3 = __commonJS({
         } else {
           obj = { path: path3 };
         }
-      } else if (typeof model7 === "object") {
+      } else if (typeof model8 === "object") {
         obj = {
           path: path3,
           select,
-          match: model7,
+          match: model8,
           options: match
         };
       } else {
         obj = {
           path: path3,
           select,
-          model: model7,
+          model: model8,
           match,
           options,
           populate: subPopulate,
@@ -49286,28 +49286,28 @@ var require_discriminator = __commonJS({
       __name(setIntersection, "setIntersection");
     }
     __name(validateDiscriminatorSchemasForEncryption, "validateDiscriminatorSchemasForEncryption");
-    module2.exports = /* @__PURE__ */ __name(function discriminator(model7, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
+    module2.exports = /* @__PURE__ */ __name(function discriminator(model8, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
       if (!schema?.instanceOfSchema) {
         throw new Error("You must pass a valid discriminator Schema");
       }
       mergeHooks = mergeHooks == null ? true : mergeHooks;
-      if (model7.schema.discriminatorMapping && !model7.schema.discriminatorMapping.isRoot) {
+      if (model8.schema.discriminatorMapping && !model8.schema.discriminatorMapping.isRoot) {
         throw new Error('Discriminator "' + name + '" can only be a discriminator of the root model');
       }
       if (applyPlugins) {
         const applyPluginsToDiscriminators = get(
-          model7.base,
+          model8.base,
           "options.applyPluginsToDiscriminators",
           false
         ) || !mergeHooks;
-        model7.base._applyPlugins(schema, {
+        model8.base._applyPlugins(schema, {
           skipTopLevel: !applyPluginsToDiscriminators
         });
       } else if (!mergeHooks) {
         applyBuiltinPlugins(schema);
       }
-      const key = model7.schema.options.discriminatorKey;
-      const existingPath = model7.schema.path(key);
+      const key = model8.schema.options.discriminatorKey;
+      const existingPath = model8.schema.path(key);
       if (existingPath != null) {
         if (!utils.hasUserDefinedProperty(existingPath.options, "select")) {
           existingPath.options.select = true;
@@ -49320,12 +49320,12 @@ var require_discriminator = __commonJS({
           select: true,
           $skipDiscriminatorCheck: true
         };
-        baseSchemaAddition[key][model7.schema.options.typeKey] = String;
-        model7.schema.add(baseSchemaAddition);
+        baseSchemaAddition[key][model8.schema.options.typeKey] = String;
+        model8.schema.add(baseSchemaAddition);
         defineKey({
           prop: key,
-          prototype: model7.prototype,
-          options: model7.schema.options
+          prototype: model8.prototype,
+          options: model8.schema.options
         });
       }
       if (schema.path(key) && schema.path(key).options.$skipDiscriminatorCheck !== true) {
@@ -49335,7 +49335,7 @@ var require_discriminator = __commonJS({
       if (typeof tiedValue === "string" && tiedValue.length || tiedValue != null) {
         value = tiedValue;
       }
-      validateDiscriminatorSchemasForEncryption(model7.schema, schema);
+      validateDiscriminatorSchemasForEncryption(model8.schema, schema);
       function merge2(schema2, baseSchema) {
         schema2._baseSchema = baseSchema;
         if (baseSchema.paths._id && baseSchema.paths._id.options && !baseSchema.paths._id.options.auto) {
@@ -49412,7 +49412,7 @@ var require_discriminator = __commonJS({
         }
         schema2.options.id = id;
         if (mergeHooks) {
-          schema2.s.hooks = model7.schema.s.hooks.merge(schema2.s.hooks);
+          schema2.s.hooks = model8.schema.s.hooks.merge(schema2.s.hooks);
         }
         if (applyPlugins) {
           schema2.plugins = Array.prototype.slice.call(baseSchema.plugins);
@@ -49421,18 +49421,18 @@ var require_discriminator = __commonJS({
         delete schema2._requiredpaths;
       }
       __name(merge2, "merge");
-      merge2(schema, model7.schema);
-      if (!model7.discriminators) {
-        model7.discriminators = {};
+      merge2(schema, model8.schema);
+      if (!model8.discriminators) {
+        model8.discriminators = {};
       }
-      if (!model7.schema.discriminatorMapping) {
-        model7.schema.discriminatorMapping = { key, value: null, isRoot: true };
+      if (!model8.schema.discriminatorMapping) {
+        model8.schema.discriminatorMapping = { key, value: null, isRoot: true };
       }
-      if (!model7.schema.discriminators) {
-        model7.schema.discriminators = {};
+      if (!model8.schema.discriminators) {
+        model8.schema.discriminators = {};
       }
-      model7.schema.discriminators[name] = schema;
-      if (model7.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
+      model8.schema.discriminators[name] = schema;
+      if (model8.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
         throw new Error('Discriminator with name "' + name + '" already exists');
       }
       return schema;
@@ -50535,7 +50535,7 @@ var require_map2 = __commonJS({
     var SchemaMapOptions = require_schemaMapOptions();
     var SchemaType = require_schemaType();
     var MongooseError = require_mongooseError();
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var utils = require_utils3();
     var SchemaMap = class extends SchemaType {
       static {
@@ -50647,7 +50647,7 @@ var require_map2 = __commonJS({
       if (utils.hasUserDefinedProperty(obj, "of")) {
         const isInlineSchema = utils.isPOJO(obj.of) && utils.hasOwnKeys(obj.of) && !utils.hasUserDefinedProperty(obj.of, schema.options.typeKey);
         if (isInlineSchema) {
-          _mapType = { [schema.options.typeKey]: new Schema7(obj.of) };
+          _mapType = { [schema.options.typeKey]: new Schema8(obj.of) };
         } else if (utils.isPOJO(obj.of)) {
           _mapType = Object.assign({}, obj.of);
         } else {
@@ -51544,9 +51544,9 @@ var require_schema2 = __commonJS({
     var isPOJO = utils.isPOJO;
     var id = 0;
     var numberRE = /^\d+$/;
-    function Schema7(obj, options) {
-      if (!(this instanceof Schema7)) {
-        return new Schema7(obj, options);
+    function Schema8(obj, options) {
+      if (!(this instanceof Schema8)) {
+        return new Schema8(obj, options);
       }
       this.obj = obj;
       this.paths = {};
@@ -51601,7 +51601,7 @@ var require_schema2 = __commonJS({
       }
       this.setupTimestamp(this.options.timestamps);
     }
-    __name(Schema7, "Schema");
+    __name(Schema8, "Schema");
     function aliasFields(schema, paths) {
       for (const path3 of Object.keys(paths)) {
         let alias = null;
@@ -51658,37 +51658,37 @@ var require_schema2 = __commonJS({
       }
     }
     __name(aliasFields, "aliasFields");
-    Schema7.prototype = Object.create(EventEmitter9.prototype);
-    Schema7.prototype.constructor = Schema7;
-    Schema7.prototype.instanceOfSchema = true;
-    Object.defineProperty(Schema7.prototype, "$schemaType", {
+    Schema8.prototype = Object.create(EventEmitter9.prototype);
+    Schema8.prototype.constructor = Schema8;
+    Schema8.prototype.instanceOfSchema = true;
+    Object.defineProperty(Schema8.prototype, "$schemaType", {
       configurable: false,
       enumerable: false,
       writable: true
     });
-    Object.defineProperty(Schema7.prototype, "childSchemas", {
+    Object.defineProperty(Schema8.prototype, "childSchemas", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Object.defineProperty(Schema7.prototype, "virtuals", {
+    Object.defineProperty(Schema8.prototype, "virtuals", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Schema7.prototype.obj;
-    Schema7.prototype.paths;
-    Schema7.prototype.tree;
-    Schema7.create = /* @__PURE__ */ __name(function create(definition, options) {
-      return new Schema7(definition, options);
+    Schema8.prototype.obj;
+    Schema8.prototype.paths;
+    Schema8.prototype.tree;
+    Schema8.create = /* @__PURE__ */ __name(function create(definition, options) {
+      return new Schema8(definition, options);
     }, "create");
-    Schema7.prototype.clone = function() {
+    Schema8.prototype.clone = function() {
       const s = this._clone();
       s.on("init", (v) => this.emit("init", v));
       return s;
     };
-    Schema7.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
-      Constructor = Constructor || (this.base == null ? Schema7 : this.base.Schema);
+    Schema8.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
+      Constructor = Constructor || (this.base == null ? Schema8 : this.base.Schema);
       const s = new Constructor({}, this._userProvidedOptions);
       s.base = this.base;
       s.obj = this.obj;
@@ -51756,8 +51756,8 @@ var require_schema2 = __commonJS({
       s.encryptedFields = clone2(this.encryptedFields);
       return s;
     }, "_clone");
-    Schema7.prototype.pick = function(paths, options) {
-      const newSchema = new Schema7({}, options || this.options);
+    Schema8.prototype.pick = function(paths, options) {
+      const newSchema = new Schema8({}, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError('Schema#pick() only accepts an array argument, got "' + typeof paths + '"');
       }
@@ -51786,8 +51786,8 @@ var require_schema2 = __commonJS({
       }
       return newSchema;
     };
-    Schema7.prototype.omit = function(paths, options) {
-      const newSchema = new Schema7(this, options || this.options);
+    Schema8.prototype.omit = function(paths, options) {
+      const newSchema = new Schema8(this, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError(
           'Schema#omit() only accepts an array argument, got "' + typeof paths + '"'
@@ -51796,7 +51796,7 @@ var require_schema2 = __commonJS({
       newSchema.remove(paths);
       return newSchema;
     };
-    Schema7.prototype.defaultOptions = function(options) {
+    Schema8.prototype.defaultOptions = function(options) {
       this._userProvidedOptions = options == null ? {} : clone2(options);
       const baseOptions = this.base?.options || {};
       const defaultStrict = baseOptions.strict ?? true;
@@ -51844,12 +51844,12 @@ var require_schema2 = __commonJS({
       }
       return options;
     };
-    Schema7.prototype.discriminator = function(name, schema, options) {
+    Schema8.prototype.discriminator = function(name, schema, options) {
       this._applyDiscriminators = this._applyDiscriminators || /* @__PURE__ */ new Map();
       this._applyDiscriminators.set(name, { schema, options });
       return this;
     };
-    Schema7.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
+    Schema8.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
       const hasShardKey = !!(this.options.shardKey || this.options.shardkey);
       return this.s.hooks.filter((hook) => {
         if (isSubdocument && hook.fn[symbols.skipOnSubdocuments]) {
@@ -51875,7 +51875,7 @@ var require_schema2 = __commonJS({
         return true;
       });
     }, "_getDocumentMiddleware");
-    Schema7.prototype._defaultToObjectOptions = function(json2) {
+    Schema8.prototype._defaultToObjectOptions = function(json2) {
       const path3 = json2 ? "toJSON" : "toObject";
       if (this._defaultToObjectOptionsMap && path3 in this._defaultToObjectOptionsMap) {
         return this._defaultToObjectOptionsMap[path3];
@@ -51887,7 +51887,7 @@ var require_schema2 = __commonJS({
       this._defaultToObjectOptionsMap[path3] = utils.hasOwnKeys(defaultOptions) ? defaultOptions : null;
       return defaultOptions;
     };
-    Schema7.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
+    Schema8.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
       if (arguments.length === 0) {
         return this.options.encryptionType;
       }
@@ -51896,8 +51896,8 @@ var require_schema2 = __commonJS({
       }
       this.options.encryptionType = encryptionType;
     }, "encryptionType");
-    Schema7.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
-      if (obj instanceof Schema7 || obj?.instanceOfSchema) {
+    Schema8.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
+      if (obj instanceof Schema8 || obj?.instanceOfSchema) {
         merge2(this, obj);
         return this;
       }
@@ -51924,7 +51924,7 @@ var require_schema2 = __commonJS({
         }
         let isMongooseTypeString = false;
         if (typeof val === "string") {
-          const MongooseTypes2 = this.base?.Schema.Types ?? Schema7.Types;
+          const MongooseTypes2 = this.base?.Schema.Types ?? Schema8.Types;
           const upperVal = val.charAt(0).toUpperCase() + val.substring(1);
           isMongooseTypeString = MongooseTypes2[upperVal] != null;
         }
@@ -51976,7 +51976,7 @@ var require_schema2 = __commonJS({
             if (this._userProvidedOptions.toJSON != null) {
               childSchemaOptions.toJSON = utils.omit(this._userProvidedOptions.toJSON, ["transform"]);
             }
-            const _schema = new Schema7(_typeDef, childSchemaOptions);
+            const _schema = new Schema8(_typeDef, childSchemaOptions);
             _schema.$implicitlyCreated = true;
             const schemaWrappedPath = Object.assign({}, val, { [typeKey]: _schema });
             this.path(prefix + key, schemaWrappedPath);
@@ -52017,23 +52017,23 @@ var require_schema2 = __commonJS({
       aliasFields(this, aliasObj);
       return this;
     }, "add");
-    Schema7.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path3, fieldConfig) {
+    Schema8.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path3, fieldConfig) {
       const type = this.path(path3).autoEncryptionType();
       if (type == null) {
         throw new MongooseError(`Invalid BSON type for FLE field: '${path3}'`);
       }
       this.encryptedFields[path3] = clone2(fieldConfig);
     }, "_addEncryptedField");
-    Schema7.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path3) {
+    Schema8.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path3) {
       delete this.encryptedFields[path3];
     }, "_removeEncryptedField");
-    Schema7.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
+    Schema8.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
       return utils.hasOwnKeys(this.encryptedFields);
     }, "_hasEncryptedFields");
-    Schema7.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path3) {
+    Schema8.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path3) {
       return path3 in this.encryptedFields;
     }, "_hasEncryptedField");
-    Schema7.prototype._buildEncryptedFields = function() {
+    Schema8.prototype._buildEncryptedFields = function() {
       const fields = Object.entries(this.encryptedFields).map(
         ([path3, config2]) => {
           const bsonType = this.path(path3).autoEncryptionType();
@@ -52042,7 +52042,7 @@ var require_schema2 = __commonJS({
       );
       return { fields };
     };
-    Schema7.prototype._buildSchemaMap = function() {
+    Schema8.prototype._buildSchemaMap = function() {
       function buildNestedPath(path3, object2, value) {
         let i = 0, component = path3[i];
         for (; i < path3.length - 1; ++i, component = path3[i]) {
@@ -52071,11 +52071,11 @@ var require_schema2 = __commonJS({
         properties
       };
     };
-    Schema7.prototype.alias = /* @__PURE__ */ __name(function alias(path3, alias) {
+    Schema8.prototype.alias = /* @__PURE__ */ __name(function alias(path3, alias) {
       aliasFields(this, { [path3]: alias });
       return this;
     }, "alias");
-    Schema7.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
+    Schema8.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
       if (arguments.length > 1) {
         throw new MongooseError("removeIndex() takes only 1 argument");
       }
@@ -52097,22 +52097,22 @@ var require_schema2 = __commonJS({
       }
       return this;
     }, "removeIndex");
-    Schema7.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
+    Schema8.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
       this._indexes.length = 0;
       return this;
     }, "clearIndexes");
-    Schema7.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
+    Schema8.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
       this._searchIndexes.push(description);
       return this;
     }, "searchIndex");
-    Schema7.reserved = /* @__PURE__ */ Object.create(null);
-    Schema7.prototype.reserved = Schema7.reserved;
-    var reserved = Schema7.reserved;
+    Schema8.reserved = /* @__PURE__ */ Object.create(null);
+    Schema8.prototype.reserved = Schema8.reserved;
+    var reserved = Schema8.reserved;
     reserved["prototype"] = // EventEmitter
     reserved.emit = reserved.listeners = reserved.removeListener = // document properties and functions
     reserved.collection = reserved.errors = reserved.get = reserved.init = reserved.isModified = reserved.isNew = reserved.populated = reserved.remove = reserved.save = reserved.toObject = reserved.validate = 1;
     reserved.collection = 1;
-    Schema7.prototype.path = function(path3, obj) {
+    Schema8.prototype.path = function(path3, obj) {
       if (obj === void 0) {
         if (Object.hasOwn(this.paths, path3)) {
           return this.paths[path3];
@@ -52257,7 +52257,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema7.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
+    Schema8.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
       const childSchemas = [];
       for (const path3 of Object.keys(this.paths)) {
         if (typeof path3 !== "string") {
@@ -52335,13 +52335,13 @@ var require_schema2 = __commonJS({
       return null;
     }
     __name(getMapPath, "getMapPath");
-    Object.defineProperty(Schema7.prototype, "base", {
+    Object.defineProperty(Schema8.prototype, "base", {
       configurable: true,
       enumerable: false,
       writable: true,
       value: null
     });
-    Schema7.prototype.interpretAsType = function(path3, obj, options) {
+    Schema8.prototype.interpretAsType = function(path3, obj, options) {
       if (obj instanceof SchemaType) {
         if (obj.path === path3) {
           return obj;
@@ -52350,7 +52350,7 @@ var require_schema2 = __commonJS({
         clone3.path = path3;
         return clone3;
       }
-      const MongooseTypes2 = this.base?.Schema.Types ?? Schema7.Types;
+      const MongooseTypes2 = this.base?.Schema.Types ?? Schema8.Types;
       const Types = this.base?.Types ?? require_types();
       if (!utils.isPOJO(obj) && !(obj instanceof SchemaTypeOptions)) {
         const constructorName = utils.getFunctionName(obj.constructor);
@@ -52376,9 +52376,9 @@ var require_schema2 = __commonJS({
       if (Array.isArray(type) || type === Array || type === "array" || type === MongooseTypes2.Array) {
         let cast = type === Array || type === "array" ? obj.cast || obj.of : type[0];
         if (cast?.instanceOfSchema) {
-          if (!(cast instanceof Schema7)) {
+          if (!(cast instanceof Schema8)) {
             if (this.options._isMerging) {
-              cast = new Schema7(cast);
+              cast = new Schema8(cast);
             } else {
               throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
@@ -52386,9 +52386,9 @@ var require_schema2 = __commonJS({
           return new MongooseTypes2.DocumentArray(path3, cast, obj, null, this);
         }
         if (cast && cast[options.typeKey] && cast[options.typeKey].instanceOfSchema) {
-          if (!(cast[options.typeKey] instanceof Schema7)) {
+          if (!(cast[options.typeKey] instanceof Schema8)) {
             if (this.options._isMerging) {
-              cast[options.typeKey] = new Schema7(cast[options.typeKey]);
+              cast[options.typeKey] = new Schema8(cast[options.typeKey]);
             } else {
               throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
@@ -52426,10 +52426,10 @@ var require_schema2 = __commonJS({
             }
             if (Object.hasOwn(this._userProvidedOptions, "_id")) {
               childSchemaOptions._id = this._userProvidedOptions._id;
-            } else if (Schema7.Types.DocumentArray.defaultOptions._id != null) {
-              childSchemaOptions._id = Schema7.Types.DocumentArray.defaultOptions._id;
+            } else if (Schema8.Types.DocumentArray.defaultOptions._id != null) {
+              childSchemaOptions._id = Schema8.Types.DocumentArray.defaultOptions._id;
             }
-            const childSchema = new Schema7(castFromTypeKey, childSchemaOptions);
+            const childSchema = new Schema8(castFromTypeKey, childSchemaOptions);
             childSchema.$implicitlyCreated = true;
             return new MongooseTypes2.DocumentArray(path3, childSchema, obj, null, this);
           } else {
@@ -52489,7 +52489,7 @@ var require_schema2 = __commonJS({
       const schemaType = new MongooseTypes2[name](path3, obj, options, this);
       return schemaType;
     };
-    Schema7.prototype.eachPath = function(fn) {
+    Schema8.prototype.eachPath = function(fn) {
       const keys = Object.keys(this.paths);
       const len = keys.length;
       for (let i = 0; i < len; ++i) {
@@ -52497,7 +52497,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema7.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
+    Schema8.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
       if (this._requiredpaths && !invalidate) {
         return this._requiredpaths;
       }
@@ -52513,7 +52513,7 @@ var require_schema2 = __commonJS({
       this._requiredpaths = ret;
       return this._requiredpaths;
     }, "requiredPaths");
-    Schema7.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
+    Schema8.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
       if (this._pathsWithTransforms !== void 0 && !invalidate) {
         return this._pathsWithTransforms;
       }
@@ -52530,14 +52530,14 @@ var require_schema2 = __commonJS({
       this._pathsWithTransforms = ret.length ? ret : null;
       return this._pathsWithTransforms;
     }, "pathsWithTransforms");
-    Schema7.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
+    Schema8.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
       if (this._indexedpaths) {
         return this._indexedpaths;
       }
       this._indexedpaths = this.indexes();
       return this._indexedpaths;
     }, "indexedPaths");
-    Schema7.prototype.pathType = function(path3) {
+    Schema8.prototype.pathType = function(path3) {
       if (Object.hasOwn(this.paths, path3)) {
         return "real";
       }
@@ -52564,7 +52564,7 @@ var require_schema2 = __commonJS({
       }
       return "adhocOrUndefined";
     };
-    Schema7.prototype.hasMixedParent = function(path3) {
+    Schema8.prototype.hasMixedParent = function(path3) {
       const subpaths = path3.split(/\./g);
       path3 = "";
       for (let i = 0; i < subpaths.length; ++i) {
@@ -52575,7 +52575,7 @@ var require_schema2 = __commonJS({
       }
       return null;
     };
-    Schema7.prototype.setupTimestamp = function(timestamps) {
+    Schema8.prototype.setupTimestamp = function(timestamps) {
       return setupTimestamps(this, timestamps);
     };
     function getPositionalPathType(self2, path3, cleanPath) {
@@ -52631,11 +52631,11 @@ var require_schema2 = __commonJS({
       return self2.subpaths[cleanPath];
     }
     __name(getPositionalPath, "getPositionalPath");
-    Schema7.prototype.queue = function(name, args) {
+    Schema8.prototype.queue = function(name, args) {
       this.callQueue.push([name, args]);
       return this;
     };
-    Schema7.prototype.pre = function(name) {
+    Schema8.prototype.pre = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52655,7 +52655,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.pre.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema7.prototype.post = function(name) {
+    Schema8.prototype.post = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52675,7 +52675,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.post.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema7.prototype.plugin = function(fn, opts) {
+    Schema8.prototype.plugin = function(fn, opts) {
       if (typeof fn !== "function") {
         throw new MongooseError('First param to `schema.plugin()` must be a function, got "' + typeof fn + '"');
       }
@@ -52690,7 +52690,7 @@ var require_schema2 = __commonJS({
       fn(this, opts);
       return this;
     };
-    Schema7.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
+    Schema8.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
       if (typeof name !== "string") {
         throw new MongooseError('First param to `schema.queryHelper()` must be a string, got "' + typeof name + '"');
       }
@@ -52700,7 +52700,7 @@ var require_schema2 = __commonJS({
       this.query[name] = fn;
       return this;
     }, "queryHelper");
-    Schema7.prototype.method = function(name, fn, options) {
+    Schema8.prototype.method = function(name, fn, options) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.methods[i] = name[i];
@@ -52712,7 +52712,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema7.prototype.static = function(name, fn) {
+    Schema8.prototype.static = function(name, fn) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.statics[i] = name[i];
@@ -52722,7 +52722,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema7.prototype.index = function(fields, options) {
+    Schema8.prototype.index = function(fields, options) {
       fields || (fields = {});
       options || (options = {});
       if (options.expires) {
@@ -52743,7 +52743,7 @@ var require_schema2 = __commonJS({
       this._indexes.push([fields, options]);
       return this;
     };
-    Schema7.prototype.set = function(key, value, tags) {
+    Schema8.prototype.set = function(key, value, tags) {
       if (arguments.length === 1) {
         return this.options[key];
       }
@@ -52808,11 +52808,11 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_propagateOptionsToImplicitlyCreatedSchemas, "_propagateOptionsToImplicitlyCreatedSchemas");
-    Schema7.prototype.get = function(key) {
+    Schema8.prototype.get = function(key) {
       return this.options[key];
     };
     var indexTypes = "2d 2dsphere hashed text".split(" ");
-    Object.defineProperty(Schema7, "indexTypes", {
+    Object.defineProperty(Schema8, "indexTypes", {
       get: /* @__PURE__ */ __name(function() {
         return indexTypes;
       }, "get"),
@@ -52820,10 +52820,10 @@ var require_schema2 = __commonJS({
         throw new MongooseError("Cannot overwrite Schema.indexTypes");
       }, "set")
     });
-    Schema7.prototype.indexes = function() {
+    Schema8.prototype.indexes = function() {
       return getIndexes(this);
     };
-    Schema7.prototype.virtual = function(name, options) {
+    Schema8.prototype.virtual = function(name, options) {
       if (name instanceof VirtualType || getConstructorName(name) === "VirtualType") {
         return this.virtual(name.path, name.options);
       }
@@ -52929,10 +52929,10 @@ var require_schema2 = __commonJS({
       }
       return virtuals[name];
     };
-    Schema7.prototype.virtualpath = function(name) {
+    Schema8.prototype.virtualpath = function(name) {
       return Object.hasOwn(this.virtuals, name) ? this.virtuals[name] : null;
     };
-    Schema7.prototype.remove = function(path3) {
+    Schema8.prototype.remove = function(path3) {
       if (typeof path3 === "string") {
         path3 = [path3];
       }
@@ -53001,7 +53001,7 @@ var require_schema2 = __commonJS({
       delete branch[last];
     }
     __name(_deletePath, "_deletePath");
-    Schema7.prototype.removeVirtual = function(path3) {
+    Schema8.prototype.removeVirtual = function(path3) {
       if (typeof path3 === "string") {
         path3 = [path3];
       }
@@ -53023,27 +53023,27 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema7.prototype.loadClass = function(model7, virtualsOnly) {
-      if (model7 === Object.prototype || model7 === Function.prototype || Object.hasOwn(model7.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model7.prototype, "$isMongooseDocumentPrototype")) {
+    Schema8.prototype.loadClass = function(model8, virtualsOnly) {
+      if (model8 === Object.prototype || model8 === Function.prototype || Object.hasOwn(model8.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model8.prototype, "$isMongooseDocumentPrototype")) {
         return this;
       }
-      this.loadClass(Object.getPrototypeOf(model7), virtualsOnly);
+      this.loadClass(Object.getPrototypeOf(model8), virtualsOnly);
       if (!virtualsOnly) {
-        Object.getOwnPropertyNames(model7).forEach(function(name) {
+        Object.getOwnPropertyNames(model8).forEach(function(name) {
           if (name.match(/^(length|name|prototype|constructor|__proto__)$/)) {
             return;
           }
-          const prop = Object.getOwnPropertyDescriptor(model7, name);
+          const prop = Object.getOwnPropertyDescriptor(model8, name);
           if (Object.hasOwn(prop, "value")) {
             this.static(name, prop.value);
           }
         }, this);
       }
-      Object.getOwnPropertyNames(model7.prototype).forEach(function(name) {
+      Object.getOwnPropertyNames(model8.prototype).forEach(function(name) {
         if (name.match(/^(constructor)$/)) {
           return;
         }
-        const method = Object.getOwnPropertyDescriptor(model7.prototype, name);
+        const method = Object.getOwnPropertyDescriptor(model8.prototype, name);
         if (!virtualsOnly) {
           if (typeof method.value === "function") {
             this.method(name, method.value);
@@ -53064,7 +53064,7 @@ var require_schema2 = __commonJS({
       }, this);
       return this;
     };
-    Schema7.prototype._getSchema = function(path3) {
+    Schema8.prototype._getSchema = function(path3) {
       const _this = this;
       const pathschema = _this.path(path3);
       const resultPath = [];
@@ -53141,7 +53141,7 @@ var require_schema2 = __commonJS({
       }
       return search(parts, _this);
     };
-    Schema7.prototype._getPathType = function(path3) {
+    Schema8.prototype._getPathType = function(path3) {
       const _this = this;
       const pathschema = _this.path(path3);
       if (pathschema) {
@@ -53181,7 +53181,7 @@ var require_schema2 = __commonJS({
       __name(search, "search");
       return search(path3.split("."), _this);
     };
-    Schema7.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
+    Schema8.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
       if (!this._duplicateKeyErrorMessagesByPath) {
         return error62;
       }
@@ -53206,7 +53206,7 @@ var require_schema2 = __commonJS({
       return piece.startsWith("$[") && piece.endsWith("]");
     }
     __name(isArrayFilter, "isArrayFilter");
-    Schema7.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
+    Schema8.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
       this.plugin(idGetter, { deduplicate: true });
       _precomputeOptimisticConcurrency(this);
       this.pathsWithTransforms();
@@ -53223,7 +53223,7 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_precomputeOptimisticConcurrency, "_precomputeOptimisticConcurrency");
-    Schema7.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
+    Schema8.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
       const useBsonType = options?.useBsonType ?? false;
       const result = useBsonType ? { required: [], properties: {} } : { type: "object", required: [], properties: {} };
       for (const path3 of Object.keys(this.paths)) {
@@ -53267,8 +53267,8 @@ var require_schema2 = __commonJS({
       }
       return result;
     }, "toJSONSchema");
-    module2.exports = exports2 = Schema7;
-    Schema7.Types = MongooseTypes = require_schema();
+    module2.exports = exports2 = Schema8;
+    Schema8.Types = MongooseTypes = require_schema();
     exports2.ObjectId = MongooseTypes.ObjectId;
   }
 });
@@ -54171,9 +54171,9 @@ var require_castUpdate = __commonJS({
     }
     __name(walkUpdatePath, "walkUpdatePath");
     function _appendError(error62, query, key, aggregatedError) {
-      const model7 = query?.modelName != null ? query : query?.model;
-      if (model7 != null && typeof error62.setModel === "function") {
-        error62.setModel(model7);
+      const model8 = query?.modelName != null ? query : query?.model;
+      if (model8 != null && typeof error62.setModel === "function") {
+        error62.setModel(model8);
       }
       if (typeof query !== "object" || !query.options.multipleCastError) {
         throw error62;
@@ -54397,7 +54397,7 @@ var require_castArrayFilters = __commonJS({
         query
       );
     }, "castArrayFilters");
-    function castArrayFiltersForUpdate(arrayFilters, update, schema, model7, options, context) {
+    function castArrayFiltersForUpdate(arrayFilters, update, schema, model8, options, context) {
       if (!Array.isArray(arrayFilters)) {
         return;
       }
@@ -54406,8 +54406,8 @@ var require_castArrayFilters = __commonJS({
       if (options.strict != null) {
         strictQuery = options.strict;
       }
-      if (model7?.base.options.strictQuery != null) {
-        strictQuery = model7.base.options.strictQuery;
+      if (model8?.base.options.strictQuery != null) {
+        strictQuery = model8.base.options.strictQuery;
       }
       if (schema._userProvidedOptions.strictQuery != null) {
         strictQuery = schema._userProvidedOptions.strictQuery;
@@ -54721,15 +54721,15 @@ var require_castBulkWrite = __commonJS({
       }
     }, "castBulkWrite");
     module2.exports.castInsertOne = /* @__PURE__ */ __name(async function castInsertOne(originalModel, insertOne, options) {
-      const model7 = decideModelByObject(originalModel, insertOne["document"]);
-      const doc = new model7(insertOne["document"]);
-      if (model7.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
+      const model8 = decideModelByObject(originalModel, insertOne["document"]);
+      const doc = new model8(insertOne["document"]);
+      if (model8.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model7?.schema?.options?.versionKey;
+      const versionKey = model8?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54747,27 +54747,27 @@ var require_castBulkWrite = __commonJS({
       if (!updateOne["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model7 = decideModelByObject(originalModel, updateOne["filter"]);
-      const schema = model7.schema;
-      const strict = options.strict ?? model7.schema.options.strict;
+      const model8 = decideModelByObject(originalModel, updateOne["filter"]);
+      const schema = model8.schema;
+      const strict = options.strict ?? model8.schema.options.strict;
       const update = clone2(updateOne["update"]);
       _addDiscriminatorToObject(schema, updateOne["filter"]);
       const doInitTimestamps = getTimestampsOpt(updateOne, options);
-      if (model7.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model7.schema.$timestamps.createdAt;
-        const updatedAt = model7.schema.$timestamps.updatedAt;
+      if (model8.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model8.schema.$timestamps.createdAt;
+        const updatedAt = model8.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateOne.timestamps,
           overwriteImmutable: updateOne.overwriteImmutable
         }, updateOne.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model7.schema);
+        applyTimestampsToChildren(now, update, model8.schema);
       }
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateOne.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateOne["filter"], model7.schema, update, {
+        setDefaultsOnInsert(updateOne["filter"], model8.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateOne.upsert
         });
@@ -54775,23 +54775,23 @@ var require_castBulkWrite = __commonJS({
       decorateUpdateWithVersionKey(
         update,
         updateOne,
-        model7.schema.options.versionKey
+        model8.schema.options.versionKey
       );
-      updateOne["filter"] = _castFilter(model7, updateOne["filter"], {
+      updateOne["filter"] = _castFilter(model8, updateOne["filter"], {
         strict,
         upsert: updateOne.upsert
       });
       if (Array.isArray(updateOne.arrayFilters)) {
         updateOne.arrayFilters = clone2(updateOne.arrayFilters);
-        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model7, options);
+        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model8, options);
       }
-      updateOne["update"] = castUpdate(model7.schema, update, {
+      updateOne["update"] = castUpdate(model8.schema, update, {
         strict,
         upsert: updateOne.upsert,
         arrayFilters: updateOne.arrayFilters,
         overwriteDiscriminatorKey: updateOne.overwriteDiscriminatorKey,
         overwriteImmutable: updateOne.overwriteImmutable
-      }, model7, updateOne["filter"]);
+      }, model8, updateOne["filter"]);
       return updateOne;
     }, "castUpdateOne");
     module2.exports.castUpdateMany = /* @__PURE__ */ __name(function castUpdateMany(originalModel, updateMany, options, now) {
@@ -54801,69 +54801,69 @@ var require_castBulkWrite = __commonJS({
       if (!updateMany["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model7 = decideModelByObject(originalModel, updateMany["filter"]);
-      const schema = model7.schema;
-      const strict = options.strict ?? model7.schema.options.strict;
+      const model8 = decideModelByObject(originalModel, updateMany["filter"]);
+      const schema = model8.schema;
+      const strict = options.strict ?? model8.schema.options.strict;
       const update = clone2(updateMany["update"]);
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateMany.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateMany["filter"], model7.schema, update, {
+        setDefaultsOnInsert(updateMany["filter"], model8.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateMany.upsert
         });
       }
       const doInitTimestamps = getTimestampsOpt(updateMany, options);
-      if (model7.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model7.schema.$timestamps.createdAt;
-        const updatedAt = model7.schema.$timestamps.updatedAt;
+      if (model8.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model8.schema.$timestamps.createdAt;
+        const updatedAt = model8.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateMany.timestamps,
           overwriteImmutable: updateMany.overwriteImmutable
         }, updateMany.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model7.schema);
+        applyTimestampsToChildren(now, update, model8.schema);
       }
       _addDiscriminatorToObject(schema, updateMany["filter"]);
       decorateUpdateWithVersionKey(
         update,
         updateMany,
-        model7.schema.options.versionKey
+        model8.schema.options.versionKey
       );
-      updateMany["filter"] = _castFilter(model7, updateMany["filter"], {
+      updateMany["filter"] = _castFilter(model8, updateMany["filter"], {
         strict,
         upsert: updateMany.upsert
       });
       if (Array.isArray(updateMany.arrayFilters)) {
         updateMany.arrayFilters = clone2(updateMany.arrayFilters);
-        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model7, options);
+        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model8, options);
       }
-      updateMany["update"] = castUpdate(model7.schema, update, {
+      updateMany["update"] = castUpdate(model8.schema, update, {
         strict,
         upsert: updateMany.upsert,
         arrayFilters: updateMany.arrayFilters,
         overwriteDiscriminatorKey: updateMany.overwriteDiscriminatorKey,
         overwriteImmutable: updateMany.overwriteImmutable
-      }, model7, updateMany["filter"]);
+      }, model8, updateMany["filter"]);
     }, "castUpdateMany");
     module2.exports.castReplaceOne = /* @__PURE__ */ __name(async function castReplaceOne(originalModel, replaceOne, options) {
-      const model7 = decideModelByObject(originalModel, replaceOne["filter"]);
-      const schema = model7.schema;
-      const strict = options.strict ?? model7.schema.options.strict;
+      const model8 = decideModelByObject(originalModel, replaceOne["filter"]);
+      const schema = model8.schema;
+      const strict = options.strict ?? model8.schema.options.strict;
       _addDiscriminatorToObject(schema, replaceOne["filter"]);
-      replaceOne["filter"] = _castFilter(model7, replaceOne["filter"], {
+      replaceOne["filter"] = _castFilter(model8, replaceOne["filter"], {
         strict,
         upsert: replaceOne.upsert
       });
-      const doc = new model7(replaceOne["replacement"], strict, { skipId: true });
-      if (model7.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
+      const doc = new model8(replaceOne["replacement"], strict, { skipId: true });
+      if (model8.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model7?.schema?.options?.versionKey;
+      const versionKey = model8?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54876,16 +54876,16 @@ var require_castBulkWrite = __commonJS({
       replaceOne["replacement"] = replaceOne["replacement"].toBSON();
     }, "castReplaceOne");
     module2.exports.castDeleteOne = /* @__PURE__ */ __name(function castDeleteOne(originalModel, deleteOne) {
-      const model7 = decideModelByObject(originalModel, deleteOne["filter"]);
-      const schema = model7.schema;
+      const model8 = decideModelByObject(originalModel, deleteOne["filter"]);
+      const schema = model8.schema;
       _addDiscriminatorToObject(schema, deleteOne["filter"]);
-      deleteOne["filter"] = _castFilter(model7, deleteOne["filter"]);
+      deleteOne["filter"] = _castFilter(model8, deleteOne["filter"]);
     }, "castDeleteOne");
     module2.exports.castDeleteMany = /* @__PURE__ */ __name(function castDeleteMany(originalModel, deleteMany) {
-      const model7 = decideModelByObject(originalModel, deleteMany["filter"]);
-      const schema = model7.schema;
+      const model8 = decideModelByObject(originalModel, deleteMany["filter"]);
+      const schema = model8.schema;
       _addDiscriminatorToObject(schema, deleteMany["filter"]);
-      deleteMany["filter"] = _castFilter(model7, deleteMany["filter"]);
+      deleteMany["filter"] = _castFilter(model8, deleteMany["filter"]);
     }, "castDeleteMany");
     module2.exports.cast = {
       insertOne: module2.exports.castInsertOne,
@@ -54895,12 +54895,12 @@ var require_castBulkWrite = __commonJS({
       deleteOne: module2.exports.castDeleteOne,
       deleteMany: module2.exports.castDeleteMany
     };
-    function _castFilter(model7, filter, options) {
+    function _castFilter(model8, filter, options) {
       try {
-        return cast(model7.schema, filter, options);
+        return cast(model8.schema, filter, options);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model7);
+          err.setModel(model8);
         }
         throw err;
       }
@@ -54915,12 +54915,12 @@ var require_castBulkWrite = __commonJS({
       }
     }
     __name(_addDiscriminatorToObject, "_addDiscriminatorToObject");
-    function decideModelByObject(model7, object2) {
-      const discriminatorKey = model7.schema.options.discriminatorKey;
+    function decideModelByObject(model8, object2) {
+      const discriminatorKey = model8.schema.options.discriminatorKey;
       if (object2 != null && Object.hasOwn(object2, discriminatorKey)) {
-        model7 = getDiscriminatorByValue(model7.discriminators, object2[discriminatorKey]) || model7;
+        model8 = getDiscriminatorByValue(model8.discriminators, object2[discriminatorKey]) || model8;
       }
-      return model7;
+      return model8;
     }
     __name(decideModelByObject, "decideModelByObject");
     function getTimestampsOpt(opCommand, options) {
@@ -54956,7 +54956,7 @@ var require_connection2 = __commonJS({
     "use strict";
     var ChangeStream = require_changeStream();
     var EventEmitter9 = require("events").EventEmitter;
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var STATES = require_connectionState();
     var MongooseBulkWriteError = require_bulkWriteError();
     var MongooseError = require_error2();
@@ -55221,15 +55221,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model7 of Object.values(this.models)) {
+      for (const model8 of Object.values(this.models)) {
         try {
-          result[model7.modelName] = await model7.createCollection({});
+          result[model8.modelName] = await model8.createCollection({});
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model7.modelName] = err;
+            errorsMap[model8.modelName] = err;
             break;
           } else {
-            result[model7.modelName] = err;
+            result[model8.modelName] = err;
           }
         }
       }
@@ -55376,8 +55376,8 @@ var require_connection2 = __commonJS({
         throw new MongooseError("Connection.prototype.dropDatabase() no longer accepts a callback");
       }
       await this._waitForConnect();
-      for (const model7 of Object.values(this.models)) {
-        delete model7.$init;
+      for (const model8 of Object.values(this.models)) {
+        delete model8.$init;
       }
       return this.db.dropDatabase();
     }, "dropDatabase");
@@ -55445,8 +55445,8 @@ var require_connection2 = __commonJS({
         }
         throw err;
       });
-      for (const model7 of Object.values(this.models)) {
-        model7.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model8 of Object.values(this.models)) {
+        model8.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       if (_fireAndForget) {
@@ -55513,8 +55513,8 @@ var require_connection2 = __commonJS({
       if (this._lastHeartbeatAt != null) {
         this._lastHeartbeatAt = null;
       }
-      for (const model7 of Object.values(this.models)) {
-        delete model7.$init;
+      for (const model8 of Object.values(this.models)) {
+        delete model8.$init;
       }
       return this._close(force, false);
     }, "close");
@@ -55612,7 +55612,7 @@ var require_connection2 = __commonJS({
       this.plugins.push([fn, opts]);
       return this;
     };
-    Connection.prototype.model = /* @__PURE__ */ __name(function model7(name, schema, collection, options) {
+    Connection.prototype.model = /* @__PURE__ */ __name(function model8(name, schema, collection, options) {
       if (!(this instanceof Connection)) {
         throw new MongooseError("`connection.model()` should not be run with `new`. If you are doing `new db.model(foo)(bar)`, use `db.model(foo)(bar)` instead");
       }
@@ -55627,7 +55627,7 @@ var require_connection2 = __commonJS({
       }
       if (utils.isObject(schema)) {
         if (!schema.instanceOfSchema) {
-          schema = new Schema7(schema);
+          schema = new Schema8(schema);
         } else if (!(schema instanceof this.base.Schema)) {
           schema = schema._clone(this.base.Schema);
         }
@@ -55643,52 +55643,52 @@ var require_connection2 = __commonJS({
         }
         return this.models[name];
       }
-      let model8;
+      let model9;
       if (schema?.instanceOfSchema) {
         applyPlugins(schema, this.plugins, null, "$connectionPluginsApplied");
-        model8 = this.base._model(fn || name, schema, collection, opts);
+        model9 = this.base._model(fn || name, schema, collection, opts);
         if (!this.models[name]) {
-          this.models[name] = model8;
+          this.models[name] = model9;
         }
-        model8.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+        model9.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
-        return model8;
+        return model9;
       }
       if (this.models[name] && collection) {
-        model8 = this.models[name];
-        schema = model8.prototype.schema;
-        const sub = model8.__subclass(this, schema, collection);
+        model9 = this.models[name];
+        schema = model9.prototype.schema;
+        const sub = model9.__subclass(this, schema, collection);
         return sub;
       }
       if (arguments.length === 1) {
-        model8 = this.models[name];
-        if (!model8) {
+        model9 = this.models[name];
+        if (!model9) {
           throw new MongooseError.MissingSchemaError(name);
         }
-        return model8;
+        return model9;
       }
-      if (!model8) {
+      if (!model9) {
         throw new MongooseError.MissingSchemaError(name);
       }
-      if (this === model8.prototype.db && (!collection || collection === model8.collection.name)) {
+      if (this === model9.prototype.db && (!collection || collection === model9.collection.name)) {
         if (!this.models[name]) {
-          this.models[name] = model8;
+          this.models[name] = model9;
         }
-        return model8;
+        return model9;
       }
-      this.models[name] = model8.__subclass(this, schema, collection);
+      this.models[name] = model9.__subclass(this, schema, collection);
       return this.models[name];
     }, "model");
     Connection.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       if (typeof name === "string") {
-        const model7 = this.model(name);
-        if (model7 == null) {
+        const model8 = this.model(name);
+        if (model8 == null) {
           return this;
         }
-        const collectionName = model7.collection.name;
+        const collectionName = model8.collection.name;
         delete this.models[name];
         delete this.collections[collectionName];
-        this.emit("deleteModel", model7);
+        this.emit("deleteModel", model8);
       } else if (name instanceof RegExp) {
         const pattern = name;
         const names = this.modelNames();
@@ -55743,15 +55743,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model7 of Object.values(this.models)) {
+      for (const model8 of Object.values(this.models)) {
         try {
-          result[model7.modelName] = await model7.syncIndexes(options);
+          result[model8.modelName] = await model8.syncIndexes(options);
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model7.modelName] = err;
+            errorsMap[model8.modelName] = err;
             break;
           } else {
-            result[model7.modelName] = err;
+            result[model8.modelName] = err;
           }
         }
       }
@@ -55993,7 +55993,7 @@ var require_connection3 = __commonJS({
     var processConnectionOptions = require_processConnectionOptions();
     var setTimeout2 = require_timers().setTimeout;
     var utils = require_utils3();
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var Date2 = globalThis.Date;
     function NativeConnection() {
       MongooseConnection.apply(this, arguments);
@@ -56183,12 +56183,12 @@ var require_connection3 = __commonJS({
     NativeConnection.prototype._buildEncryptionSchemas = function() {
       const qeMappings = {};
       const csfleMappings = {};
-      const encryptedModels = Object.values(this.models).filter((model7) => model7.schema._hasEncryptedFields());
-      for (const model7 of encryptedModels) {
-        const { schema, collection: { collectionName } } = model7;
+      const encryptedModels = Object.values(this.models).filter((model8) => model8.schema._hasEncryptedFields());
+      for (const model8 of encryptedModels) {
+        const { schema, collection: { collectionName } } = model8;
         const namespace = `${this.$dbName}.${collectionName}`;
         const mappings = schema.encryptionType() === "csfle" ? csfleMappings : qeMappings;
-        mappings[namespace] ??= new Schema7({}, { encryptionType: schema.encryptionType() });
+        mappings[namespace] ??= new Schema8({}, { encryptionType: schema.encryptionType() });
         const isNonRootDiscriminator = schema.discriminatorMapping && !schema.discriminatorMapping.isRoot;
         if (isNonRootDiscriminator) {
           const rootSchema = schema._baseSchema;
@@ -56223,8 +56223,8 @@ var require_connection3 = __commonJS({
       }
       this._connectionString = client.s.url;
       _setClient(this, client, {}, client.s.options.dbName);
-      for (const model7 of Object.values(this.models)) {
-        model7.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model8 of Object.values(this.models)) {
+        model8.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       return this;
@@ -56615,10 +56615,10 @@ var require_queryCursor = __commonJS({
       this.skipped = false;
       this.query = query;
       this._closed = false;
-      const model7 = query.model;
+      const model8 = query.model;
       this._mongooseOptions = {};
       this._transforms = [];
-      this.model = model7;
+      this.model = model8;
       this.options = {};
       this._postMiddlewareFilter = null;
       const onPreComplete = /* @__PURE__ */ __name((err) => {
@@ -56657,8 +56657,8 @@ var require_queryCursor = __commonJS({
         if (query._mongooseOptions._asyncIterator) {
           this._mongooseOptions._asyncIterator = true;
         }
-        if (model7.collection._shouldBufferCommands() && model7.collection.buffer) {
-          model7.collection.queue.push([
+        if (model8.collection._shouldBufferCommands() && model8.collection.buffer) {
+          model8.collection.queue.push([
             () => _getRawCursor(query, this)
           ]);
         } else {
@@ -56666,7 +56666,7 @@ var require_queryCursor = __commonJS({
         }
       }, "onPreComplete");
       const preFilter = buildMiddlewareFilter(query.options, "pre");
-      model7.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model8.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
     }
     __name(QueryCursor, "QueryCursor");
     util.inherits(QueryCursor, Readable4);
@@ -56950,8 +56950,8 @@ var require_queryCursor = __commonJS({
       if (ctx.query._mongooseOptions.lean) {
         return ctx.model.hooks.execPost("find", ctx.query, [[doc]], { filter: ctx._postMiddlewareFilter }).then(() => callback(null, doc), (err) => callback(err));
       }
-      const { model: model7, _fields, _userProvidedFields, options } = ctx.query;
-      helpers.createModelAndInit(model7, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
+      const { model: model8, _fields, _userProvidedFields, options } = ctx.query;
+      helpers.createModelAndInit(model8, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
@@ -58956,7 +58956,7 @@ var require_query = __commonJS({
       ["findOneAndDelete", "_findOneAndDelete"]
     ]);
     var queryUpdateSymbol = /* @__PURE__ */ Symbol("mongoose#Query#update");
-    function Query(conditions, options, model7, collection) {
+    function Query(conditions, options, model8, collection) {
       if (!this._mongooseOptions) {
         this._mongooseOptions = {};
       }
@@ -58971,9 +58971,9 @@ var require_query = __commonJS({
       if (collection) {
         this.mongooseCollection = collection;
       }
-      if (model7) {
-        this.model = model7;
-        this.schema = model7.schema;
+      if (model8) {
+        this.model = model8;
+        this.schema = model8.schema;
       }
       if (this.model?._mapreduce) {
         this.lean();
@@ -59037,16 +59037,16 @@ var require_query = __commonJS({
     });
     Query.use$geoWithin = mquery.use$geoWithin;
     Query.prototype.toConstructor = /* @__PURE__ */ __name(function toConstructor() {
-      const model7 = this.model;
+      const model8 = this.model;
       const coll = this.mongooseCollection;
       const CustomQuery = /* @__PURE__ */ __name(function(criteria, options2) {
         if (!(this instanceof CustomQuery)) {
           return new CustomQuery(criteria, options2);
         }
         this._mongooseOptions = clone2(p._mongooseOptions);
-        Query.call(this, criteria, options2 || null, model7, coll);
+        Query.call(this, criteria, options2 || null, model8, coll);
       }, "CustomQuery");
-      util.inherits(CustomQuery, model7.Query);
+      util.inherits(CustomQuery, model8.Query);
       const p = CustomQuery.prototype;
       p.options = {};
       const options = Object.assign({}, this.options);
@@ -59068,9 +59068,9 @@ var require_query = __commonJS({
       return CustomQuery;
     }, "toConstructor");
     Query.prototype.clone = function() {
-      const model7 = this.model;
+      const model8 = this.model;
       const collection = this.mongooseCollection;
-      const q = new this.model.Query({}, {}, model7, collection);
+      const q = new this.model.Query({}, {}, model8, collection);
       const options = Object.assign({}, this.options);
       if (options.sort != null) {
         q.sort(options.sort);
@@ -59536,20 +59536,20 @@ var require_query = __commonJS({
       }
       return ret;
     };
-    Query.prototype._optionsForExec = function(model7) {
+    Query.prototype._optionsForExec = function(model8) {
       const options = clone2(this.options);
       delete options.populate;
-      model7 = model7 || this.model;
-      if (!model7) {
+      model8 = model8 || this.model;
+      if (!model8) {
         return options;
       }
-      applyReadConcern(model7.schema, options);
-      applyWriteConcern(model7.schema, options);
+      applyReadConcern(model8.schema, options);
+      applyWriteConcern(model8.schema, options);
       const asyncLocalStorage = this.model?.db?.base.transactionAsyncLocalStorage?.getStore();
       if (!Object.hasOwn(this.options, "session") && asyncLocalStorage?.session != null) {
         options.session = asyncLocalStorage.session;
       }
-      const readPreference = model7?.schema?.options?.read;
+      const readPreference = model8?.schema?.options?.read;
       if (!("readPreference" in options) && readPreference) {
         options.readPreference = readPreference;
       }
@@ -59840,7 +59840,7 @@ var require_query = __commonJS({
       if (!doc && !this.options.includeResultMetadata) {
         return callback(null, null);
       }
-      const model7 = this.model;
+      const model8 = this.model;
       const userProvidedFields = this._userProvidedFields || {};
       const mongooseOptions = this._mongooseOptions;
       const options = this.options;
@@ -59857,8 +59857,8 @@ var require_query = __commonJS({
             delete doc[versionKey];
           }
         }
-        return mongooseOptions.lean ? _completeOneLean(model7.schema, doc, null, res, options, callback) : completeOne(
-          model7,
+        return mongooseOptions.lean ? _completeOneLean(model8.schema, doc, null, res, options, callback) : completeOne(
+          model8,
           doc,
           res,
           options,
@@ -59870,20 +59870,20 @@ var require_query = __commonJS({
       }
       const pop = helpers.preparePopulationOptionsMQ(this, this._mongooseOptions);
       if (mongooseOptions.lean) {
-        return model7.populate(doc, pop).then(
+        return model8.populate(doc, pop).then(
           (doc2) => {
-            _completeOneLean(model7.schema, doc2, null, res, options, callback);
+            _completeOneLean(model8.schema, doc2, null, res, options, callback);
           },
           (error62) => {
             callback(error62);
           }
         );
       }
-      completeOne(model7, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
+      completeOne(model8, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
-        model7.populate(doc2, pop).then((res2) => {
+        model8.populate(doc2, pop).then((res2) => {
           callback(null, res2);
         }, (err2) => {
           callback(err2);
@@ -59891,10 +59891,10 @@ var require_query = __commonJS({
       });
     };
     Query.prototype._completeMany = /* @__PURE__ */ __name(async function _completeMany(docs, fields, userProvidedFields, opts) {
-      const model7 = this.model;
+      const model8 = this.model;
       return Promise.all(docs.map((doc) => new Promise((resolve2, reject) => {
         const rawDoc = doc;
-        doc = helpers.createModel(model7, doc, fields, userProvidedFields, opts);
+        doc = helpers.createModel(model8, doc, fields, userProvidedFields, opts);
         if (opts.session != null) {
           doc.$session(opts.session);
         }
@@ -60163,12 +60163,12 @@ var require_query = __commonJS({
       const options = this._optionsForExec();
       return this.mongooseCollection.deleteMany(this._conditions, options);
     }, "_deleteMany");
-    function completeOne(model7, doc, res, options, fields, userProvidedFields, pop, callback) {
+    function completeOne(model8, doc, res, options, fields, userProvidedFields, pop, callback) {
       if (options.includeResultMetadata && doc == null) {
         _init(null);
         return null;
       }
-      helpers.createModelAndInit(model7, doc, fields, userProvidedFields, options, pop, _init);
+      helpers.createModelAndInit(model8, doc, fields, userProvidedFields, options, pop, _init);
       function _init(err, casted) {
         if (err) {
           return callback(err);
@@ -61049,12 +61049,12 @@ var require_query = __commonJS({
       }
     }
     __name(_getPopulatedPaths, "_getPopulatedPaths");
-    Query.prototype.cast = function(model7, obj) {
+    Query.prototype.cast = function(model8, obj) {
       obj || (obj = this._conditions);
-      model7 = model7 || this.model;
-      const discriminatorKey = model7.schema.options.discriminatorKey;
+      model8 = model8 || this.model;
+      const discriminatorKey = model8.schema.options.discriminatorKey;
       if (obj != null && Object.hasOwn(obj, discriminatorKey)) {
-        model7 = getDiscriminatorByValue(model7.discriminators, obj[discriminatorKey]) || model7;
+        model8 = getDiscriminatorByValue(model8.discriminators, obj[discriminatorKey]) || model8;
       }
       const opts = { upsert: this.options?.upsert };
       if ("strict" in this._mongooseOptions) {
@@ -61063,12 +61063,12 @@ var require_query = __commonJS({
       if ("strictQuery" in this._mongooseOptions) {
         opts.strictQuery = this._mongooseOptions.strictQuery;
       }
-      opts.sanitizeFilter = model7.db.config?.sanitizeFilter ?? model7.db.options?.sanitizeFilter ?? model7.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
+      opts.sanitizeFilter = model8.db.config?.sanitizeFilter ?? model8.db.options?.sanitizeFilter ?? model8.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
       try {
-        return cast(model7.schema, obj, opts, this);
+        return cast(model8.schema, obj, opts, this);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model7);
+          err.setModel(model8);
         }
         throw err;
       }
@@ -61264,7 +61264,7 @@ var require_aggregationCursor = __commonJS({
       this.agg = agg;
       this._transforms = [];
       const connection = agg._connection;
-      const model7 = agg._model;
+      const model8 = agg._model;
       delete agg.options.cursor.useMongooseAggCursor;
       this._mongooseOptions = {};
       if (connection) {
@@ -61276,14 +61276,14 @@ var require_aggregationCursor = __commonJS({
         this.cursor = connection.db.aggregate(agg._pipeline, options);
         setImmediate(() => this.emit("cursor", this.cursor));
       } else {
-        _init(model7, this, agg);
+        _init(model8, this, agg);
       }
     }
     __name(AggregationCursor, "AggregationCursor");
     util.inherits(AggregationCursor, Readable4);
-    function _init(model7, c, agg) {
+    function _init(model8, c, agg) {
       const preFilter = buildMiddlewareFilter(agg.options, "pre");
-      model7.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model8.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
       function onPreComplete(err) {
         if (err != null) {
           _handlePreHookError(c, err);
@@ -61292,25 +61292,25 @@ var require_aggregationCursor = __commonJS({
         if (typeof agg.options?.cursor?.transform === "function") {
           c._transforms.push(agg.options.cursor.transform);
         }
-        if (model7.collection._shouldBufferCommands() && model7.collection.buffer) {
-          model7.collection.queue.push([
-            () => _getRawCursor(model7, c, agg)
+        if (model8.collection._shouldBufferCommands() && model8.collection.buffer) {
+          model8.collection.queue.push([
+            () => _getRawCursor(model8, c, agg)
           ]);
         } else {
-          _getRawCursor(model7, c, agg);
+          _getRawCursor(model8, c, agg);
         }
       }
       __name(onPreComplete, "onPreComplete");
     }
     __name(_init, "_init");
-    function _getRawCursor(model7, aggregationCursor, agg) {
+    function _getRawCursor(model8, aggregationCursor, agg) {
       try {
         let options = agg.options;
         if (Object.hasOwn(options, "middleware")) {
           const { middleware, ...driverOptions } = options;
           options = driverOptions;
         }
-        const cursor = model7.collection.aggregate(agg._pipeline, options);
+        const cursor = model8.collection.aggregate(agg._pipeline, options);
         aggregationCursor.cursor = cursor;
         aggregationCursor.emit("cursor", cursor);
       } catch (err) {
@@ -61408,7 +61408,7 @@ var require_aggregationCursor = __commonJS({
         throw new MongooseError("AggregationCursor.prototype.next() no longer accepts a callback");
       }
       const _this = this;
-      const model7 = this.agg._model;
+      const model8 = this.agg._model;
       return cursorNextChannel.trace(/* @__PURE__ */ __name(function maybeTracedAggCursorNext() {
         return new Promise((resolve2, reject) => {
           _next(_this, (err, res) => {
@@ -61420,10 +61420,10 @@ var require_aggregationCursor = __commonJS({
         });
       }, "maybeTracedAggCursorNext"), () => ({
         operation: "aggregate",
-        collection: model7?.collection?.name,
-        database: model7?.db?.name,
-        serverAddress: model7?.db?.host,
-        serverPort: model7?.db?.port,
+        collection: model8?.collection?.name,
+        database: model8?.db?.name,
+        serverAddress: model8?.db?.host,
+        serverPort: model8?.db?.port,
         batchSize: _this.agg.options?.cursor?.batchSize,
         tailable: false,
         args: {
@@ -61646,20 +61646,20 @@ var require_aggregate2 = __commonJS({
       }
       return options;
     };
-    Aggregate.prototype.model = function(model7) {
+    Aggregate.prototype.model = function(model8) {
       if (arguments.length === 0) {
         return this._model;
       }
-      this._model = model7;
-      if (model7.schema != null) {
-        if (this.options.readPreference == null && model7.schema.options.read != null) {
-          this.options.readPreference = model7.schema.options.read;
+      this._model = model8;
+      if (model8.schema != null) {
+        if (this.options.readPreference == null && model8.schema.options.read != null) {
+          this.options.readPreference = model8.schema.options.read;
         }
-        if (this.options.collation == null && model7.schema.options.collation != null) {
-          this.options.collation = model7.schema.options.collation;
+        if (this.options.collation == null && model8.schema.options.collation != null) {
+          this.options.collation = model8.schema.options.collation;
         }
       }
-      return model7;
+      return model8;
     };
     Aggregate.prototype.append = function() {
       const args = arguments.length === 1 && Array.isArray(arguments[0]) ? arguments[0] : [...arguments];
@@ -61841,7 +61841,7 @@ var require_aggregate2 = __commonJS({
       if (typeof verbosity === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Aggregate.prototype.explain() no longer accepts a callback");
       }
-      const model7 = this._model;
+      const model8 = this._model;
       if (!this._pipeline.length) {
         throw new MongooseError("Aggregate has empty pipeline");
       }
@@ -61850,11 +61850,11 @@ var require_aggregate2 = __commonJS({
       const postFilter = buildMiddlewareFilter(this.options, "post");
       const { middleware, ...options } = this.options ?? {};
       try {
-        await model7.hooks.execPre("aggregate", this, [], { filter: preFilter });
+        await model8.hooks.execPre("aggregate", this, [], { filter: preFilter });
       } catch (error62) {
-        return await model7.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model8.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      const cursor = await model7.collection.aggregate(this._pipeline, options);
+      const cursor = await model8.collection.aggregate(this._pipeline, options);
       if (verbosity == null) {
         verbosity = true;
       }
@@ -61862,9 +61862,9 @@ var require_aggregate2 = __commonJS({
       try {
         result = await cursor.explain(verbosity);
       } catch (error62) {
-        return await model7.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model8.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      await model7.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
+      await model8.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
       return result;
     }, "explain");
     Aggregate.prototype.allowDiskUse = function(value) {
@@ -61947,10 +61947,10 @@ var require_aggregate2 = __commonJS({
           }
         }));
       }
-      const model7 = this._model;
+      const model8 = this._model;
       const collection = this._model.collection;
-      applyGlobalMaxTimeMS(this.options, model7.db.options, model7.base.options);
-      applyGlobalDiskUse(this.options, model7.db.options, model7.base.options);
+      applyGlobalMaxTimeMS(this.options, model8.db.options, model8.base.options);
+      applyGlobalDiskUse(this.options, model8.db.options, model8.base.options);
       this._optionsForExec();
       if (this.options?.cursor) {
         return new AggregationCursor(this);
@@ -61962,9 +61962,9 @@ var require_aggregate2 = __commonJS({
         const preFilter = buildMiddlewareFilter(_this.options, "pre");
         const postFilter = buildMiddlewareFilter(_this.options, "post");
         try {
-          await model7.hooks.execPre("aggregate", _this, [], { filter: preFilter });
+          await model8.hooks.execPre("aggregate", _this, [], { filter: preFilter });
         } catch (error62) {
-          return await model7.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model8.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
         if (!_this._pipeline.length) {
           throw new MongooseError("Aggregate has empty pipeline");
@@ -61975,16 +61975,16 @@ var require_aggregate2 = __commonJS({
           const cursor = await collection.aggregate(_this._pipeline, options);
           result = await cursor.toArray();
         } catch (error62) {
-          return await model7.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model8.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
-        await model7.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
+        await model8.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
         return result;
       }, "maybeTracedAggregateExec"), () => ({
         operation: "aggregate",
         collection: collection.name,
-        database: model7.db?.name,
-        serverAddress: model7.db?.host,
-        serverPort: model7.db?.port,
+        database: model8.db?.name,
+        serverAddress: model8.db?.host,
+        serverPort: model8.db?.port,
         args: {
           pipeline: _this._pipeline,
           options: _this.options
@@ -62143,7 +62143,7 @@ var require_applyHooks = __commonJS({
       "init"
     ];
     var alreadyHookedFunctions = new Set(applyHooks.middlewareFunctions.flatMap((fn) => [fn, `$__${fn}`]));
-    function applyHooks(model7, schema, options) {
+    function applyHooks(model8, schema, options) {
       options = options || {};
       const kareemOptions = {
         useErrorHandlers: true,
@@ -62151,8 +62151,8 @@ var require_applyHooks = __commonJS({
         nullResultByDefault: true,
         contextParameter: true
       };
-      const objToDecorate = options.decorateDoc ? model7 : model7.prototype;
-      model7.$appliedHooks = true;
+      const objToDecorate = options.decorateDoc ? model8 : model8.prototype;
+      model8.$appliedHooks = true;
       for (const key of Object.keys(schema.paths)) {
         let type = schema.paths[key];
         let childModel = null;
@@ -62182,8 +62182,8 @@ var require_applyHooks = __commonJS({
           }
         }
       }
-      const middleware = schema._getDocumentMiddleware(model7.prototype.$isSubdocument);
-      model7._middleware = middleware;
+      const middleware = schema._getDocumentMiddleware(model8.prototype.$isSubdocument);
+      model8._middleware = middleware;
       const $__init = objToDecorate.$__init;
       if (middleware.hasHooks("init")) {
         objToDecorate.$__init = middleware.createWrapperSync("init", $__init, null, {
@@ -62249,10 +62249,10 @@ var require_applyMethods = __commonJS({
     "use strict";
     var get = require_get();
     var utils = require_utils3();
-    module2.exports = /* @__PURE__ */ __name(function applyMethods(model7, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyMethods(model8, schema) {
       const Model = require_model();
       function apply(method, schema2) {
-        Object.defineProperty(model7.prototype, method, {
+        Object.defineProperty(model8.prototype, method, {
           get: /* @__PURE__ */ __name(function() {
             const h = {};
             for (const k in schema2.methods[method]) {
@@ -62277,12 +62277,12 @@ var require_applyMethods = __commonJS({
           utils.warn(`mongoose: the method name "${method}" is used by mongoose internally, overwriting it may cause bugs. If you're sure you know what you're doing, you can suppress this error by using \`schema.method('${method}', fn, { suppressWarning: true })\`.`);
         }
         if (typeof fn === "function") {
-          model7.prototype[method] = fn;
+          model8.prototype[method] = fn;
         } else {
           apply(method, schema);
         }
       }
-      model7.$appliedMethods = true;
+      model8.$appliedMethods = true;
       for (const key of Object.keys(schema.paths)) {
         const type = schema.paths[key];
         if (type.$isSingleNested && !type.Constructor.$appliedMethods) {
@@ -62425,7 +62425,7 @@ var require_applyStaticHooks = __commonJS({
         ...documentMiddlewareFunctions
       ])
     );
-    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model7, hooks, statics) {
+    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model8, hooks, statics) {
       hooks = hooks.filter((hook) => {
         if (middlewareFunctions.indexOf(hook.name) !== -1) {
           return !!hook.model;
@@ -62434,9 +62434,9 @@ var require_applyStaticHooks = __commonJS({
       });
       for (const key of Object.keys(statics)) {
         if (hooks.hasHooks(key)) {
-          const original = model7[key];
+          const original = model8[key];
           const wrapperOptions = original.supportsMiddlewareOption === true ? { getOptions: middlewareFiltersFromLastArg } : void 0;
-          model7[key] = hooks.createWrapper(key, original, null, wrapperOptions);
+          model8[key] = hooks.createWrapper(key, original, null, wrapperOptions);
         }
       }
     }, "applyStaticHooks");
@@ -62447,9 +62447,9 @@ var require_applyStaticHooks = __commonJS({
 var require_applyStatics = __commonJS({
   "node_modules/mongoose/lib/helpers/model/applyStatics.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function applyStatics(model7, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyStatics(model8, schema) {
       for (const i in schema.statics) {
-        model7[i] = schema.statics[i];
+        model8[i] = schema.statics[i];
       }
     }, "applyStatics");
   }
@@ -63987,11 +63987,11 @@ var require_createPopulateQueryFilter = __commonJS({
     var parentPaths = require_parentPaths();
     var { trusted } = require_trusted();
     var hasDollarKeys = require_hasDollarKeys();
-    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model7, skipInvalidIds) {
+    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model8, skipInvalidIds) {
       const match = _formatMatch(_match);
       if (_foreignField.size === 1) {
         const foreignField = Array.from(_foreignField)[0];
-        const foreignSchemaType = model7.schema.path(foreignField);
+        const foreignSchemaType = model8.schema.path(foreignField);
         if (foreignField !== "_id" || !match["_id"]) {
           ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
           match[foreignField] = trusted({ $in: ids });
@@ -64024,7 +64024,7 @@ var require_createPopulateQueryFilter = __commonJS({
         }
         for (const foreignField of _foreignField) {
           if (foreignField !== "_id" || !match["_id"]) {
-            const foreignSchemaType = model7.schema.path(foreignField);
+            const foreignSchemaType = model8.schema.path(foreignField);
             ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
             $or.push({ [foreignField]: { $in: ids } });
           } else if (foreignField === "_id" && match["_id"]) {
@@ -64101,20 +64101,20 @@ var require_getSchemaTypes = __commonJS({
     var leanPopulateMap = require_leanPopulateMap();
     var mpath = require_mpath();
     var populateModelSymbol = require_symbols().populateModelSymbol;
-    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model7, schema, doc, path3, parts) {
+    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model8, schema, doc, path3, parts) {
       const pathschema = schema.path(path3);
       const topLevelDoc = doc;
       if (pathschema) {
         return pathschema;
       }
       const discriminatorKey = schema.discriminatorMapping?.key;
-      if (discriminatorKey && model7 != null) {
+      if (discriminatorKey && model8 != null) {
         if (doc?.[discriminatorKey] != null) {
-          const discriminator = getDiscriminatorByValue(model7.discriminators, doc[discriminatorKey]);
+          const discriminator = getDiscriminatorByValue(model8.discriminators, doc[discriminatorKey]);
           schema = discriminator?.schema || schema;
-        } else if (model7.discriminators != null) {
-          return Object.keys(model7.discriminators).reduce((arr, name) => {
-            const disc = model7.discriminators[name];
+        } else if (model8.discriminators != null) {
+          return Object.keys(model8.discriminators).reduce((arr, name) => {
+            const disc = model8.discriminators[name];
             return arr.concat(getSchemaTypes(disc, disc.schema, null, path3));
           }, []);
         }
@@ -64226,11 +64226,11 @@ var require_getSchemaTypes = __commonJS({
           }
           const fullPath = nestedPath.concat([trypath]).join(".");
           if (topLevelDoc?.$__ && topLevelDoc.$populated(fullPath, true) && p < parts2.length) {
-            const model8 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
-            if (model8 != null) {
+            const model9 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
+            if (model9 != null) {
               const ret = search(
                 parts2.slice(p),
-                model8.schema,
+                model9.schema,
                 subdoc ? mpath.get(trypath, subdoc) : null,
                 nestedPath.concat(parts2.slice(0, p))
               );
@@ -64239,8 +64239,8 @@ var require_getSchemaTypes = __commonJS({
           }
           const _val = get(topLevelDoc, trypath);
           if (_val != null) {
-            const model8 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
-            const schema3 = model8?.schema ?? null;
+            const model9 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
+            const schema3 = model9?.schema ?? null;
             if (schema3 != null) {
               const ret = search(
                 parts2.slice(p),
@@ -64293,7 +64293,7 @@ var require_getModelsMapForPopulate = __commonJS({
     var numericPathSegmentPattern = "\\.\\d+(?=\\.|$)";
     var hasNumericPathSegmentRE = new RegExp(numericPathSegmentPattern);
     var numericPathSegmentRE = new RegExp(numericPathSegmentPattern, "g");
-    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model7, docs, options) {
+    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model8, docs, options) {
       let doc;
       const len = docs.length;
       const map2 = [];
@@ -64303,17 +64303,17 @@ var require_getModelsMapForPopulate = __commonJS({
       let modelNames;
       let modelNamesSet;
       const available = {};
-      const modelSchema = model7.schema;
+      const modelSchema = model8.schema;
       if (options._localModel != null && options._localModel.schema.nested[options.path]) {
         return [];
       }
-      const _virtualRes = getVirtual(model7.schema, options.path);
+      const _virtualRes = getVirtual(model8.schema, options.path);
       const virtual = _virtualRes == null ? null : _virtualRes.virtual;
       if (virtual != null) {
-        return _virtualPopulate(model7, docs, options, _virtualRes);
+        return _virtualPopulate(model8, docs, options, _virtualRes);
       }
       const parts = modelSchema.paths[options.path]?.splitPath() ?? options.path.split(".");
-      let allSchemaTypes = getSchemaTypes(model7, modelSchema, null, options.path, parts);
+      let allSchemaTypes = getSchemaTypes(model8, modelSchema, null, options.path, parts);
       allSchemaTypes = Array.isArray(allSchemaTypes) ? allSchemaTypes : [allSchemaTypes].filter((v) => v != null);
       const isStrictPopulateDisabled = options.strictPopulate === false || options.options?.strictPopulate === false;
       if (!isStrictPopulateDisabled && allSchemaTypes.length === 0 && options._localModel != null) {
@@ -64329,7 +64329,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         }
         const docSchema = doc?.$__ != null ? doc.$__schema : modelSchema;
-        schema = getSchemaTypes(model7, docSchema, doc, options.path, parts);
+        schema = getSchemaTypes(model8, docSchema, doc, options.path, parts);
         if (schema != null && schema.$isMongooseDocumentArray && schema.options.ref == null && schema.options.refPath == null) {
           continue;
         }
@@ -64349,10 +64349,10 @@ var require_getModelsMapForPopulate = __commonJS({
               foreignField: "_id",
               justOne: true
             };
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model7);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model8);
             const unpopulatedValue = mpath.get(options.path, doc);
             const id2 = mpath.get("_id", unpopulatedValue);
-            addModelNamesToMap(model7, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
+            addModelNamesToMap(model8, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
           }
           continue;
         }
@@ -64362,7 +64362,7 @@ var require_getModelsMapForPopulate = __commonJS({
             let _modelNames;
             let res;
             try {
-              res = _getModelNames(doc, _schema, modelNameFromQuery, model7);
+              res = _getModelNames(doc, _schema, modelNameFromQuery, model8);
               _modelNames = res.modelNames;
               isRefPath = isRefPath || res.isRefPath;
               normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64387,7 +64387,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         } else {
           try {
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model7);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model8);
             modelNames = res.modelNames;
             isRefPath = res.isRefPath;
             normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64421,7 +64421,7 @@ var require_getModelsMapForPopulate = __commonJS({
         data.justOne = justOne;
         data.localField = localField;
         data.foreignField = foreignField;
-        const ret = _getLocalFieldValues(doc, localField, model7, options, null, schema);
+        const ret = _getLocalFieldValues(doc, localField, model8, options, null, schema);
         const id = String(utils.getValue(foreignField, doc));
         options._docs[id] = Array.isArray(ret) ? ret.slice() : ret;
         let match = get(options, "match", null);
@@ -64447,13 +64447,13 @@ var require_getModelsMapForPopulate = __commonJS({
           modelNames = embeddedDiscriminatorModelNames || modelNames;
         }
         try {
-          addModelNamesToMap(model7, map2, available, modelNames, options, data, ret, doc, schemaOptions);
+          addModelNamesToMap(model8, map2, available, modelNames, options, data, ret, doc, schemaOptions);
         } catch (err) {
           return err;
         }
       }
       return map2;
-      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model8) {
+      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model9) {
         let modelNames2;
         let isRefPath = false;
         let justOne = null;
@@ -64485,15 +64485,15 @@ var require_getModelsMapForPopulate = __commonJS({
           let refPath2;
           let schemaForCurrentDoc;
           let discriminatorValue;
-          let modelForCurrentDoc = model8;
-          const discriminatorKey = model8.schema.options.discriminatorKey;
+          let modelForCurrentDoc = model9;
+          const discriminatorKey = model9.schema.options.discriminatorKey;
           if (!schemaType && discriminatorKey && (discriminatorValue = utils.getValue(discriminatorKey, doc2))) {
-            const discriminatorModel = getDiscriminatorByValue(model8.discriminators, discriminatorValue) || model8;
+            const discriminatorModel = getDiscriminatorByValue(model9.discriminators, discriminatorValue) || model9;
             if (discriminatorModel != null) {
               modelForCurrentDoc = discriminatorModel;
             } else {
               try {
-                modelForCurrentDoc = _getModelFromConn(model8.db, discriminatorValue);
+                modelForCurrentDoc = _getModelFromConn(model9.db, discriminatorValue);
               } catch (error62) {
                 return error62;
               }
@@ -64541,7 +64541,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         if (!modelNames2) {
           if (options._localModel == null) {
-            modelNames2 = [model8.modelName];
+            modelNames2 = [model9.modelName];
           } else {
             return { modelNames: modelNames2, justOne, isRefPath, refPath };
           }
@@ -64632,7 +64632,7 @@ var require_getModelsMapForPopulate = __commonJS({
       }
     }
     __name(_getModelNamesFromRefPath, "_getModelNamesFromRefPath");
-    function _virtualPopulate(model7, docs, options, _virtualRes) {
+    function _virtualPopulate(model8, docs, options, _virtualRes) {
       const map2 = [];
       const available = {};
       const virtual = _virtualRes.virtual;
@@ -64662,7 +64662,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         let foreignField = virtual.options.foreignField;
         if (!localField || !foreignField) {
-          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model7.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
+          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model8.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
         }
         if (typeof localField === "function") {
           localField = localField.call(doc, doc);
@@ -64699,7 +64699,7 @@ var require_getModelsMapForPopulate = __commonJS({
         if (Array.isArray(localField) && Array.isArray(foreignField) && localField.length === foreignField.length) {
           match = Object.assign({}, match);
           for (let i = 1; i < localField.length; ++i) {
-            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model7.schema);
+            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model8.schema);
             hasMatchFunction = true;
           }
           localField = localField[0];
@@ -64710,9 +64710,9 @@ var require_getModelsMapForPopulate = __commonJS({
         data.match = match;
         data.hasMatchFunction = hasMatchFunction;
         throwOn$where(match);
-        const ret = _getLocalFieldValues(doc, localField, model7, options, virtual);
+        const ret = _getLocalFieldValues(doc, localField, model8, options, virtual);
         try {
-          addModelNamesToMap(model7, map2, available, modelNames, options, data, ret, doc);
+          addModelNamesToMap(model8, map2, available, modelNames, options, data, ret, doc);
         } catch (err) {
           return err;
         }
@@ -64720,8 +64720,8 @@ var require_getModelsMapForPopulate = __commonJS({
       return map2;
     }
     __name(_virtualPopulate, "_virtualPopulate");
-    function addModelNamesToMap(model7, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
-      const connection = options.connection ?? model7.db;
+    function addModelNamesToMap(model8, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
+      const connection = options.connection ?? model8.db;
       unpopulatedValue = unpopulatedValue === void 0 ? ret : unpopulatedValue;
       if (Array.isArray(unpopulatedValue)) {
         unpopulatedValue = utils.cloneArrays(unpopulatedValue);
@@ -64826,15 +64826,15 @@ var require_getModelsMapForPopulate = __commonJS({
       return ref;
     }
     __name(handleRefFunction, "handleRefFunction");
-    function _getLocalFieldValues(doc, localField, model7, options, virtual, schema) {
-      const localFieldPathType = model7.schema._getPathType(localField);
-      const localFieldPath = localFieldPathType === "real" ? model7.schema.path(localField) : localFieldPathType.schema;
+    function _getLocalFieldValues(doc, localField, model8, options, virtual, schema) {
+      const localFieldPathType = model8.schema._getPathType(localField);
+      const localFieldPath = localFieldPathType === "real" ? model8.schema.path(localField) : localFieldPathType.schema;
       const localFieldGetters = localFieldPath?.getters || [];
       localField = localFieldPath?.instance === "Embedded" ? localField + "._id" : localField;
       const _populateOptions = get(options, "options", {});
       const getters = "getters" in _populateOptions ? _populateOptions.getters : get(virtual, "options.getters", false);
       if (localFieldGetters.length !== 0 && getters) {
-        const hydratedDoc = doc.$__ != null ? doc : model7.hydrate(doc);
+        const hydratedDoc = doc.$__ != null ? doc : model8.hydrate(doc);
         const localFieldValue = utils.getValue(localField, doc);
         if (Array.isArray(localFieldValue)) {
           const localFieldHydratedValue = utils.getValue(localField.split(".").slice(0, -1), hydratedDoc);
@@ -65053,19 +65053,19 @@ var require_getRelatedIndexes = __commonJS({
   "node_modules/mongoose/lib/helpers/indexes/getRelatedIndexes.js"(exports2, module2) {
     "use strict";
     var hasDollarKeys = require_hasDollarKeys();
-    function getRelatedSchemaIndexes(model7, schemaIndexes) {
+    function getRelatedSchemaIndexes(model8, schemaIndexes) {
       return getRelatedIndexes({
-        baseModelName: model7.baseModelName,
-        discriminatorMapping: model7.schema.discriminatorMapping,
+        baseModelName: model8.baseModelName,
+        discriminatorMapping: model8.schema.discriminatorMapping,
         indexes: schemaIndexes,
         indexesType: "schema"
       });
     }
     __name(getRelatedSchemaIndexes, "getRelatedSchemaIndexes");
-    function getRelatedDBIndexes(model7, dbIndexes) {
+    function getRelatedDBIndexes(model8, dbIndexes) {
       return getRelatedIndexes({
-        baseModelName: model7.baseModelName,
-        discriminatorMapping: model7.schema.discriminatorMapping,
+        baseModelName: model8.baseModelName,
+        discriminatorMapping: model8.schema.discriminatorMapping,
         indexes: dbIndexes,
         indexesType: "db"
       });
@@ -65273,7 +65273,7 @@ var require_model = __commonJS({
     var OverwriteModelError = require_overwriteModel();
     var Query = require_query();
     var SaveOptions = require_saveOptions();
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var ValidationError = require_validation();
     var VersionError = require_version();
     var ParallelSaveError = require_parallelSave();
@@ -65346,7 +65346,7 @@ var require_model = __commonJS({
       bson: true
     });
     function Model(doc, fields, options) {
-      if (fields instanceof Schema7) {
+      if (fields instanceof Schema8) {
         throw new TypeError("2nd argument to `Model` constructor must be a POJO or string, **not** a schema. Make sure you're calling `mongoose.model()`, not `mongoose.Model()`.");
       }
       if (typeof doc === "string") {
@@ -65758,11 +65758,11 @@ var require_model = __commonJS({
       return query;
     }, "exists");
     Model.discriminator = function(name, schema, options) {
-      let model7;
+      let model8;
       if (typeof name === "function") {
-        model7 = name;
-        name = utils.getFunctionName(model7);
-        if (!(model7.prototype instanceof Model)) {
+        model8 = name;
+        name = utils.getFunctionName(model8);
+        if (!(model8.prototype instanceof Model)) {
           throw new MongooseError("The provided class " + name + " must extend Model");
         }
       }
@@ -65773,9 +65773,9 @@ var require_model = __commonJS({
       const overwriteModels = typeof options.overwriteModels === "boolean" ? options.overwriteModels : false;
       _checkContext(this, "discriminator");
       if (utils.isObject(schema) && !schema.instanceOfSchema) {
-        schema = new Schema7(schema);
+        schema = new Schema8(schema);
       }
-      if (schema instanceof Schema7 && clone3) {
+      if (schema instanceof Schema8 && clone3) {
         schema = schema.clone();
       }
       schema = discriminator(this, name, schema, value, mergePlugins, options.mergeHooks, overwriteModels);
@@ -65784,8 +65784,8 @@ var require_model = __commonJS({
       }
       schema.$isRootDiscriminator = true;
       schema.$globalPluginsApplied = true;
-      model7 = this.db.model(model7 || name, schema, this.$__collection.name);
-      this.discriminators[name] = model7;
+      model8 = this.db.model(model8 || name, schema, this.$__collection.name);
+      this.discriminators[name] = model8;
       const d = this.discriminators[name];
       Object.setPrototypeOf(d.prototype, this.prototype);
       Object.defineProperty(d, "baseModelName", {
@@ -65798,7 +65798,7 @@ var require_model = __commonJS({
       if (this[subclassedSymbol] != null) {
         for (const submodel of this[subclassedSymbol]) {
           submodel.discriminators = submodel.discriminators || {};
-          submodel.discriminators[name] = model7.__subclass(model7.db, schema, submodel.collection.name);
+          submodel.discriminators[name] = model8.__subclass(model8.db, schema, submodel.collection.name);
         }
       }
       return d;
@@ -65982,8 +65982,8 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.syncIndexes() no longer accepts a callback");
       }
-      const model7 = this;
-      let dbIndexes = await model7.listIndexes().catch((err) => {
+      const model8 = this;
+      let dbIndexes = await model8.listIndexes().catch((err) => {
         if (err.codeName == "NamespaceNotFound") {
           return void 0;
         }
@@ -65992,9 +65992,9 @@ var require_model = __commonJS({
       if (dbIndexes === void 0) {
         dbIndexes = [];
       }
-      dbIndexes = getRelatedDBIndexes(model7, dbIndexes);
-      const schema = model7.schema;
-      const schemaIndexes = getRelatedSchemaIndexes(model7, schema.indexes());
+      dbIndexes = getRelatedDBIndexes(model8, dbIndexes);
+      const schema = model8.schema;
+      const schemaIndexes = getRelatedSchemaIndexes(model8, schema.indexes());
       const toDrop = getIndexesToDrop(schema, schemaIndexes, dbIndexes);
       const toCreate = getIndexesToCreate(schema, schemaIndexes, dbIndexes, toDrop, options);
       return { toDrop, toCreate };
@@ -66056,22 +66056,22 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.cleanIndexes() no longer accepts a callback");
       }
-      const model7 = this;
+      const model8 = this;
       if (Array.isArray(options?.toDrop)) {
-        const res2 = await _dropIndexes(options.toDrop, model7, options);
+        const res2 = await _dropIndexes(options.toDrop, model8, options);
         return res2;
       }
-      const res = await model7.diffIndexes();
-      return await _dropIndexes(res.toDrop, model7, options);
+      const res = await model8.diffIndexes();
+      return await _dropIndexes(res.toDrop, model8, options);
     }, "cleanIndexes");
-    async function _dropIndexes(toDrop, model7, options) {
+    async function _dropIndexes(toDrop, model8, options) {
       if (toDrop.length === 0) {
         return [];
       }
-      const collection = model7.$__collection;
+      const collection = model8.$__collection;
       if (options?.hideIndexes) {
         await Promise.all(toDrop.map((indexName) => {
-          return model7.db.db.command({
+          return model8.db.db.command({
             collMod: collection.collectionName,
             index: { name: indexName, hidden: true }
           });
@@ -66115,20 +66115,20 @@ var require_model = __commonJS({
       }
       return this.ensureIndexes(options);
     }, "createIndexes");
-    function _ensureIndexes(model7, options, callback) {
-      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model7.schema.indexes();
+    function _ensureIndexes(model8, options, callback) {
+      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model8.schema.indexes();
       let indexError;
       options = options || {};
       const done = /* @__PURE__ */ __name(function(err) {
-        if (err && !model7.$caught) {
-          model7.emit("error", err);
+        if (err && !model8.$caught) {
+          model8.emit("error", err);
         }
-        model7.emit("index", err || indexError);
+        model8.emit("index", err || indexError);
         callback && callback(err || indexError);
       }, "done");
       for (const index of indexes) {
         if (isDefaultIdIndex(index)) {
-          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model7.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
+          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model8.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
         }
       }
       const seenIndexes = [];
@@ -66138,7 +66138,7 @@ var require_model = __commonJS({
         if (indexOptions.name == null) {
           for (const existingIndex of seenIndexes) {
             if (existingIndex[1].name == null && isIndexSpecEqual(existingIndex[0], fields)) {
-              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model7.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
+              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model8.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
               break;
             }
           }
@@ -66152,23 +66152,23 @@ var require_model = __commonJS({
         return;
       }
       const indexSingleDone = /* @__PURE__ */ __name(function(err, fields, options2, name) {
-        model7.emit("index-single-done", err, fields, options2, name);
+        model8.emit("index-single-done", err, fields, options2, name);
       }, "indexSingleDone");
       const indexSingleStart = /* @__PURE__ */ __name(function(fields, options2) {
-        model7.emit("index-single-start", fields, options2);
+        model8.emit("index-single-start", fields, options2);
       }, "indexSingleStart");
-      const baseSchema = model7.schema._baseSchema;
+      const baseSchema = model8.schema._baseSchema;
       const baseSchemaIndexes = baseSchema ? baseSchema.indexes() : [];
       immediate(function() {
-        if (options._automatic && !model7.collection.collection) {
-          model7.collection.addQueue(create, []);
+        if (options._automatic && !model8.collection.collection) {
+          model8.collection.addQueue(create, []);
         } else {
           create();
         }
       });
       function create() {
         if (options._automatic) {
-          if (model7.schema.options.autoIndex === false || model7.schema.options.autoIndex == null && model7.db.config.autoIndex === false) {
+          if (model8.schema.options.autoIndex === false || model8.schema.options.autoIndex == null && model8.db.config.autoIndex === false) {
             return done();
           }
         }
@@ -66185,19 +66185,19 @@ var require_model = __commonJS({
         const indexFields = clone2(index[0]);
         const indexOptions = clone2(index[1]);
         delete indexOptions._autoIndex;
-        decorateDiscriminatorIndexOptions(model7.schema, indexOptions);
-        applyWriteConcern(model7.schema, indexOptions);
-        applySchemaCollation(indexFields, indexOptions, model7.schema.options);
+        decorateDiscriminatorIndexOptions(model8.schema, indexOptions);
+        applyWriteConcern(model8.schema, indexOptions);
+        applySchemaCollation(indexFields, indexOptions, model8.schema.options);
         indexSingleStart(indexFields, options);
         let promise2 = null;
         try {
-          promise2 = model7.collection.createIndex(indexFields, indexOptions);
+          promise2 = model8.collection.createIndex(indexFields, indexOptions);
         } catch (err) {
           if (!indexError) {
             indexError = err;
           }
-          if (!model7.$caught) {
-            model7.emit("error", err);
+          if (!model8.$caught) {
+            model8.emit("error", err);
           }
           indexSingleDone(err, indexFields, indexOptions);
           create();
@@ -66212,8 +66212,8 @@ var require_model = __commonJS({
             if (!indexError) {
               indexError = err;
             }
-            if (!model7.$caught) {
-              model7.emit("error", err);
+            if (!model8.$caught) {
+              model8.emit("error", err);
             }
             indexSingleDone(err, indexFields, indexOptions);
             create();
@@ -67269,15 +67269,15 @@ var require_model = __commonJS({
       }
       return _update(this, "replaceOne", conditions, doc, options);
     }, "replaceOne");
-    function _update(model7, op, conditions, doc, options) {
-      const mq = new model7.Query({}, {}, model7, model7.collection);
+    function _update(model8, op, conditions, doc, options) {
+      const mq = new model8.Query({}, {}, model8, model8.collection);
       if (conditions instanceof Document5) {
         conditions = conditions.toObject();
       } else {
         conditions = clone2(conditions);
       }
       options = typeof options === "function" ? options : clone2(options);
-      const versionKey = model7?.schema?.options?.versionKey ?? null;
+      const versionKey = model8?.schema?.options?.versionKey ?? null;
       decorateUpdateWithVersionKey(doc, options, versionKey);
       return mq[op](conditions, doc, options);
     }
@@ -67409,14 +67409,14 @@ var require_model = __commonJS({
     }, "populate");
     var excludeIdReg = /\s?-_id\s?/;
     var excludeIdRegGlobal = /\s?-_id\s?/g;
-    async function _populatePath(model7, docs, populateOptions) {
+    async function _populatePath(model8, docs, populateOptions) {
       if (populateOptions.strictPopulate == null) {
         if (populateOptions._localModel?.schema._userProvidedOptions.strictPopulate != null) {
           populateOptions.strictPopulate = populateOptions._localModel.schema._userProvidedOptions.strictPopulate;
-        } else if (populateOptions._localModel != null && model7.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model7.base.options.strictPopulate;
-        } else if (model7.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model7.base.options.strictPopulate;
+        } else if (populateOptions._localModel != null && model8.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model8.base.options.strictPopulate;
+        } else if (model8.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model8.base.options.strictPopulate;
         }
       }
       if (!Array.isArray(docs)) {
@@ -67425,7 +67425,7 @@ var require_model = __commonJS({
       if (docs.length === 0 || docs.every(utils.isNullOrUndefined)) {
         return;
       }
-      const modelsMap = getModelsMapForPopulate(model7, docs, populateOptions);
+      const modelsMap = getModelsMapForPopulate(model8, docs, populateOptions);
       if (modelsMap instanceof MongooseError) {
         throw modelsMap;
       }
@@ -67450,7 +67450,7 @@ var require_model = __commonJS({
           mod3.options.options.lean = true;
         }
         if (ids.length === 0 || ids.every(utils.isNullOrUndefined)) {
-          _assign(model7, [], mod3, assignmentOpts);
+          _assign(model8, [], mod3, assignmentOpts);
           continue;
         }
         hasOne = true;
@@ -67489,7 +67489,7 @@ var require_model = __commonJS({
           const opts = utils.populate(populateOptions.populate).map((pop) => Object.assign({}, pop, {
             path: populateOptions.path + "." + pop.path
           }));
-          return model7.populate(docs, opts);
+          return model8.populate(docs, opts);
         }
         return;
       }
@@ -67532,7 +67532,7 @@ var require_model = __commonJS({
         for (const val of valsForMod) {
           mod3.options._childDocs.push(val);
         }
-        _assign(model7, valsForMod, mod3, assignmentOpts);
+        _assign(model8, valsForMod, mod3, assignmentOpts);
       }
       if (deferredPopulatesPerParam.size > 0) {
         for (let i = 0; i < params.length; i++) {
@@ -67664,7 +67664,7 @@ var require_model = __commonJS({
       );
     }
     __name(_execPopulateQuery, "_execPopulateQuery");
-    function _assign(model7, vals, mod3, assignmentOpts) {
+    function _assign(model8, vals, mod3, assignmentOpts) {
       const options = mod3.options;
       const isVirtual = mod3.isVirtual;
       const justOne = mod3.justOne;
@@ -67732,7 +67732,7 @@ var require_model = __commonJS({
         }
       }
       assignVals({
-        originalModel: model7,
+        originalModel: model8,
         // If virtual, make sure to not mutate original field
         rawIds: mod3.isVirtual ? allIds : mod3.allIds,
         allIds,
@@ -67761,52 +67761,52 @@ var require_model = __commonJS({
         o[schema.options.versionKey] = Number;
         schema.add(o);
       }
-      let model7;
+      let model8;
       if (typeof name === "function" && name.prototype instanceof Model) {
-        model7 = name;
-        name = model7.name;
-        schema.loadClass(model7, false);
-        model7.prototype.$isMongooseModelPrototype = true;
+        model8 = name;
+        name = model8.name;
+        schema.loadClass(model8, false);
+        model8.prototype.$isMongooseModelPrototype = true;
       } else {
-        model7 = /* @__PURE__ */ __name(function model8(doc, fields, skipId) {
-          model8.hooks.execPreSync("createModel", doc);
-          if (!(this instanceof model8)) {
-            return new model8(doc, fields, skipId);
+        model8 = /* @__PURE__ */ __name(function model9(doc, fields, skipId) {
+          model9.hooks.execPreSync("createModel", doc);
+          if (!(this instanceof model9)) {
+            return new model9(doc, fields, skipId);
           }
-          const discriminatorKey = model8.schema.options.discriminatorKey;
-          if (model8.discriminators == null || doc == null || doc[discriminatorKey] == null) {
+          const discriminatorKey = model9.schema.options.discriminatorKey;
+          if (model9.discriminators == null || doc == null || doc[discriminatorKey] == null) {
             Model.call(this, doc, fields, skipId);
             return;
           }
-          const Discriminator = getDiscriminatorByKey(model8.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model8.discriminators, doc[discriminatorKey]);
+          const Discriminator = getDiscriminatorByKey(model9.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model9.discriminators, doc[discriminatorKey]);
           if (Discriminator != null) {
             return new Discriminator(doc, fields, skipId);
           }
           Model.call(this, doc, fields, skipId);
         }, "model");
       }
-      model7.hooks = schema.s.hooks.clone();
-      model7.base = base;
-      model7.modelName = name;
-      if (!(model7.prototype instanceof Model)) {
-        Object.setPrototypeOf(model7, Model);
-        Object.setPrototypeOf(model7.prototype, Model.prototype);
+      model8.hooks = schema.s.hooks.clone();
+      model8.base = base;
+      model8.modelName = name;
+      if (!(model8.prototype instanceof Model)) {
+        Object.setPrototypeOf(model8, Model);
+        Object.setPrototypeOf(model8.prototype, Model.prototype);
       }
-      model7.model = /* @__PURE__ */ __name(function model8(name2) {
+      model8.model = /* @__PURE__ */ __name(function model9(name2) {
         return this.db.model(name2);
       }, "model");
-      model7.db = connection;
-      model7.prototype.db = connection;
-      model7.prototype[modelDbSymbol] = connection;
-      model7.discriminators = model7.prototype.discriminators = void 0;
-      model7[modelSymbol] = true;
-      model7.events = new EventEmitter9();
+      model8.db = connection;
+      model8.prototype.db = connection;
+      model8.prototype[modelDbSymbol] = connection;
+      model8.discriminators = model8.prototype.discriminators = void 0;
+      model8[modelSymbol] = true;
+      model8.events = new EventEmitter9();
       schema._preCompile();
       const _userProvidedOptions = schema._userProvidedOptions || {};
       const collectionOptions = {
         schemaUserProvidedOptions: _userProvidedOptions,
         capped: schema.options.capped,
-        Promise: model7.base.Promise,
+        Promise: model8.base.Promise,
         modelName: name
       };
       if (schema.options.autoCreate !== void 0) {
@@ -67816,26 +67816,26 @@ var require_model = __commonJS({
         collectionName,
         collectionOptions
       );
-      model7.prototype.collection = collection;
-      model7.prototype.$collection = collection;
-      model7.prototype[modelCollectionSymbol] = collection;
-      model7.prototype.$__setSchema(schema);
-      applyMethods(model7, schema);
-      applyStatics(model7, schema);
-      applyHooks(model7, schema);
-      applyStaticHooks(model7, schema.s.hooks, schema.statics);
-      model7.schema = model7.prototype.$__schema;
-      model7.collection = collection;
-      model7.$__collection = collection;
-      model7.Query = function() {
+      model8.prototype.collection = collection;
+      model8.prototype.$collection = collection;
+      model8.prototype[modelCollectionSymbol] = collection;
+      model8.prototype.$__setSchema(schema);
+      applyMethods(model8, schema);
+      applyStatics(model8, schema);
+      applyHooks(model8, schema);
+      applyStaticHooks(model8, schema.s.hooks, schema.statics);
+      model8.schema = model8.prototype.$__schema;
+      model8.collection = collection;
+      model8.$__collection = collection;
+      model8.Query = function() {
         Query.apply(this, arguments);
       };
-      Object.setPrototypeOf(model7.Query.prototype, Query.prototype);
-      model7.Query.base = Query.base;
-      model7.Query.prototype.constructor = Query;
-      model7._applyQueryMiddleware();
-      applyQueryMethods(model7, schema.query);
-      return model7;
+      Object.setPrototypeOf(model8.Query.prototype, Query.prototype);
+      model8.Query.base = Query.base;
+      model8.Query.prototype.constructor = Query;
+      model8._applyQueryMiddleware();
+      applyQueryMethods(model8, schema.query);
+      return model8;
     }, "compile");
     Model.clientEncryption = /* @__PURE__ */ __name(function clientEncryption() {
       const ClientEncryption = this.base.driver.get().ClientEncryption;
@@ -67873,9 +67873,9 @@ var require_model = __commonJS({
       this.collection = collection;
       this.$__collection = collection;
     }, "$__updateConnection");
-    function applyQueryMethods(model7, methods2) {
+    function applyQueryMethods(model8, methods2) {
       for (const i in methods2) {
-        model7.Query.prototype[i] = methods2[i];
+        model8.Query.prototype[i] = methods2[i];
       }
     }
     __name(applyQueryMethods, "applyQueryMethods");
@@ -68149,7 +68149,7 @@ var require_mongoose = __commonJS({
     var Document5 = require_document2();
     var EventEmitter9 = require("events").EventEmitter;
     var Kareem = require_kareem();
-    var Schema7 = require_schema2();
+    var Schema8 = require_schema2();
     var SchemaType = require_schemaType();
     var SchemaTypes = require_schema();
     var VirtualType = require_virtualType();
@@ -68200,12 +68200,12 @@ var require_mongoose = __commonJS({
         const _this = this;
         this.Schema = function() {
           this.base = _this;
-          return Schema7.apply(this, arguments);
+          return Schema8.apply(this, arguments);
         };
-        this.Schema.prototype = Object.create(Schema7.prototype);
-        Object.assign(this.Schema, Schema7);
+        this.Schema.prototype = Object.create(Schema8.prototype);
+        Object.assign(this.Schema, Schema8);
         this.Schema.base = this;
-        this.Schema.Types = Object.assign({}, Schema7.Types);
+        this.Schema.Types = Object.assign({}, Schema8.Types);
       } else {
         for (const key of ["Schema", "model"]) {
           this[key] = Mongoose.prototype[key];
@@ -68255,11 +68255,11 @@ var require_mongoose = __commonJS({
       if (oldDefaultConnection == null) {
         return _mongoose;
       }
-      for (const model7 of Object.values(_mongoose.models)) {
-        if (model7.db !== oldDefaultConnection) {
+      for (const model8 of Object.values(_mongoose.models)) {
+        if (model8.db !== oldDefaultConnection) {
           continue;
         }
-        model7.$__updateConnection(_mongoose.connections[0]);
+        model8.$__updateConnection(_mongoose.connections[0]);
       }
       return _mongoose;
     }, "setDriver");
@@ -68390,23 +68390,23 @@ var require_mongoose = __commonJS({
       }
       return _mongoose._pluralize;
     }, "pluralize");
-    Mongoose.prototype.model = /* @__PURE__ */ __name(function model7(name, schema, collection, options) {
+    Mongoose.prototype.model = /* @__PURE__ */ __name(function model8(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
       if (typeof schema === "string") {
         collection = schema;
         schema = false;
       }
       if (arguments.length === 1) {
-        const model9 = _mongoose.models[name];
-        if (!model9) {
+        const model10 = _mongoose.models[name];
+        if (!model10) {
           throw new _mongoose.Error.MissingSchemaError(name);
         }
-        return model9;
+        return model10;
       }
-      if (utils.isObject(schema) && !(schema instanceof Schema7)) {
-        schema = new Schema7(schema);
+      if (utils.isObject(schema) && !(schema instanceof Schema8)) {
+        schema = new Schema8(schema);
       }
-      if (schema && !(schema instanceof Schema7)) {
+      if (schema && !(schema instanceof Schema8)) {
         throw new _mongoose.Error("The 2nd parameter to `mongoose.model()` should be a schema or a POJO");
       }
       options = options || {};
@@ -68423,9 +68423,9 @@ var require_mongoose = __commonJS({
           throw new _mongoose.Error.OverwriteModelError(name);
         }
         if (collection && collection !== _mongoose.models[name].collection.name) {
-          const model9 = _mongoose.models[name];
-          schema = model9.prototype.schema;
-          const sub = model9.__subclass(_mongoose.connection, schema, collection);
+          const model10 = _mongoose.models[name];
+          schema = model10.prototype.schema;
+          const sub = model10.__subclass(_mongoose.connection, schema, collection);
           return sub;
         }
         return _mongoose.models[name];
@@ -68433,18 +68433,18 @@ var require_mongoose = __commonJS({
       if (schema == null) {
         throw new _mongoose.Error.MissingSchemaError(name);
       }
-      const model8 = _mongoose._model(name, schema, collection, options);
-      _mongoose.connection.models[name] = model8;
-      _mongoose.models[name] = model8;
-      return model8;
+      const model9 = _mongoose._model(name, schema, collection, options);
+      _mongoose.connection.models[name] = model9;
+      _mongoose.models[name] = model9;
+      return model9;
     }, "model");
     Mongoose.prototype._model = /* @__PURE__ */ __name(function _model(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
-      let model7;
+      let model8;
       if (typeof name === "function") {
-        model7 = name;
-        name = model7.name;
-        if (!(model7.prototype instanceof Model)) {
+        model8 = name;
+        name = model8.name;
+        if (!(model8.prototype instanceof Model)) {
           throw new _mongoose.Error("The provided class " + name + " must extend Model");
         }
       }
@@ -68462,20 +68462,20 @@ var require_mongoose = __commonJS({
       }
       applyEmbeddedDiscriminators(schema);
       const connection = options.connection || _mongoose.connection;
-      model7 = _mongoose.Model.compile(model7 || name, schema, collection, connection, _mongoose);
-      model7.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      model8 = _mongoose.Model.compile(model8 || name, schema, collection, connection, _mongoose);
+      model8.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
       }, "$modelInitNoop"));
-      connection.emit("model", model7);
+      connection.emit("model", model8);
       if (schema._applyDiscriminators != null) {
         for (const disc of schema._applyDiscriminators.keys()) {
           const {
             schema: discriminatorSchema,
             options: options2
           } = schema._applyDiscriminators.get(disc);
-          model7.discriminator(disc, discriminatorSchema, options2);
+          model8.discriminator(disc, discriminatorSchema, options2);
         }
       }
-      return model7;
+      return model8;
     }, "_model");
     Mongoose.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
@@ -68535,9 +68535,9 @@ var require_mongoose = __commonJS({
     Mongoose.prototype.BaseConnection = require_connection2();
     Mongoose.prototype.version = pkg.version;
     Mongoose.prototype.Mongoose = Mongoose;
-    Mongoose.prototype.Schema = Schema7;
+    Mongoose.prototype.Schema = Schema8;
     Mongoose.prototype.SchemaType = SchemaType;
-    Mongoose.prototype.SchemaTypes = Schema7.Types;
+    Mongoose.prototype.SchemaTypes = Schema8.Types;
     Mongoose.prototype.VirtualType = VirtualType;
     Mongoose.prototype.Types = Types;
     Mongoose.prototype.Query = Query;
@@ -90244,23 +90244,23 @@ var require_message = __commonJS({
       MessageReferenceType3[MessageReferenceType3["Default"] = 0] = "Default";
       MessageReferenceType3[MessageReferenceType3["Forward"] = 1] = "Forward";
     })(MessageReferenceType2 || (exports2.MessageReferenceType = MessageReferenceType2 = {}));
-    var MessageFlags31;
-    (function(MessageFlags32) {
-      MessageFlags32[MessageFlags32["Crossposted"] = 1] = "Crossposted";
-      MessageFlags32[MessageFlags32["IsCrosspost"] = 2] = "IsCrosspost";
-      MessageFlags32[MessageFlags32["SuppressEmbeds"] = 4] = "SuppressEmbeds";
-      MessageFlags32[MessageFlags32["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
-      MessageFlags32[MessageFlags32["Urgent"] = 16] = "Urgent";
-      MessageFlags32[MessageFlags32["HasThread"] = 32] = "HasThread";
-      MessageFlags32[MessageFlags32["Ephemeral"] = 64] = "Ephemeral";
-      MessageFlags32[MessageFlags32["Loading"] = 128] = "Loading";
-      MessageFlags32[MessageFlags32["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
-      MessageFlags32[MessageFlags32["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
-      MessageFlags32[MessageFlags32["SuppressNotifications"] = 4096] = "SuppressNotifications";
-      MessageFlags32[MessageFlags32["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
-      MessageFlags32[MessageFlags32["HasSnapshot"] = 16384] = "HasSnapshot";
-      MessageFlags32[MessageFlags32["IsComponentsV2"] = 32768] = "IsComponentsV2";
-    })(MessageFlags31 || (exports2.MessageFlags = MessageFlags31 = {}));
+    var MessageFlags32;
+    (function(MessageFlags33) {
+      MessageFlags33[MessageFlags33["Crossposted"] = 1] = "Crossposted";
+      MessageFlags33[MessageFlags33["IsCrosspost"] = 2] = "IsCrosspost";
+      MessageFlags33[MessageFlags33["SuppressEmbeds"] = 4] = "SuppressEmbeds";
+      MessageFlags33[MessageFlags33["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
+      MessageFlags33[MessageFlags33["Urgent"] = 16] = "Urgent";
+      MessageFlags33[MessageFlags33["HasThread"] = 32] = "HasThread";
+      MessageFlags33[MessageFlags33["Ephemeral"] = 64] = "Ephemeral";
+      MessageFlags33[MessageFlags33["Loading"] = 128] = "Loading";
+      MessageFlags33[MessageFlags33["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
+      MessageFlags33[MessageFlags33["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
+      MessageFlags33[MessageFlags33["SuppressNotifications"] = 4096] = "SuppressNotifications";
+      MessageFlags33[MessageFlags33["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
+      MessageFlags33[MessageFlags33["HasSnapshot"] = 16384] = "HasSnapshot";
+      MessageFlags33[MessageFlags33["IsComponentsV2"] = 32768] = "IsComponentsV2";
+    })(MessageFlags32 || (exports2.MessageFlags = MessageFlags32 = {}));
     var BaseThemeType2;
     (function(BaseThemeType3) {
       BaseThemeType3[BaseThemeType3["Unset"] = 0] = "Unset";
@@ -90327,15 +90327,15 @@ var require_message = __commonJS({
       ComponentType3[ComponentType3["Checkbox"] = 23] = "Checkbox";
       ComponentType3[ComponentType3["SelectMenu"] = 3] = "SelectMenu";
     })(ComponentType2 || (exports2.ComponentType = ComponentType2 = {}));
-    var ButtonStyle5;
-    (function(ButtonStyle6) {
-      ButtonStyle6[ButtonStyle6["Primary"] = 1] = "Primary";
-      ButtonStyle6[ButtonStyle6["Secondary"] = 2] = "Secondary";
-      ButtonStyle6[ButtonStyle6["Success"] = 3] = "Success";
-      ButtonStyle6[ButtonStyle6["Danger"] = 4] = "Danger";
-      ButtonStyle6[ButtonStyle6["Link"] = 5] = "Link";
-      ButtonStyle6[ButtonStyle6["Premium"] = 6] = "Premium";
-    })(ButtonStyle5 || (exports2.ButtonStyle = ButtonStyle5 = {}));
+    var ButtonStyle6;
+    (function(ButtonStyle7) {
+      ButtonStyle7[ButtonStyle7["Primary"] = 1] = "Primary";
+      ButtonStyle7[ButtonStyle7["Secondary"] = 2] = "Secondary";
+      ButtonStyle7[ButtonStyle7["Success"] = 3] = "Success";
+      ButtonStyle7[ButtonStyle7["Danger"] = 4] = "Danger";
+      ButtonStyle7[ButtonStyle7["Link"] = 5] = "Link";
+      ButtonStyle7[ButtonStyle7["Premium"] = 6] = "Premium";
+    })(ButtonStyle6 || (exports2.ButtonStyle = ButtonStyle6 = {}));
     var TextInputStyle2;
     (function(TextInputStyle3) {
       TextInputStyle3[TextInputStyle3["Short"] = 1] = "Short";
@@ -101668,7 +101668,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101680,13 +101680,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits29;
+      static Flags = PermissionFlagsBits30;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits29).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits30).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101698,7 +101698,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits29.ManageChannels | PermissionFlagsBits29.MuteMembers | PermissionFlagsBits29.MoveMembers;
+      static StageModerator = PermissionFlagsBits30.ManageChannels | PermissionFlagsBits30.MuteMembers | PermissionFlagsBits30.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101725,7 +101725,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits29.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits30.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101734,7 +101734,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits29.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits30.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101743,7 +101743,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits29.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits30.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -102154,7 +102154,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102224,7 +102224,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits29.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits30.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102792,7 +102792,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits29, ChannelType: ChannelType6 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30, ChannelType: ChannelType6 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102936,7 +102936,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits29.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits30.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -102951,7 +102951,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits29.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits30.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -102977,7 +102977,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits29.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits30.ViewChannel, false)
         );
       }
       /**
@@ -103111,10 +103111,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits29.ViewChannel | PermissionFlagsBits29.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits29.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits30.ViewChannel | PermissionFlagsBits30.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits30.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103126,7 +103126,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits29.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits30.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -105767,7 +105767,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection2 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105918,7 +105918,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits29.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits29.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits30.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits30.ManageGuild)
         );
       }
       /**
@@ -106113,7 +106113,7 @@ var require_DataResolver = __commonJS({
 var require_MessageFlagsBitField = __commonJS({
   "node_modules/discord.js/src/util/MessageFlagsBitField.js"(exports2, module2) {
     "use strict";
-    var { MessageFlags: MessageFlags31 } = require_v106();
+    var { MessageFlags: MessageFlags32 } = require_v106();
     var BitField = require_BitField();
     var MessageFlagsBitField = class extends BitField {
       static {
@@ -106124,7 +106124,7 @@ var require_MessageFlagsBitField = __commonJS({
        * @type {MessageFlags}
        * @memberof MessageFlagsBitField
        */
-      static Flags = MessageFlags31;
+      static Flags = MessageFlags32;
     };
     module2.exports = MessageFlagsBitField;
   }
@@ -113567,14 +113567,14 @@ var require_dist9 = __commonJS({
     }, "__decorateClass");
     var index_exports = {};
     __export2(index_exports, {
-      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder4, "ActionRowBuilder"),
+      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder5, "ActionRowBuilder"),
       ApplicationCommandNumericOptionMinMaxValueMixin: /* @__PURE__ */ __name(() => ApplicationCommandNumericOptionMinMaxValueMixin, "ApplicationCommandNumericOptionMinMaxValueMixin"),
       ApplicationCommandOptionBase: /* @__PURE__ */ __name(() => ApplicationCommandOptionBase, "ApplicationCommandOptionBase"),
       ApplicationCommandOptionChannelTypesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionChannelTypesMixin, "ApplicationCommandOptionChannelTypesMixin"),
       ApplicationCommandOptionWithAutocompleteMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithAutocompleteMixin, "ApplicationCommandOptionWithAutocompleteMixin"),
       ApplicationCommandOptionWithChoicesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithChoicesMixin, "ApplicationCommandOptionWithChoicesMixin"),
       BaseSelectMenuBuilder: /* @__PURE__ */ __name(() => BaseSelectMenuBuilder, "BaseSelectMenuBuilder"),
-      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder4, "ButtonBuilder"),
+      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder5, "ButtonBuilder"),
       ChannelSelectMenuBuilder: /* @__PURE__ */ __name(() => ChannelSelectMenuBuilder, "ChannelSelectMenuBuilder"),
       CheckboxAssertions: /* @__PURE__ */ __name(() => Assertions_exports3, "CheckboxAssertions"),
       CheckboxBuilder: /* @__PURE__ */ __name(() => CheckboxBuilder, "CheckboxBuilder"),
@@ -113587,7 +113587,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder32, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder33, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113613,7 +113613,7 @@ var require_dist9 = __commonJS({
       SlashCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports10, "SlashCommandAssertions"),
       SlashCommandAttachmentOption: /* @__PURE__ */ __name(() => SlashCommandAttachmentOption, "SlashCommandAttachmentOption"),
       SlashCommandBooleanOption: /* @__PURE__ */ __name(() => SlashCommandBooleanOption, "SlashCommandBooleanOption"),
-      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder44, "SlashCommandBuilder"),
+      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder45, "SlashCommandBuilder"),
       SlashCommandChannelOption: /* @__PURE__ */ __name(() => SlashCommandChannelOption, "SlashCommandChannelOption"),
       SlashCommandIntegerOption: /* @__PURE__ */ __name(() => SlashCommandIntegerOption, "SlashCommandIntegerOption"),
       SlashCommandMentionableOption: /* @__PURE__ */ __name(() => SlashCommandMentionableOption, "SlashCommandMentionableOption"),
@@ -113721,7 +113721,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder32 = class {
+    var EmbedBuilder33 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -114158,7 +114158,7 @@ var require_dist9 = __commonJS({
     };
     var import_v1027 = require_v106();
     var import_v1022 = require_v106();
-    var ButtonBuilder4 = class extends ComponentBuilder {
+    var ButtonBuilder5 = class extends ComponentBuilder {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -116036,7 +116036,7 @@ var require_dist9 = __commonJS({
     var dividerPredicate = import_shapeshift9.s.boolean();
     var spacingPredicate = import_shapeshift9.s.nativeEnum(import_v1020.SeparatorSpacingSize);
     var textDisplayContentPredicate = import_shapeshift9.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(4e3).setValidationEnabled(isValidationEnabled);
-    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder4).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
+    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder5).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
     var containerColorPredicate = colorPredicate.nullish();
     function assertReturnOfBuilder(input2, ExpectedInstanceOf) {
       import_shapeshift9.s.instance(ExpectedInstanceOf).setValidationEnabled(isValidationEnabled).parse(input2);
@@ -116303,7 +116303,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         this.components.push(
-          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder4))
+          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder5))
         );
         return this;
       }
@@ -116634,7 +116634,7 @@ var require_dist9 = __commonJS({
        * @param accessory - The accessory to use
        */
       setButtonAccessory(accessory) {
-        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder4)));
+        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder5)));
         return this;
       }
       /**
@@ -116698,9 +116698,9 @@ var require_dist9 = __commonJS({
       }
       switch (data.type) {
         case import_v1027.ComponentType.ActionRow:
-          return new ActionRowBuilder4(data);
+          return new ActionRowBuilder5(data);
         case import_v1027.ComponentType.Button:
-          return new ButtonBuilder4(data);
+          return new ButtonBuilder5(data);
         case import_v1027.ComponentType.StringSelect:
           return new StringSelectMenuBuilder(data);
         case import_v1027.ComponentType.TextInput:
@@ -116759,7 +116759,7 @@ var require_dist9 = __commonJS({
     }
     __name(resolveBuilder, "resolveBuilder");
     __name3(resolveBuilder, "resolveBuilder");
-    var ActionRowBuilder4 = class extends ComponentBuilder {
+    var ActionRowBuilder5 = class extends ComponentBuilder {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -116845,7 +116845,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift10 = require_cjs3();
     var titleValidator = import_shapeshift10.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(45).setValidationEnabled(isValidationEnabled);
-    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder4), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
+    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder5), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
     function validateRequiredParameters2(customId, title, components) {
       customIdValidator.parse(customId);
       titleValidator.parse(title);
@@ -116904,15 +116904,15 @@ var require_dist9 = __commonJS({
       addComponents(...components) {
         this.components.push(
           ...normalizeArray(components).map((component, idx) => {
-            if (component instanceof ActionRowBuilder4 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
+            if (component instanceof ActionRowBuilder5 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
               return component;
             }
             if (component instanceof TextInputBuilder) {
-              return new ActionRowBuilder4().addComponents(component);
+              return new ActionRowBuilder5().addComponents(component);
             }
             if ("type" in component) {
               if (component.type === import_v1029.ComponentType.ActionRow) {
-                return new ActionRowBuilder4(component);
+                return new ActionRowBuilder5(component);
               }
               if (component.type === import_v1029.ComponentType.Label) {
                 return new LabelBuilder(component);
@@ -116921,7 +116921,7 @@ var require_dist9 = __commonJS({
                 return new TextDisplayBuilder(component);
               }
               if (component.type === import_v1029.ComponentType.TextInput) {
-                return new ActionRowBuilder4().addComponents(
+                return new ActionRowBuilder5().addComponents(
                   new TextInputBuilder(component)
                 );
               }
@@ -116961,7 +116961,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         const normalized = normalizeArray(components);
-        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder4));
+        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder5));
         this.components.push(...resolved);
         return this;
       }
@@ -118091,7 +118091,7 @@ var require_dist9 = __commonJS({
         return this;
       }
     };
-    var SlashCommandBuilder44 = class {
+    var SlashCommandBuilder45 = class {
       static {
         __name(this, "SlashCommandBuilder");
       }
@@ -118147,10 +118147,10 @@ var require_dist9 = __commonJS({
        */
       nsfw = void 0;
     };
-    __name3(SlashCommandBuilder44, "SlashCommandBuilder");
-    SlashCommandBuilder44 = __decorateClass([
+    __name3(SlashCommandBuilder45, "SlashCommandBuilder");
+    SlashCommandBuilder45 = __decorateClass([
       (0, import_ts_mixer6.mix)(SharedSlashCommandOptions, SharedNameAndDescription, SharedSlashCommandSubcommands, SharedSlashCommand)
-    ], SlashCommandBuilder44);
+    ], SlashCommandBuilder45);
     var Assertions_exports11 = {};
     __export2(Assertions_exports11, {
       contextsPredicate: /* @__PURE__ */ __name(() => contextsPredicate2, "contextsPredicate"),
@@ -119285,7 +119285,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119321,7 +119321,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits29.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits30.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -119786,7 +119786,7 @@ var require_ActionRowBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { createComponentBuilder } = require_Components();
     var { toSnakeCase } = require_Transformers();
-    var ActionRowBuilder4 = class extends BuildersActionRow {
+    var ActionRowBuilder5 = class extends BuildersActionRow {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -119805,7 +119805,7 @@ var require_ActionRowBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ActionRowBuilder4;
+    module2.exports = ActionRowBuilder5;
   }
 });
 
@@ -119817,7 +119817,7 @@ var require_ButtonBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var ButtonBuilder4 = class extends BuildersButton {
+    var ButtonBuilder5 = class extends BuildersButton {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -119844,7 +119844,7 @@ var require_ButtonBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ButtonBuilder4;
+    module2.exports = ButtonBuilder5;
   }
 });
 
@@ -120673,8 +120673,8 @@ var require_Components = __commonJS({
     __name(findComponentByCustomId, "findComponentByCustomId");
     module2.exports = { createComponent, createComponentBuilder, findComponentByCustomId };
     var ActionRow = require_ActionRow();
-    var ActionRowBuilder4 = require_ActionRowBuilder();
-    var ButtonBuilder4 = require_ButtonBuilder();
+    var ActionRowBuilder5 = require_ActionRowBuilder();
+    var ButtonBuilder5 = require_ButtonBuilder();
     var ButtonComponent = require_ButtonComponent();
     var ChannelSelectMenuBuilder = require_ChannelSelectMenuBuilder();
     var ChannelSelectMenuComponent = require_ChannelSelectMenuComponent();
@@ -120716,8 +120716,8 @@ var require_Components = __commonJS({
       [ComponentType2.Label]: LabelComponent
     };
     var ComponentTypeToBuilder = {
-      [ComponentType2.ActionRow]: ActionRowBuilder4,
-      [ComponentType2.Button]: ButtonBuilder4,
+      [ComponentType2.ActionRow]: ActionRowBuilder5,
+      [ComponentType2.Button]: ButtonBuilder5,
       [ComponentType2.StringSelect]: StringSelectMenuBuilder,
       [ComponentType2.TextInput]: TextInputBuilder,
       [ComponentType2.UserSelect]: UserSelectMenuBuilder,
@@ -120739,8 +120739,8 @@ var require_Message = __commonJS({
       InteractionType: InteractionType2,
       ChannelType: ChannelType6,
       MessageType: MessageType2,
-      MessageFlags: MessageFlags31,
-      PermissionFlagsBits: PermissionFlagsBits29,
+      MessageFlags: MessageFlags32,
+      PermissionFlagsBits: PermissionFlagsBits30,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121059,7 +121059,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get hasThread() {
-        return this.flags.has(MessageFlags31.HasThread);
+        return this.flags.has(MessageFlags32.HasThread);
       }
       /**
        * The thread started by this message
@@ -121199,7 +121199,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits29.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits30.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121219,8 +121219,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits29.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits30.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121231,7 +121231,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits29.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits30.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121245,7 +121245,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits29.ReadMessageHistory | PermissionFlagsBits29.PinMessages);
+        return permissions.has(PermissionFlagsBits30.ReadMessageHistory | PermissionFlagsBits30.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121266,10 +121266,10 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits29.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits29.ManageMessages);
+        const bitfield = PermissionFlagsBits30.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits30.ManageMessages);
         const { channel } = this;
         return Boolean(
-          channel?.type === ChannelType6.GuildAnnouncement && !this.flags.has(MessageFlags31.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
+          channel?.type === ChannelType6.GuildAnnouncement && !this.flags.has(MessageFlags32.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
         );
       }
       /**
@@ -121470,9 +121470,9 @@ var require_Message = __commonJS({
       suppressEmbeds(suppress = true) {
         const flags = new MessageFlagsBitField(this.flags.bitfield);
         if (suppress) {
-          flags.add(MessageFlags31.SuppressEmbeds);
+          flags.add(MessageFlags32.SuppressEmbeds);
         } else {
-          flags.remove(MessageFlags31.SuppressEmbeds);
+          flags.remove(MessageFlags32.SuppressEmbeds);
         }
         return this.edit({ flags });
       }
@@ -122474,7 +122474,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122729,7 +122729,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits29.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits30.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122738,7 +122738,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits29.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits30.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122746,7 +122746,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits29.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits29.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits30.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits30.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -123294,7 +123294,7 @@ var require_MessagePayload = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { lazy: lazy2, isJSONEncodable } = require_dist2();
     var { DiscordSnowflake } = require_cjs();
-    var { MessageFlags: MessageFlags31, MessageReferenceType: MessageReferenceType2 } = require_v106();
+    var { MessageFlags: MessageFlags32, MessageReferenceType: MessageReferenceType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveFile } = require_DataResolver();
     var MessageFlagsBitField = require_MessageFlagsBitField();
@@ -123423,7 +123423,7 @@ var require_MessagePayload = __commonJS({
           flags = new MessageFlagsBitField(this.options.flags).bitfield;
         }
         if (isInteraction && this.options.ephemeral) {
-          flags |= MessageFlags31.Ephemeral;
+          flags |= MessageFlags32.Ephemeral;
         }
         let allowedMentions = this.options.allowedMentions === void 0 ? this.target.client.options.allowedMentions : this.options.allowedMentions;
         if (allowedMentions?.repliedUser !== void 0) {
@@ -125708,7 +125708,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType6, PermissionFlagsBits: PermissionFlagsBits29, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType6, PermissionFlagsBits: PermissionFlagsBits30, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -126071,7 +126071,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType6.PrivateThread ? PermissionFlagsBits29.ManageThreads : PermissionFlagsBits29.ViewChannel,
+          this.type === ChannelType6.PrivateThread ? PermissionFlagsBits30.ManageThreads : PermissionFlagsBits30.ViewChannel,
           false
         );
       }
@@ -126083,8 +126083,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits30.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126095,7 +126095,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits29.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits30.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126105,8 +126105,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType6.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits29.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType6.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits30.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126615,7 +126615,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126689,8 +126689,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.Connect, false);
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits30.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126880,7 +126880,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits29, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits30, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126893,7 +126893,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits29.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits30.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126904,8 +126904,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits29.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits29.Speak, false);
+        if (permissions.has(PermissionFlagsBits30.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits30.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -129451,7 +129451,7 @@ var require_InteractionResponses = __commonJS({
     var { deprecate } = require("node:util");
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { isJSONEncodable } = require_dist2();
-    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags31, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
+    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags32, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var MessageFlagsBitField = require_MessageFlagsBitField();
     var InteractionCallbackResponse = require_InteractionCallbackResponse();
@@ -129548,7 +129548,7 @@ var require_InteractionResponses = __commonJS({
         }
         const flags = new MessageFlagsBitField(options.flags);
         if (options.ephemeral) {
-          flags.add(MessageFlags31.Ephemeral);
+          flags.add(MessageFlags32.Ephemeral);
         }
         const response = await this.client.rest.post(Routes3.interactionCallback(this.id, this.token), {
           body: {
@@ -129561,7 +129561,7 @@ var require_InteractionResponses = __commonJS({
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
         this.deferred = true;
-        this.ephemeral = flags.has(MessageFlags31.Ephemeral);
+        this.ephemeral = flags.has(MessageFlags32.Ephemeral);
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
       /**
@@ -129616,7 +129616,7 @@ var require_InteractionResponses = __commonJS({
           auth: false,
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
-        this.ephemeral = Boolean(data.flags & MessageFlags31.Ephemeral);
+        this.ephemeral = Boolean(data.flags & MessageFlags32.Ephemeral);
         this.replied = true;
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
@@ -141013,7 +141013,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection2 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits29 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits30 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141155,7 +141155,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits29.CreateGuildExpressions | PermissionFlagsBits29.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits30.CreateGuildExpressions | PermissionFlagsBits30.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -147290,7 +147290,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder32 = class extends BuildersEmbed {
+    var EmbedBuilder33 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147322,7 +147322,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder32;
+    module2.exports = EmbedBuilder33;
   }
 });
 
@@ -179697,10 +179697,154 @@ var voiceCommand = {
   }, "execute")
 };
 
-// src/commands/core/userinfo.ts
+// src/commands/core/vc.ts
+var import_discord5 = __toESM(require_src());
+
+// src/db/models/Vc.ts
+var import_mongoose6 = __toESM(require_mongoose2());
+var vcPanelSchema = new import_mongoose6.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    channelId: { type: String, required: true },
+    messageId: { type: String, required: true },
+    embedTitle: { type: String, required: true, default: "\u{1F50A} One Tap Voice" },
+    embedDescription: {
+      type: String,
+      required: true,
+      default: "Click **Join VC** below to have \u611B Doctora join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server."
+    },
+    embedColor: { type: Number, required: true, default: 5793266 },
+    embedFooter: { type: String, default: "\u611B Doctora \u2022 One Tap VC" }
+  },
+  { timestamps: true }
+);
+vcPanelSchema.index({ guildId: 1, messageId: 1 }, { unique: true });
+var VcPanel = (0, import_mongoose6.model)("VcPanel", vcPanelSchema);
+async function readVcPanel(guildId, messageId) {
+  return VcPanel.findOne({ guildId, messageId }).lean();
+}
+__name(readVcPanel, "readVcPanel");
+async function readVcPanelById(panelId) {
+  return VcPanel.findById(panelId).lean();
+}
+__name(readVcPanelById, "readVcPanelById");
+async function createVcPanel(data) {
+  return VcPanel.create(data);
+}
+__name(createVcPanel, "createVcPanel");
+async function updateVcPanel(guildId, messageId, updates) {
+  return VcPanel.findOneAndUpdate({ guildId, messageId }, updates, { new: true }).lean();
+}
+__name(updateVcPanel, "updateVcPanel");
+async function deleteVcPanel(guildId, messageId) {
+  return VcPanel.deleteOne({ guildId, messageId });
+}
+__name(deleteVcPanel, "deleteVcPanel");
+
+// src/core/respond.ts
 var import_discord4 = __toESM(require_src());
+async function replyError(interaction, message, errorId) {
+  const content = errorId ? `${message} (ref: ${errorId})` : message;
+  await interaction.reply({ content, flags: import_discord4.MessageFlags.Ephemeral }).catch(() => {
+  });
+}
+__name(replyError, "replyError");
+
+// src/commands/core/vc.ts
+var vcCommand = {
+  data: new import_discord5.SlashCommandBuilder().setName("vc").setDescription(
+    "One-tap voice: post a panel that lets members summon \u611B Doctora to their own voice channel."
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord5.PermissionFlagsBits.ManageGuild).addSubcommand(
+    (sub) => sub.setName("setup").setDescription("Post a one-tap VC panel in a channel (works for all voice channels).").addChannelOption(
+      (option) => option.setName("channel").setDescription("Channel to post the panel (default: current channel)").addChannelTypes(0)
+    ).addStringOption(
+      (option) => option.setName("title").setDescription("Panel embed title").setMaxLength(256)
+    ).addStringOption(
+      (option) => option.setName("description").setDescription("Panel embed description").setMaxLength(1024)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a previously posted one-tap VC panel.").addStringOption(
+      (option) => option.setName("message_id").setDescription("ID of the panel message to remove").setRequired(true)
+    )
+  ),
+  category: "utility",
+  botPermissions: [import_discord5.PermissionFlagsBits.Connect, import_discord5.PermissionFlagsBits.Speak],
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const subcommand = interaction.options.getSubcommand(true);
+    if (subcommand === "setup") {
+      await handleSetup(context);
+      return;
+    }
+    if (subcommand === "remove") {
+      await handleRemove(context);
+      return;
+    }
+  }, "execute")
+};
+async function handleSetup(context) {
+  const { interaction, guild } = context;
+  const targetChannel = interaction.options.getChannel("channel") ?? interaction.channel;
+  const title = interaction.options.getString("title") ?? "\u{1F50A} One Tap Voice";
+  const description = interaction.options.getString("description") ?? "Click **Join VC** below to have \u611B Doctora join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server.";
+  const embed = new import_discord5.EmbedBuilder().setColor(5793266).setTitle(title).setDescription(description).setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 One Tap VC" }).setTimestamp();
+  const panel = await createVcPanel({
+    guildId: guild.id,
+    channelId: targetChannel.id,
+    messageId: "",
+    embedTitle: title,
+    embedDescription: description,
+    embedColor: 5793266,
+    embedFooter: "\u611B Doctora \u2022 One Tap VC"
+  });
+  const panelId = panel._id.toString();
+  const joinButton = new import_discord5.ButtonBuilder().setCustomId(`vc_join:${panelId}`).setLabel("Join VC").setStyle(import_discord5.ButtonStyle.Primary).setEmoji("\u{1F50A}");
+  const row = new import_discord5.ActionRowBuilder().addComponents(joinButton);
+  let message;
+  try {
+    message = await targetChannel.send({
+      embeds: [embed],
+      components: [row.toJSON()]
+    });
+  } catch {
+    await replyError(interaction, "\u274C I cannot post in that channel.");
+    await deleteVcPanel(guild.id, "");
+    return;
+  }
+  await updateVcPanel(guild.id, "", { messageId: message.id });
+  await interaction.reply({
+    content: `\u2705 One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon \u611B Doctora.`,
+    flags: import_discord5.MessageFlags.Ephemeral
+  });
+}
+__name(handleSetup, "handleSetup");
+async function handleRemove(context) {
+  const { interaction, guild } = context;
+  const messageId = interaction.options.getString("message_id", true);
+  const panel = await readVcPanel(guild.id, messageId);
+  if (!panel) {
+    await replyError(interaction, "\u274C No one-tap VC panel found with that message ID.");
+    return;
+  }
+  const channel = guild.channels.cache.get(panel.channelId);
+  if (channel?.isTextBased()) {
+    try {
+      await channel.messages.delete(messageId);
+    } catch {
+    }
+  }
+  await deleteVcPanel(guild.id, messageId);
+  await interaction.reply({
+    content: "\u2705 One-tap VC panel removed.",
+    flags: import_discord5.MessageFlags.Ephemeral
+  });
+}
+__name(handleRemove, "handleRemove");
+
+// src/commands/core/userinfo.ts
+var import_discord6 = __toESM(require_src());
 var userinfoCommand = {
-  data: new import_discord4.SlashCommandBuilder().setName("userinfo").setDescription("View a member's profile: XP, level, balance, and account info.").addUserOption(
+  data: new import_discord6.SlashCommandBuilder().setName("userinfo").setDescription("View a member's profile: XP, level, balance, and account info.").addUserOption(
     (option) => option.setName("user").setDescription("The member to check").setRequired(false)
   ),
   category: "utility",
@@ -179746,31 +179890,31 @@ var userinfoCommand = {
         inline: true
       }
     );
-    const embed = new import_discord4.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setThumbnail(target.displayAvatarURL({ size: 256 })).addFields(fields).setFooter({ text: "\u7231 Doctora \u2022 User Profile" }).setTimestamp();
+    const embed = new import_discord6.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setThumbnail(target.displayAvatarURL({ size: 256 })).addFields(fields).setFooter({ text: "\u7231 Doctora \u2022 User Profile" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/core/serverinfo.ts
-var import_discord5 = __toESM(require_src());
+var import_discord7 = __toESM(require_src());
 var serverinfoCommand = {
-  data: new import_discord5.SlashCommandBuilder().setName("serverinfo").setDescription("View server information: member count, channels, roles, boosts, and more.").setDMPermission(false),
+  data: new import_discord7.SlashCommandBuilder().setName("serverinfo").setDescription("View server information: member count, channels, roles, boosts, and more.").setDMPermission(false),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
     if (!guild) {
       await interaction.reply({
         content: "\u274C This command can only be used in a server.",
-        flags: import_discord5.MessageFlags.Ephemeral
+        flags: import_discord7.MessageFlags.Ephemeral
       });
       return;
     }
     const textChannels = guild.channels.cache.filter((c) => c.isTextBased()).size;
     const voiceChannels = guild.channels.cache.filter((c) => c.isVoiceBased()).size;
     const categoryChannels = guild.channels.cache.filter(
-      (c) => c.type === import_discord5.ChannelType.GuildCategory
+      (c) => c.type === import_discord7.ChannelType.GuildCategory
     ).size;
-    const embed = new import_discord5.EmbedBuilder().setColor(5793266).setAuthor({ name: guild.name, iconURL: guild.iconURL() ?? void 0 }).setThumbnail(guild.iconURL({ size: 256 })).addFields(
+    const embed = new import_discord7.EmbedBuilder().setColor(5793266).setAuthor({ name: guild.name, iconURL: guild.iconURL() ?? void 0 }).setThumbnail(guild.iconURL({ size: 256 })).addFields(
       { name: "Name", value: guild.name, inline: true },
       { name: "ID", value: guild.id, inline: true },
       { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
@@ -179793,9 +179937,9 @@ var serverinfoCommand = {
 };
 
 // src/commands/core/setup.ts
-var import_discord6 = __toESM(require_src());
+var import_discord8 = __toESM(require_src());
 var setupCommand = {
-  data: new import_discord6.SlashCommandBuilder().setName("setup").setDescription(
+  data: new import_discord8.SlashCommandBuilder().setName("setup").setDescription(
     "Owner-only: configure the bot for this server (XP, modules, level-up channel, etc.)."
   ).setDMPermission(false).addBooleanOption(
     (option) => option.setName("xp_enabled").setDescription("Enable or disable XP earning in this server")
@@ -179818,14 +179962,14 @@ var setupCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord6.MessageFlags.Ephemeral
+        flags: import_discord8.MessageFlags.Ephemeral
       });
       return;
     }
     if (!guild) {
       await interaction.reply({
         content: "\u274C Server-only command.",
-        flags: import_discord6.MessageFlags.Ephemeral
+        flags: import_discord8.MessageFlags.Ephemeral
       });
       return;
     }
@@ -179845,12 +179989,12 @@ var setupCommand = {
     if (Object.keys(updates).length === 0) {
       await interaction.reply({
         content: "\u274C No changes provided. Pass at least one option.",
-        flags: import_discord6.MessageFlags.Ephemeral
+        flags: import_discord8.MessageFlags.Ephemeral
       });
       return;
     }
     await updateGuildConfig(guild.id, updates);
-    const embed = new import_discord6.EmbedBuilder().setColor(2278750).setTitle("\u2705 Server configured").setDescription(
+    const embed = new import_discord8.EmbedBuilder().setColor(2278750).setTitle("\u2705 Server configured").setDescription(
       Object.entries(updates).map(([key, value]) => `\u2022 **${key}**: \`${value}\``).join("\n")
     ).setFooter({ text: "\u7231 Doctora \u2022 Setup" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
@@ -179858,9 +180002,9 @@ var setupCommand = {
 };
 
 // src/commands/moderation/kick.ts
-var import_discord7 = __toESM(require_src());
+var import_discord9 = __toESM(require_src());
 var kickCommand = {
-  data: new import_discord7.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").addUserOption(
+  data: new import_discord9.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").addUserOption(
     (option) => option.setName("user").setDescription("The user to kick").setRequired(true)
   ).addStringOption(
     (option) => option.setName("reason").setDescription("Reason for kicking").setRequired(false)
@@ -179891,9 +180035,9 @@ var kickCommand = {
 };
 
 // src/commands/moderation/ban.ts
-var import_discord8 = __toESM(require_src());
+var import_discord10 = __toESM(require_src());
 var banCommand = {
-  data: new import_discord8.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").addUserOption(
+  data: new import_discord10.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").addUserOption(
     (option) => option.setName("user").setDescription("The user to ban").setRequired(true)
   ).addStringOption(
     (option) => option.setName("reason").setDescription("Reason for banning").setRequired(false)
@@ -179915,9 +180059,9 @@ var banCommand = {
 };
 
 // src/commands/moderation/timeout.ts
-var import_discord9 = __toESM(require_src());
+var import_discord11 = __toESM(require_src());
 var timeoutCommand = {
-  data: new import_discord9.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(
+  data: new import_discord11.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to timeout").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes").setRequired(true).setMinValue(1).setMaxValue(40320)
@@ -179950,9 +180094,9 @@ var timeoutCommand = {
 };
 
 // src/commands/moderation/clear.ts
-var import_discord10 = __toESM(require_src());
+var import_discord12 = __toESM(require_src());
 var clearCommand = {
-  data: new import_discord10.SlashCommandBuilder().setName("clear").setDescription("Delete messages in a channel.").addIntegerOption(
+  data: new import_discord12.SlashCommandBuilder().setName("clear").setDescription("Delete messages in a channel.").addIntegerOption(
     (option) => option.setName("amount").setDescription("Number of messages to delete").setRequired(true).setMinValue(1).setMaxValue(100)
   ),
   category: "moderation",
@@ -179970,9 +180114,9 @@ var clearCommand = {
 };
 
 // src/commands/moderation/warn.ts
-var import_discord11 = __toESM(require_src());
+var import_discord13 = __toESM(require_src());
 var warnCommand = {
-  data: new import_discord11.SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(
+  data: new import_discord13.SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to warn").setRequired(true)
   ).addStringOption(
     (option) => option.setName("reason").setDescription("Reason for warning").setRequired(false)
@@ -179995,9 +180139,9 @@ var warnCommand = {
 };
 
 // src/commands/economy/balance.ts
-var import_discord12 = __toESM(require_src());
+var import_discord14 = __toESM(require_src());
 var balanceCommand = {
-  data: new import_discord12.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
+  data: new import_discord14.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "economy",
@@ -180014,9 +180158,9 @@ var balanceCommand = {
 };
 
 // src/commands/economy/daily.ts
-var import_discord13 = __toESM(require_src());
+var import_discord15 = __toESM(require_src());
 var dailyCommand = {
-  data: new import_discord13.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
+  data: new import_discord15.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
   category: "economy",
   cooldownSeconds: 86400,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -180043,9 +180187,9 @@ var dailyCommand = {
 };
 
 // src/commands/economy/work.ts
-var import_discord14 = __toESM(require_src());
+var import_discord16 = __toESM(require_src());
 var workCommand = {
-  data: new import_discord14.SlashCommandBuilder().setName("work").setDescription("Work to earn some coins."),
+  data: new import_discord16.SlashCommandBuilder().setName("work").setDescription("Work to earn some coins."),
   category: "economy",
   cooldownSeconds: 3600,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -180072,9 +180216,9 @@ var workCommand = {
 };
 
 // src/commands/fun/coinflip.ts
-var import_discord15 = __toESM(require_src());
+var import_discord17 = __toESM(require_src());
 var coinflipCommand = {
-  data: new import_discord15.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
+  data: new import_discord17.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -180084,9 +180228,9 @@ var coinflipCommand = {
 };
 
 // src/commands/fun/dice.ts
-var import_discord16 = __toESM(require_src());
+var import_discord18 = __toESM(require_src());
 var diceCommand = {
-  data: new import_discord16.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
+  data: new import_discord18.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
     (option) => option.setName("sides").setDescription("Number of sides").setRequired(false).setMinValue(2).setMaxValue(1e3)
   ),
   category: "fun",
@@ -180099,16 +180243,16 @@ var diceCommand = {
 };
 
 // src/commands/leveling/rank.ts
-var import_discord18 = __toESM(require_src());
+var import_discord20 = __toESM(require_src());
 
 // src/utils/rankEmbeds.ts
-var import_discord17 = __toESM(require_src());
+var import_discord19 = __toESM(require_src());
 function buildRankCard(opts) {
   const { user, info } = opts;
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
   const levelColor = info.level % 2 === 0 ? 5793266 : 10499071;
-  const embed = new import_discord17.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
+  const embed = new import_discord19.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
     { name: "Progress", value: `${info.xpInLevel.toLocaleString()} / ${info.xpForNext.toLocaleString()} XP`, inline: true },
     { name: "Total XP", value: info.totalXp.toLocaleString(), inline: true }
   ).setFooter({ text: `Rank #${opts.position || ""} \u2022 ${opts.guildName}` }).setTimestamp();
@@ -180125,7 +180269,7 @@ function buildLeaderboardEmbed(entries, guildName) {
     const medal = i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : `**${i + 1}.**`;
     return `${medal} <@${entry.userId}> \u2014 level **${entry.level}** (\`${entry.totalXp.toLocaleString()}\` XP)`;
   }).join("\n");
-  return new import_discord17.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
+  return new import_discord19.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
 }
 __name(buildLeaderboardEmbed, "buildLeaderboardEmbed");
 
@@ -180822,7 +180966,7 @@ var leaderboardPodium = new LeaderboardPodiumCanvas();
 
 // src/commands/leveling/rank.ts
 var rankCommand = {
-  data: new import_discord18.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
+  data: new import_discord20.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "leveling",
@@ -180834,7 +180978,7 @@ var rankCommand = {
     if (!row || row.xp <= 0) {
       await interaction.reply({
         content: `${target.username} hasn't earned any XP yet.`,
-        flags: import_discord18.MessageFlags.Ephemeral
+        flags: import_discord20.MessageFlags.Ephemeral
       });
       return;
     }
@@ -180857,7 +181001,7 @@ var rankCommand = {
         totalXp: info.totalXp,
         guildName: guild?.name
       });
-      const attachment = new import_discord18.AttachmentBuilder(buffer, { name: "rank.png" });
+      const attachment = new import_discord20.AttachmentBuilder(buffer, { name: "rank.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render rank card:", err);
@@ -180873,9 +181017,9 @@ var rankCommand = {
 };
 
 // src/commands/leveling/leaderboard.ts
-var import_discord19 = __toESM(require_src());
+var import_discord21 = __toESM(require_src());
 var leaderboardCommand = {
-  data: new import_discord19.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
+  data: new import_discord21.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many members to show (1-25)").setMinValue(1).setMaxValue(25)
   ),
   category: "leveling",
@@ -180886,7 +181030,7 @@ var leaderboardCommand = {
     if (rows.length === 0) {
       await interaction.reply({
         content: "No XP records yet.",
-        flags: import_discord19.MessageFlags.Ephemeral
+        flags: import_discord21.MessageFlags.Ephemeral
       });
       return;
     }
@@ -180916,7 +181060,7 @@ var leaderboardCommand = {
         interaction.guild?.name ?? "this server",
         "\u{1F3C6} Top members"
       );
-      const attachment = new import_discord19.AttachmentBuilder(buffer, { name: "leaderboard.png" });
+      const attachment = new import_discord21.AttachmentBuilder(buffer, { name: "leaderboard.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render leaderboard image:", err);
@@ -180935,14 +181079,14 @@ var leaderboardCommand = {
 };
 
 // src/commands/leveling/levels.ts
-var import_discord22 = __toESM(require_src());
+var import_discord24 = __toESM(require_src());
 
 // src/utils/discord.ts
-var import_discord20 = __toESM(require_src());
+var import_discord22 = __toESM(require_src());
 function canAssignRole(guild, role) {
   const me = guild.members.me;
   if (!me) return "I could not resolve my own member object.";
-  if (!me.permissions.has(import_discord20.PermissionFlagsBits.ManageRoles)) {
+  if (!me.permissions.has(import_discord22.PermissionFlagsBits.ManageRoles)) {
     return "I need the **Manage Roles** permission to assign roles.";
   }
   if (role.managed) {
@@ -180956,7 +181100,7 @@ function canAssignRole(guild, role) {
 __name(canAssignRole, "canAssignRole");
 
 // src/utils/liveLeaderboard.ts
-var import_discord21 = __toESM(require_src());
+var import_discord23 = __toESM(require_src());
 
 // src/utils/levelSettings.ts
 var DEFAULT_LEVEL_UP_MESSAGE = "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
@@ -181050,7 +181194,7 @@ function clampText(text, max) {
 }
 __name(clampText, "clampText");
 function linkText(text) {
-  return (0, import_discord21.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
+  return (0, import_discord23.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
 }
 __name(linkText, "linkText");
 function userLink(entry) {
@@ -181101,7 +181245,7 @@ __name(collectEntries, "collectEntries");
 function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updatedAt = Date.now()) {
   const title = titleOverride.trim() || `\u{1F3C6} ${guild.name} leaderboard`;
   const top = entries.slice(0, 3);
-  const embed = new import_discord21.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
+  const embed = new import_discord23.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
     `\u{1F465} **${guild.memberCount.toLocaleString("en-US")}** members \u2728 *Ranked by experience*`
   ).addFields({ name: "\u200B", value: DIVIDER });
   const topLines = top.map(
@@ -181167,7 +181311,7 @@ async function buildMessagePayload(entries, guild, rows, title, updatedAt) {
         percent: entry.percent
       }))
     );
-    const file2 = new import_discord21.AttachmentBuilder(buffer, { name: "top-3.png" });
+    const file2 = new import_discord23.AttachmentBuilder(buffer, { name: "top-3.png" });
     return {
       embeds: [buildContentEmbed(entries, guild, rows, title, "attachment://top-3.png", updatedAt)],
       files: [file2]
@@ -181305,11 +181449,11 @@ __name(saveGuildSettings, "saveGuildSettings");
 
 // src/commands/leveling/levels.ts
 var levelsCommand = {
-  data: new import_discord22.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord22.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord24.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord24.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Configure XP rates and announcement channels").addBooleanOption(
       (o) => o.setName("enabled").setDescription("Whether members earn XP in this server")
     ).addChannelOption(
-      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord22.ChannelType.GuildText)
+      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord24.ChannelType.GuildText)
     ).addIntegerOption(
       (o) => o.setName("xp_per_message").setDescription("Minimum XP per message (MEE6 default 15)").setMinValue(0).setMaxValue(1e4)
     ).addIntegerOption(
@@ -181342,7 +181486,7 @@ var levelsCommand = {
   ).addSubcommandGroup(
     (group) => group.setName("leaderboard").setDescription("Manage the self-updating leaderboard message").addSubcommand(
       (sub) => sub.setName("start").setDescription("Post and keep a leaderboard message up to date").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord22.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord24.ChannelType.GuildText).setRequired(true)
       ).addIntegerOption(
         (o) => o.setName("interval_minutes").setDescription("Refresh interval in minutes (default 10)").setMinValue(1).setMaxValue(1440)
       ).addIntegerOption(
@@ -181456,7 +181600,7 @@ async function setup(context) {
     changes.push("Level-up message template updated");
   }
   const cfg = await saveGuildSettings(context, updates);
-  const embed = new import_discord22.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
+  const embed = new import_discord24.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
     {
       name: "XP per message",
       value: cfg.perMessageMin === cfg.perMessageMax ? `${cfg.perMessageMin}` : `${cfg.perMessageMin}-${cfg.perMessageMax} (random)`,
@@ -181525,7 +181669,7 @@ async function roleList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
   const entries = Object.entries(current.levelRoles).sort((a, b) => Number(a[0]) - Number(b[0]));
-  const embed = new import_discord22.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
+  const embed = new import_discord24.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
   if (entries.length === 0) {
     embed.setDescription("No level roles configured. Add one with `/levels role add`.");
   } else {
@@ -181587,7 +181731,7 @@ __name(leaderboardStop, "leaderboardStop");
 async function leaderboardStatus(context) {
   const { interaction } = context;
   const settings = (await loadLevelSettings(context)).liveLeaderboard;
-  const embed = new import_discord22.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
+  const embed = new import_discord24.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
     { name: "Status", value: settings.enabled ? "Enabled" : "Disabled", inline: true },
     {
       name: "Channel",
@@ -181608,20 +181752,20 @@ async function leaderboardStatus(context) {
 __name(leaderboardStatus, "leaderboardStatus");
 
 // src/commands/leveling/xp.ts
-var import_discord24 = __toESM(require_src());
+var import_discord26 = __toESM(require_src());
 var xpCommand = {
-  data: new import_discord24.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord24.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord26.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord26.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("channel").setDescription("Only earn XP in one channel (or allow all channels again)").addChannelOption(
-      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord24.ChannelType.GuildText)
+      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord26.ChannelType.GuildText)
     )
   ).addSubcommandGroup(
     (group) => group.setName("nocxp").setDescription("Channels where members earn no XP").addSubcommand(
       (sub) => sub.setName("add").setDescription("Exclude a channel from XP").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord24.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord26.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand(
       (sub) => sub.setName("remove").setDescription("Allow XP in an excluded channel again").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord24.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord26.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand((sub) => sub.setName("list").setDescription("List excluded channels"))
   ),
@@ -181702,7 +181846,7 @@ __name(nocxpRemove, "nocxpRemove");
 async function nocxpList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
-  const embed = new import_discord24.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
+  const embed = new import_discord26.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
   if (current.noXpChannels.length === 0) {
     embed.setDescription("No channels are excluded \u2014 XP is earned everywhere.");
   } else {
@@ -181716,18 +181860,7 @@ async function nocxpList(context) {
 __name(nocxpList, "nocxpList");
 
 // src/commands/tickets/ticket.ts
-var import_discord26 = __toESM(require_src());
-
-// src/core/respond.ts
-var import_discord25 = __toESM(require_src());
-async function replyError(interaction, message, errorId) {
-  const content = errorId ? `${message} (ref: ${errorId})` : message;
-  await interaction.reply({ content, flags: import_discord25.MessageFlags.Ephemeral }).catch(() => {
-  });
-}
-__name(replyError, "replyError");
-
-// src/commands/tickets/ticket.ts
+var import_discord27 = __toESM(require_src());
 function shortId() {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -181747,7 +181880,7 @@ async function getTicketConfig(guildId) {
 }
 __name(getTicketConfig, "getTicketConfig");
 var ticketCommand = {
-  data: new import_discord26.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
+  data: new import_discord27.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Post the live ticket panel in a channel.").addChannelOption(
       (o) => o.setName("channel").setDescription("Channel to post the panel (default: current)")
     )
@@ -181809,7 +181942,7 @@ var ticketCommand = {
     try {
       switch (subcommand) {
         case "setup":
-          await handleSetup(interaction, guild);
+          await handleSetup2(interaction, guild);
           break;
         case "department":
           await handleDepartment(interaction, guild);
@@ -181824,7 +181957,7 @@ var ticketCommand = {
           await handleAdd(interaction, guild);
           break;
         case "remove":
-          await handleRemove(interaction, guild);
+          await handleRemove2(interaction, guild);
           break;
         case "transcript":
           await handleTranscript(interaction, guild);
@@ -181841,7 +181974,7 @@ var ticketCommand = {
     }
   }, "execute")
 };
-async function handleSetup(interaction, guild) {
+async function handleSetup2(interaction, guild) {
   if (!requireStaff(interaction, guild)) {
     await replyError(interaction, "\u274C You need `Manage Server` permission.");
     return;
@@ -181851,7 +181984,7 @@ async function handleSetup(interaction, guild) {
   if (existing) {
     await interaction.reply({
       content: "\u274C A ticket panel already exists in this channel.",
-      flags: import_discord26.MessageFlags.Ephemeral
+      flags: import_discord27.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181863,18 +181996,18 @@ async function handleSetup(interaction, guild) {
     });
     departments = await TicketDepartment.find({ guildId: guild.id, isActive: true }).lean();
   }
-  const embed = new import_discord26.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
+  const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
     "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" + departments.map((d) => `${d.emoji} **${d.name}** \u2014 ${d.description}`).join("\n")
   ).setImage("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
   const rows = [];
-  let row = new import_discord26.ActionRowBuilder();
+  let row = new import_discord27.ActionRowBuilder();
   for (const dept of departments) {
     row.addComponents(
-      new import_discord26.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord26.ButtonStyle.Primary).setEmoji(dept.emoji)
+      new import_discord27.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord27.ButtonStyle.Primary).setEmoji(dept.emoji)
     );
     if (row.components.length >= 5) {
       rows.push(row);
-      row = new import_discord26.ActionRowBuilder();
+      row = new import_discord27.ActionRowBuilder();
     }
   }
   if (row.components.length > 0) rows.push(row);
@@ -181895,10 +182028,10 @@ async function handleSetup(interaction, guild) {
   });
   await interaction.reply({
     content: `\u2705 Live ticket panel posted in ${channel} with ${departments.length} department(s).`,
-    flags: import_discord26.MessageFlags.Ephemeral
+    flags: import_discord27.MessageFlags.Ephemeral
   });
 }
-__name(handleSetup, "handleSetup");
+__name(handleSetup2, "handleSetup");
 async function handleDepartment(interaction, guild) {
   if (!requireStaff(interaction, guild)) {
     await replyError(interaction, "\u274C You need `Manage Server` permission.");
@@ -181911,16 +182044,16 @@ async function handleDepartment(interaction, guild) {
     if (departments.length === 0) {
       await interaction.reply({
         content: "\u{1F4ED} No departments configured.",
-        flags: import_discord26.MessageFlags.Ephemeral
+        flags: import_discord27.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord26.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
+    const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
       departments.map(
         (d) => `${d.emoji} **${d.name}**${d.isActive ? "" : " (inactive)"} \u2014 ${d.description}${d.staffRoleId ? ` \u2022 Staff: <@&${d.staffRoleId}>` : ""}`
       ).join("\n")
     );
-    await interaction.reply({ embeds: [embed], flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord27.MessageFlags.Ephemeral });
     return;
   }
   if (!name) {
@@ -181945,7 +182078,7 @@ async function handleDepartment(interaction, guild) {
     });
     await interaction.reply({
       content: `\u2705 Department **${name}** created.`,
-      flags: import_discord26.MessageFlags.Ephemeral
+      flags: import_discord27.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181962,12 +182095,12 @@ async function handleDepartment(interaction, guild) {
     if (emoji3) dept.emoji = emoji3;
     if (staffRole) dept.staffRoleId = staffRole.id;
     await dept.save();
-    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord27.MessageFlags.Ephemeral });
     return;
   }
   if (action === "delete") {
     await TicketDepartment.deleteOne({ _id: dept._id });
-    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord27.MessageFlags.Ephemeral });
     return;
   }
 }
@@ -182015,7 +182148,7 @@ async function handleClaim(interaction, guild) {
   await ticket.save();
   await interaction.reply({
     content: `\u2705 Ticket claimed by <@${interaction.user.id}>.`,
-    flags: import_discord26.MessageFlags.Ephemeral
+    flags: import_discord27.MessageFlags.Ephemeral
   });
 }
 __name(handleClaim, "handleClaim");
@@ -182041,13 +182174,13 @@ async function handleAdd(interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> added to the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord27.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to add member to the ticket.");
   }
 }
 __name(handleAdd, "handleAdd");
-async function handleRemove(interaction, guild) {
+async function handleRemove2(interaction, guild) {
   const ticket = await OpenTicket.findOne({
     guildId: guild.id,
     channelId: interaction.channelId,
@@ -182068,12 +182201,12 @@ async function handleRemove(interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> removed from the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord27.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to remove member from the ticket.");
   }
 }
-__name(handleRemove, "handleRemove");
+__name(handleRemove2, "handleRemove");
 async function handleTranscript(interaction, guild) {
   const ticket = await OpenTicket.findOne({
     guildId: guild.id,
@@ -182086,7 +182219,7 @@ async function handleTranscript(interaction, guild) {
   }
   const target = interaction.options.getString("target") ?? "channel";
   await sendTranscript(interaction, guild, ticket, target);
-  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord26.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord27.MessageFlags.Ephemeral });
 }
 __name(handleTranscript, "handleTranscript");
 async function sendTranscript(interaction, guild, ticket, target) {
@@ -182174,7 +182307,7 @@ async function handleConfig(interaction, guild) {
     config2.staffRoleIds = value ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
   }
   await config2.save();
-  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord26.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord27.MessageFlags.Ephemeral });
 }
 __name(handleConfig, "handleConfig");
 async function handleStats(interaction, guild) {
@@ -182182,26 +182315,26 @@ async function handleStats(interaction, guild) {
   const closed = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: { $ne: null } });
   const panels = await TicketPanel.countDocuments({ guildId: guild.id });
   const departments = await TicketDepartment.countDocuments({ guildId: guild.id, isActive: true });
-  const embed = new import_discord26.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
+  const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
     { name: "Open tickets", value: String(open2), inline: true },
     { name: "Closed tickets", value: String(closed), inline: true },
     { name: "Panels posted", value: String(panels), inline: true },
     { name: "Active departments", value: String(departments), inline: true }
   ).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
-  await interaction.reply({ embeds: [embed], flags: import_discord26.MessageFlags.Ephemeral });
+  await interaction.reply({ embeds: [embed], flags: import_discord27.MessageFlags.Ephemeral });
 }
 __name(handleStats, "handleStats");
 
 // src/commands/fun/poll.ts
-var import_discord27 = __toESM(require_src());
+var import_discord28 = __toESM(require_src());
 var pollCommand = {
-  data: new import_discord27.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
+  data: new import_discord28.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options (max 10)").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes (default 10)").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord27.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord28.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182212,18 +182345,18 @@ var pollCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord27.MessageFlags.Ephemeral
+        flags: import_discord28.MessageFlags.Ephemeral
       });
       return;
     }
     if (options.length > 10) {
       await interaction.reply({
         content: "\u274C Maximum 10 options allowed.",
-        flags: import_discord27.MessageFlags.Ephemeral
+        flags: import_discord28.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord28.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await interaction.reply({
       embeds: [embed],
       fetchReply: true
@@ -182266,15 +182399,15 @@ ${resultDesc}`
 };
 
 // src/commands/fun/rps.ts
-var import_discord28 = __toESM(require_src());
+var import_discord29 = __toESM(require_src());
 var rpsCommand = {
-  data: new import_discord28.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
+  data: new import_discord29.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
     (option) => option.setName("choice").setDescription("Rock, Paper, or Scissors").setRequired(true).addChoices(
       { name: "Rock", value: "rock" },
       { name: "Paper", value: "paper" },
       { name: "Scissors", value: "scissors" }
     )
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord28.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord29.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182296,16 +182429,16 @@ var rpsCommand = {
     }
     const resultEmoji = { win: "\u{1F947}", lose: "\u{1F948}", tie: "\u{1F91D}" };
     const resultColor = { win: 2278750, lose: 14695998, tie: 16096779 };
-    const embed = new import_discord28.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
+    const embed = new import_discord29.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
       { name: "Your choice", value: userChoice.charAt(0).toUpperCase() + userChoice.slice(1), inline: true },
       { name: "Bot's choice", value: botChoice.charAt(0).toUpperCase() + botChoice.slice(1), inline: true }
     ).setFooter({ text: `${resultEmoji[result]} You ${result === "win" ? "win!" : result === "lose" ? "lose!" : "tie!"}` }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord29.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/truth.ts
-var import_discord29 = __toESM(require_src());
+var import_discord30 = __toESM(require_src());
 var truthQuestions = [
   "What is the most embarrassing thing that happened to you in public?",
   "What is a secret you have never told anyone?",
@@ -182317,17 +182450,17 @@ var truthQuestions = [
   "What is the worst gift you have ever received?"
 ];
 var truthCommand = {
-  data: new import_discord29.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord29.PermissionFlagsBits.SendMessages),
+  data: new import_discord30.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord30.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
-    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord29.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord30.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/dare.ts
-var import_discord30 = __toESM(require_src());
+var import_discord31 = __toESM(require_src());
 var darePrompts = [
   "Do 10 push-ups right now.",
   "Send a random message to your closest contact.",
@@ -182339,21 +182472,21 @@ var darePrompts = [
   "Open your Spotify and share the now-playing song."
 ];
 var dareCommand = {
-  data: new import_discord30.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord30.PermissionFlagsBits.SendMessages),
+  data: new import_discord31.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const dare = darePrompts[Math.floor(Math.random() * darePrompts.length)];
-    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord30.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord31.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/compliment.ts
-var import_discord31 = __toESM(require_src());
+var import_discord32 = __toESM(require_src());
 var complimentCommand = {
-  data: new import_discord31.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
+  data: new import_discord32.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
     (option) => option.setName("user").setDescription("The user to compliment").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord32.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182371,31 +182504,31 @@ var complimentCommand = {
       "You light up every room you enter."
     ];
     const compliment = compliments[Math.floor(Math.random() * compliments.length)];
-    const embed = new import_discord31.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord31.MessageFlags.Ephemeral });
+    const embed = new import_discord32.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord32.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/avatar.ts
-var import_discord32 = __toESM(require_src());
+var import_discord33 = __toESM(require_src());
 var avatarCommand = {
-  data: new import_discord32.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
+  data: new import_discord33.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
     (option) => option.setName("user").setDescription("The user to view avatar for").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord32.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord33.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
     const avatarUrl = target.displayAvatarURL({ extension: "png", size: 1024 });
-    const embed = new import_discord32.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
+    const embed = new import_discord33.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/fun/servercard.ts
-var import_discord33 = __toESM(require_src());
+var import_discord34 = __toESM(require_src());
 var servercardCommand = {
-  data: new import_discord33.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord33.PermissionFlagsBits.SendMessages),
+  data: new import_discord34.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord34.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182403,11 +182536,11 @@ var servercardCommand = {
     if (!guild) {
       await interaction.reply({
         content: "\u274C This command can only be used in a server.",
-        flags: import_discord33.MessageFlags.Ephemeral
+        flags: import_discord34.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord33.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
+    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
       { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
       { name: "Members", value: guild.memberCount.toLocaleString(), inline: true },
       { name: "Text Channels", value: guild.channels.cache.filter((c) => c.isTextBased()).size.toString(), inline: true },
@@ -182419,11 +182552,11 @@ var servercardCommand = {
 };
 
 // src/commands/fun/choose.ts
-var import_discord34 = __toESM(require_src());
+var import_discord35 = __toESM(require_src());
 var chooseCommand = {
-  data: new import_discord34.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
+  data: new import_discord35.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options").setRequired(true).setMaxLength(200)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord34.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182432,31 +182565,31 @@ var chooseCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord34.MessageFlags.Ephemeral
+        flags: import_discord35.MessageFlags.Ephemeral
       });
       return;
     }
     const choice = options[Math.floor(Math.random() * options.length)];
-    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord34.MessageFlags.Ephemeral });
-  }, "execute")
-};
-
-// src/commands/fun/flip.ts
-var import_discord35 = __toESM(require_src());
-var flipCommand = {
-  data: new import_discord35.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
-  category: "fun",
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const result = Math.random() < 0.5 ? "Heads" : "Tails";
-    const embed = new import_discord35.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
+    const embed = new import_discord35.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
     await interaction.reply({ embeds: [embed], flags: import_discord35.MessageFlags.Ephemeral });
   }, "execute")
 };
 
-// src/commands/fun/eightball-enhanced.ts
+// src/commands/fun/flip.ts
 var import_discord36 = __toESM(require_src());
+var flipCommand = {
+  data: new import_discord36.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+    const embed = new import_discord36.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord36.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/eightball-enhanced.ts
+var import_discord37 = __toESM(require_src());
 var eightBallAnswers = [
   "As I see it, yes.",
   "It is certain.",
@@ -182473,15 +182606,15 @@ var eightBallAnswers = [
   "Very doubtful."
 ];
 var eightBallEnhancedCommand = {
-  data: new import_discord36.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
+  data: new import_discord37.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
     (option) => option.setName("question").setDescription("Your question").setRequired(true).setMaxLength(500)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = interaction.options.getString("question", true);
     const answer = eightBallAnswers[Math.floor(Math.random() * eightBallAnswers.length)];
-    const embed = new import_discord36.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
+    const embed = new import_discord37.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
       { name: "Question", value: question, inline: false },
       { name: "Answer", value: answer, inline: false }
     ).setFooter({ text: "\u7231 Doctora \u2022 8-Ball" }).setTimestamp();
@@ -182490,32 +182623,32 @@ var eightBallEnhancedCommand = {
 };
 
 // src/commands/utility/suggest.ts
-var import_discord37 = __toESM(require_src());
+var import_discord38 = __toESM(require_src());
 var suggestCommand = {
-  data: new import_discord37.SlashCommandBuilder().setName("suggest").setDescription("Suggest a feature or idea for the bot.").addStringOption(
+  data: new import_discord38.SlashCommandBuilder().setName("suggest").setDescription("Suggest a feature or idea for the bot.").addStringOption(
     (option) => option.setName("suggestion").setDescription("Your suggestion").setRequired(true).setMaxLength(500)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const suggestion = interaction.options.getString("suggestion", true);
-    const embed = new import_discord37.EmbedBuilder().setColor(5793266).setTitle("\u{1F4A1} Suggestion").setDescription(`**${suggestion}**`).setFooter({ text: "\u7231 Doctora \u2022 Suggestion submitted" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord37.MessageFlags.Ephemeral });
+    const embed = new import_discord38.EmbedBuilder().setColor(5793266).setTitle("\u{1F4A1} Suggestion").setDescription(`**${suggestion}**`).setFooter({ text: "\u7231 Doctora \u2022 Suggestion submitted" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord38.MessageFlags.Ephemeral });
     const cfg = interaction.client.guilds.cache.values().next().value;
     console.log(`[Suggestion] From ${interaction.user.tag}: ${suggestion}`);
   }, "execute")
 };
 
 // src/commands/utility/poll-create.ts
-var import_discord38 = __toESM(require_src());
+var import_discord39 = __toESM(require_src());
 var pollCreateCommand = {
-  data: new import_discord38.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
+  data: new import_discord39.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated options").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.ManageGuild),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182526,19 +182659,19 @@ var pollCreateCommand = {
     if (options.length < 2 || options.length > 10) {
       await interaction.reply({
         content: "\u274C You need 2-10 options.",
-        flags: import_discord38.MessageFlags.Ephemeral
+        flags: import_discord39.MessageFlags.Ephemeral
       });
       return;
     }
-    if (!interaction.guild || !(interaction.channel instanceof import_discord38.TextChannel)) {
+    if (!interaction.guild || !(interaction.channel instanceof import_discord39.TextChannel)) {
       await interaction.reply({
         content: "\u274C Polls can only be created in a server text channel.",
-        flags: import_discord38.MessageFlags.Ephemeral
+        flags: import_discord39.MessageFlags.Ephemeral
       });
       return;
     }
     const channel = interaction.channel;
-    const embed = new import_discord38.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord39.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await channel.send({ embeds: [embed] });
     const reactionEmojis = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}"];
     for (let i = 0; i < options.length; i++) {
@@ -182571,18 +182704,18 @@ ${resultDesc}`
         console.error("Poll auto-close failed:", error62);
       }
     }, (duration3 ?? 10) * 60 * 1e3);
-    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord38.MessageFlags.Ephemeral });
+    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord39.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/utility/poll-vote.ts
-var import_discord39 = __toESM(require_src());
+var import_discord40 = __toESM(require_src());
 var pollVoteCommand = {
-  data: new import_discord39.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
+  data: new import_discord40.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
     (option) => option.setName("poll_id").setDescription("The poll message ID").setRequired(true)
   ).addStringOption(
     (option) => option.setName("option").setDescription("Your option (use the number emoji)").setRequired(true)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182590,15 +182723,15 @@ var pollVoteCommand = {
     const option = interaction.options.getString("option", true);
     await interaction.reply({
       content: `\u2705 Your vote for option "${option}" has been recorded!`,
-      flags: import_discord39.MessageFlags.Ephemeral
+      flags: import_discord40.MessageFlags.Ephemeral
     });
   }, "execute")
 };
 
 // src/commands/leveling/levelup.ts
-var import_discord40 = __toESM(require_src());
+var import_discord41 = __toESM(require_src());
 var levelupCommand = {
-  data: new import_discord40.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.ManageGuild),
+  data: new import_discord41.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182606,13 +182739,13 @@ var levelupCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord40.MessageFlags.Ephemeral
+        flags: import_discord41.MessageFlags.Ephemeral
       });
       return;
     }
     const current = await loadLevelSettings(context);
     const { levelUpMessage, levelUpChannel } = current;
-    const testEmbed = new import_discord40.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
+    const testEmbed = new import_discord41.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
       levelUpMessage.replace("{user}", "@everyone").replace("{username}", "TestUser").replace("{level}", "10").replace("{server}", interaction.guild?.name ?? "this server").replace("{role}", "@everyone").replace("{xp}", "1500").replace("{xpneeded}", "500")
     ).setFooter({ text: "\u7231 Doctora \u2022 Level Up Test" }).setTimestamp();
     const channel = interaction.guild?.channels.cache.get(levelUpChannel);
@@ -182620,28 +182753,28 @@ var levelupCommand = {
       await channel.send({ embeds: [testEmbed] });
       await interaction.reply({
         content: `\u2705 Test level-up sent to <#${levelUpChannel}>`,
-        flags: import_discord40.MessageFlags.Ephemeral
+        flags: import_discord41.MessageFlags.Ephemeral
       });
     } else {
       await interaction.reply({
         content: `\u2705 Level-up message template: "${levelUpMessage}"
 (No level-up channel configured)`,
-        flags: import_discord40.MessageFlags.Ephemeral
+        flags: import_discord41.MessageFlags.Ephemeral
       });
     }
   }, "execute")
 };
 
 // src/commands/leveling/xpgive.ts
-var import_discord41 = __toESM(require_src());
+var import_discord42 = __toESM(require_src());
 var xpgiveCommand = {
-  data: new import_discord41.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
+  data: new import_discord42.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to give XP to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of XP to give").setMinValue(1).setMaxValue(1e4).setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("level").setDescription("Force a level (optional)").setMinValue(0).setMaxValue(1e3)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182651,25 +182784,25 @@ var xpgiveCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord41.MessageFlags.Ephemeral
+        flags: import_discord42.MessageFlags.Ephemeral
       });
       return;
     }
     await addXp(targetUser.id, amount, "admin", 0);
-    const embed = new import_discord41.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
+    const embed = new import_discord42.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
       { name: "User", value: targetUser.tag, inline: true },
       { name: "XP Given", value: `${amount}`, inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 XP Given" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord41.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord42.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/leveling/resetxp.ts
-var import_discord42 = __toESM(require_src());
+var import_discord43 = __toESM(require_src());
 var resetXpCommand = {
-  data: new import_discord42.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
+  data: new import_discord43.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to reset XP for").setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182678,25 +182811,25 @@ var resetXpCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord42.MessageFlags.Ephemeral
+        flags: import_discord43.MessageFlags.Ephemeral
       });
       return;
     }
     await setUserXp(targetUser.id, 0);
-    const embed = new import_discord42.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord42.MessageFlags.Ephemeral });
+    const embed = new import_discord43.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord43.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/economy.ts
-var import_discord43 = __toESM(require_src());
+var import_discord44 = __toESM(require_src());
 var economyCommand = {
-  data: new import_discord43.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.SendMessages),
+  data: new import_discord44.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const config2 = await loadLevelSettings(context);
-    const embed = new import_discord43.EmbedBuilder().setColor(5793266).setTitle("\u{1F4B0} Server Economy").addFields(
+    const embed = new import_discord44.EmbedBuilder().setColor(5793266).setTitle("\u{1F4B0} Server Economy").addFields(
       { name: "XP Enabled", value: config2.enabled ? "Yes" : "No", inline: true },
       { name: "Message XP", value: `${config2.perMessageMin}-${config2.perMessageMax} (random)`, inline: true },
       { name: "Cooldown", value: `${config2.cooldownSeconds}s`, inline: true },
@@ -182704,16 +182837,16 @@ var economyCommand = {
       { name: "Ignore Bots", value: config2.ignoreBots ? "Yes" : "No", inline: true },
       { name: "Exclusive XP Channel", value: config2.xpChannel ? `<#${config2.xpChannel}>` : "None", inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 Economy" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord43.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord44.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/shop.ts
-var import_discord44 = __toESM(require_src());
+var import_discord45 = __toESM(require_src());
 var shopCommand = {
-  data: new import_discord44.SlashCommandBuilder().setName("shop").setDescription("View the server shop and purchase items.").addStringOption(
+  data: new import_discord45.SlashCommandBuilder().setName("shop").setDescription("View the server shop and purchase items.").addStringOption(
     (option) => option.setName("item").setDescription("Item to buy").setRequired(false)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord45.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182723,21 +182856,21 @@ var shopCommand = {
       { id: "special_role", name: "Special Role", cost: 1500, description: "A unique role" },
       { id: "voice_boost", name: "Voice Boost", cost: 750, description: "Priority in voice queue" }
     ];
-    const embed = new import_discord44.EmbedBuilder().setColor(5793266).setTitle("\u{1F3EA} Server Shop").setDescription("Use `/balance` to check your coins, then `/buy` to purchase items.").setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
+    const embed = new import_discord45.EmbedBuilder().setColor(5793266).setTitle("\u{1F3EA} Server Shop").setDescription("Use `/balance` to check your coins, then `/buy` to purchase items.").setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
     let fields = "";
     for (const item of shopItems) {
       fields += `\u2022 **${item.name}** \u2014 ${item.cost} coins: ${item.description}
 `;
     }
     embed.addFields({ name: "Available Items", value: fields || "No items available" });
-    await interaction.reply({ embeds: [embed], flags: import_discord44.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord45.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/inventory.ts
-var import_discord45 = __toESM(require_src());
+var import_discord46 = __toESM(require_src());
 var inventoryCommand = {
-  data: new import_discord45.SlashCommandBuilder().setName("inventory").setDescription("View your personal inventory and balance.").setDMPermission(true).setDefaultMemberPermissions(import_discord45.PermissionFlagsBits.SendMessages),
+  data: new import_discord46.SlashCommandBuilder().setName("inventory").setDescription("View your personal inventory and balance.").setDMPermission(true).setDefaultMemberPermissions(import_discord46.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182745,7 +182878,7 @@ var inventoryCommand = {
     const userBank = 5e3;
     const bankLimit = 1e4;
     const ownedItems = ["rank_card_theme", "special_role"];
-    const embed = new import_discord45.EmbedBuilder().setColor(5793266).setTitle("\u{1F392} Your Inventory").addFields(
+    const embed = new import_discord46.EmbedBuilder().setColor(5793266).setTitle("\u{1F392} Your Inventory").addFields(
       { name: "\u{1F4B5} Balance", value: `${userBalance} coins`, inline: true },
       { name: "\u{1F3E6} Bank", value: `${userBank}/${bankLimit} coins`, inline: true }
     );
@@ -182759,38 +182892,38 @@ var inventoryCommand = {
     }
     embed.setFooter({ text: "\u7231 Doctora \u2022 Inventory" });
     embed.setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord45.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord46.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/give.ts
-var import_discord46 = __toESM(require_src());
+var import_discord47 = __toESM(require_src());
 var giveCommand = {
-  data: new import_discord46.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
+  data: new import_discord47.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to give coins to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of coins to give").setMinValue(1).setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord46.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord47.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const targetUser = interaction.options.getUser("user", true);
     const amount = interaction.options.getInteger("amount", true);
-    const embed = new import_discord46.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
+    const embed = new import_discord47.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
       { name: "From", value: interaction.user.tag, inline: true },
       { name: "To", value: targetUser.tag, inline: true },
       { name: "Amount", value: `${amount} coins`, inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 Coin Transfer" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord46.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord47.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/rich.ts
-var import_discord47 = __toESM(require_src());
+var import_discord48 = __toESM(require_src());
 var richCommand = {
-  data: new import_discord47.SlashCommandBuilder().setName("rich").setDescription("View the richest members of the server.").addIntegerOption(
+  data: new import_discord48.SlashCommandBuilder().setName("rich").setDescription("View the richest members of the server.").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many top members to show").setMinValue(1).setMaxValue(10).setRequired(false)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord47.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182802,23 +182935,23 @@ var richCommand = {
       { user: "User4", xp: 38e3, level: 22 },
       { user: "User5", xp: 35e3, level: 21 }
     ];
-    const embed = new import_discord47.EmbedBuilder().setColor(16766720).setTitle("\u{1F48E} Richest Members").setDescription(`Top ${limit} members by XP`);
+    const embed = new import_discord48.EmbedBuilder().setColor(16766720).setTitle("\u{1F48E} Richest Members").setDescription(`Top ${limit} members by XP`);
     const fields = richList.slice(0, limit).map(
       (member, i) => `**#${i + 1}** <@${member.user.replace("<@", "").replace(">", "")}> \u2014 Level ${member.level} (${member.xp.toLocaleString()} XP)`
     ).join("\n");
     embed.addFields({ name: "Members", value: fields || "No data available" });
     embed.setFooter({ text: "\u7231 Doctora \u2022 Rich List" });
     embed.setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord47.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord48.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/tickets/quick-ticket.ts
-var import_discord48 = __toESM(require_src());
+var import_discord49 = __toESM(require_src());
 var quickticketCommand = {
-  data: new import_discord48.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
+  data: new import_discord49.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
     (option) => option.setName("channel").setDescription("Channel to post the panel (default: current)")
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord49.PermissionFlagsBits.ManageGuild),
   category: "moderation",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182827,7 +182960,7 @@ var quickticketCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord48.MessageFlags.Ephemeral
+        flags: import_discord49.MessageFlags.Ephemeral
       });
       return;
     }
@@ -182843,13 +182976,13 @@ var quickticketCommand = {
         isActive: true
       });
     }
-    const embed = new import_discord48.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription(
+    const embed = new import_discord49.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription(
       "Click a department below to open a private support ticket.\n\n\u{1F3AB} **Support** \u2014 General support"
     ).setThumbnail(guild.iconURL()).setFooter({ text: "\u7231 Doctora \u2022 Quick Tickets" }).setTimestamp();
     const rows = [];
-    const row = new import_discord48.ActionRowBuilder();
+    const row = new import_discord49.ActionRowBuilder();
     row.addComponents(
-      new import_discord48.ButtonBuilder().setCustomId("ticket_create:support").setLabel("Support").setStyle(import_discord48.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
+      new import_discord49.ButtonBuilder().setCustomId("ticket_create:support").setLabel("Support").setStyle(import_discord49.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
     );
     rows.push(row);
     const message = await channel.send({
@@ -182866,7 +182999,7 @@ var quickticketCommand = {
     });
     await interaction.reply({
       content: `\u2705 Quick ticket panel posted in ${channel}`,
-      flags: import_discord48.MessageFlags.Ephemeral
+      flags: import_discord49.MessageFlags.Ephemeral
     });
   }, "execute")
 };
@@ -182877,6 +183010,7 @@ var commands = [
   pingCommand,
   helpCommand,
   voiceCommand,
+  vcCommand,
   userinfoCommand,
   serverinfoCommand,
   setupCommand,
@@ -182935,8 +183069,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord49 = __toESM(require_src());
-var SukunaClient = class extends import_discord49.Client {
+var import_discord50 = __toESM(require_src());
+var SukunaClient = class extends import_discord50.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -182951,15 +183085,15 @@ var SukunaClient = class extends import_discord49.Client {
   constructor() {
     super({
       intents: [
-        import_discord49.GatewayIntentBits.Guilds,
-        import_discord49.GatewayIntentBits.GuildMembers,
-        import_discord49.GatewayIntentBits.GuildMessages,
-        import_discord49.GatewayIntentBits.MessageContent,
-        import_discord49.GatewayIntentBits.DirectMessages,
-        import_discord49.GatewayIntentBits.GuildVoiceStates,
-        import_discord49.GatewayIntentBits.GuildMessageReactions
+        import_discord50.GatewayIntentBits.Guilds,
+        import_discord50.GatewayIntentBits.GuildMembers,
+        import_discord50.GatewayIntentBits.GuildMessages,
+        import_discord50.GatewayIntentBits.MessageContent,
+        import_discord50.GatewayIntentBits.DirectMessages,
+        import_discord50.GatewayIntentBits.GuildVoiceStates,
+        import_discord50.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord49.Partials.Message, import_discord49.Partials.Channel, import_discord49.Partials.GuildMember, import_discord49.Partials.Reaction],
+      partials: [import_discord50.Partials.Message, import_discord50.Partials.Channel, import_discord50.Partials.GuildMember, import_discord50.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
       // Always appear as "Do Not Disturb" with no activity text. Sent with the
       // IDENTIFY payload, so it applies on login and on every reconnect.
@@ -183152,7 +183286,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord50 = __toESM(require_src());
+var import_discord51 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -183184,8 +183318,9 @@ function newErrorId() {
 __name(newErrorId, "newErrorId");
 
 // src/events/interactionCreate.ts
+init_manager();
 var interactionCreate = {
-  name: import_discord50.Events.InteractionCreate,
+  name: import_discord51.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     const allowedGuildId = client.env?.GUILD_ID;
     if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
@@ -183293,6 +183428,10 @@ async function handleButtonInteraction(client, interaction) {
     await handleTicketCloseButton(interaction);
     return;
   }
+  if (customId.startsWith("vc_join:")) {
+    await handleVcJoin(client, interaction);
+    return;
+  }
 }
 __name(handleButtonInteraction, "handleButtonInteraction");
 async function handleTicketCreate(client, interaction) {
@@ -183382,10 +183521,10 @@ async function handleTicketCreate(client, interaction) {
       departmentId: department._id.toString(),
       departmentName: department.name
     });
-    const closeButton = new import_discord50.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord50.ButtonStyle.Danger).setEmoji("\u{1F512}");
-    const closeRow = new import_discord50.ActionRowBuilder().addComponents(closeButton);
+    const closeButton = new import_discord51.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord51.ButtonStyle.Danger).setEmoji("\u{1F512}");
+    const closeRow = new import_discord51.ActionRowBuilder().addComponents(closeButton);
     const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
-    const welcomeEmbed = new import_discord50.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+    const welcomeEmbed = new import_discord51.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
     await channel.send({
       content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
       embeds: [welcomeEmbed],
@@ -183434,9 +183573,63 @@ async function handleTicketCloseButton(interaction) {
   }, 1e4);
 }
 __name(handleTicketCloseButton, "handleTicketCloseButton");
+async function handleVcJoin(client, interaction) {
+  await interaction.deferReply({ flags: 64 });
+  const guild = interaction.guild;
+  const member = interaction.member;
+  const user = interaction.user;
+  if (!guild) {
+    await interaction.editReply({ content: "\u274C Server-only." });
+    return;
+  }
+  const panelId = interaction.customId.split(":")[1];
+  if (!panelId) {
+    await interaction.editReply({ content: "\u274C Invalid VC panel." });
+    return;
+  }
+  const panel = await readVcPanelById(panelId);
+  if (!panel || panel.guildId !== guild.id) {
+    await interaction.editReply({ content: "\u274C That VC panel no longer exists." });
+    return;
+  }
+  const channelId = member.voice?.channel?.id ?? null;
+  if (!channelId) {
+    await interaction.editReply({
+      content: "\u274C You are not in a voice channel. Join one first, then tap again."
+    });
+    return;
+  }
+  const channel = guild.channels.cache.get(channelId);
+  if (!channel || !channel.isVoiceBased()) {
+    await interaction.editReply({ content: "\u274C Your voice channel could not be found." });
+    return;
+  }
+  const me = guild.members.me;
+  const permissions = me ? channel.permissionsFor(me) : null;
+  if (permissions && !permissions.has(["Connect", "Speak"])) {
+    await interaction.editReply({
+      content: `\u274C I need **Connect** and **Speak** permissions in ${channel}.`
+    });
+    return;
+  }
+  if (isVoiceConnected(guild.id)) {
+    disconnectVoice(guild.id);
+  }
+  try {
+    await connectVoice(guild, channelId);
+    await interaction.editReply({
+      content: `\u{1F50A} \u611B Doctora has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`
+    });
+  } catch (error62) {
+    await interaction.editReply({
+      content: "\u274C Could not join the voice channel: " + (error62 instanceof Error ? error62.message : String(error62))
+    });
+  }
+}
+__name(handleVcJoin, "handleVcJoin");
 
 // src/events/ready.ts
-var import_discord53 = __toESM(require_src());
+var import_discord54 = __toESM(require_src());
 
 // dashboard/server.ts
 var import_node_http = __toESM(require("node:http"));
@@ -183447,8 +183640,8 @@ init_zod();
 init_config();
 
 // src/db/models/SukunaMemory.ts
-var import_mongoose6 = __toESM(require_mongoose2());
-var memorySchema = new import_mongoose6.Schema({
+var import_mongoose7 = __toESM(require_mongoose2());
+var memorySchema = new import_mongoose7.Schema({
   guildId: { type: String, required: true, index: true },
   fact: { type: String, required: true },
   aboutUserId: { type: String, default: null },
@@ -183456,7 +183649,7 @@ var memorySchema = new import_mongoose6.Schema({
   createdAt: { type: Number, required: true, default: Date.now }
 });
 memorySchema.index({ guildId: 1, fact: 1, aboutUserId: 1 }, { unique: true });
-var SukunaMemory = (0, import_mongoose6.model)("SukunaMemory", memorySchema);
+var SukunaMemory = (0, import_mongoose7.model)("SukunaMemory", memorySchema);
 
 // src/utils/sukuna-memory.ts
 var MAX_NOTES_PER_GUILD = 300;
@@ -183511,16 +183704,16 @@ async function clearMemories(guildId) {
 __name(clearMemories, "clearMemories");
 
 // src/utils/sukuna-storage.ts
-var import_mongoose7 = __toESM(require_mongoose2());
-var announcementSchema = new import_mongoose7.Schema({
+var import_mongoose8 = __toESM(require_mongoose2());
+var announcementSchema = new import_mongoose8.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   content: { type: String, required: true },
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaAnnouncement = (0, import_mongoose7.model)("SukunaAnnouncement", announcementSchema);
-var faqSchema = new import_mongoose7.Schema({
+var SukunaAnnouncement = (0, import_mongoose8.model)("SukunaAnnouncement", announcementSchema);
+var faqSchema = new import_mongoose8.Schema({
   guildId: { type: String, required: true },
   question: { type: String, required: true, index: "text" },
   answer: { type: String, required: true },
@@ -183528,8 +183721,8 @@ var faqSchema = new import_mongoose7.Schema({
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaFaq = (0, import_mongoose7.model)("SukunaFaq", faqSchema);
-var eventSchema = new import_mongoose7.Schema({
+var SukunaFaq = (0, import_mongoose8.model)("SukunaFaq", faqSchema);
+var eventSchema = new import_mongoose8.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   description: { type: String },
@@ -183538,8 +183731,8 @@ var eventSchema = new import_mongoose7.Schema({
   pinned: { type: Boolean, default: false },
   createdAt: { type: Number, required: true }
 });
-var SukunaEvent = (0, import_mongoose7.model)("SukunaEvent", eventSchema);
-var scheduledSchema = new import_mongoose7.Schema({
+var SukunaEvent = (0, import_mongoose8.model)("SukunaEvent", eventSchema);
+var scheduledSchema = new import_mongoose8.Schema({
   guildId: { type: String, required: true, index: true },
   channelId: { type: String, required: true },
   content: { type: String, required: true },
@@ -183548,13 +183741,13 @@ var scheduledSchema = new import_mongoose7.Schema({
   messageId: { type: String },
   createdAt: { type: Number, required: true }
 });
-var SukunaScheduled = (0, import_mongoose7.model)("SukunaScheduled", scheduledSchema);
-var rulesSchema = new import_mongoose7.Schema({
+var SukunaScheduled = (0, import_mongoose8.model)("SukunaScheduled", scheduledSchema);
+var rulesSchema = new import_mongoose8.Schema({
   guildId: { type: String, required: true, unique: true },
   rules: { type: [String], required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaRules = (0, import_mongoose7.model)("SukunaRules", rulesSchema);
+var SukunaRules = (0, import_mongoose8.model)("SukunaRules", rulesSchema);
 async function createAnnouncement(guildId, input2) {
   return SukunaAnnouncement.create({
     guildId,
@@ -184448,13 +184641,13 @@ function extractJsonObject(text) {
   return null;
 }
 __name(extractJsonObject, "extractJsonObject");
-function looksLikeLiveModel(model7) {
-  const name = model7.replace(/^models\//, "").toLowerCase();
+function looksLikeLiveModel(model8) {
+  const name = model8.replace(/^models\//, "").toLowerCase();
   return name.includes("live") || name.includes("native-audio");
 }
 __name(looksLikeLiveModel, "looksLikeLiveModel");
-function resolveThinkingLevel(model7, level) {
-  const normalisedModel = model7.replace(/^models\//, "");
+function resolveThinkingLevel(model8, level) {
+  const normalisedModel = model8.replace(/^models\//, "");
   const explicit = level?.trim().toLowerCase() || null;
   if (normalisedModel === "gemini-3.8-live") return null;
   if (normalisedModel === "gemini-3.8-live-extended-thinking") return explicit ?? "low";
@@ -186073,7 +186266,7 @@ async function closeTicket(client, ticket, reason) {
 __name(closeTicket, "closeTicket");
 
 // src/events/voiceStateUpdate.ts
-var import_discord52 = __toESM(require_src());
+var import_discord53 = __toESM(require_src());
 
 // src/handlers/levelUp.ts
 function resolveLevelRoles(levelRoles, level) {
@@ -186298,7 +186491,7 @@ function stopVoiceTracking() {
 }
 __name(stopVoiceTracking, "stopVoiceTracking");
 var voiceStateUpdate = {
-  name: import_discord52.Events.VoiceStateUpdate,
+  name: import_discord53.Events.VoiceStateUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldState, newState) => {
     await handleVoiceStateUpdate(client, oldState, newState);
   }, "execute")
@@ -186306,7 +186499,7 @@ var voiceStateUpdate = {
 
 // src/events/ready.ts
 var ready2 = {
-  name: import_discord53.Events.ClientReady,
+  name: import_discord54.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
@@ -186355,16 +186548,16 @@ var ready2 = {
 };
 
 // src/events/messageCreate.ts
-var import_discord56 = __toESM(require_src());
+var import_discord57 = __toESM(require_src());
 
 // src/utils/sukuna.ts
-var import_discord55 = __toESM(require_src());
+var import_discord56 = __toESM(require_src());
 init_config();
 init_sukuna();
 
 // src/utils/sukuna-tools.ts
 var import_genai4 = require("@google/genai");
-var import_discord54 = __toESM(require_src());
+var import_discord55 = __toESM(require_src());
 var DM_MAX_CHARS = 1500;
 var DM_RATE_LIMIT_PER_HOUR = 10;
 var DM_MIN_INTERVAL_PER_USER_MS = 6e4;
@@ -186677,7 +186870,7 @@ function isDmTargetAllowed(member, trigger) {
     const needle = candidate.toLowerCase();
     if (needle.length >= 3 && haystack.includes(needle)) return true;
   }
-  return trigger.member?.permissions.has(import_discord54.PermissionFlagsBits.ManageGuild) ?? false;
+  return trigger.member?.permissions.has(import_discord55.PermissionFlagsBits.ManageGuild) ?? false;
 }
 __name(isDmTargetAllowed, "isDmTargetAllowed");
 function checkDmLimit(guildId, userId) {
@@ -186794,7 +186987,7 @@ function handleMessage(message) {
   if (!cfg.enabled) return;
   if (message.channel.isDMBased()) {
     if (!cfg.dmEnabled) return;
-    if (message.channel.type !== import_discord55.ChannelType.DM) return;
+    if (message.channel.type !== import_discord56.ChannelType.DM) return;
     if (message.author.bot) return;
     if (!message.content?.trim() && message.attachments.size === 0) return;
     addToHistory(message, cfg);
@@ -187213,7 +187406,7 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord56.Events.MessageCreate,
+  name: import_discord57.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     try {
       handleMessage(message);
@@ -187286,9 +187479,9 @@ function cleanupCooldowns(cooldowns2, now) {
 __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
-var import_discord57 = __toESM(require_src());
+var import_discord58 = __toESM(require_src());
 var guildMemberAdd = {
-  name: import_discord57.Events.GuildMemberAdd,
+  name: import_discord58.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     if (!member || member.user?.bot) return;
     try {

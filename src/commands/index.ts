@@ -2,6 +2,7 @@ import type { Command } from '../core/commands.js';
 import { pingCommand } from './core/ping.js';
 import { helpCommand } from './core/help.js';
 import { voiceCommand } from './core/voice.js';
+import { vcCommand } from './core/vc.js';
 import { userinfoCommand } from './core/userinfo.js';
 import { serverinfoCommand } from './core/serverinfo.js';
 import { setupCommand } from './core/setup.js';
@@ -62,6 +63,7 @@ export const commands: readonly Command[] = [
   pingCommand,
   helpCommand,
   voiceCommand,
+  vcCommand,
   userinfoCommand,
   serverinfoCommand,
   setupCommand,
