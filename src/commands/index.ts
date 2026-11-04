@@ -3,6 +3,7 @@ import { pingCommand } from './core/ping.js';
 import { helpCommand } from './core/help.js';
 import { voiceCommand } from './core/voice.js';
 import { vcCommand } from './core/vc.js';
+import { tempvcCommand } from './core/tempvc.js';
 import { userinfoCommand } from './core/userinfo.js';
 import { serverinfoCommand } from './core/serverinfo.js';
 import { setupCommand } from './core/setup.js';
@@ -64,6 +65,7 @@ export const commands: readonly Command[] = [
   helpCommand,
   voiceCommand,
   vcCommand,
+  tempvcCommand,
   userinfoCommand,
   serverinfoCommand,
   setupCommand,

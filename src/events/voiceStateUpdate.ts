@@ -1,9 +1,24 @@
-import { Events, type ClientEvents, type VoiceState, type Client, type Guild, type User } from 'discord.js';
+import {
+  Events,
+  type ClientEvents,
+  type VoiceState,
+  type Client,
+  type Guild,
+  type User,
+  ChannelType,
+} from 'discord.js';
 import { addXp } from '../db/utils.js';
 import { handleLevelUp } from '../handlers/levelUp.js';
 import { randomXp } from '../utils/level.js';
 import { readLevelSettings, type LevelSettings } from '../utils/levelSettings.js';
 import { handleBotVoiceMove } from '../voice/manager.js';
+import {
+  readTempVCConfig,
+  readActiveTempVCByOwner,
+  createActiveTempVC,
+  readActiveTempVCByChannel,
+  deleteActiveTempVC,
+} from '../db/models/TempVC.js';
 
 /** userId -> join timestamp (aligned to minute boundaries as XP is awarded). */
 const voiceSessions = new Map<string, number>();
@@ -67,6 +82,14 @@ export async function handleVoiceStateUpdate(
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
 
+  // Temp VC: create a channel when a member joins the "create" channel.
+  await handleTempVCJoin(newState);
+
+  // Temp VC: delete the channel when it becomes empty.
+  if (oldState.channelId && changedChannel) {
+    await handleTempVCLeave(oldState);
+  }
+
   // The bot itself was moved to another voice channel (or disconnected): the
   // Live conversation belongs to the old channel, so restart it. Otherwise the
   // two channels would share one conversation.
@@ -98,6 +121,89 @@ export async function handleVoiceStateUpdate(
   if (changedChannel && newState.channelId && newState.member?.user) {
     voiceSessions.set(userId, now);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Temp VC (join-to-create)                                                   */
+/* -------------------------------------------------------------------------- */
+
+/** When a member joins the configured "create" channel, spin up a temp VC. */
+async function handleTempVCJoin(newState: VoiceState): Promise<void> {
+  const { guild, member, channelId } = newState;
+  if (!guild || !member || member.user.bot) return;
+  if (!channelId) return;
+
+  const config = await readTempVCConfig(guild.id);
+  if (!config?.createChannelId) return;
+  if (channelId !== config.createChannelId) return;
+
+  // One temp VC per owner: move them to their existing one instead.
+  const existing = await readActiveTempVCByOwner(guild.id, member.id);
+  if (existing) {
+    const existingChannel = guild.channels.cache.get(existing.channelId);
+    if (existingChannel?.isVoiceBased()) {
+      await member.voice.setChannel(existingChannel).catch(() => {});
+    }
+    return;
+  }
+
+  const createChannel = guild.channels.cache.get(config.createChannelId);
+  const category =
+    config.categoryId &&
+    guild.channels.cache.get(config.categoryId)?.type === ChannelType.GuildCategory
+      ? guild.channels.cache.get(config.categoryId)
+      : createChannel?.parent;
+
+  const name = config.nameTemplate
+    .replace(/\{user\}/g, member.user.username)
+    .replace(/\{guild\}/g, guild.name);
+
+  let newChannel;
+  try {
+    newChannel = await guild.channels.create({
+      name,
+      type: ChannelType.GuildVoice,
+      parent: category?.id ?? undefined,
+      bitrate: config.bitrate ?? undefined,
+      userLimit: config.userLimit ?? undefined,
+      reason: `Temp VC created by ${member.user.tag}`,
+    });
+  } catch (err) {
+    console.error('[TempVC] Failed to create channel:', err);
+    return;
+  }
+
+  try {
+    await member.voice.setChannel(newChannel, 'Joined create channel');
+  } catch {
+    /* Move failed; the empty temp VC will be cleaned up on leave. */
+  }
+
+  await createActiveTempVC({
+    guildId: guild.id,
+    channelId: newChannel.id,
+    ownerId: member.id,
+  });
+}
+
+/** When the last member leaves a temp VC, delete it. */
+async function handleTempVCLeave(oldState: VoiceState): Promise<void> {
+  const { guild, channelId: oldChannelId } = oldState;
+  if (!guild || !oldChannelId) return;
+
+  const active = await readActiveTempVCByChannel(oldChannelId);
+  if (!active) return;
+
+  const channel = guild.channels.cache.get(oldChannelId);
+  if (!channel || !channel.isVoiceBased()) return;
+  if (channel.members.size > 0) return; // still in use
+
+  try {
+    await channel.delete('Temp VC is empty');
+  } catch {
+    /* already deleted or missing permissions */
+  }
+  await deleteActiveTempVC(oldChannelId);
 }
 
 /**
