@@ -182617,14 +182617,14 @@ ${resultDesc}`
 var import_discord40 = __toESM(require_src());
 var pollVoteCommand = {
   data: new import_discord40.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
-    (option) => option.setName("pollId").setDescription("The poll message ID").setRequired(true)
+    (option) => option.setName("poll_id").setDescription("The poll message ID").setRequired(true)
   ).addStringOption(
     (option) => option.setName("option").setDescription("Your option (use the number emoji)").setRequired(true)
   ).setDMPermission(true).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
-    const pollId = interaction.options.getString("pollId", true);
+    const pollId = interaction.options.getString("poll_id", true);
     const option = interaction.options.getString("option", true);
     await interaction.reply({
       content: `\u2705 Your vote for option "${option}" has been recorded!`,

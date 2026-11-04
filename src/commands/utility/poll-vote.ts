@@ -11,7 +11,7 @@ export const pollVoteCommand: Command = {
     .setName('poll-vote')
     .setDescription('Vote in an existing poll.')
     .addStringOption((option) =>
-      option.setName('pollId').setDescription('The poll message ID').setRequired(true),
+      option.setName('poll_id').setDescription('The poll message ID').setRequired(true),
     )
     .addStringOption((option) =>
       option.setName('option').setDescription('Your option (use the number emoji)').setRequired(true),
@@ -21,7 +21,7 @@ export const pollVoteCommand: Command = {
   category: 'utility',
   execute: async (context) => {
     const { interaction } = context;
-    const pollId = interaction.options.getString('pollId', true);
+    const pollId = interaction.options.getString('poll_id', true);
     const option = interaction.options.getString('option', true);
 
     // In a real implementation, we'd look up the poll by message ID
