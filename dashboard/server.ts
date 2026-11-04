@@ -32,6 +32,14 @@ import {
   type SukunaConfig,
 } from '../src/config/index.js';
 import { readGuildConfig, updateGuildConfig } from '../src/db/models/Guild.js';
+import {
+  TicketPanel,
+  TicketDepartment,
+  OpenTicket,
+  TicketConfig,
+  defaultTicketConfig,
+  type ITicketConfig,
+} from '../src/db/models/Ticket.js';
 import { User } from '../src/db/models/User.js';
 import { setUserXp } from '../src/db/utils.js';
 import { invalidateLiveLeaderboard, refreshLiveLeaderboard } from '../src/utils/liveLeaderboard.js';
@@ -319,6 +327,24 @@ async function routeApi(
     if (!guildId) throw new HttpError(404, 'Not found');
 
     const guild = resolveGuild(client, guildId);
+
+    // Tickets sub-resource: /api/guilds/:id/tickets/...
+    if (sub === 'tickets') {
+      const ticketSub = parts[4]; // 'config' | 'departments' | undefined
+      const ticketSubId = parts[5]; // department id
+
+      if (!ticketSub && method === 'GET') return sendTicketOverview(client, guild, res);
+      if (ticketSub === 'config' && method === 'PATCH') return updateTicketConfig(guild, req, res);
+      if (ticketSub === 'departments' && !ticketSubId && method === 'GET')
+        return listTicketDepartments(guild, res);
+      if (ticketSub === 'departments' && !ticketSubId && method === 'POST')
+        return createTicketDepartment(guild, req, res);
+      if (ticketSub === 'departments' && ticketSubId && method === 'PATCH')
+        return updateTicketDepartment(guild, ticketSubId, req, res);
+      if (ticketSub === 'departments' && ticketSubId && method === 'DELETE')
+        return deleteTicketDepartment(guild, ticketSubId, res);
+      throw new HttpError(404, 'Not found');
+    }
 
     if (!sub && method === 'GET') return sendGuildDetail(client, guild, res);
     if (!sub && (method === 'PATCH' || method === 'PUT')) return updateGuild(client, guild, req, res);
@@ -766,6 +792,243 @@ async function sendGuildDetail(
       scheduled: scheduledCount,
     },
   });
+}
+
+/* -------------------------------------------------------------------------- */
+/* API: ticket configuration (guild level)                                    */
+/* -------------------------------------------------------------------------- */
+
+const ticketConfigPatchSchema = z
+  .object({
+    maxTicketsPerUser: z.number().int().min(1).max(100).optional(),
+    cooldownSeconds: z.number().int().min(0).max(86400).optional(),
+    dmTranscript: z.boolean().optional(),
+    transcriptChannelId: z.string().regex(/^\d{5,25}$/).nullable().optional(),
+    autoCloseMinutes: z.number().int().min(0).max(525600).optional(),
+    staffRoleIds: z.array(z.string().regex(/^\d{5,25}$/)).max(100).optional(),
+  })
+  .strict();
+
+const ticketDepartmentSchema = z
+  .object({
+    name: z.string().trim().min(1).max(50),
+    description: z.string().trim().min(1).max(200).default('General support'),
+    emoji: z.string().trim().min(1).max(10).default('🎫'),
+    color: z.number().int().min(0).max(0xffffff).default(0x5865f2),
+    staffRoleId: z.string().regex(/^\d{5,25}$/).nullable().optional(),
+    welcomeMessage: z.string().trim().min(1).max(1000).optional(),
+    isActive: z.boolean().default(true),
+  })
+  .strict();
+
+async function sendTicketOverview(
+  client: SukunaClient,
+  guild: Guild,
+  res: http.ServerResponse,
+): Promise<void> {
+  const [config, departments, panels, openTickets] = await Promise.all([
+    TicketConfig.findOne({ guildId: guild.id }).lean(),
+    TicketDepartment.find({ guildId: guild.id }).sort({ createdAt: 1 }).lean(),
+    TicketPanel.countDocuments({ guildId: guild.id }),
+    OpenTicket.countDocuments({ guildId: guild.id, closedAt: null }),
+  ]);
+
+  const resolved = config ?? defaultTicketConfig(guild.id);
+
+  sendJson(res, 200, {
+    config: {
+      maxTicketsPerUser: resolved.maxTicketsPerUser,
+      cooldownSeconds: resolved.cooldownSeconds,
+      dmTranscript: resolved.dmTranscript,
+      transcriptChannelId: resolved.transcriptChannelId ?? null,
+      autoCloseMinutes: resolved.autoCloseMinutes,
+      staffRoleIds: resolved.staffRoleIds,
+    },
+    departments: departments.map((dept) => ({
+      id: String(dept._id),
+      name: dept.name,
+      description: dept.description,
+      emoji: dept.emoji,
+      color: dept.color,
+      staffRoleId: dept.staffRoleId ?? null,
+      welcomeMessage: dept.welcomeMessage,
+      isActive: dept.isActive,
+    })),
+    stats: {
+      panels,
+      openTickets,
+    },
+  });
+}
+
+async function updateTicketConfig(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = ticketConfigPatchSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid ticket config', parsed.error.flatten());
+
+  const data = parsed.data;
+
+  // Validate that configured channels/roles exist in this guild.
+  if (data.transcriptChannelId && !guild.channels.cache.has(data.transcriptChannelId)) {
+    throw new HttpError(400, 'Transcript log channel does not exist in this guild');
+  }
+  for (const roleId of data.staffRoleIds ?? []) {
+    if (!guild.roles.cache.has(roleId)) {
+      throw new HttpError(400, `Staff role ${roleId} does not exist in this guild`);
+    }
+  }
+
+  let config = await TicketConfig.findOne({ guildId: guild.id });
+  if (!config) {
+    config = await TicketConfig.create(defaultTicketConfig(guild.id));
+  }
+
+  if (data.maxTicketsPerUser !== undefined) config.maxTicketsPerUser = data.maxTicketsPerUser;
+  if (data.cooldownSeconds !== undefined) config.cooldownSeconds = data.cooldownSeconds;
+  if (data.dmTranscript !== undefined) config.dmTranscript = data.dmTranscript;
+  if (data.transcriptChannelId !== undefined)
+    config.transcriptChannelId = data.transcriptChannelId ?? undefined;
+  if (data.autoCloseMinutes !== undefined) config.autoCloseMinutes = data.autoCloseMinutes;
+  if (data.staffRoleIds !== undefined) config.staffRoleIds = data.staffRoleIds;
+
+  await config.save();
+
+  sendJson(res, 200, {
+    config: {
+      maxTicketsPerUser: config.maxTicketsPerUser,
+      cooldownSeconds: config.cooldownSeconds,
+      dmTranscript: config.dmTranscript,
+      transcriptChannelId: config.transcriptChannelId ?? null,
+      autoCloseMinutes: config.autoCloseMinutes,
+      staffRoleIds: config.staffRoleIds,
+    },
+  });
+}
+
+async function listTicketDepartments(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const departments = await TicketDepartment.find({ guildId: guild.id }).sort({ createdAt: 1 }).lean();
+  sendJson(res, 200, {
+    departments: departments.map((dept) => ({
+      id: String(dept._id),
+      name: dept.name,
+      description: dept.description,
+      emoji: dept.emoji,
+      color: dept.color,
+      staffRoleId: dept.staffRoleId ?? null,
+      welcomeMessage: dept.welcomeMessage,
+      isActive: dept.isActive,
+    })),
+  });
+}
+
+async function createTicketDepartment(
+  guild: Guild,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = ticketDepartmentSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid department', parsed.error.flatten());
+
+  const data = parsed.data;
+
+  if (data.staffRoleId && !guild.roles.cache.has(data.staffRoleId)) {
+    throw new HttpError(400, 'Staff role does not exist in this guild');
+  }
+
+  const existing = await TicketDepartment.findOne({
+    guildId: guild.id,
+    name: data.name,
+  });
+  if (existing) throw new HttpError(409, 'A department with this name already exists.');
+
+  const dept = await TicketDepartment.create({
+    guildId: guild.id,
+    name: data.name,
+    description: data.description,
+    emoji: data.emoji,
+    color: data.color,
+    staffRoleId: data.staffRoleId ?? undefined,
+    welcomeMessage: data.welcomeMessage,
+    isActive: data.isActive,
+  });
+
+  sendJson(res, 201, {
+    id: String(dept._id),
+    name: dept.name,
+    description: dept.description,
+    emoji: dept.emoji,
+    color: dept.color,
+    staffRoleId: dept.staffRoleId ?? null,
+    welcomeMessage: dept.welcomeMessage,
+    isActive: dept.isActive,
+  });
+}
+
+async function updateTicketDepartment(
+  guild: Guild,
+  departmentId: string,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+): Promise<void> {
+  const parsed = ticketDepartmentSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid department update', parsed.error.flatten());
+
+  const data = parsed.data;
+  const dept = await TicketDepartment.findOne({ _id: departmentId, guildId: guild.id });
+  if (!dept) throw new HttpError(404, 'Department not found');
+
+  if (data.name !== undefined && data.name !== dept.name) {
+    const existing = await TicketDepartment.findOne({
+      guildId: guild.id,
+      name: data.name,
+    });
+    if (existing) throw new HttpError(409, 'A department with this name already exists.');
+    dept.name = data.name;
+  }
+  if (data.description !== undefined) dept.description = data.description;
+  if (data.emoji !== undefined) dept.emoji = data.emoji;
+  if (data.color !== undefined) dept.color = data.color;
+  if (data.staffRoleId !== undefined) {
+    if (data.staffRoleId && !guild.roles.cache.has(data.staffRoleId)) {
+      throw new HttpError(400, 'Staff role does not exist in this guild');
+    }
+    dept.staffRoleId = data.staffRoleId || undefined;
+  }
+  if (data.welcomeMessage !== undefined) dept.welcomeMessage = data.welcomeMessage;
+  if (data.isActive !== undefined) dept.isActive = data.isActive;
+
+  await dept.save();
+
+  sendJson(res, 200, {
+    id: String(dept._id),
+    name: dept.name,
+    description: dept.description,
+    emoji: dept.emoji,
+    color: dept.color,
+    staffRoleId: dept.staffRoleId ?? null,
+    welcomeMessage: dept.welcomeMessage,
+    isActive: dept.isActive,
+  });
+}
+
+async function deleteTicketDepartment(
+  guild: Guild,
+  departmentId: string,
+  res: http.ServerResponse,
+): Promise<void> {
+  const dept = await TicketDepartment.findOne({ _id: departmentId, guildId: guild.id });
+  if (!dept) throw new HttpError(404, 'Department not found');
+
+  const panelCount = await TicketPanel.countDocuments({ guildId: guild.id });
+  if (panelCount > 0) {
+    throw new HttpError(409, 'Cannot delete a department while ticket panels exist. Remove panels first.');
+  }
+
+  await TicketDepartment.deleteOne({ _id: departmentId });
+  sendJson(res, 200, { ok: true });
 }
 
 const guildPatchSchema = z

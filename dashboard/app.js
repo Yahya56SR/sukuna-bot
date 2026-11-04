@@ -749,6 +749,7 @@ function renderGuildDetail() {
   const tabs = [
     ['modules', 'Modules'],
     ['leveling', 'Leveling'],
+    ['tickets', 'Tickets'],
     ['memories', 'Memories' + (counts ? ' (' + counts.memories + ')' : '')],
     ['content', 'Content'],
   ];
@@ -779,6 +780,8 @@ function guildTabHtml() {
       return guildModulesHtml();
     case 'leveling':
       return guildLevelingHtml();
+    case 'tickets':
+      return guildTicketsHtml();
     case 'memories':
       return guildMemoriesHtml();
     case 'content':
@@ -810,6 +813,9 @@ async function setGuildTab(tab) {
   }
   if (tab === 'content' && !state.guildData.content) {
     await reloadContent();
+  }
+  if (tab === 'tickets' && !state.guildData.tickets) {
+    await reloadTickets();
   }
 }
 
@@ -963,6 +969,139 @@ function fieldNumber(name, label, value, min, max, hint) {
     'min="' + min + '" max="' + max + '" value="' + esc(value) + '">' +
     (hint ? '<span class="field-hint">' + esc(hint) + '</span>' : '') +
     '</div>';
+}
+
+/* ---- Tickets ---- */
+
+async function reloadTickets() {
+  if (!state.selectedGuildId) return;
+  const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/tickets');
+  state.guildData.tickets = data;
+  if (state.guildTab === 'tickets') {
+    renderGuildTabBody();
+  }
+}
+
+function guildTicketsHtml() {
+  const { config, channels, roles } = state.guildDetail;
+  const tickets = state.guildData.tickets;
+  if (!tickets) {
+    return '<div class="loading"><span class="spinner"></span><span>Loading ticket settings…</span></div>';
+  }
+
+  const cfg = tickets.config;
+  const channelOptions = channels.map((channel) =>
+    '<option value="' + esc(channel.id) + '" ' + (cfg.transcriptChannelId === channel.id ? 'selected' : '') + '>#' +
+    esc(channel.name) + '</option>',
+  ).join('');
+
+  const staffRoleOptions = (roles || []).map((role) =>
+    '<option value="' + esc(role.id) + '" ' + (cfg.staffRoleIds.includes(role.id) ? 'selected' : '') + '>' +
+    esc(role.name) + '</option>',
+  ).join('');
+
+  const deptRows = tickets.departments.map((dept) =>
+    '<div class="row wrap" style="gap:8px;align-items:center;margin-bottom:6px">' +
+    '<span class="badge" style="background:' + esc(dept.color) + ';color:#fff;border:none">' +
+    esc(dept.emoji) + ' ' + esc(dept.name) + '</span>' +
+    '<small style="max-width:340px;display:inline-block;vertical-align:middle">' +
+    esc(dept.description) + (dept.staffRoleId ? ' · staff: <@&' + esc(dept.staffRoleId) + '>' : '') + '</small>' +
+    '<span class="spacer"></span>' +
+    (dept.isActive ? '<span class="badge green">active</span>' : '<span class="badge red">inactive</span>') +
+    '<button class="btn ghost small" type="button" data-action="edit-ticket-dept" data-id="' + esc(dept.id) + '">Edit</button>' +
+    '<button class="btn danger small" type="button" data-action="delete-ticket-dept" data-id="' + esc(dept.id) + '">Delete</button>' +
+    '</div>',
+  ).join('');
+
+  return '<div class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><p class="eyebrow">Ticket system</p><h2>Global ticket settings</h2>' +
+    '<p>Limits, cooldowns and transcript behaviour for all tickets in this guild.</p></div></div>' +
+    '<form id="guild-tickets-form" class="stack" style="margin-top:16px">' +
+    fieldNumber('maxTicketsPerUser', 'Max tickets per user', cfg.maxTicketsPerUser, 1, 100, 'Maximum open tickets a single user can have at once') +
+    fieldNumber('cooldownSeconds', 'Cooldown (seconds)', cfg.cooldownSeconds, 0, 86400, 'Minimum seconds between ticket creations per user') +
+    switchRow('dmTranscript', 'DM transcript on close', 'Send a transcript copy to the ticket owner when a ticket closes', cfg.dmTranscript === true) +
+    '<div class="field"><label class="field-label" for="f-transcriptChannelId">Transcript log channel</label>' +
+    '<select class="select" id="f-transcriptChannelId" name="transcriptChannelId">' +
+    '<option value="">None</option>' + channelOptions + '</select>' +
+    '<span class="field-hint">Transcripts are also posted here when a ticket closes.</span></div>' +
+    fieldNumber('autoCloseMinutes', 'Auto-close after (minutes)', cfg.autoCloseMinutes, 0, 525600, 'Close tickets inactive for this long. 0 disables auto-close') +
+    '<div class="field" style="margin-top:4px"><span class="field-label">Staff roles (can manage all tickets)</span>' +
+    '<div class="channel-picker scroll" style="max-height:180px"><div class="check-list">' +
+    (roles && roles.length
+      ? roles.map((role) =>
+          '<label class="check-option"><input type="checkbox" name="staffRoleIds" value="' + esc(role.id) + '" ' +
+          (cfg.staffRoleIds.includes(role.id) ? 'checked' : '') + '><span>' + esc(role.name) + '</span>' +
+          '<span class="chan">' + esc(role.id) + '</span></label>',
+        ).join('')
+      : '<div class="empty">No roles found.</div>') +
+    '</div></div><span class="field-hint">Members with these roles can see and manage every ticket.</span></div>' +
+    '<div class="sticky-actions"><span class="muted small">Ticket settings are stored per guild in MongoDB.</span>' +
+    '<button class="btn primary" type="submit">Save ticket settings</button></div>' +
+    '</form>' +
+    '</div>' +
+
+    '<div class="card pad">' +
+    '<div class="section-head"><div><p class="eyebrow">Departments</p><h2>Ticket departments</h2>' +
+    '<p>Each department has its own style, staff role and welcome message.</p></div></div>' +
+    '<div class="stack" style="margin-top:16px">' +
+    '<form id="guild-ticket-dept-form" class="inline-form" style="margin-bottom:16px">' +
+    '<input class="input sm" name="deptName" placeholder="Department name" maxlength="50" required>' +
+    '<input class="input sm" name="deptDesc" placeholder="Description" maxlength="200" required>' +
+    '<input class="input sm" name="deptEmoji" placeholder="🎫" maxlength="5" required>' +
+    '<select class="select sm" name="deptStaffRole"><option value="">No staff role restriction</option>' + staffRoleOptions + '</select>' +
+    '<div class="row"><span class="spacer"></span><button class="btn primary small" type="submit">Add department</button></div>' +
+    '</form>' +
+    '<div class="dept-list">' + (deptRows || '<div class="empty">No departments yet.</div>') + '</div>' +
+    '</div>' +
+    '</div>' +
+
+    '<div class="card pad">' +
+    '<div class="card-head"><div><h3>Ticket statistics</h3><p>Current state of the ticket system in this guild.</p></div></div>' +
+    '<div class="kv" style="margin-top:12px">' +
+    kvRow('Panels posted', num(tickets.stats.panels)) +
+    kvRow('Open tickets', num(tickets.stats.openTickets)) +
+    '</div>' +
+    '</div>' +
+    '</div>';
+}
+
+function openTicketDeptModal(deptId) {
+  const tickets = state.guildData.tickets;
+  if (!tickets) return;
+  const dept = tickets.departments.find((d) => d.id === deptId);
+  if (!dept) return;
+  const roles = state.guildDetail.roles || [];
+  const roleOptions = roles.map((role) =>
+    '<option value="' + esc(role.id) + '" ' + (dept.staffRoleId === role.id ? 'selected' : '') + '>' +
+    esc(role.name) + '</option>',
+  ).join('');
+  showModal(
+    '<div class="modal-head"><div><h3>Edit department</h3><p class="mono">' + esc(dept.name) + '</p></div>' +
+    '<button class="modal-close" type="button" data-action="modal-close" aria-label="Close">×</button></div>' +
+    '<form id="ticket-dept-form" class="modal-body">' +
+    '<input type="hidden" name="deptId" value="' + esc(deptId) + '">' +
+    '<div class="form-grid">' +
+    '<div class="field"><label class="field-label" for="f-deptName">Name</label>' +
+    '<input class="input" id="f-deptName" name="deptName" maxlength="50" value="' + esc(dept.name) + '" required></div>' +
+    '<div class="field"><label class="field-label" for="f-deptDesc">Description</label>' +
+    '<input class="input" id="f-deptDesc" name="deptDesc" maxlength="200" value="' + esc(dept.description) + '" required></div>' +
+    '<div class="field"><label class="field-label" for="f-deptEmoji">Emoji</label>' +
+    '<input class="input" id="f-deptEmoji" name="deptEmoji" maxlength="5" value="' + esc(dept.emoji) + '" required></div>' +
+    '<div class="field"><label class="field-label" for="f-deptStaffRole">Staff role</label>' +
+    '<select class="select" id="f-deptStaffRole" name="deptStaffRole">' +
+    '<option value="">No restriction</option>' + roleOptions + '</select></div>' +
+    '<div class="field span-2"><label class="field-label" for="f-deptWelcome">Welcome message</label>' +
+    '<textarea class="input" id="f-deptWelcome" name="deptWelcome" rows="3" maxlength="1000">' +
+    esc(dept.welcomeMessage || '') + '</textarea>' +
+    '<span class="field-hint">Use {user} to mention the ticket owner.</span></div>' +
+    switchRow('deptIsActive', 'Active', 'Inactive departments cannot be used to open tickets', dept.isActive !== false) +
+    '</div>' +
+    '<div class="modal-foot" style="padding:0">' +
+    '<button class="btn ghost" type="button" data-action="modal-close">Cancel</button>' +
+    '<button class="btn primary" type="submit">Save changes</button></div>' +
+    '</form>',
+  );
 }
 
 /* ---- Memories ---- */
@@ -1934,6 +2073,73 @@ document.addEventListener('submit', async (event) => {
         break;
       }
 
+      case 'guild-tickets-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            maxTicketsPerUser: Number(data.get('maxTicketsPerUser')),
+            cooldownSeconds: Number(data.get('cooldownSeconds')),
+            dmTranscript: data.get('dmTranscript') === 'on',
+            transcriptChannelId: String(data.get('transcriptChannelId') || '') || null,
+            autoCloseMinutes: Number(data.get('autoCloseMinutes')),
+            staffRoleIds: data.getAll('staffRoleIds').map(String),
+          };
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/tickets/config', {
+            method: 'PATCH',
+            body,
+          });
+          state.guildData.tickets = null;
+          await reloadTickets();
+          showToast('Ticket settings saved', 'success');
+        });
+        break;
+      }
+
+      case 'guild-ticket-dept-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/tickets/departments', {
+            method: 'POST',
+            body: {
+              name: String(data.get('deptName') || ''),
+              description: String(data.get('deptDesc') || ''),
+              emoji: String(data.get('deptEmoji') || '🎫'),
+              staffRoleId: String(data.get('deptStaffRole') || '') || null,
+            },
+          });
+          state.guildData.tickets = null;
+          await reloadTickets();
+          showToast('Department created', 'success');
+        });
+        break;
+      }
+
+      case 'ticket-dept-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            name: String(data.get('deptName') || ''),
+            description: String(data.get('deptDesc') || ''),
+            emoji: String(data.get('deptEmoji') || '🎫'),
+            staffRoleId: String(data.get('deptStaffRole') || '') || null,
+            welcomeMessage: String(data.get('deptWelcome') || ''),
+            isActive: data.get('deptIsActive') === 'on',
+          };
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/tickets/departments/' + encodeURIComponent(data.get('deptId')), {
+            method: 'PATCH',
+            body,
+          });
+          closeModal();
+          state.guildData.tickets = null;
+          await reloadTickets();
+          showToast('Department updated', 'success');
+        });
+        break;
+      }
+
       case 'guild-rules-form': {
         const guildId = state.selectedGuildId;
         await runForm(form, async () => {
@@ -2139,6 +2345,30 @@ document.addEventListener('click', (event) => {
 
     case 'cancel-scheduled':
       deleteContent('scheduled', trigger.dataset.id);
+      break;
+
+    case 'delete-ticket-dept': {
+      const confirmed = await confirmAction(
+        'Delete department',
+        'Remove this ticket department? It cannot be used by panels anymore.',
+        'Delete',
+      );
+      if (!confirmed) return;
+      try {
+        await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/tickets/departments/' + encodeURIComponent(trigger.dataset.id), {
+          method: 'DELETE',
+        });
+        showToast('Department deleted', 'success');
+        state.guildData.tickets = null;
+        await reloadTickets();
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+      break;
+    }
+
+    case 'edit-ticket-dept':
+      openTicketDeptModal(trigger.dataset.id);
       break;
 
     case 'edit-user':
