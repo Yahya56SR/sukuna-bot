@@ -13,7 +13,6 @@ import { warnCommand } from './moderation/warn.js';
 import { balanceCommand } from './economy/balance.js';
 import { dailyCommand } from './economy/daily.js';
 import { workCommand } from './economy/work.js';
-import { eightBallCommand } from './fun/8ball.js';
 import { coinflipCommand } from './fun/coinflip.js';
 import { diceCommand } from './fun/dice.js';
 import { rankCommand } from './leveling/rank.js';
@@ -85,7 +84,6 @@ export const commands: readonly Command[] = [
   richCommand,
 
   // Fun
-  eightBallCommand,
   coinflipCommand,
   diceCommand,
   pollCommand,
