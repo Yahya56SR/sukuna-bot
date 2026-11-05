@@ -129265,7 +129265,7 @@ var require_AutocompleteInteraction = __commonJS({
     var BaseInteraction = require_BaseInteraction();
     var CommandInteractionOptionResolver = require_CommandInteractionOptionResolver();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var AutocompleteInteraction8 = class extends BaseInteraction {
+    var AutocompleteInteraction9 = class extends BaseInteraction {
       static {
         __name(this, "AutocompleteInteraction");
       }
@@ -129318,7 +129318,7 @@ var require_AutocompleteInteraction = __commonJS({
         this.responded = true;
       }
     };
-    module2.exports = AutocompleteInteraction8;
+    module2.exports = AutocompleteInteraction9;
   }
 });
 
@@ -130811,7 +130811,7 @@ var require_InteractionCreate = __commonJS({
     "use strict";
     var { InteractionType: InteractionType2, ComponentType: ComponentType7, ApplicationCommandType: ApplicationCommandType2 } = require_v106();
     var Action = require_Action();
-    var AutocompleteInteraction8 = require_AutocompleteInteraction();
+    var AutocompleteInteraction9 = require_AutocompleteInteraction();
     var ButtonInteraction2 = require_ButtonInteraction();
     var ChannelSelectMenuInteraction = require_ChannelSelectMenuInteraction();
     var ChatInputCommandInteraction18 = require_ChatInputCommandInteraction();
@@ -130886,7 +130886,7 @@ var require_InteractionCreate = __commonJS({
             }
             break;
           case InteractionType2.ApplicationCommandAutocomplete:
-            InteractionClass = AutocompleteInteraction8;
+            InteractionClass = AutocompleteInteraction9;
             break;
           case InteractionType2.ModalSubmit:
             InteractionClass = ModalSubmitInteraction;
@@ -181702,7 +181702,7 @@ var logEvents = [
 var logsCommand = {
   data: new import_discord17.SlashCommandBuilder().setName("logs").setDescription("Configure logging channels").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set a log channel for an event").addStringOption(
-      (opt) => opt.setName("event").setDescription("Event to log").setRequired(true).addChoices(...logEvents)
+      (opt) => opt.setName("event").setDescription("Event to log").setRequired(true).setAutocomplete(true)
     ).addChannelOption(
       (opt) => opt.setName("channel").setDescription("Channel to log to").setRequired(true).addChannelTypes(import_discord17.ChannelType.GuildText, import_discord17.ChannelType.GuildAnnouncement)
     ).addBooleanOption(
@@ -181712,13 +181712,13 @@ var logsCommand = {
     )
   ).addSubcommand(
     (sub) => sub.setName("remove").setDescription("Remove a log channel").addStringOption(
-      (opt) => opt.setName("event").setDescription("Event to stop logging").setRequired(true).addChoices(...logEvents)
+      (opt) => opt.setName("event").setDescription("Event to stop logging").setRequired(true).setAutocomplete(true)
     )
   ).addSubcommand(
     (sub) => sub.setName("list").setDescription("List all configured log channels")
   ).addSubcommand(
     (sub) => sub.setName("ignore").setDescription("Ignore channels/roles from logging").addStringOption(
-      (opt) => opt.setName("event").setDescription("Event to configure ignores for").setRequired(true).addChoices(...logEvents)
+      (opt) => opt.setName("event").setDescription("Event to configure ignores for").setRequired(true).setAutocomplete(true)
     ).addChannelOption(
       (opt) => opt.setName("channel").setDescription("Channel to ignore").setRequired(false)
     ).addRoleOption(
@@ -181728,13 +181728,21 @@ var logsCommand = {
     )
   ).addSubcommand(
     (sub) => sub.setName("test").setDescription("Send a test log message").addStringOption(
-      (opt) => opt.setName("event").setDescription("Event to test").setRequired(true).addChoices(...logEvents)
+      (opt) => opt.setName("event").setDescription("Event to test").setRequired(true).setAutocomplete(true)
     )
   ),
   category: "moderation",
   cooldownSeconds: 5,
   userPermissions: ["ManageGuild"],
   botPermissions: ["SendMessages", "EmbedLinks", "ManageWebhooks"],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "event") {
+      await interaction.respond(
+        logEvents.filter((e) => e.name.toLowerCase().includes(focused.value.toLowerCase()) || e.value.toLowerCase().includes(focused.value.toLowerCase())).slice(0, 25).map((e) => ({ name: e.name, value: e.value }))
+      );
+    }
+  },
   async execute(context) {
     const { interaction, guild } = context;
     const guildId = guild.id;

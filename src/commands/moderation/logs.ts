@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, Colors, ChannelType, TextChannel, WebhookClient } from 'discord.js';
+import { SlashCommandBuilder, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, Colors, ChannelType, TextChannel, WebhookClient } from 'discord.js';
 import { LogChannel, type LogEventType } from '../../db/models/LogChannel.js';
 import { recordActivity } from '../../core/metrics.js';
 import type { Command } from '../../core/commands.js';
@@ -42,7 +42,7 @@ export const logsCommand: Command = {
         .setName('event')
         .setDescription('Event to log')
         .setRequired(true)
-        .addChoices(...logEvents)
+        .setAutocomplete(true)
       )
       .addChannelOption(opt => opt
         .setName('channel')
@@ -68,7 +68,7 @@ export const logsCommand: Command = {
         .setName('event')
         .setDescription('Event to stop logging')
         .setRequired(true)
-        .addChoices(...logEvents)
+        .setAutocomplete(true)
       )
     )
     .addSubcommand(sub => sub
@@ -82,7 +82,7 @@ export const logsCommand: Command = {
         .setName('event')
         .setDescription('Event to configure ignores for')
         .setRequired(true)
-        .addChoices(...logEvents)
+        .setAutocomplete(true)
       )
       .addChannelOption(opt => opt
         .setName('channel')
@@ -107,7 +107,7 @@ export const logsCommand: Command = {
         .setName('event')
         .setDescription('Event to test')
         .setRequired(true)
-        .addChoices(...logEvents)
+        .setAutocomplete(true)
       )
     ),
 
@@ -115,6 +115,18 @@ export const logsCommand: Command = {
   cooldownSeconds: 5,
   userPermissions: ['ManageGuild'],
   botPermissions: ['SendMessages', 'EmbedLinks', 'ManageWebhooks'],
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === 'event') {
+      await interaction.respond(
+        logEvents
+          .filter(e => e.name.toLowerCase().includes(focused.value.toLowerCase()) || e.value.toLowerCase().includes(focused.value.toLowerCase()))
+          .slice(0, 25)
+          .map(e => ({ name: e.name, value: e.value }))
+      );
+    }
+  },
 
   async execute(context) {
     const { interaction, guild } = context;
