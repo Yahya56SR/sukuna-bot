@@ -195794,18 +195794,17 @@ If you think this is a mistake, reply to a staff member.`
     } catch {
     }
   }
-  /** Delete a temp VC given its channel id and guild. */
+  /** Delete a temp VC given its channel id and guild. Only touches verification temp VCs. */
   async deleteTempVcByChannel(guild, channelId) {
     const requestId = [...this.tempVcs.entries()].find(([, id]) => id === channelId)?.[0];
-    if (requestId !== void 0) {
-      this.tempVcs.delete(requestId);
-      const request = await VerificationRequest.findById(requestId);
-      if (request && request.status === "claimed") {
-        request.status = "pending";
-        request.claimedBy = void 0;
-        request.claimedAt = void 0;
-        await request.save();
-      }
+    if (requestId === void 0) return;
+    this.tempVcs.delete(requestId);
+    const request = await VerificationRequest.findById(requestId);
+    if (request && request.status === "claimed") {
+      request.status = "pending";
+      request.claimedBy = void 0;
+      request.claimedAt = void 0;
+      await request.save();
     }
     try {
       const vc = await guild.channels.fetch(channelId).catch(() => null);

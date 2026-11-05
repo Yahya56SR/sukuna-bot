@@ -298,18 +298,17 @@ export class VcVerificationSystem {
 		} catch {}
 	}
 
-	/** Delete a temp VC given its channel id and guild. */
+	/** Delete a temp VC given its channel id and guild. Only touches verification temp VCs. */
 	async deleteTempVcByChannel(guild: Guild, channelId: string): Promise<void> {
 		const requestId = [...this.tempVcs.entries()].find(([, id]) => id === channelId)?.[0];
-		if (requestId !== undefined) {
-			this.tempVcs.delete(requestId);
-			const request = await VerificationRequest.findById(requestId as any);
-			if (request && request.status === 'claimed') {
-				request.status = 'pending';
-				request.claimedBy = undefined;
-				request.claimedAt = undefined;
-				await request.save();
-			}
+		if (requestId === undefined) return; // not a verification temp VC — leave it alone
+		this.tempVcs.delete(requestId);
+		const request = await VerificationRequest.findById(requestId as any);
+		if (request && request.status === 'claimed') {
+			request.status = 'pending';
+			request.claimedBy = undefined;
+			request.claimedAt = undefined;
+			await request.save();
 		}
 		try {
 			const vc = await guild.channels.fetch(channelId).catch(() => null) as VoiceChannel | null;
