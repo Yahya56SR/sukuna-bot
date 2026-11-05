@@ -31,7 +31,9 @@ export class VcVerificationSystem {
 	}
 
 	async handleClaim(interaction: any, requestId: string | number): Promise<void> {
+		console.log(`[VC-Verify] handleClaim requestId=${requestId}`);
 		const request = await VerificationRequest.findById(requestId as any);
+		console.log(`[VC-Verify] found request:`, request ? { id: request.id, status: request.status, userId: request.userId, claimedBy: request.claimedBy } : null);
 		if (!request || request.status !== 'pending') {
 			await interaction.reply({ content: '❌ This request is no longer waiting.', flags: 64 });
 			return;
@@ -39,6 +41,7 @@ export class VcVerificationSystem {
 		const guild = interaction.guild as Guild;
 		const claimant = interaction.member as GuildMember;
 		const settings = await verification.getSettings(guild.id);
+		console.log(`[VC-Verify] guild=${guild.id} claimant=${claimant.id} staff=${this._hasVerificationStaff(claimant, settings)} settings.staffRoleId=${settings.staffRoleId}`);
 		if (!this._hasVerificationStaff(claimant, settings)) {
 			await interaction.reply({ content: '❌ Only staff can claim a verification.', flags: 64 });
 			return;
@@ -60,6 +63,7 @@ export class VcVerificationSystem {
 			const category = settings.voiceChannelId
 				? (guild.channels.cache.get(settings.voiceChannelId) as any)
 				: null;
+			console.log(`[VC-Verify] creating temp VC. settings.voiceChannelId=${settings.voiceChannelId} category=${category?.id ?? 'none'}`);
 			vc = (await guild.channels.create({
 				name: `verify-${request.userId.slice(-6)}`,
 				type: ChannelType.GuildVoice,
@@ -71,6 +75,7 @@ export class VcVerificationSystem {
 					{ id: guild.members.me!.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak] },
 				],
 			})) as VoiceChannel;
+			console.log(`[VC-Verify] created temp VC id=${vc.id}`);
 			this.tempVcs.set(request.id, vc.id);
 		} catch (err) {
 			console.error('[Verification] Failed to create temp VC:', err);
@@ -147,16 +152,19 @@ export class VcVerificationSystem {
 	async handleVoiceJoin(member: GuildMember): Promise<void> {
 		const guild = member.guild;
 		const settings = await verification.getSettings(guild.id);
+		console.log(`[VC-Verify] handleVoiceJoin member=${member.id} channelId=${member.voice.channelId} staff=${this._hasVerificationStaff(member, settings)}`);
 		if (!this._hasVerificationStaff(member, settings)) return;
 
 		// Find the request claimed by this staff member.
 		const request = await VerificationRequest.findOne({
 			guildId: guild.id, claimedBy: member.id, status: 'claimed',
 		});
+		console.log(`[VC-Verify] handleVoiceJoin found claim:`, request ? { id: request.id, vcInvitedAt: request.vcInvitedAt } : null);
 		if (!request) return;
 		if (request.vcInvitedAt) return;
 
 		const vcId = this.tempVcs.get(request.id);
+		console.log(`[VC-Verify] handleVoiceJoin tempVcs has requestId=${request.id} -> vcId=${vcId} member.voice.channelId=${member.voice.channelId}`);
 		if (!vcId || member.voice.channelId !== vcId) return;
 
 		request.vcInvitedAt = new Date();
@@ -174,15 +182,18 @@ export class VcVerificationSystem {
 	async handleVoiceLeave(member: GuildMember): Promise<void> {
 		const guild = member.guild;
 		const settings = await verification.getSettings(guild.id);
+		console.log(`[VC-Verify] handleVoiceLeave member=${member.id} channelId=${member.voice.channelId} staff=${this._hasVerificationStaff(member, settings)}`);
 		if (!this._hasVerificationStaff(member, settings)) return;
 
 		// Check if this staff member left a temp VC they claimed.
 		const request = await VerificationRequest.findOne({
 			guildId: guild.id, claimedBy: member.id, status: 'claimed',
 		});
+		console.log(`[VC-Verify] handleVoiceLeave found claim:`, request ? { id: request.id } : null);
 		if (!request) return;
 
 		const vcId = this.tempVcs.get(request.id);
+		console.log(`[VC-Verify] handleVoiceLeave tempVcs has requestId=${request.id} -> vcId=${vcId} oldChannelId=${member.voice.channelId}`);
 		if (vcId && member.voice.channelId !== vcId) return;
 
 		// Staff left the verification VC — release the claim back to the queue and delete the temp VC.
@@ -197,7 +208,9 @@ export class VcVerificationSystem {
 	}
 
 	async handleApprove(interaction: any, requestId: string | number): Promise<void> {
+		console.log(`[VC-Verify] handleApprove requestId=${requestId} user=${interaction.user.id}`);
 		const request = await VerificationRequest.findById(requestId as any);
+		console.log(`[VC-Verify] handleApprove found request:`, request ? { id: request.id, status: request.status, claimedBy: request.claimedBy } : null);
 		if (!request || request.status !== 'claimed') {
 			await interaction.reply({ content: '❌ This verification is no longer active.', flags: 64 });
 			return;
@@ -256,8 +269,10 @@ export class VcVerificationSystem {
 	}
 
 	async handleDenyModal(interaction: any, requestId: string | number): Promise<void> {
+		console.log(`[VC-Verify] handleDenyModal requestId=${requestId} user=${interaction.user.id}`);
 		await interaction.deferReply({ flags: 64 });
 		const request = await VerificationRequest.findById(requestId as any);
+		console.log(`[VC-Verify] handleDenyModal found request:`, request ? { id: request.id, status: request.status, claimedBy: request.claimedBy } : null);
 		if (!request || request.status !== 'claimed') {
 			await interaction.editReply({ content: '❌ This verification is no longer active.' });
 			return;
@@ -300,9 +315,13 @@ export class VcVerificationSystem {
 
 	/** Delete a temp VC given its channel id and guild. Only touches verification temp VCs. */
 	async deleteTempVcByChannel(guild: Guild, channelId: string): Promise<void> {
+		console.log(`[VC-Verify] deleteTempVcByChannel channelId=${channelId}`);
 		const requestId = [...this.tempVcs.entries()].find(([, id]) => id === channelId)?.[0];
-		if (requestId === undefined) return; // not a verification temp VC — leave it alone
-		this.tempVcs.delete(requestId);
+		if (requestId === undefined) {
+			console.log(`[VC-Verify] deleteTempVcByChannel channelId=${channelId} is NOT a verification temp VC — skipping`);
+			return;
+		}
+		console.log(`[VC-Verify] deleteTempVcByChannel channelId=${channelId} IS verification temp VC for requestId=${requestId}`);
 		const request = await VerificationRequest.findById(requestId as any);
 		if (request && request.status === 'claimed') {
 			request.status = 'pending';

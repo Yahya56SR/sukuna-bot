@@ -115,6 +115,7 @@ export class VerificationSystem {
 	}
 
 	async handleMemberAdd(member: GuildMember): Promise<JoinRoleResult> {
+		console.log(`[Verify] handleMemberAdd member=${member.id} guild=${member.guild.id} bot=${member.user.bot}`);
 		const result: JoinRoleResult = { granted: [], ungranted: [], unverifiedGranted: false };
 		const settings = await this.getSettings(member.guild.id);
 		if (!settings.enabled || !settings.unverifiedRoleId) return result;
@@ -235,10 +236,12 @@ export class VerificationSystem {
 	}
 
 	async handleVerifyButton(interaction: ButtonInteraction): Promise<void> {
+		console.log(`[Verify] handleVerifyButton user=${interaction.user.id} guild=${interaction.guildId}`);
 		await interaction.deferReply({ flags: 64 });
 		const guild = interaction.guild as Guild;
 		const member = interaction.member as GuildMember;
 		const settings = await this.getSettings(guild.id);
+		console.log(`[Verify] settings.enabled=${settings.enabled} unverifiedRoleId=${settings.unverifiedRoleId} isVerified=${this.isVerified(member, settings)}`);
 
 		if (!settings.enabled) {
 			await interaction.editReply({ embeds: [this._errorEmbed('Verification disabled', 'Verification is currently disabled. Ask a staff member for help.')] });
