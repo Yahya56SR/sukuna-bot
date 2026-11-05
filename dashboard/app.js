@@ -2290,7 +2290,7 @@ function welcomeHtml(config) {
     '<textarea class="textarea" id="f-welcome-message" name="welcomeMessage" rows="3" placeholder="Welcome {user} to {server}!">' + esc(config.welcomeMessage || '') + '</textarea>' +
     '<span class="field-hint">Variables: {user}, {server}, {memberCount}</span></div>' +
     '<div class="field span-2"><label class="field-label" for="f-welcome-dm">Welcome DM</label>' +
-    '<textarea class="textarea" id="f-welcome-dm" name="dmMessage" rows="3" placeholder="Welcome to {server}! We\'re glad to have you.' + '" + esc(config.dmMessage || '') + '</textarea>' +
+    '<textarea class="textarea" id="f-welcome-dm" name="dmMessage" rows="3" placeholder="Welcome to {server}! We\'re glad to have you.' + esc(config.dmMessage || '') + '</textarea>' +
     '<span class="field-hint">Sent as a direct message when a member joins.</span></div>' +
     '<div class="field span-2"><label class="field-label" for="f-leave-message">Leave Message</label>' +
     '<textarea class="textarea" id="f-leave-message" name="leaveMessage" rows="3" placeholder="Goodbye {user} from {server}!"' + esc(config.leaveMessage || '') + '</textarea>' +
