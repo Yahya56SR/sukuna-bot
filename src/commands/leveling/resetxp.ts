@@ -6,6 +6,9 @@ import {
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
 import { setUserXp } from '../../db/index.js';
+import { handleLevelUp } from '../../handlers/levelUp.js';
+import { readLevelSettings } from '../../utils/levelSettings.js';
+import { isOwner } from '../../core/owner.js';
 
 export const resetXpCommand: Command = {
   data: new SlashCommandBuilder()
@@ -18,15 +21,11 @@ export const resetXpCommand: Command = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
   category: 'leveling',
   execute: async (context) => {
-    const { interaction } = context;
+    const { interaction, guild } = context;
     const targetUser = interaction.options.getUser('user', true);
 
     // Owner-only check
-    const ownerIds = (process.env.OWNER_IDS ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!ownerIds.includes(interaction.user.id)) {
+    if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: '❌ This command is owner-only.',
         flags: MessageFlags.Ephemeral,
@@ -34,7 +33,18 @@ export const resetXpCommand: Command = {
       return;
     }
 
-    await setUserXp(targetUser.id, 0);
+    const result = await setUserXp(targetUser.id, 0);
+
+    // Re-derive level (now 0) and sync roles so a reset strips any level rewards.
+    if (guild) {
+      const member =
+        guild.members.cache.get(targetUser.id) ??
+        (await guild.members.fetch(targetUser.id).catch(() => null));
+      const settings = readLevelSettings({});
+      if (member) {
+        await handleLevelUp(guild, targetUser, result.newLevel, result.oldLevel, undefined, settings);
+      }
+    }
 
     const embed = new EmbedBuilder()
       .setColor(0x22c55e)

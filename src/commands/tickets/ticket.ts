@@ -9,7 +9,6 @@ import {
   type ChatInputCommandInteraction,
   type Guild,
   type TextChannel,
-  type Message,
   type GuildMember,
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
@@ -22,6 +21,7 @@ import {
   defaultTicketConfig,
 } from '../../db/models/Ticket.js';
 import { replyError } from '../../core/respond.js';
+import { getTicketByChannel, closeTicket } from '../../utils/ticketScheduler.js';
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                    */
@@ -29,12 +29,6 @@ import { replyError } from '../../core/respond.js';
 
 function shortId(): string {
   return Math.random().toString(36).slice(2, 8);
-}
-
-function requireStaff(interaction: ChatInputCommandInteraction, guild: Guild): boolean {
-  const member = interaction.member as GuildMember;
-  if (!member) return false;
-  return member.permissions.has('ManageGuild');
 }
 
 async function getTicketConfig(guildId: string) {
@@ -51,6 +45,21 @@ async function getActiveDepartments(guildId: string) {
 
 async function userHasOpenTicket(guildId: string, userId: string) {
   return OpenTicket.findOne({ guildId, userId, closedAt: null });
+}
+
+/** Staff = Manage Guild permission OR a configured staff role. */
+function canManageTicket(member: GuildMember | null, staffRoleIds: string[]): boolean {
+  if (!member) return false;
+  if (member.permissions.has('ManageGuild')) return true;
+  if (staffRoleIds.length === 0) return false;
+  const roleIds = member.roles.cache.map((r) => r.id);
+  return staffRoleIds.some((id) => roleIds.includes(id));
+}
+
+function canCloseTicket(member: GuildMember | null, ticket: any, staffRoleIds: string[]): boolean {
+  if (!member) return false;
+  if (member.id === ticket.userId) return true;
+  return canManageTicket(member, staffRoleIds);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -87,10 +96,7 @@ export const ticketCommand: Command = {
             ),
         )
         .addStringOption((o) =>
-          o
-            .setName('name')
-            .setDescription('Department name')
-            .setRequired(false),
+          o.setName('name').setDescription('Department name').setRequired(false),
         )
         .addStringOption((o) =>
           o.setName('description').setDescription('Department description').setRequired(false),
@@ -100,29 +106,19 @@ export const ticketCommand: Command = {
           o.setName('staff-role').setDescription('Staff role for this department').setRequired(false),
         ),
     )
-    .addSubcommand((sub) =>
-      sub.setName('close').setDescription('Close the current ticket channel.'),
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('claim')
-        .setDescription('Claim the current ticket for yourself.'),
-    )
+    .addSubcommand((sub) => sub.setName('close').setDescription('Close the current ticket channel.'))
+    .addSubcommand((sub) => sub.setName('claim').setDescription('Claim the current ticket for yourself.'))
     .addSubcommand((sub) =>
       sub
         .setName('add')
         .setDescription('Add a member to the current ticket.')
-        .addUserOption((o) =>
-          o.setName('user').setDescription('Member to add').setRequired(true),
-        ),
+        .addUserOption((o) => o.setName('user').setDescription('Member to add').setRequired(true)),
     )
     .addSubcommand((sub) =>
       sub
         .setName('remove')
         .setDescription('Remove a member from the current ticket.')
-        .addUserOption((o) =>
-          o.setName('user').setDescription('Member to remove').setRequired(true),
-        ),
+        .addUserOption((o) => o.setName('user').setDescription('Member to remove').setRequired(true)),
     )
     .addSubcommand((sub) =>
       sub
@@ -156,18 +152,14 @@ export const ticketCommand: Command = {
               { name: 'staffRoles', value: 'staffRoles' },
             ),
         )
-        .addStringOption((o) =>
-          o.setName('value').setDescription('New value').setRequired(false),
-        ),
+        .addStringOption((o) => o.setName('value').setDescription('New value').setRequired(false)),
     )
-    .addSubcommand((sub) =>
-      sub.setName('stats').setDescription('Show ticket system statistics.'),
-    ),
+    .addSubcommand((sub) => sub.setName('stats').setDescription('Show ticket system statistics.')),
 
   category: 'moderation',
   userPermissions: ['ManageGuild'],
   execute: async (context) => {
-    const { interaction, guild } = context;
+    const { interaction, guild, client } = context;
     const subcommand = interaction.options.getSubcommand(true);
 
     try {
@@ -179,16 +171,16 @@ export const ticketCommand: Command = {
           await handleDepartment(interaction, guild!);
           break;
         case 'close':
-          await handleClose(interaction, guild!);
+          await handleClose(client, interaction, guild!);
           break;
         case 'claim':
-          await handleClaim(interaction, guild!);
+          await handleClaim(client, interaction, guild!);
           break;
         case 'add':
-          await handleAdd(interaction, guild!);
+          await handleAdd(client, interaction, guild!);
           break;
         case 'remove':
-          await handleRemove(interaction, guild!);
+          await handleRemove(client, interaction, guild!);
           break;
         case 'transcript':
           await handleTranscript(interaction, guild!);
@@ -211,7 +203,8 @@ export const ticketCommand: Command = {
 /* -------------------------------------------------------------------------- */
 
 async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guild) {
-  if (!requireStaff(interaction, guild)) {
+  const member = interaction.member as GuildMember;
+  if (!member.permissions.has('ManageGuild')) {
     await replyError(interaction, '❌ You need `Manage Server` permission.');
     return;
   }
@@ -297,7 +290,8 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
 /* -------------------------------------------------------------------------- */
 
 async function handleDepartment(interaction: ChatInputCommandInteraction, guild: Guild) {
-  if (!requireStaff(interaction, guild)) {
+  const member = interaction.member as GuildMember;
+  if (!member.permissions.has('ManageGuild')) {
     await replyError(interaction, '❌ You need `Manage Server` permission.');
     return;
   }
@@ -388,55 +382,75 @@ async function handleDepartment(interaction: ChatInputCommandInteraction, guild:
 /* /ticket close                                                              */
 /* -------------------------------------------------------------------------- */
 
-async function handleClose(interaction: ChatInputCommandInteraction, guild: Guild) {
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+async function handleClose(
+  client: any,
+  interaction: ChatInputCommandInteraction,
+  guild: Guild,
+) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
-    await replyError(interaction, '❌ This is not an open ticket channel.');
+    await interaction.editReply({ content: '❌ This is not an open ticket channel.' });
     return;
   }
 
-  await OpenTicket.updateOne(
-    { _id: ticket._id },
-    { closedAt: new Date(), closedBy: interaction.user.id, closeReason: 'Manual close' },
-  );
+  const config = await getTicketConfig(guild.id);
+  if (!canCloseTicket(interaction.member as GuildMember, ticket, config.staffRoleIds)) {
+    await interaction.editReply({
+      content: '❌ Only the ticket owner or support staff can close this ticket.',
+    });
+    return;
+  }
 
-  await interaction.reply('🔒 Closing ticket in 10 seconds... Saving transcript.');
-  await sendTranscript(interaction, guild, ticket, 'channel');
+  await closeTicket(client, ticket, {
+    reason: 'Manual close',
+    closedBy: interaction.user.id,
+    closeReason: 'manual',
+    sendTranscript: true,
+    dmTranscript: config.dmTranscript,
+  });
 
-  setTimeout(async () => {
-    try {
-      await (interaction.channel as any).delete();
-    } catch {}
-  }, 10_000);
+  await interaction.editReply({
+    content: '🔒 Closing ticket and saving transcript.',
+  });
 }
 
 /* -------------------------------------------------------------------------- */
 /* /ticket claim                                                              */
 /* -------------------------------------------------------------------------- */
 
-async function handleClaim(interaction: ChatInputCommandInteraction, guild: Guild) {
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+async function handleClaim(
+  client: any,
+  interaction: ChatInputCommandInteraction,
+  guild: Guild,
+) {
+  const member = interaction.member as GuildMember;
+  const config = await getTicketConfig(guild.id);
+  if (!canManageTicket(member, config.staffRoleIds)) {
+    await replyError(interaction, '❌ Only support staff can claim tickets.');
+    return;
+  }
+
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
     await replyError(interaction, '❌ This is not an open ticket channel.');
     return;
   }
 
-  if (ticket.claimedBy) {
-    await replyError(interaction, `❌ Already claimed by <@${ticket.claimedBy}>.`);
+  // Atomic claim: only succeeds if nobody has claimed it yet.
+  const updated = await OpenTicket.findOneAndUpdate(
+    { _id: ticket._id, claimedBy: null, closedAt: null },
+    { claimedBy: interaction.user.id, claimedAt: new Date() },
+  );
+  if (!updated) {
+    const current = await OpenTicket.findOne({ _id: ticket._id }).lean();
+    await replyError(
+      interaction,
+      `❌ Already claimed by <@${current?.claimedBy}>.`,
+    );
     return;
   }
-
-  ticket.claimedBy = interaction.user.id;
-  ticket.claimedAt = new Date();
-  await ticket.save();
 
   await interaction.reply({
     content: `✅ Ticket claimed by <@${interaction.user.id}>.`,
@@ -448,12 +462,19 @@ async function handleClaim(interaction: ChatInputCommandInteraction, guild: Guil
 /* /ticket add                                                                */
 /* -------------------------------------------------------------------------- */
 
-async function handleAdd(interaction: ChatInputCommandInteraction, guild: Guild) {
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+async function handleAdd(
+  client: any,
+  interaction: ChatInputCommandInteraction,
+  guild: Guild,
+) {
+  const member = interaction.member as GuildMember;
+  const config = await getTicketConfig(guild.id);
+  if (!canManageTicket(member, config.staffRoleIds)) {
+    await replyError(interaction, '❌ Only support staff can add members to a ticket.');
+    return;
+  }
+
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
     await replyError(interaction, '❌ This is not an open ticket channel.');
     return;
@@ -482,12 +503,19 @@ async function handleAdd(interaction: ChatInputCommandInteraction, guild: Guild)
 /* /ticket remove                                                             */
 /* -------------------------------------------------------------------------- */
 
-async function handleRemove(interaction: ChatInputCommandInteraction, guild: Guild) {
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+async function handleRemove(
+  client: any,
+  interaction: ChatInputCommandInteraction,
+  guild: Guild,
+) {
+  const member = interaction.member as GuildMember;
+  const config = await getTicketConfig(guild.id);
+  if (!canManageTicket(member, config.staffRoleIds)) {
+    await replyError(interaction, '❌ Only support staff can remove members from a ticket.');
+    return;
+  }
+
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
     await replyError(interaction, '❌ This is not an open ticket channel.');
     return;
@@ -519,18 +547,21 @@ async function handleTranscript(
   interaction: ChatInputCommandInteraction,
   guild: Guild,
 ) {
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
     await replyError(interaction, '❌ This is not an open ticket channel.');
     return;
   }
 
+  const isOwner = (interaction.member as any)?.id === ticket.userId;
+  const config = await TicketConfig.findOne({ guildId: guild.id });
+  if (!canManageTicket(interaction.member as GuildMember, config?.staffRoleIds ?? []) && !isOwner) {
+    await replyError(interaction, '❌ Only the ticket owner or support staff can view the transcript.');
+    return;
+  }
+
   const target = (interaction.options.getString('target') ?? 'channel') as 'channel' | 'dm';
-  await sendTranscript(interaction, guild, ticket, target);
+  await sendTranscript(interaction, guild, ticket, target, interaction.user.id);
   await interaction.reply({ content: `✅ Transcript sent to ${target}.`, flags: MessageFlags.Ephemeral });
 }
 
@@ -539,6 +570,7 @@ async function sendTranscript(
   guild: Guild,
   ticket: any,
   target: 'channel' | 'dm',
+  closedBy: string,
 ) {
   const channel = guild.channels.cache.get(ticket.channelId) as TextChannel | undefined;
   if (!channel) return;
@@ -546,10 +578,10 @@ async function sendTranscript(
   const messages = await channel.messages.fetch({ limit: 100 });
   const lines = messages
     .reverse()
-    .map((m) => `[${m.createdAt.toISOString()}] ${m.author.tag}: ${m.content}`)
+    .map((m: any) => `[${m.createdAt.toISOString()}] ${m.author.tag}: ${m.content}`)
     .join('\n');
 
-  const transcript = `TICKET TRANSCRIPT\nGuild: ${guild.name}\nChannel: #${channel.name}\nOwner: <@${ticket.userId}>\nDepartment: ${ticket.departmentName}\nClaimed by: ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : 'none'}\nClosed by: <@${interaction.user.id}>\n\n${lines}`;
+  const transcript = `TICKET TRANSCRIPT\nGuild: ${guild.name}\nChannel: #${channel.name}\nOwner: <@${ticket.userId}>\nDepartment: ${ticket.departmentName}\nClaimed by: ${ticket.claimedBy ? `<@${ticket.claimedBy}>` : 'none'}\nClosed by: <@${closedBy}>\n\n${lines}`;
 
   const attachment = Buffer.from(transcript);
   const fileName = `ticket-${ticket.channelId}-${shortId()}.txt`;
@@ -557,14 +589,16 @@ async function sendTranscript(
   if (target === 'dm') {
     const user = await guild.members.fetch(ticket.userId).catch(() => null);
     if (user) {
-      await user.user.send({
-        content: `📄 Transcript for ticket #${channel.name}`,
-        files: [{ attachment, name: fileName }],
-      }).catch(() => {});
+      await user.user
+        .send({
+          content: `📄 Transcript for ticket #${channel.name}`,
+          files: [{ attachment, name: fileName }],
+        })
+        .catch(() => {});
     }
   } else {
     await channel.send({
-      content: `📄 Ticket transcript generated by <@${interaction.user.id}>:`,
+      content: `📄 Ticket transcript generated by <@${closedBy}>:`,
       files: [{ attachment, name: fileName }],
     });
   }
@@ -592,7 +626,8 @@ async function sendTranscript(
 /* -------------------------------------------------------------------------- */
 
 async function handleConfig(interaction: ChatInputCommandInteraction, guild: Guild) {
-  if (!requireStaff(interaction, guild)) {
+  const member = interaction.member as GuildMember;
+  if (!member.permissions.has('ManageGuild')) {
     await replyError(interaction, '❌ You need `Manage Server` permission.');
     return;
   }
@@ -628,7 +663,6 @@ async function handleConfig(interaction: ChatInputCommandInteraction, guild: Gui
     }
     config.autoCloseMinutes = n;
   } else if (key === 'staffRoles') {
-    // store comma-separated role IDs
     config.staffRoleIds = value ? value.split(',').map((s) => s.trim()).filter(Boolean) : [];
   }
 

@@ -107,3 +107,49 @@ export async function deleteActiveTempVC(channelId: string) {
 export async function deleteActiveTempVCsByGuild(guildId: string) {
   return ActiveTempVC.deleteMany({ guildId });
 }
+
+/* -------------------------------------------------------------------------- */
+/* In-memory cache — kills the per-voice-event findOne on the hot path        */
+/* -------------------------------------------------------------------------- */
+
+/** guildId -> resolved config (null means "not configured"). */
+const _configCache = new Map<string, ITempVCConfig | null>();
+/** channelId -> active temp VC row. */
+const _activeCache = new Map<string, IActiveTempVC>();
+
+export function getCachedTempVCConfig(guildId: string): ITempVCConfig | null {
+  if (_configCache.has(guildId)) return _configCache.get(guildId) ?? null;
+  return null;
+}
+
+export function setCachedTempVCConfig(guildId: string, config: ITempVCConfig | null): void {
+  _configCache.set(guildId, config);
+}
+
+export function clearTempVCConfigCache(guildId?: string): void {
+  if (guildId) _configCache.delete(guildId);
+  else _configCache.clear();
+}
+
+export function getCachedActiveTempVC(channelId: string): IActiveTempVC | undefined {
+  return _activeCache.get(channelId);
+}
+
+export function setCachedActiveTempVC(channelId: string, row: IActiveTempVC): void {
+  _activeCache.set(channelId, row);
+}
+
+export function deleteCachedActiveTempVC(channelId: string): void {
+  _activeCache.delete(channelId);
+}
+
+export function clearActiveTempVCCache(): void {
+  _activeCache.clear();
+}
+
+/** Warm the active cache from the DB (called once at startup reconciliation). */
+export async function warmActiveTempVCCache(): Promise<void> {
+  _activeCache.clear();
+  const rows = await ActiveTempVC.find().lean();
+  for (const row of rows) _activeCache.set(row.channelId, row);
+}

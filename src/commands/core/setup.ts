@@ -6,6 +6,7 @@ import {
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
 import { updateGuildConfig } from '../../db/models/Guild.js';
+import { isOwner } from '../../core/owner.js';
 
 export const setupCommand: Command = {
   data: new SlashCommandBuilder()
@@ -58,11 +59,7 @@ export const setupCommand: Command = {
     const { interaction, guild } = context;
 
     // Owner-only check
-    const ownerIds = (process.env.OWNER_IDS ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!ownerIds.includes(interaction.user.id)) {
+    if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: '❌ This command is owner-only.',
         flags: MessageFlags.Ephemeral,

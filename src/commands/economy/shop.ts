@@ -3,44 +3,43 @@ import {
   EmbedBuilder,
   MessageFlags,
   PermissionFlagsBits,
+  Colors,
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
+import { SHOP_ITEMS } from '../../utils/shop.js';
+import { formatCoins, getEconomyUser } from '../../utils/economy.js';
 
 export const shopCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('shop')
-    .setDescription('View the server shop and purchase items.')
-    .addStringOption((option) =>
-      option.setName('item').setDescription('Item to buy').setRequired(false),
-    )
+    .setDescription('Browse items you can buy with coins.')
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'economy',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
+    const user = await getEconomyUser(interaction.user.id);
 
-    // Sample shop inventory - in a real implementation, this would come from a database
-    const shopItems = [
-      { id: 'rank_card', name: 'Rank Card Theme', cost: 500, description: 'Custom rank card design' },
-      { id: 'discord_nitro', name: 'Discord Nitro', cost: 1000, description: 'Boost your Discord presence' },
-      { id: 'special_role', name: 'Special Role', cost: 1500, description: 'A unique role' },
-      { id: 'voice_boost', name: 'Voice Boost', cost: 750, description: 'Priority in voice queue' },
-    ];
+    const lines = SHOP_ITEMS.map((item) => {
+      const owned = user.inventory?.find((entry) => entry.itemId === item.id)?.quantity ?? 0;
+      const ownedTag = owned > 0 ? ` — you own **${owned}**` : '';
+      return `${item.emoji} **${item.name}** · ${formatCoins(item.price)} coins${ownedTag}\n${item.description}`;
+    });
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865f2)
-      .setTitle('🏪 Server Shop')
-      .setDescription('Use `/balance` to check your coins, then `/buy` to purchase items.')
+      .setColor(Colors.Blurple)
+      .setTitle('🏪 Shop')
+      .setDescription(
+        `Your wallet: **${formatCoins(user.balance)}** coins\n\n${lines.join('\n\n')}`,
+      )
+      .addFields({
+        name: 'How to buy',
+        value: 'Use `/buy item:<name>` to purchase, then `/use item:<name>` to activate consumables. `/inventory` shows what you own.',
+      })
       .setFooter({ text: '爱 Doctora • Shop' })
       .setTimestamp();
 
-    // Add shop items as fields
-    let fields = '';
-    for (const item of shopItems) {
-      fields += `• **${item.name}** — ${item.cost} coins: ${item.description}\n`;
-    }
-
-    embed.addFields({ name: 'Available Items', value: fields || 'No items available' });
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },
 };

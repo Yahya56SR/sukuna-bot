@@ -14,8 +14,10 @@ import {
   OpenTicket,
   TicketConfig,
   defaultTicketConfig,
+  DEFAULT_DEPARTMENT,
 } from '../../db/models/Ticket.js';
 import { replyError } from '../../core/respond.js';
+import { isOwner } from '../../core/owner.js';
 
 export const quickticketCommand: Command = {
   data: new SlashCommandBuilder()
@@ -28,17 +30,13 @@ export const quickticketCommand: Command = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
   category: 'moderation',
   execute: async (context) => {
-    const { interaction } = context;
+    const { interaction, client, guild } = context;
     const channel =
       (interaction.options.getChannel('channel') as any) ??
       (interaction.channel as any);
 
     // Owner-only check
-    const ownerIds = (process.env.OWNER_IDS ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!ownerIds.includes(interaction.user.id)) {
+    if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: '❌ This command is owner-only.',
         flags: MessageFlags.Ephemeral,
@@ -46,50 +44,42 @@ export const quickticketCommand: Command = {
       return;
     }
 
-    const guild = interaction.guild!;
+    const g = guild!;
 
-    // Ensure default department exists
-    const existing = await TicketDepartment.findOne({ guildId: guild.id });
-    if (!existing) {
-      await TicketDepartment.create({
-        guildId: guild.id,
-        name: 'Support',
-        description: 'General support',
-        emoji: '🎫',
-        color: 0x5865f2,
-        isActive: true,
+    // Ensure a default department exists so the button customId points at a
+    // real department _id (never a hardcoded string like 'support').
+    let department = await TicketDepartment.findOne({ guildId: g.id, isActive: true }).sort({ createdAt: 1 });
+    if (!department) {
+      department = await TicketDepartment.create({
+        guildId: g.id,
+        ...DEFAULT_DEPARTMENT,
       });
     }
 
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)
       .setTitle('🎫 Quick Ticket Panel')
-      .setDescription(
-        'Click a department below to open a private support ticket.\n\n' +
-          '🎫 **Support** — General support',
-      )
-      .setThumbnail(guild.iconURL())
+      .setDescription('Click a department below to open a private support ticket.\n\n🎫 **Support** — General support')
+      .setThumbnail(g.iconURL())
       .setFooter({ text: '爱 Doctora • Quick Tickets' })
       .setTimestamp();
 
-    const rows: ActionRowBuilder[] = [];
     const row = new ActionRowBuilder();
     row.addComponents(
       new ButtonBuilder()
-        .setCustomId('ticket_create:support')
-        .setLabel('Support')
+        .setCustomId(`ticket_create:${department._id}`)
+        .setLabel(department.name)
         .setStyle(ButtonStyle.Primary)
-        .setEmoji('🎫'),
+        .setEmoji(department.emoji),
     );
-    rows.push(row);
 
     const message = await channel.send({
       embeds: [embed],
-      components: rows.map((r) => r.toJSON()),
+      components: [row.toJSON()],
     });
 
     await TicketPanel.create({
-      guildId: guild.id,
+      guildId: g.id,
       channelId: channel.id,
       messageId: message.id,
       embedTitle: embed.data.title ?? '🎫 Quick Ticket Panel',

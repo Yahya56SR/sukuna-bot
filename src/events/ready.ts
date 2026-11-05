@@ -5,10 +5,19 @@ import { recordActivity } from '../core/metrics.js';
 import { startLiveLeaderboard } from '../utils/liveLeaderboard.js';
 import { startTicketScheduler } from '../utils/ticketScheduler.js';
 import { startVoiceTracking } from './voiceStateUpdate.js';
+import { warmActiveTempVCCache } from '../db/models/TempVC.js';
 import { initAutomod } from '../handlers/automod.js';
 import { initReactionRoles } from '../handlers/reactionRoles.js';
 import { invalidateStarboardCache, handleStarboardReaction } from '../commands/utility/starboard.js';
 import { checkReminders } from '../commands/utility/remind.js';
+
+/** Background reminder interval; cleared on shutdown so it cannot outlive Mongo. */
+let reminderInterval: NodeJS.Timeout | null = null;
+
+export function stopReminderChecker(): void {
+  if (reminderInterval) clearInterval(reminderInterval);
+  reminderInterval = null;
+}
 
 export const ready = {
   name: Events.ClientReady as keyof ClientEvents,
@@ -47,8 +56,7 @@ export const ready = {
     }
 
     // Initialize systems
-    initAutomod();
-    client.logger.info('[AutoMod] Auto-moderation system initialized');
+    await initAutomod();
 
     // Initialize reaction roles for each guild
     for (const guild of client.guilds.cache.values()) {
@@ -61,7 +69,7 @@ export const ready = {
     client.logger.info('[ReactionRoles] Panels initialized');
 
     // Initialize starboard cache
-    invalidateStarboardCache('');
+    invalidateStarboardCache();
     client.logger.info('[Starboard] Cache initialized');
 
     // XP/level system background work: voice minutes and the self-updating
@@ -69,12 +77,25 @@ export const ready = {
     startVoiceTracking(client);
     startLiveLeaderboard(client);
     startTicketScheduler(client);
+
+    // Temp VC reconciliation: warm the active VC cache and drop rows whose
+    // channel no longer exists, so stale owner rows can't lock users out after
+    // a restart or manual channel deletion.
+    try {
+      await warmActiveTempVCCache();
+      client.logger.info('[TempVC] Active VC cache warmed');
+    } catch (err) {
+      client.logger.warn({ err }, 'temp VC cache warm failed');
+    }
+
     client.logger.info('[Tickets] Voice tracking, live leaderboard and auto-close scheduler started');
 
-    // Reminder checker (runs every minute)
-    setInterval(() => {
+    // Reminder checker (runs every minute). Tracked so shutdown can clear it —
+    // previously this interval kept firing after Mongo disconnected.
+    reminderInterval = setInterval(() => {
       checkReminders(client).catch(err => client.logger.warn({ err }, 'reminder check failed'));
     }, 60_000);
+    reminderInterval.unref?.();
     client.logger.info('[Reminders] Background checker started');
 
     // When GUILD_ID is set, leave any guild the bot is not meant to run in.

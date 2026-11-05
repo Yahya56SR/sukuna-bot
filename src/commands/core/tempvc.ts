@@ -5,7 +5,6 @@ import {
   MessageFlags,
   PermissionFlagsBits,
   type Guild,
-  type TextChannel,
   type VoiceChannel,
   type CategoryChannel,
 } from 'discord.js';
@@ -14,6 +13,7 @@ import {
   upsertTempVCConfig,
   deleteTempVCConfig,
   readTempVCConfig,
+  clearTempVCConfigCache,
 } from '../../db/models/TempVC.js';
 import { replyError } from '../../core/respond.js';
 
@@ -44,13 +44,24 @@ export const tempvcCommand: Command = {
             .addChannelTypes(ChannelType.GuildCategory),
         ),
     )
-    .addSubcommand((sub) =>
-      sub.setName('remove').setDescription('Disable the join-to-create temp VC system.'),
-    )
+    .addSubcommand((sub) => sub.setName('remove').setDescription('Disable the join-to-create temp VC system.'))
+    .addSubcommand((sub) => sub.setName('status').setDescription('Show the current temp VC configuration.'))
     .addSubcommand((sub) =>
       sub
-        .setName('status')
-        .setDescription('Show the current temp VC configuration.'),
+        .setName('set')
+        .setDescription('Change a temp VC setting.')
+        .addStringOption((o) =>
+          o
+            .setName('key')
+            .setDescription('Setting to change')
+            .setRequired(true)
+            .addChoices(
+              { name: 'name-template', value: 'nameTemplate' },
+              { name: 'user-limit', value: 'userLimit' },
+              { name: 'bitrate', value: 'bitrate' },
+            ),
+        )
+        .addStringOption((o) => o.setName('value').setDescription('New value').setRequired(true)),
     ),
   category: 'utility',
   botPermissions: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect],
@@ -72,6 +83,11 @@ export const tempvcCommand: Command = {
       await handleStatus(context);
       return;
     }
+
+    if (subcommand === 'set') {
+      await handleSet(context);
+      return;
+    }
   },
 };
 
@@ -84,9 +100,30 @@ async function handleSetup(context: { interaction: any; guild: Guild }) {
   const category =
     (interaction.options.getChannel('category') as CategoryChannel | null) ?? null;
 
-  // If no create channel given, disable the system.
+  // If no create channel is given but a category is, just update the category
+  // of the existing config rather than disabling the whole system.
+  if (!createChannel && category) {
+    const existing = await readTempVCConfig(guild.id);
+    if (!existing) {
+      await interaction.reply({
+        content: '❌ No temp VC system is configured yet. Run `/tempvc setup` with a create channel first.',
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    await upsertTempVCConfig(guild.id, { categoryId: category.id });
+    clearTempVCConfigCache(guild.id);
+    await interaction.reply({
+      content: `✅ Temp VC category updated to <#${category.id}>.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // If no create channel and no category, disable the system.
   if (!createChannel) {
     await deleteTempVCConfig(guild.id);
+    clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: '✅ Join-to-create temp VC disabled.',
       flags: MessageFlags.Ephemeral,
@@ -98,6 +135,7 @@ async function handleSetup(context: { interaction: any; guild: Guild }) {
     createChannelId: createChannel.id,
     categoryId: category?.id ?? undefined,
   });
+  clearTempVCConfigCache(guild.id);
 
   const targetCategory = category ?? createChannel.parent;
   await interaction.reply({
@@ -112,6 +150,7 @@ async function handleRemove(context: { interaction: any; guild: Guild }) {
   const { interaction, guild } = context;
 
   await deleteTempVCConfig(guild.id);
+  clearTempVCConfigCache(guild.id);
 
   await interaction.reply({
     content: '✅ Join-to-create temp VC system removed.',
@@ -137,9 +176,7 @@ async function handleStatus(context: { interaction: any; guild: Guild }) {
     .addFields(
       {
         name: 'Create Channel',
-        value: config.createChannelId
-          ? `<#${config.createChannelId}>`
-          : 'None (disabled)',
+        value: config.createChannelId ? `<#${config.createChannelId}>` : 'None (disabled)',
         inline: true,
       },
       {
@@ -152,9 +189,85 @@ async function handleStatus(context: { interaction: any; guild: Guild }) {
         value: config.nameTemplate,
         inline: false,
       },
+      {
+        name: 'User Limit',
+        value: String(config.userLimit ?? 0) + (config.userLimit ? ' (0 = unlimited)' : ''),
+        inline: true,
+      },
+      {
+        name: 'Bitrate',
+        value: String(config.bitrate ?? 0) + (config.bitrate ? ' kbps' : ' (default)'),
+        inline: true,
+      },
     )
     .setFooter({ text: '愛 Doctora • Temp VC' })
     .setTimestamp();
 
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+}
+
+async function handleSet(context: { interaction: any; guild: Guild }) {
+  const { interaction, guild } = context;
+
+  const key = interaction.options.getString('key', true);
+  const value = interaction.options.getString('value', true);
+
+  const config = await readTempVCConfig(guild.id);
+  if (!config) {
+    await interaction.reply({
+      content: '❌ Temp VC system is not configured. Use `/tempvc setup` first.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (key === 'nameTemplate') {
+    if (value.length < 1 || value.length > 100) {
+      await replyError(interaction, '❌ Name template must be between 1 and 100 characters.');
+      return;
+    }
+    await upsertTempVCConfig(guild.id, { nameTemplate: value });
+    clearTempVCConfigCache(guild.id);
+    await interaction.reply({
+      content: `✅ Temp VC name template set to \`${value}\`.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (key === 'userLimit') {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 0 || n > 99) {
+      await replyError(interaction, '❌ User limit must be an integer between 0 and 99 (0 = unlimited).');
+      return;
+    }
+    await upsertTempVCConfig(guild.id, { userLimit: n === 0 ? undefined : n });
+    clearTempVCConfigCache(guild.id);
+    await interaction.reply({
+      content: `✅ Temp VC user limit set to ${n === 0 ? 'unlimited' : n}.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (key === 'bitrate') {
+    const n = Number(value);
+    const allowed = [64, 80, 96, 128, 256, 384, 512];
+    if (!allowed.includes(n)) {
+      await replyError(
+        interaction,
+        `❌ Bitrate must be one of: ${allowed.join(', ')} kbps.`,
+      );
+      return;
+    }
+    await upsertTempVCConfig(guild.id, { bitrate: n });
+    clearTempVCConfigCache(guild.id);
+    await interaction.reply({
+      content: `✅ Temp VC bitrate set to ${n} kbps.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await replyError(interaction, '❌ Unknown setting.');
 }

@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, Colors, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
 import { AutoModRule, type IAutoModRule } from '../../db/models/AutoModRule.js';
+import { invalidateAutomodCache } from '../../handlers/automod.js';
 import { recordActivity } from '../../core/metrics.js';
 import type { Command } from '../../core/commands.js';
 
@@ -188,6 +189,7 @@ export const automodCommand: Command = {
         .setFooter({ text: 'Use /automod config to adjust rule-specific settings' });
 
       await interaction.reply({ embeds: [embed] });
+      invalidateAutomodCache(guildId);
       recordActivity('command', 'AutoMod rule added', { meta: { guildId, ruleId: String(rule._id), type } });
       return;
     }
@@ -200,6 +202,7 @@ export const automodCommand: Command = {
         return;
       }
 
+      invalidateAutomodCache(guildId);
       await interaction.reply({ content: `✅ Deleted rule: **${rule.name}**`, ephemeral: true });
       recordActivity('command', 'AutoMod rule removed', { meta: { guildId, ruleId: id } });
       return;
@@ -233,6 +236,7 @@ export const automodCommand: Command = {
         return;
       }
 
+      invalidateAutomodCache(guildId);
       await interaction.reply({ content: `${enabled ? '🟢 Enabled' : '🔴 Disabled'} **${rule.name}**`, ephemeral: true });
       return;
     }
@@ -466,6 +470,7 @@ export async function handleAutomodConfigModal(interaction: any) {
 
   rule.config = config;
   await rule.save();
+  invalidateAutomodCache(rule.guildId);
 
   await interaction.reply({ content: '✅ Configuration saved', ephemeral: true });
 }

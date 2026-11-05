@@ -1,4 +1,4 @@
-import { User, getUser } from './models/User.js';
+import { User } from './models/User.js';
 import { levelFromXp, xpForLevel, type LevelInfo } from '../utils/level.js';
 
 export { xpForLevel };
@@ -14,11 +14,6 @@ export function effectiveXp(doc: {
     : 0;
   return Math.max(xp, totalXp);
 }
-
-/** BSON-side equivalent of {@link effectiveXp} for aggregations. */
-const EFFECTIVE_XP_EXPRESSION = {
-  $max: [{ $ifNull: ['$totalXp', 0] }, { $ifNull: ['$xp', 0] }],
-};
 
 export interface UserXpRow {
   userId: string;
@@ -59,6 +54,10 @@ export async function getUserXp(userId: string): Promise<UserXpRow | null> {
 /**
  * Grant XP and derive the new level from the stored total.
  *
+ * The increment is a single atomic `$inc`. The previous read → mutate →
+ * `save()` lost awards whenever a message XP and a voice tick landed together:
+ * both read the same base and the second write won.
+ *
  * The level is derived from the XP total rather than trusted from the row:
  * dashboard edits can leave `level` out of sync with `xp`, and a stale (too
  * high) level would swallow every future level-up, so no reward role would
@@ -70,25 +69,43 @@ export async function addXp(
   source: 'message' | 'voice' | 'admin' | 'other' = 'message',
   voiceMinutes = 0,
 ): Promise<AddXpResult> {
-  const user = await getUser(userId);
-  const baseXp = effectiveXp(user);
-  const oldLevel = levelFromXp(baseXp).level;
   const granted = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
-  const totalXp = baseXp + granted;
-
-  user.xp = totalXp;
-  user.totalXp = totalXp;
-  user.level = levelFromXp(totalXp).level;
-
-  if (source === 'message') user.lastMessageAt = new Date();
   const addedMinutes = Number.isFinite(voiceMinutes) ? Math.max(0, Math.floor(voiceMinutes)) : 0;
-  if (addedMinutes > 0) {
-    user.voiceMinutes = (Number.isFinite(user.voiceMinutes) ? user.voiceMinutes : 0) + addedMinutes;
+
+  const now = new Date();
+  const updated = await User.findOneAndUpdate(
+    { userId },
+    {
+      $inc: {
+        xp: granted,
+        totalXp: granted,
+        ...(addedMinutes > 0 ? { voiceMinutes: addedMinutes } : {}),
+      },
+      ...(source === 'message' ? { $set: { lastMessageAt: now } } : {}),
+      // Schema defaults land here on first use, so the row is created with a
+      // real `balance: 0` instead of an absent field.
+      $setOnInsert: { userId },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+
+  const doc = updated!;
+  const totalXp = effectiveXp(doc);
+  const oldLevel = levelFromXp(totalXp - granted).level;
+  const info = levelFromXp(totalXp);
+
+  // `level` is a pure function of the total, so it is written conditionally on
+  // the total we just produced: if a concurrent award already moved it on, that
+  // award owns the value and our stale write is skipped instead of clobbering
+  // it. Runs only when the level actually changes, so the common path stays a
+  // single round trip.
+  if (doc.level !== info.level) {
+    await User.updateOne(
+      { userId, totalXp, xp: totalXp },
+      { $set: { level: info.level } },
+    ).catch(() => undefined);
   }
 
-  await user.save();
-
-  const info = levelFromXp(totalXp);
   return {
     leveledUp: info.level > oldLevel,
     newLevel: info.level,
@@ -105,16 +122,21 @@ export async function setUserXp(
   userId: string,
   totalXp: number,
 ): Promise<AddXpResult> {
-  const user = await getUser(userId);
-  const oldLevel = levelFromXp(effectiveXp(user)).level;
   const next = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
-
-  user.xp = next;
-  user.totalXp = next;
-  user.level = levelFromXp(next).level;
-  await user.save();
-
   const info = levelFromXp(next);
+
+  const before = await User.findOne({ userId }).lean();
+  const oldLevel = before ? levelFromXp(effectiveXp(before)).level : 0;
+
+  await User.updateOne(
+    { userId },
+    {
+      $set: { xp: next, totalXp: next, level: info.level },
+      $setOnInsert: { userId },
+    },
+    { upsert: true, setDefaultsOnInsert: true },
+  );
+
   return {
     leveledUp: info.level > oldLevel,
     newLevel: info.level,
@@ -124,17 +146,56 @@ export async function setUserXp(
   };
 }
 
+/**
+ * One-time rewrite so `totalXp` matches `effectiveXp` on legacy rows.
+ *
+ * Older schemas only had `xp`; `totalXp` was added later with a default of 0,
+ * so every leaderboard/rank query that sorts on `totalXp` ranks those members
+ * as zero. Once this has run — and because every write keeps the two columns
+ * equal — leaderboards become a plain indexed query instead of a
+ * full-collection aggregation.
+ */
+export async function backfillUserXp(): Promise<number> {
+  let fixed = 0;
+  let batch: any[] = [];
+
+  const flush = async (): Promise<void> => {
+    if (!batch.length) return;
+    const result = await User.collection.bulkWrite(batch, { ordered: false });
+    fixed += result.modifiedCount;
+    batch = [];
+  };
+
+  try {
+    const cursor = User.collection.find({
+      $expr: { $gt: [{ $ifNull: ['$xp', 0] }, { $ifNull: ['$totalXp', 0] }] },
+    });
+
+    for await (const doc of cursor) {
+      batch.push({
+        updateOne: { filter: { _id: doc._id }, update: { $set: { totalXp: doc.xp ?? 0 } } },
+      });
+      if (batch.length >= 500) await flush();
+    }
+    await flush();
+  } catch (error) {
+    // Never block startup on this: it is a read optimisation, and each user's
+    // row self-heals the next time they earn XP.
+    return -1;
+  }
+
+  return fixed;
+}
+
 /** Top members, highest total XP first. */
 export async function getLeaderboard(limit = 10): Promise<XpRow[]> {
-  const rows = await User.aggregate([
-    { $addFields: { effectiveXp: EFFECTIVE_XP_EXPRESSION } },
-    { $match: { effectiveXp: { $gt: 0 } } },
-    { $sort: { effectiveXp: -1, userId: 1 } },
-    { $limit: Math.max(1, limit) },
-  ]);
+  const rows = await User.find({ totalXp: { $gt: 0 } })
+    .sort({ totalXp: -1, userId: 1 })
+    .limit(Math.max(1, limit))
+    .lean();
 
   return rows.map((row) => {
-    const xp = effectiveXp({ xp: row.xp, totalXp: row.effectiveXp });
+    const xp = effectiveXp(row);
     return {
       user_id: row.userId as string,
       xp,
@@ -153,15 +214,11 @@ export async function getRankPosition(userId: string): Promise<number> {
   const xp = effectiveXp(doc);
   if (xp <= 0) return 0;
 
-  const higher = await User.countDocuments({
-    $expr: { $gt: [EFFECTIVE_XP_EXPRESSION, xp] },
-  });
+  const higher = await User.countDocuments({ totalXp: { $gt: xp } });
   return higher + 1;
 }
 
 /** How many members have an XP record (i.e. are ranked). */
 export async function countRanked(): Promise<number> {
-  return User.countDocuments({
-    $expr: { $gt: [EFFECTIVE_XP_EXPRESSION, 0] },
-  });
+  return User.countDocuments({ totalXp: { $gt: 0 } });
 }

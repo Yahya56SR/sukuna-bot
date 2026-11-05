@@ -8,7 +8,6 @@ import { handleSukunaMessage } from '../utils/sukuna.js';
 import { checkAutomod } from '../handlers/automod.js';
 import { executeCustomCommand } from '../commands/utility/customcmd.js';
 import { handleAfkMessage } from '../commands/utility/afk.js';
-import { handleStarboardReaction } from '../commands/utility/starboard.js';
 
 /**
  * MEE6-style XP earning:
@@ -31,19 +30,56 @@ export const messageCreate = {
     if (!message.guild) return;
     if (!message.author?.bot) bumpCounter('messagesSeen');
 
-    let config: any;
+    let config: any = null;
+    let configLoaded = true;
     try {
       config = await client.getConfig(message.guild.id);
     } catch (err) {
+      configLoaded = false;
       client.logger?.warn({ err }, 'guild settings load failed');
-      return;
     }
+
+    // Moderation, tags and AFK are independent of the leveling module and must
+    // run before any XP gate. They used to sit behind the XP cooldown and the
+    // no-XP-channel / leveling-disabled checks, so a member sending a message
+    // every minute bypassed automod entirely, and turning leveling off (or
+    // configuring an exclusive XP channel) silently disabled moderation in
+    // every other channel.
+    try {
+      await checkAutomod(message);
+    } catch (err) {
+      client.logger?.warn({ err }, 'automod check failed');
+    }
+
+    let tagHandled = false;
+    try {
+      const prefixMatch = message.content.match(PREFIX_COMMAND_RE);
+      if (prefixMatch && !message.author.bot) {
+        const commandName = prefixMatch[2].toLowerCase();
+        const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
+        tagHandled = await executeCustomCommand(message, commandName, args);
+      }
+    } catch (err) {
+      client.logger?.warn({ err }, 'custom command handler failed');
+    }
+
+    try {
+      await handleAfkMessage(message);
+    } catch (err) {
+      client.logger?.warn({ err }, 'afk handler failed');
+    }
+
+    // ---- Leveling gates (everything below only concerns XP) ----
+    if (!configLoaded) return;
 
     // Leveling always on unless explicitly disabled.
     if (config?.modules?.leveling === false) return;
 
     const settings = readLevelSettings(config);
     if (!settings.enabled) return;
+
+    // A tag command already produced the reply for this message.
+    if (tagHandled) return;
 
     // Optionally ignore bots for text-channel XP.
     if (settings.ignoreBots && message.author.bot) return;
@@ -83,33 +119,6 @@ export const messageCreate = {
       return;
     }
 
-    // Run auto-mod check (before XP to potentially delete message)
-    try {
-      await checkAutomod(message);
-    } catch (err) {
-      client.logger?.warn({ err }, 'automod check failed');
-    }
-
-    // Check custom commands (tags)
-    try {
-      const prefixMatch = message.content.match(/^([!/])(\w+)/);
-      if (prefixMatch && !message.author.bot) {
-        const commandName = prefixMatch[2].toLowerCase();
-        const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
-        const handled = await executeCustomCommand(message, commandName, args);
-        if (handled) return; // Don't process XP if command was handled
-      }
-    } catch (err) {
-      client.logger?.warn({ err }, 'custom command handler failed');
-    }
-
-    // Handle AFK
-    try {
-      await handleAfkMessage(message);
-    } catch (err) {
-      client.logger?.warn({ err }, 'afk handler failed');
-    }
-
     const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
     if (amount <= 0) return;
 
@@ -119,9 +128,6 @@ export const messageCreate = {
       // Start the cooldown only once XP was actually awarded, so a failed write
       // does not silently cost the member their next message.
       xpCooldowns.set(cooldownKey, now + cooldownMs);
-
-      // Periodically clean up expired entries to prevent a memory leak.
-      if (xpCooldowns.size > 10000) cleanupCooldowns(xpCooldowns, now);
 
       if (result.leveledUp) {
         await handleLevelUp(
@@ -136,8 +142,18 @@ export const messageCreate = {
     } catch (err) {
       client.logger?.error({ err, userId }, 'failed to process XP for message');
     }
+
+    // Prune on a size threshold regardless of whether XP was awarded, so a
+    // guild running with XP disabled cannot grow this map without bound.
+    if (xpCooldowns.size > XP_COOLDOWN_SOFT_CAP) cleanupCooldowns(xpCooldowns, now);
   },
 };
+
+/** `!tag name` / `/tag name` message prefix commands. */
+const PREFIX_COMMAND_RE = /^([!/])(\w+)/;
+
+/** Soft cap on cached XP cooldown keys before expired entries are dropped. */
+const XP_COOLDOWN_SOFT_CAP = 10_000;
 
 /** Remove expired cooldown entries to prevent memory leaks. */
 function cleanupCooldowns(cooldowns: Map<string, number>, now: number): void {

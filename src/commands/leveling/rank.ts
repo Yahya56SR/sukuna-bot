@@ -18,11 +18,14 @@ export const rankCommand: Command = {
     const target = interaction.options.getUser('user') ?? interaction.user;
     const guild = interaction.guild;
 
+    // Defer before any DB work so we never blow Discord's 3s acknowledgement
+    // window on a slow query.
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
     const row = await getUserXp(target.id);
     if (!row || row.xp <= 0) {
-      await interaction.reply({
+      await interaction.editReply({
         content: `${target.username} hasn't earned any XP yet.`,
-        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -32,9 +35,6 @@ export const rankCommand: Command = {
       getRankPosition(target.id),
       countRanked(),
     ]);
-
-    // Rendering happens off the response path, so defer first.
-    await interaction.deferReply();
 
     try {
       const buffer = await rankCard.generate({

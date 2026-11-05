@@ -28,7 +28,6 @@ export {
   OpenTicket,
   TicketConfig,
   DEFAULT_DEPARTMENT,
-  DEFAULT_PANEL_IMAGE,
   defaultTicketConfig,
   type ITicketPanel,
   type ITicketDepartment,
@@ -37,7 +36,7 @@ export {
 } from './models/Ticket.js';
 
 // Users & Economy
-export { getUser, updateUser } from './models/User.js';
+export { getUser } from './models/User.js';
 export {
   xpForLevel,
   effectiveXp,

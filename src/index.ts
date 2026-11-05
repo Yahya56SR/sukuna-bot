@@ -1,4 +1,5 @@
 import { connectDatabase, disconnectDatabase } from './db/index.js';
+import { backfillUserXp } from './db/utils.js';
 import { commands } from './commands/index.js';
 import { loadEnv } from './config/env.js';
 import { hydrateSukunaConfig } from './config/index.js';
@@ -9,6 +10,8 @@ import { registerEvents } from './core/events.js';
 import { createLogger } from './core/logger.js';
 import { events } from './events/index.js';
 import { registerApplicationCommands } from './core/commands.js';
+import { stopReminderChecker } from './events/ready.js';
+import { stopDashboard } from '../dashboard/server.js';
 import { closeSukuna } from './utils/sukuna.js';
 import { stopLiveLeaderboard } from './utils/liveLeaderboard.js';
 import { stopTicketScheduler } from './utils/ticketScheduler.js';
@@ -20,14 +23,27 @@ async function main(): Promise<void> {
   logger.info({ node: process.version, pid: process.pid }, "starting Sukuna");
 
   let client: SukunaClient | null = null;
+  let shuttingDown = false;
 
-  async function shutdown(reason: string, exitCode = 0): Promise<void> {
-    logger.info({ reason, exitCode }, "shutting down");
-
+  /**
+   * Stop every background worker. Safe to call more than once: SIGINT and
+   * SIGTERM can arrive together, and the fatal-startup path shares this.
+   */
+  function stopBackgroundWork(): void {
     closeSukuna();
     stopVoiceTracking();
     stopLiveLeaderboard();
     stopTicketScheduler();
+    stopReminderChecker();
+    stopDashboard();
+  }
+
+  async function shutdown(reason: string, exitCode = 0): Promise<void> {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info({ reason, exitCode }, "shutting down");
+
+    stopBackgroundWork();
     await shutdownVoiceSafely();
 
     if (client) {
@@ -59,6 +75,13 @@ async function main(): Promise<void> {
     await connectDatabase(env.MONGO_URI);
     logger.info("database connected");
 
+    // Normalise legacy XP rows once so leaderboards can use an index instead
+    // of a full-collection aggregation. Best effort: a failure only means the
+    // slow path stays in use.
+    const backfilled = await backfillUserXp();
+    if (backfilled > 0) logger.info({ rows: backfilled }, "normalised legacy XP totals");
+    else if (backfilled < 0) logger.warn("legacy XP normalisation skipped");
+
     await hydrateSukunaConfig();
     logger.info("runtime configuration hydrated");
 
@@ -70,10 +93,18 @@ async function main(): Promise<void> {
     registerEvents(client, events);
 
     await client.login(env.DISCORD_TOKEN);
-    await registerApplicationCommands(client);
+
+    try {
+      await registerApplicationCommands(client);
+    } catch (error) {
+      // A transient Discord API error while publishing commands must not kill
+      // an otherwise healthy bot — slash commands will be retried next boot.
+      logger.warn({ err: error }, "failed to publish application commands (will retry next start)");
+    }
   } catch (error) {
     logger.fatal({ err: error }, "fatal startup error");
 
+    stopBackgroundWork();
     if (client) {
       stopSettingsPoller(client);
       await client.destroy().catch(() => {});

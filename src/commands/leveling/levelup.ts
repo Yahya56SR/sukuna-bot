@@ -6,6 +6,7 @@ import {
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
 import { loadLevelSettings, saveGuildSettings } from './shared.js';
+import { isOwner } from '../../core/owner.js';
 
 export const levelupCommand: Command = {
   data: new SlashCommandBuilder()
@@ -18,11 +19,7 @@ export const levelupCommand: Command = {
     const { interaction } = context;
 
     // Owner-only check
-    const ownerIds = (process.env.OWNER_IDS ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!ownerIds.includes(interaction.user.id)) {
+    if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: '❌ This command is owner-only.',
         flags: MessageFlags.Ephemeral,

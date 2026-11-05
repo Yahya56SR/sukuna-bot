@@ -309,19 +309,44 @@ function checkRepeated(rule: IAutoModRule, recentMessages: Message[], currentMes
   return count >= maxRepeated;
 }
 
+/**
+ * Enabled rules are read on every message, so cache them briefly. Without this
+ * the per-message automod path would be one Mongo round-trip per message.
+ */
+const RULE_CACHE_TTL_MS = 15_000;
+const ruleCache = new Map<string, { rules: IAutoModRule[]; expiresAt: number }>();
+
+async function getEnabledRules(guildId: string): Promise<IAutoModRule[]> {
+  const now = Date.now();
+  const cached = ruleCache.get(guildId);
+  if (cached && cached.expiresAt > now) return cached.rules;
+
+  const rules = await AutoModRule.find({ guildId, enabled: true }).lean();
+  ruleCache.set(guildId, { rules, expiresAt: now + RULE_CACHE_TTL_MS });
+  return rules;
+}
+
+/** Drop cached rules so an edit takes effect immediately. */
+export function invalidateAutomodCache(guildId?: string): void {
+  if (guildId) ruleCache.delete(guildId);
+  else ruleCache.clear();
+}
+
 /** Main automod check function */
 export async function checkAutomod(message: Message): Promise<void> {
   if (!message.guild || !message.channel.isTextBased()) return;
   if (message.author.bot) return;
 
   const guild = message.guild;
-  const member = await guild.members.fetch(message.author.id).catch(() => null);
+  // `message.member` comes straight from the gateway payload — hitting the
+  // REST API with members.fetch() on every message burns the rate limit.
+  const member = message.member ?? (await guild.members.fetch(message.author.id).catch(() => null));
   if (!member) return;
 
   // Check if user has admin/manage messages - they bypass automod
   if (member.permissions.has('Administrator') || member.permissions.has('ManageMessages')) return;
 
-  const rules = await AutoModRule.find({ guildId: guild.id, enabled: true }).lean();
+  const rules = await getEnabledRules(guild.id);
 
   if (!rules.length) return;
 

@@ -46,6 +46,8 @@ const ticketPanelSchema = new Schema<ITicketPanel>(
   { timestamps: true },
 );
 
+ticketPanelSchema.index({ guildId: 1, channelId: 1 }, { unique: true });
+
 export const TicketPanel = model<ITicketPanel>('TicketPanel', ticketPanelSchema);
 
 /* -------------------------------------------------------------------------- */
@@ -93,15 +95,6 @@ export const TicketDepartment = model<ITicketDepartment>(
 /* OpenTicket                                                                 */
 /* -------------------------------------------------------------------------- */
 
-const ticketNoteSchema = new Schema(
-  {
-    authorId: { type: String, required: true },
-    content: { type: String, required: true },
-    createdAt: { type: Date, default: () => new Date() },
-  },
-  { _id: false },
-);
-
 export interface IOpenTicket extends Document {
   guildId: string;
   channelId: string;
@@ -114,7 +107,6 @@ export interface IOpenTicket extends Document {
   closedBy?: string;
   closeReason?: string;
   transcriptSent: boolean;
-  notes: Array<{ authorId: string; content: string; createdAt: Date }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -132,12 +124,16 @@ const openTicketSchema = new Schema<IOpenTicket>(
     closedBy: { type: String },
     closeReason: { type: String },
     transcriptSent: { type: Boolean, default: false },
-    notes: { type: [ticketNoteSchema], default: [] },
   },
   { timestamps: true },
 );
 
 openTicketSchema.index({ guildId: 1, userId: 1, closedAt: 1 });
+// Partial indexes: only open (non-closed) tickets are queried hot-path, so
+// index only those rows to keep writes cheap and lookups indexed (no COLLSCAN).
+openTicketSchema.index({ closedAt: 1 }, { partialFilterExpression: { closedAt: null } });
+openTicketSchema.index({ guildId: 1 }, { partialFilterExpression: { closedAt: null } });
+openTicketSchema.index({ channelId: 1 }, { unique: true, partialFilterExpression: { closedAt: null } });
 
 export const OpenTicket = model<IOpenTicket>('OpenTicket', openTicketSchema);
 
@@ -184,9 +180,6 @@ export const DEFAULT_DEPARTMENT = {
   welcomeMessage:
     'Hello {user}! Your ticket has been opened. Our support team will be with you shortly. Please describe your issue and attach any relevant screenshots.',
 };
-
-export const DEFAULT_PANEL_IMAGE =
-  'https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif';
 
 export function defaultTicketConfig(guildId: string): Partial<ITicketConfig> {
   return {

@@ -70,6 +70,7 @@ import { getActivity, getCounters, recordActivity, type ActivityKind } from '../
 
 // Auto-mod rules
 import { AutoModRule, type IAutoModRule } from '../src/db/models/AutoModRule.js';
+import { invalidateAutomodCache } from '../src/handlers/automod.js';
 // Reaction roles
 import { ReactionRolePanel, type IReactionRolePanel, type IReactionRoleOption } from '../src/db/models/ReactionRolePanel.js';
 // Custom commands
@@ -80,6 +81,7 @@ import { ThemeConfig, type IThemeConfig } from '../src/db/models/ThemeConfig.js'
 import { ColorRole, type IColorRole } from '../src/db/models/ColorRole.js';
 // Starboard
 import { StarboardConfig, type IStarboardConfig } from '../src/db/models/Starboard.js';
+import { invalidateStarboardCache } from '../src/commands/utility/starboard.js';
 // Welcome config
 import { WelcomeConfig, type IWelcomeConfig } from '../src/db/models/WelcomeConfig.js';
 
@@ -96,6 +98,8 @@ const DASHBOARD_DIR = resolveDashboardDir();
 
 const SESSION_SECRET = crypto.randomBytes(32);
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+// Per-IP rate limit for the persona test endpoint (Live calls are expensive).
+const personaTestAttempts = new Map<string, { count: number; resetAt: number }>();
 
 const ALLOWED_MODULES = ['economy', 'leveling', 'fun', 'music', 'tickets', 'ai'] as const;
 const USER_SORT_FIELDS = ['totalXp', 'balance', 'level', 'xp', 'createdAt'] as const;
@@ -195,11 +199,35 @@ export function startDashboard(client: SukunaClient): void {
   });
 
   server.on('error', (error: Error) => {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'EADDRINUSE') {
+      console.error(
+        `[Dashboard] Port ${port} is already in use — the control panel is NOT running. ` +
+          `Set SERVER_PORT to a free port to enable it.`,
+      );
+      return;
+    }
     console.error('[Dashboard] Server error:', error.message);
   });
 
   process.once('SIGTERM', () => server?.close());
   process.once('SIGINT', () => server?.close());
+}
+
+/**
+ * Stop accepting new connections and drop keep-alive sockets so shutdown does
+ * not have to wait for the forced 5s exit to cut them.
+ */
+export function stopDashboard(): void {
+  const active = server;
+  server = null;
+  if (!active) return;
+
+  active.closeAllConnections?.();
+  active.close((error) => {
+    if (error) console.error('[Dashboard] Failed to close cleanly:', error.message);
+    else console.log('[Dashboard] Server stopped');
+  });
 }
 
 export function setSukunaActive(active: boolean): void {
@@ -748,6 +776,18 @@ function sendPersonaPrompt(client: SukunaClient, res: http.ServerResponse): void
 }
 
 async function testPersona(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  // Rate limit: 5 test calls per IP per minute (Live calls are expensive).
+  const ip = req.socket.remoteAddress ?? 'unknown';
+  const now = Date.now();
+  const attempt = personaTestAttempts.get(ip);
+  if (attempt && attempt.resetAt > now && attempt.count >= 5) {
+    throw new HttpError(429, 'Too many persona test requests. Try again in a minute.');
+  }
+  if (!attempt || attempt.resetAt <= now) {
+    personaTestAttempts.set(ip, { count: 0, resetAt: now + 60_000 });
+  }
+  personaTestAttempts.get(ip)!.count += 1;
+
   const body = await readJson(req);
   const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
   if (!prompt) throw new HttpError(400, 'A test prompt is required');
@@ -1802,7 +1842,11 @@ const automodRuleSchema = z
   .strict();
 
 function isValidObjectId(id: string): boolean {
-  return /^\d{5,25}$|^[0-9a-fA-F]{24}$/.test(id);
+  // Mongo ObjectIds are exactly 24 hex characters. Discord snowflakes
+  // (purely numeric, 5-25 digits) are validated separately with /^\d{5,25}$/;
+  // accepting them here would let a snowflake pass as a record id and then
+  // silently fail to find any Mongo document.
+  return /^[0-9a-fA-F]{24}$/.test(id);
 }
 
 async function sendAutomodRules(guild: Guild, res: http.ServerResponse): Promise<void> {
@@ -1827,6 +1871,7 @@ async function createAutomodRule(guild: Guild, req: http.IncomingMessage, res: h
     ignoreRoles: data.ignoreRoles ?? [],
     config: data.config ?? {},
   });
+  invalidateAutomodCache(guild.id);
   recordActivity('system', 'Auto-mod rule created', { level: 'success', meta: { guildId: guild.id, ruleId: String(rule._id) } });
   sendJson(res, 201, { rule: { id: String(rule._id), ...rule.toObject() } });
 }
@@ -1837,6 +1882,7 @@ async function updateAutomodRule(guild: Guild, ruleId: string, req: http.Incomin
   if (!parsed.success) throw new HttpError(400, 'Invalid auto-mod rule update', parsed.error.flatten());
   const rule = await AutoModRule.findOneAndUpdate({ _id: ruleId, guildId: guild.id }, parsed.data, { new: true });
   if (!rule) throw new HttpError(404, 'Auto-mod rule not found');
+  invalidateAutomodCache(guild.id);
   recordActivity('system', 'Auto-mod rule updated', { meta: { guildId: guild.id, ruleId } });
   sendJson(res, 200, { rule: { id: String(rule._id), ...rule.toObject() } });
 }
@@ -1845,6 +1891,7 @@ async function deleteAutomodRule(guild: Guild, ruleId: string, res: http.ServerR
   if (!isValidObjectId(ruleId)) throw new HttpError(400, 'Invalid rule id');
   const deleted = await AutoModRule.findOneAndDelete({ _id: ruleId, guildId: guild.id });
   if (!deleted) throw new HttpError(404, 'Auto-mod rule not found');
+  invalidateAutomodCache(guild.id);
   recordActivity('system', 'Auto-mod rule deleted', { meta: { guildId: guild.id, ruleId } });
   sendJson(res, 200, { ok: true });
 }
@@ -2035,22 +2082,19 @@ const themeSchema = z.object({
 }).strict();
 
 async function sendThemeConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
-  let theme = await ThemeConfig.findOne({ guildId: guild.id }).lean();
-  if (!theme) {
-    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
-  }
-  sendJson(res, 200, { theme: { id: String(theme._id), ...theme } });
+  // Read-only: never create on GET (raced the unique guildId index → 503).
+  const theme = await ThemeConfig.findOne({ guildId: guild.id }).lean();
+  sendJson(res, 200, { theme: theme ?? { guildId: guild.id, active: true } });
 }
 
 async function updateThemeConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const parsed = themeSchema.safeParse(await readJson(req));
   if (!parsed.success) throw new HttpError(400, 'Invalid theme config', parsed.error.flatten());
-  let theme = await ThemeConfig.findOne({ guildId: guild.id });
-  if (!theme) {
-    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
-  }
-  Object.assign(theme, parsed.data);
-  await theme.save();
+  const theme = await ThemeConfig.findOneAndUpdate(
+    { guildId: guild.id },
+    { $set: parsed.data },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
   recordActivity('system', 'Theme config updated', { meta: { guildId: guild.id } });
   sendJson(res, 200, { theme: { id: String(theme._id), ...theme.toObject() } });
 }
@@ -2140,22 +2184,19 @@ const welcomeSchema = z.object({
 }).strict();
 
 async function sendWelcomeConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
-  let config = await WelcomeConfig.findOne({ guildId: guild.id }).lean();
-  if (!config) {
-    config = await WelcomeConfig.create({ guildId: guild.id });
-  }
-  sendJson(res, 200, { config: { id: String(config._id), ...config } });
+  // Read-only: never create on GET (raced the unique guildId index → 503).
+  const config = await WelcomeConfig.findOne({ guildId: guild.id }).lean();
+  sendJson(res, 200, { config });
 }
 
 async function updateWelcomeConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const parsed = welcomeSchema.safeParse(await readJson(req));
   if (!parsed.success) throw new HttpError(400, 'Invalid welcome config', parsed.error.flatten());
-  let config = await WelcomeConfig.findOne({ guildId: guild.id });
-  if (!config) {
-    config = await WelcomeConfig.create({ guildId: guild.id });
-  }
-  Object.assign(config, parsed.data);
-  await config.save();
+  const config = await WelcomeConfig.findOneAndUpdate(
+    { guildId: guild.id },
+    { $set: parsed.data },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
   recordActivity('system', 'Welcome config updated', { meta: { guildId: guild.id } });
   sendJson(res, 200, { config: { id: String(config._id), ...config.toObject() } });
 }
@@ -2183,22 +2224,22 @@ const starboardSchema = z.object({
 }).strict();
 
 async function sendStarboardConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
-  let config = await StarboardConfig.findOne({ guildId: guild.id }).lean();
-  if (!config) {
-    config = await StarboardConfig.create({ guildId: guild.id, enabled: true });
-  }
-  sendJson(res, 200, { config: { id: String(config._id), ...config } });
+  // Read-only: never create on GET. Creating here raced two concurrent page
+  // loads against the unique guildId index (E11000 surfaced as a 503).
+  const config = await StarboardConfig.findOne({ guildId: guild.id }).lean();
+  const fallback = { guildId: guild.id, enabled: true };
+  sendJson(res, 200, { config: config ?? fallback });
 }
 
 async function updateStarboardConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
   const parsed = starboardSchema.safeParse(await readJson(req));
   if (!parsed.success) throw new HttpError(400, 'Invalid starboard config', parsed.error.flatten());
-  let config = await StarboardConfig.findOne({ guildId: guild.id });
-  if (!config) {
-    config = await StarboardConfig.create({ guildId: guild.id, enabled: true });
-  }
-  Object.assign(config, parsed.data);
-  await config.save();
+  const config = await StarboardConfig.findOneAndUpdate(
+    { guildId: guild.id },
+    { $set: parsed.data },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  invalidateStarboardCache(guild.id);
   recordActivity('system', 'Starboard config updated', { meta: { guildId: guild.id } });
   sendJson(res, 200, { config: { id: String(config._id), ...config.toObject() } });
 }

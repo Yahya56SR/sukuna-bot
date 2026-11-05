@@ -1,51 +1,57 @@
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  MessageFlags,
-  PermissionFlagsBits,
-} from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, Colors } from 'discord.js';
 import type { Command } from '../../core/commands.js';
+import { User } from '../../db/models/User.js';
+import { formatCoins } from '../../utils/economy.js';
+
+const MAX_LEADERBOARD = 10;
 
 export const richCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('rich')
-    .setDescription('View the richest members of the server.')
+    .setDescription('See who holds the most coins.')
     .addIntegerOption((option) =>
-      option.setName('limit').setDescription('How many top members to show').setMinValue(1).setMaxValue(10).setRequired(false),
-    )
-    .setDMPermission(false)
-    .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
+      option
+        .setName('limit')
+        .setDescription('How many members to show')
+        .setMinValue(1)
+        .setMaxValue(MAX_LEADERBOARD),
+    ),
   category: 'economy',
+  cooldownSeconds: 10,
   execute: async (context) => {
     const { interaction } = context;
-    const limit = interaction.options.getInteger('limit') ?? 5;
+    const limit = interaction.options.getInteger('limit') ?? 10;
 
-    // Sample rich list - in a real implementation, this would query the database
-    const richList = [
-      { user: 'User1', xp: 50000, level: 25 },
-      { user: 'User2', xp: 45000, level: 24 },
-      { user: 'User3', xp: 42000, level: 23 },
-      { user: 'User4', xp: 38000, level: 22 },
-      { user: 'User5', xp: 35000, level: 21 },
-    ];
+    // Sorted on the `{ balance: -1 }` index instead of the old hardcoded list,
+    // which showed five fake users sorted by XP.
+    const rows = await User.find({ balance: { $gt: 0 } })
+      .sort({ balance: -1, userId: 1 })
+      .limit(limit)
+      .lean();
+
+    if (!rows.length) {
+      await interaction.reply('🪙 Nobody has earned coins yet.');
+      return;
+    }
+
+    const medal = ['🥇', '🥈', '🥉'];
+    const lines = rows.map((row, index) => {
+      const place = medal[index] ?? `**${index + 1}.**`;
+      return `${place} <@${row.userId}> — **${formatCoins(row.balance)}** coins`;
+    });
+
+    const viewer = rows.findIndex((row) => row.userId === interaction.user.id);
+    const footer =
+      viewer >= 0
+        ? `Your rank: #${viewer + 1}`
+        : 'Earn coins with /daily, /work or the casino.';
 
     const embed = new EmbedBuilder()
-      .setColor(0xffd700)
-      .setTitle('💎 Richest Members')
-      .setDescription(`Top ${limit} members by XP`);
+      .setColor(Colors.Gold)
+      .setTitle('💰 Richest Members')
+      .setDescription(lines.join('\n'))
+      .setFooter({ text: footer });
 
-    const fields = richList
-      .slice(0, limit)
-      .map(
-        (member, i) =>
-          `**#${i + 1}** <@${member.user.replace('<@', '').replace('>', '')}> — Level ${member.level} (${member.xp.toLocaleString()} XP)`
-      )
-      .join('\n');
-
-    embed.addFields({ name: 'Members', value: fields || 'No data available' });
-    embed.setFooter({ text: '爱 Doctora • Rich List' });
-    embed.setTimestamp();
-
-    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed] });
   },
 };

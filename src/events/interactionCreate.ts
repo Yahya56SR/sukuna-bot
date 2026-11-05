@@ -5,17 +5,22 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  type TextChannel,
 } from 'discord.js';
-import { takeCooldown } from '../core/cooldowns.js';
+import { clearCooldown, takeCooldown } from '../core/cooldowns.js';
 import { newErrorId, UserFacingError } from '../core/errors.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
 import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
+import { getTicketByChannel, closeTicket, startTicketScheduler, stopTicketScheduler } from '../utils/ticketScheduler.js';
 import { readVcPanelById } from '../db/models/Vc.js';
 import { connectVoice, disconnectVoice, isVoiceConnected } from '../voice/manager.js';
 import { handleButtonInteraction as handleReactionRoleButton, handleSelectMenuInteraction as handleReactionRoleSelect } from '../handlers/reactionRoles.js';
 import { handleSuggestionVote } from '../commands/utility/suggest.js';
 import { handleAutomodConfigModal, handleTagEmbedModal } from '../commands/moderation/automod.js';
+
+/** In-memory ticket creation cooldowns: `${guildId}:${userId}` => last create timestamp. */
+const ticketCreateCooldowns = new Map<string, number>();
 
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
@@ -26,21 +31,28 @@ export const interactionCreate = {
       return;
     }
 
+    // Autocomplete must be answered within 3 seconds and never touches the
+    // database, so it is dispatched before the slash-command pipeline.
+    if (interaction.isAutocomplete()) {
+      await runSafely(client, interaction, 'autocomplete', () => handleAutocomplete(client, interaction));
+      return;
+    }
+
     // Handle modal submissions
     if (interaction.isModalSubmit()) {
-      await handleModalSubmit(client, interaction);
+      await runSafely(client, interaction, 'modal submit', () => handleModalSubmit(client, interaction));
       return;
     }
 
     // Handle button interactions
     if (interaction.isButton()) {
-      await handleButtonInteraction(client, interaction);
+      await runSafely(client, interaction, 'button', () => handleButtonInteraction(client, interaction));
       return;
     }
 
     // Handle select menu interactions
     if (interaction.isStringSelectMenu()) {
-      await handleSelectMenuInteraction(client, interaction);
+      await runSafely(client, interaction, 'select menu', () => handleSelectMenuInteraction(client, interaction));
       return;
     }
 
@@ -122,6 +134,10 @@ export const interactionCreate = {
         },
       });
     } catch (error) {
+      // The command never completed, so hand the cooldown back — otherwise a
+      // transient failure silently burns e.g. a 24h /daily window.
+      clearCooldown(guildId, interaction.user.id, command.data.name);
+
       bumpCounter('errors');
       recordActivity('error', '/' + command.data.name + ' failed', {
         level: 'error',
@@ -147,6 +163,47 @@ export const interactionCreate = {
     }
   },
 };
+
+/* -------------------------------------------------------------------------- */
+/* Autocomplete                                                               */
+/* -------------------------------------------------------------------------- */
+
+async function handleAutocomplete(client: any, interaction: any): Promise<void> {
+  const command = client.commands.get(interaction.commandName);
+  if (!command?.autocomplete) {
+    await interaction.respond([]).catch(() => {});
+    return;
+  }
+  await command.autocomplete(interaction);
+}
+
+/**
+ * Component, modal and autocomplete interactions are dispatched outside the
+ * slash-command try/catch. Guard them so a rejection is logged and the user
+ * still gets an acknowledgement instead of Discord's "This interaction failed".
+ */
+async function runSafely(
+  client: any,
+  interaction: any,
+  label: string,
+  run: () => Promise<void>,
+): Promise<void> {
+  const errorId = newErrorId();
+  try {
+    await run();
+  } catch (error) {
+    bumpCounter('errors');
+    recordActivity('error', `${label} interaction failed`, {
+      level: 'error',
+      meta: { customId: interaction.customId, errorId, guildId: interaction.guildId },
+    });
+    client.logger?.error(
+      { err: error, errorId, customId: interaction.customId, guildId: interaction.guildId },
+      `${label} interaction failed`,
+    );
+    await replyError(interaction, 'Something went wrong while handling that.', errorId);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 /* Modal submissions                                                          */
@@ -243,6 +300,23 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     return;
   }
 
+  const config = await TicketConfig.findOne({ guildId: guild.id });
+  const maxTickets = config?.maxTicketsPerUser ?? 3;
+  const cooldownSeconds = config?.cooldownSeconds ?? 0;
+
+  // Cooldown per user per guild.
+  if (cooldownSeconds > 0) {
+    const key = `${guild.id}:${user.id}`;
+    const last = ticketCreateCooldowns.get(key) ?? 0;
+    const remaining = last + cooldownSeconds * 1000 - Date.now();
+    if (remaining > 0) {
+      await interaction.editReply({
+        content: `❌ Slow down. You can open another ticket in ${(remaining / 1000).toFixed(0)}s.`,
+      });
+      return;
+    }
+  }
+
   // Check if user already has an open ticket in this guild
   const existing = await OpenTicket.findOne({
     guildId: guild.id,
@@ -257,9 +331,6 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     return;
   }
 
-  // Enforce max tickets per user (soft cap over all-time open count)
-  const config = await TicketConfig.findOne({ guildId: guild.id });
-  const maxTickets = config?.maxTicketsPerUser ?? 3;
   const totalOpen = await OpenTicket.countDocuments({
     guildId: guild.id,
     userId: user.id,
@@ -304,22 +375,30 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     }
   }
 
+  let channel: TextChannel | null = null;
   try {
-    const channel = await guild.channels.create({
+    channel = (await guild.channels.create({
       name: `ticket-${department.name.toLowerCase().replace(/\s+/g, '-')}-${user.username}`,
       type: 0, // GuildText
       topic: `Support ticket for ${user.tag} (${user.id}) • ${department.name}`,
       permissionOverwrites: overwrites,
       reason: `Ticket created by ${user.tag} in ${department.name}`,
-    });
+    })) as TextChannel;
 
+    // Roll back the channel if the DB write fails so we never orphan a
+    // channel without a ticket row (which would permanently lock the user out).
     await OpenTicket.create({
       guildId: guild.id,
-      channelId: channel.id,
+      channelId: channel!.id,
       userId: user.id,
       departmentId: department._id.toString(),
       departmentName: department.name,
     });
+
+    // Record the cooldown timestamp only after a successful create.
+    if (cooldownSeconds > 0) {
+      ticketCreateCooldowns.set(`${guild.id}:${user.id}`, Date.now());
+    }
 
     const closeButton = new ButtonBuilder()
       .setCustomId('ticket_close')
@@ -339,16 +418,21 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
       .setFooter({ text: '愛 Doctora • Tickets' })
       .setTimestamp();
 
-    await channel.send({
+    await channel!.send({
       content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
       embeds: [welcomeEmbed],
-      components: [closeRow],
+      components: [closeRow.toJSON()],
     });
 
     await interaction.editReply({
       content: `✅ Ticket created: ${channel} (${department.name}).`,
     });
   } catch (error) {
+    if (channel) {
+      try {
+        await (channel as any).delete();
+      } catch {}
+    }
     await interaction.editReply({
       content: '❌ Failed to create ticket channel.',
     });
@@ -362,35 +446,24 @@ async function handleTicketCloseButton(interaction: any): Promise<void> {
     return;
   }
 
-  const ticket = await OpenTicket.findOne({
-    guildId: guild.id,
-    channelId: interaction.channelId,
-    closedAt: null,
-  });
+  await interaction.deferReply({ flags: 64 });
+
+  const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
-    await interaction.reply({
-      content: '❌ This is not an open ticket channel.',
-      flags: 64,
-    });
+    await interaction.editReply({ content: '❌ This is not an open ticket channel.', flags: 64 });
     return;
   }
 
-  await OpenTicket.updateOne(
-    { guildId: guild.id, channelId: interaction.channelId },
-    { closedAt: new Date() },
-  );
-
-  await interaction.reply({
-    content: '🔒 This ticket is being closed. The channel will be deleted in 10 seconds...',
+  const config = await TicketConfig.findOne({ guildId: guild.id });
+  await closeTicket(interaction.client, ticket, {
+    reason: 'Manual close',
+    closedBy: interaction.user.id,
+    closeReason: 'manual',
+    sendTranscript: true,
+    dmTranscript: config?.dmTranscript ?? false,
   });
 
-  setTimeout(async () => {
-    try {
-      await (interaction.channel as any).delete();
-    } catch {
-      /* channel already deleted or missing permissions */
-    }
-  }, 10_000);
+  await interaction.editReply({ content: '🔒 Closing ticket and saving transcript.', flags: 64 });
 }
 
 async function handleVcJoin(client: any, interaction: any): Promise<void> {

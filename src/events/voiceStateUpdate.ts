@@ -14,16 +14,23 @@ import { readLevelSettings, type LevelSettings } from '../utils/levelSettings.js
 import { handleBotVoiceMove } from '../voice/manager.js';
 import {
   readTempVCConfig,
+  getCachedTempVCConfig,
+  setCachedTempVCConfig,
   readActiveTempVCByOwner,
-  createActiveTempVC,
   readActiveTempVCByChannel,
+  getCachedActiveTempVC,
+  setCachedActiveTempVC,
+  deleteCachedActiveTempVC,
+  createActiveTempVC,
   deleteActiveTempVC,
 } from '../db/models/TempVC.js';
 
-/** userId -> join timestamp (aligned to minute boundaries as XP is awarded). */
-const voiceSessions = new Map<string, number>();
+/** guildId -> userId -> join timestamp (aligned to minute boundaries as XP is awarded). */
+const voiceSessions = new Map<string, Map<string, number>>();
 
 let tickInterval: ReturnType<typeof setInterval> | null = null;
+/** In-flight guard: only one voice tick runs at a time. */
+let ticking = false;
 
 /**
  * Award random XP for a number of minutes spent in voice.
@@ -67,6 +74,23 @@ async function loadGuildConfig(client: Client, guildId: string): Promise<any> {
   return null;
 }
 
+function getUserSession(guildId: string, userId: string): number | undefined {
+  return voiceSessions.get(guildId)?.get(userId);
+}
+
+function setUserSession(guildId: string, userId: string, ts: number): void {
+  let byUser = voiceSessions.get(guildId);
+  if (!byUser) {
+    byUser = new Map();
+    voiceSessions.set(guildId, byUser);
+  }
+  byUser.set(userId, ts);
+}
+
+function deleteUserSession(guildId: string, userId: string): void {
+  voiceSessions.get(guildId)?.delete(userId);
+}
+
 /**
  * Voice-state listener: track sessions, award on leave/channel move, and seed a
  * fresh session when a member joins.
@@ -83,7 +107,7 @@ export async function handleVoiceStateUpdate(
   const changedChannel = oldState.channelId !== newState.channelId;
 
   // Temp VC: create a channel when a member joins the "create" channel.
-  await handleTempVCJoin(newState);
+  await handleTempVCJoin(client, newState);
 
   // Temp VC: delete the channel when it becomes empty.
   if (oldState.channelId && changedChannel) {
@@ -101,10 +125,11 @@ export async function handleVoiceStateUpdate(
 
   // Left a voice channel, or moved to a different one.
   if (oldState.channelId && changedChannel) {
-    const joinTs = voiceSessions.get(userId);
+    const guildId = oldState.guild?.id ?? newState.guild?.id;
+    const joinTs = guildId ? getUserSession(guildId, userId) : undefined;
     if (joinTs) {
       const minutes = Math.floor((now - joinTs) / 60000);
-      voiceSessions.delete(userId);
+      deleteUserSession(guildId!, userId);
       await awardVoiceXp(
         client,
         userId,
@@ -118,8 +143,8 @@ export async function handleVoiceStateUpdate(
   // Joined a voice channel, or moved to a new one: start a fresh session.
   // Without this a channel move would end the session and stop all further
   // voice XP until the member left and rejoined.
-  if (changedChannel && newState.channelId && newState.member?.user) {
-    voiceSessions.set(userId, now);
+  if (changedChannel && newState.channelId && newState.member?.user && newState.guild) {
+    setUserSession(newState.guild.id, userId, now);
   }
 }
 
@@ -128,23 +153,34 @@ export async function handleVoiceStateUpdate(
 /* -------------------------------------------------------------------------- */
 
 /** When a member joins the configured "create" channel, spin up a temp VC. */
-async function handleTempVCJoin(newState: VoiceState): Promise<void> {
+async function handleTempVCJoin(client: Client, newState: VoiceState): Promise<void> {
   const { guild, member, channelId } = newState;
   if (!guild || !member || member.user.bot) return;
   if (!channelId) return;
 
-  const config = await readTempVCConfig(guild.id);
+  // Read from cache first; fall back to DB and warm the cache on a miss.
+  let config = getCachedTempVCConfig(guild.id);
+  if (config === undefined) {
+    config = await readTempVCConfig(guild.id);
+    setCachedTempVCConfig(guild.id, config);
+  }
   if (!config?.createChannelId) return;
   if (channelId !== config.createChannelId) return;
 
   // One temp VC per owner: move them to their existing one instead.
+  // Self-heal: if the stored channel no longer exists, clear the stale row so
+  // the member can get a fresh temp VC.
   const existing = await readActiveTempVCByOwner(guild.id, member.id);
   if (existing) {
     const existingChannel = guild.channels.cache.get(existing.channelId);
     if (existingChannel?.isVoiceBased()) {
       await member.voice.setChannel(existingChannel).catch(() => {});
+      return;
     }
-    return;
+    // Stale owner row: the old channel is gone, clear it and fall through to
+    // create a brand-new temp VC for this owner.
+    await deleteActiveTempVC(existing.channelId).catch(() => {});
+    deleteCachedActiveTempVC(existing.channelId);
   }
 
   const createChannel = guild.channels.cache.get(config.createChannelId);
@@ -184,6 +220,12 @@ async function handleTempVCJoin(newState: VoiceState): Promise<void> {
     channelId: newChannel.id,
     ownerId: member.id,
   });
+  setCachedActiveTempVC(newChannel.id, {
+    guildId: guild.id,
+    channelId: newChannel.id,
+    ownerId: member.id,
+    createdAt: new Date(),
+  } as any);
 }
 
 /** When the last member leaves a temp VC, delete it. */
@@ -191,7 +233,15 @@ async function handleTempVCLeave(oldState: VoiceState): Promise<void> {
   const { guild, channelId: oldChannelId } = oldState;
   if (!guild || !oldChannelId) return;
 
-  const active = await readActiveTempVCByChannel(oldChannelId);
+  // Use the cache first; fall back to DB on a miss.
+  let active = getCachedActiveTempVC(oldChannelId);
+  if (!active) {
+    const dbActive = await readActiveTempVCByChannel(oldChannelId);
+    if (dbActive) {
+      active = dbActive;
+      setCachedActiveTempVC(oldChannelId, dbActive);
+    }
+  }
   if (!active) return;
 
   const channel = guild.channels.cache.get(oldChannelId);
@@ -204,21 +254,7 @@ async function handleTempVCLeave(oldState: VoiceState): Promise<void> {
     /* already deleted or missing permissions */
   }
   await deleteActiveTempVC(oldChannelId);
-}
-
-/**
- * Start tracking members who were already in voice before this login. Without
- * this a restart would ignore them until they switch channels, because no
- * voiceStateUpdate fires for an unchanged state.
- */
-export function seedVoiceSessions(client: Client): void {
-  const now = Date.now();
-  for (const guild of client.guilds.cache.values()) {
-    for (const state of guild.voiceStates.cache.values()) {
-      if (!state.channelId || !state.member?.user) continue;
-      if (!voiceSessions.has(state.id)) voiceSessions.set(state.id, now);
-    }
-  }
+  deleteCachedActiveTempVC(oldChannelId);
 }
 
 /**
@@ -226,34 +262,45 @@ export function seedVoiceSessions(client: Client): void {
  * interval started from the ready handler.
  */
 export async function handleVoiceTick(client: Client): Promise<void> {
-  const now = Date.now();
-  const entries: Array<[string, number]> = [...voiceSessions.entries()];
+  if (ticking) return; // in-flight guard: previous tick still running
+  ticking = true;
+  try {
+    const now = Date.now();
+    const guildIds = [...voiceSessions.keys()];
 
-  for (const [userId, joinTs] of entries) {
-    const minutesElapsed = Math.floor((now - joinTs) / 60000);
-    if (minutesElapsed < 1) continue;
+    for (const guildId of guildIds) {
+      const byUser = voiceSessions.get(guildId);
+      if (!byUser) continue;
 
-    let found = false;
-    for (const guild of client.guilds.cache.values()) {
-      // Voice states are always cached for guilds, so this is more reliable than
-      // scanning the member cache (which may not hold every voice member).
-      const member =
-        guild.voiceStates.cache.get(userId)?.member ?? guild.members.cache.get(userId) ?? null;
-      if (!member?.voice?.channelId) continue;
+      const guild = client.guilds.cache.get(guildId);
+      if (!guild) continue;
 
-      found = true;
-      await awardVoiceXp(client, userId, minutesElapsed, guild, member.user);
-      break;
+      const entries: Array<[string, number]> = [...byUser.entries()];
+      for (const [userId, joinTs] of entries) {
+        const minutesElapsed = Math.floor((now - joinTs) / 60000);
+        if (minutesElapsed < 1) continue;
+
+        const member =
+          guild.voiceStates.cache.get(userId)?.member ?? guild.members.cache.get(userId) ?? null;
+        if (!member?.voice?.channelId) {
+          // User no longer in any voice channel in this guild.
+          byUser.delete(userId);
+          continue;
+        }
+
+        await awardVoiceXp(client, userId, minutesElapsed, guild, member.user);
+
+        // Advance the session timestamp so XP is awarded once per minute going
+        // forward, aligned to the minute boundary to prevent drift.
+        setUserSession(guildId, userId, now - ((now - joinTs) % 60000));
+      }
+
+      if (byUser.size === 0) voiceSessions.delete(guildId);
     }
-
-    if (found) {
-      // Advance the session timestamp so XP is awarded once per minute going
-      // forward, aligned to the minute boundary to prevent drift.
-      voiceSessions.set(userId, now - ((now - joinTs) % 60000));
-    } else {
-      // User no longer in any voice channel in any guild we can see.
-      voiceSessions.delete(userId);
-    }
+  } catch (err) {
+    console.error('Voice XP tick error:', err);
+  } finally {
+    ticking = false;
   }
 }
 
@@ -262,9 +309,7 @@ export function startVoiceTracking(client: Client): void {
   seedVoiceSessions(client);
   stopVoiceTracking();
   tickInterval = setInterval(() => {
-    void handleVoiceTick(client).catch((err) => {
-      console.error('Voice XP tick error:', err);
-    });
+    void handleVoiceTick(client);
   }, 60_000);
 }
 
@@ -273,9 +318,29 @@ export function stopVoiceTracking(): void {
     clearInterval(tickInterval);
     tickInterval = null;
   }
+  ticking = false;
 }
 
-export function getVoiceSessions(): Map<string, number> {
+/**
+ * Start tracking members who were already in voice before this login. Without
+ * this a restart would ignore them until they switch channels, because no
+ * voiceStateUpdate fires for an unchanged state. Keyed by guild so a member in
+ * voice on two guilds is tracked in both.
+ */
+export function seedVoiceSessions(client: Client): void {
+  const now = Date.now();
+  voiceSessions.clear();
+  for (const guild of client.guilds.cache.values()) {
+    const byUser = new Map<string, number>();
+    for (const state of guild.voiceStates.cache.values()) {
+      if (!state.channelId || !state.member?.user) continue;
+      if (!byUser.has(state.id)) byUser.set(state.id, now);
+    }
+    if (byUser.size > 0) voiceSessions.set(guild.id, byUser);
+  }
+}
+
+export function getVoiceSessions(): Map<string, Map<string, number>> {
   return voiceSessions;
 }
 

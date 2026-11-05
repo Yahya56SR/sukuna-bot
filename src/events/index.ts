@@ -3,6 +3,8 @@ import { ready } from './ready.js';
 import { messageCreate } from './messageCreate.js';
 import { guildMemberAdd } from './guildMemberAdd.js';
 import { voiceStateUpdate } from './voiceStateUpdate.js';
+import { channelDelete } from './channelDelete.js';
+import { guildDelete } from './guildDelete.js';
 import { reactionAdd, reactionRemove, guildMemberAdd as memberAdd, guildMemberRemove } from './reactionEvents.js';
 
 export const events = [
@@ -15,4 +17,6 @@ export const events = [
   reactionAdd,
   reactionRemove,
   voiceStateUpdate,
+  channelDelete,
+  guildDelete,
 ];

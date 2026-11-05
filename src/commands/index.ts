@@ -64,6 +64,9 @@ import { resetXpCommand } from './leveling/resetxp';
 // NEW ECONOMY COMMANDS
 import { economyCommand } from './economy/economy.js';
 import { shopCommand } from './economy/shop.js';
+import { buyCommand } from './economy/buy.js';
+import { useCommand } from './economy/use.js';
+import { bankCommand } from './economy/bank.js';
 import { inventoryCommand } from './economy/inventory.js';
 import { giveCommand } from './economy/give.js';
 import { richCommand } from './economy/rich.js';
@@ -102,6 +105,9 @@ export const commands: readonly Command[] = [
   workCommand,
   economyCommand,
   shopCommand,
+  buyCommand,
+  useCommand,
+  bankCommand,
   inventoryCommand,
   giveCommand,
   richCommand,

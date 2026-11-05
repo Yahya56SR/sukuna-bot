@@ -20,19 +20,19 @@ export const leaderboardCommand: Command = {
   execute: async (context) => {
     const { interaction } = context;
     const limit = interaction.options.getInteger('limit') ?? 10;
+
+    // Defer before any DB/REST work: resolving up to 25 uncached users can
+    // exceed Discord's 3-second acknowledgement window.
+    await interaction.deferReply();
+
     const rows = await getLeaderboard(limit);
 
     if (rows.length === 0) {
-      await interaction.reply({
+      await interaction.editReply({
         content: 'No XP records yet.',
-        flags: MessageFlags.Ephemeral,
       });
       return;
     }
-
-    // Defer before any REST work: resolving up to 25 uncached users can exceed
-    // Discord's 3-second acknowledgement window.
-    await interaction.deferReply();
 
     const entries = await Promise.all(
       rows.map(async (row) => {

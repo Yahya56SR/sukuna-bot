@@ -296,8 +296,6 @@ export async function handleStarboardReaction(reaction: any, user: any, added: b
 
   const message = reaction.message;
   if (!message.guildId) return;
-  if (message.author.bot && !configCache.get(message.guildId)?.allowBotMessages) return;
-  if (message.author.id === user.id && !configCache.get(message.guildId)?.allowSelfStar) return;
 
   const guildId = message.guildId;
   let config = configCache.get(guildId);
@@ -307,6 +305,11 @@ export async function handleStarboardReaction(reaction: any, user: any, added: b
     if (!config) return;
     configCache.set(guildId, config);
   }
+
+  // These gates must run after the config is loaded — reading the cache before
+  // the load above meant the flags were always `undefined` on a cold cache.
+  if (message.author.bot && !config.allowBotMessages) return;
+  if (message.author.id === user.id && !config.allowSelfStar) return;
 
   // Check ignored channels/roles
   if (config.ignoredChannels.includes(message.channelId)) return;
@@ -425,7 +428,9 @@ function getJumpUrl(guildId: string, channelId: string, messageId: string): stri
   return `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
 }
 
-// Invalidate cache when config changes
-export function invalidateStarboardCache(guildId: string): void {
-  configCache.delete(guildId);
+// Invalidate cache when config changes. Omit the guild id to drop everything
+// (used at startup and by the dashboard, which may edit any guild).
+export function invalidateStarboardCache(guildId?: string): void {
+  if (guildId) configCache.delete(guildId);
+  else configCache.clear();
 }
