@@ -30,6 +30,16 @@ export const discordautomodCommand: Command = {
         )
       )
       .addStringOption(opt => opt
+        .setName('action')
+        .setDescription('Action to take')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Block Message', value: 'block_message' },
+          { name: 'Send Alert', value: 'send_alert' },
+          { name: 'Timeout', value: 'timeout' },
+        )
+      )
+      .addStringOption(opt => opt
         .setName('keyword')
         .setDescription('Keywords to match (comma-separated)')
         .setRequired(false)
@@ -42,16 +52,6 @@ export const discordautomodCommand: Command = {
           { name: 'Profanity', value: 'profanity' },
           { name: 'Sexual Content', value: 'sexual_content' },
           { name: 'Slurs', value: 'slurs' },
-        )
-      )
-      .addStringOption(opt => opt
-        .setName('action')
-        .setDescription('Action to take')
-        .setRequired(true)
-        .addChoices(
-          { name: 'Block Message', value: 'block_message' },
-          { name: 'Send Alert', value: 'send_alert' },
-          { name: 'Timeout', value: 'timeout' },
         )
       )
       .addChannelOption(opt => opt

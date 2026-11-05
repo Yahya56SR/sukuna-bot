@@ -39,16 +39,16 @@ export const reactionroleCommand: Command = {
         .setMaxLength(256)
       )
       .addStringOption(opt => opt
-        .setName('description')
-        .setDescription('Panel description')
-        .setRequired(false)
-        .setMaxLength(4000)
-      )
-      .addStringOption(opt => opt
         .setName('mode')
         .setDescription('Panel mode')
         .setRequired(true)
         .addChoices(...modes)
+      )
+      .addStringOption(opt => opt
+        .setName('description')
+        .setDescription('Panel description')
+        .setRequired(false)
+        .setMaxLength(4000)
       )
       .addStringOption(opt => opt
         .setName('temporary_duration')

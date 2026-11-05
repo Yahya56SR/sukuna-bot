@@ -181440,18 +181440,18 @@ var discordautomodCommand = {
         { name: "Keyword Preset", value: "keyword_preset" }
       )
     ).addStringOption(
+      (opt) => opt.setName("action").setDescription("Action to take").setRequired(true).addChoices(
+        { name: "Block Message", value: "block_message" },
+        { name: "Send Alert", value: "send_alert" },
+        { name: "Timeout", value: "timeout" }
+      )
+    ).addStringOption(
       (opt) => opt.setName("keyword").setDescription("Keywords to match (comma-separated)").setRequired(false)
     ).addStringOption(
       (opt) => opt.setName("preset").setDescription("Keyword preset").setRequired(false).addChoices(
         { name: "Profanity", value: "profanity" },
         { name: "Sexual Content", value: "sexual_content" },
         { name: "Slurs", value: "slurs" }
-      )
-    ).addStringOption(
-      (opt) => opt.setName("action").setDescription("Action to take").setRequired(true).addChoices(
-        { name: "Block Message", value: "block_message" },
-        { name: "Send Alert", value: "send_alert" },
-        { name: "Timeout", value: "timeout" }
       )
     ).addChannelOption(
       (opt) => opt.setName("alert_channel").setDescription("Channel for alerts (required for send_alert action)").setRequired(false)
@@ -185920,9 +185920,9 @@ var reactionroleCommand = {
     ).addStringOption(
       (opt) => opt.setName("title").setDescription("Panel title").setRequired(true).setMaxLength(256)
     ).addStringOption(
-      (opt) => opt.setName("description").setDescription("Panel description").setRequired(false).setMaxLength(4e3)
-    ).addStringOption(
       (opt) => opt.setName("mode").setDescription("Panel mode").setRequired(true).addChoices(...modes)
+    ).addStringOption(
+      (opt) => opt.setName("description").setDescription("Panel description").setRequired(false).setMaxLength(4e3)
     ).addStringOption(
       (opt) => opt.setName("temporary_duration").setDescription("Duration for temporary roles (e.g., 1h, 30m, 1d)").setRequired(false)
     ).addRoleOption(
