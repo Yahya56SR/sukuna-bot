@@ -68544,7 +68544,7 @@ var require_mongoose = __commonJS({
     Mongoose.prototype.Model = Model;
     Mongoose.prototype.Document = Document24;
     Mongoose.prototype.ObjectId = SchemaTypes.ObjectId;
-    Mongoose.prototype.isValidObjectId = /* @__PURE__ */ __name(function isValidObjectId(v) {
+    Mongoose.prototype.isValidObjectId = /* @__PURE__ */ __name(function isValidObjectId2(v) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
       return _mongoose.Types.ObjectId.isValid(v);
     }, "isValidObjectId");
@@ -189682,6 +189682,7 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
 __name(generateLiveText, "generateLiveText");
 
 // dashboard/server.ts
+init_CustomCommand();
 var DASHBOARD_HOST = "0.0.0.0";
 var DEFAULT_PORT = 3001;
 var SESSION_COOKIE = "sukuna_dash";
@@ -189926,6 +189927,63 @@ async function routeApi(req, res, pathname, method, url2) {
   if (resource === "users") {
     if (!guildId && method === "GET") return sendUsers(client, url2, res);
     if (guildId && method === "PATCH") return updateUserDoc(guildId, req, res);
+  }
+  if (resource === "automod") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === "GET") return sendAutomodRules(guild, res);
+    if (!sub && method === "POST") return createAutomodRule(guild, req, res);
+    if (subId && method === "PATCH") return updateAutomodRule(guild, subId, req, res);
+    if (subId && method === "DELETE") return deleteAutomodRule(guild, subId, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "reactionroles") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === "GET") return sendReactionRolePanels(guild, res);
+    if (!sub && method === "POST") return createReactionRolePanel(guild, req, res);
+    if (subId && method === "PATCH") return updateReactionRolePanel(guild, subId, req, res);
+    if (subId && method === "DELETE") return deleteReactionRolePanel(guild, subId, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "customcmd") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === "GET") return sendCustomCommands(guild, res);
+    if (!sub && method === "POST") return createCustomCommand(guild, req, res);
+    if (subId && method === "PATCH") return updateCustomCommand(guild, subId, req, res);
+    if (subId && method === "DELETE") return deleteCustomCommand(guild, subId, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "theme") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (method === "GET") return sendThemeConfig(guild, res);
+    if (method === "PUT" || method === "POST") return updateThemeConfig(guild, req, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "colorroles") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === "GET") return sendColorRoles(guild, res);
+    if (!sub && method === "POST") return createColorRole(guild, req, res);
+    if (subId && method === "PATCH") return updateColorRole(guild, subId, req, res);
+    if (subId && method === "DELETE") return deleteColorRole(guild, subId, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "welcome") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (method === "GET") return sendWelcomeConfig(guild, res);
+    if (method === "PUT" || method === "POST") return updateWelcomeConfig(guild, req, res);
+    throw new HttpError(404, "Not found");
+  }
+  if (resource === "starboard") {
+    if (!guildId) throw new HttpError(404, "Not found");
+    const guild = resolveGuild(client, guildId);
+    if (method === "GET") return sendStarboardConfig(guild, res);
+    if (method === "PUT" || method === "POST") return updateStarboardConfig(guild, req, res);
+    throw new HttpError(404, "Not found");
   }
   throw new HttpError(404, "Not found");
 }
@@ -190972,6 +191030,389 @@ async function updateUserDoc(userId, req, res) {
   sendJson(res, 200, { user: updated });
 }
 __name(updateUserDoc, "updateUserDoc");
+var automodRuleSchema = external_exports.object({
+  name: external_exports.string().trim().min(1).max(100),
+  type: external_exports.enum(["spam", "links", "invites", "words", "caps", "mentions", "attachments", "newlines", "emojis", "repeated"]),
+  enabled: external_exports.boolean().optional(),
+  actions: external_exports.array(external_exports.enum(["delete", "warn", "timeout", "ban", "log"])).min(1),
+  timeoutDuration: external_exports.number().int().min(1).max(86400).optional(),
+  warnMessage: external_exports.string().max(500).optional(),
+  logChannel: external_exports.string().regex(/^\d{5,25}$/).optional(),
+  ignoreChannels: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  ignoreRoles: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  config: external_exports.record(external_exports.string(), external_exports.any()).optional()
+}).strict();
+function isValidObjectId(id) {
+  return /^\d{5,25}$|^[0-9a-fA-F]{24}$/.test(id);
+}
+__name(isValidObjectId, "isValidObjectId");
+async function sendAutomodRules(guild, res) {
+  const rules = await AutoModRule.find({ guildId: guild.id }).sort({ createdAt: -1 }).lean();
+  sendJson(res, 200, { rules: rules.map((r) => ({ id: String(r._id), ...r })) });
+}
+__name(sendAutomodRules, "sendAutomodRules");
+async function createAutomodRule(guild, req, res) {
+  const parsed = automodRuleSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid auto-mod rule", parsed.error.flatten());
+  const data = parsed.data;
+  const rule = await AutoModRule.create({
+    guildId: guild.id,
+    name: data.name,
+    type: data.type,
+    enabled: data.enabled ?? true,
+    actions: data.actions,
+    timeoutDuration: data.timeoutDuration,
+    warnMessage: data.warnMessage,
+    logChannel: data.logChannel,
+    ignoreChannels: data.ignoreChannels ?? [],
+    ignoreRoles: data.ignoreRoles ?? [],
+    config: data.config ?? {}
+  });
+  recordActivity("system", "Auto-mod rule created", { level: "success", meta: { guildId: guild.id, ruleId: String(rule._id) } });
+  sendJson(res, 201, { rule: { id: String(rule._id), ...rule.toObject() } });
+}
+__name(createAutomodRule, "createAutomodRule");
+async function updateAutomodRule(guild, ruleId, req, res) {
+  if (!isValidObjectId(ruleId)) throw new HttpError(400, "Invalid rule id");
+  const parsed = automodRuleSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid auto-mod rule update", parsed.error.flatten());
+  const rule = await AutoModRule.findOneAndUpdate({ _id: ruleId, guildId: guild.id }, parsed.data, { new: true });
+  if (!rule) throw new HttpError(404, "Auto-mod rule not found");
+  recordActivity("system", "Auto-mod rule updated", { meta: { guildId: guild.id, ruleId } });
+  sendJson(res, 200, { rule: { id: String(rule._id), ...rule.toObject() } });
+}
+__name(updateAutomodRule, "updateAutomodRule");
+async function deleteAutomodRule(guild, ruleId, res) {
+  if (!isValidObjectId(ruleId)) throw new HttpError(400, "Invalid rule id");
+  const deleted = await AutoModRule.findOneAndDelete({ _id: ruleId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, "Auto-mod rule not found");
+  recordActivity("system", "Auto-mod rule deleted", { meta: { guildId: guild.id, ruleId } });
+  sendJson(res, 200, { ok: true });
+}
+__name(deleteAutomodRule, "deleteAutomodRule");
+var rrOptionSchema = external_exports.object({
+  roleId: external_exports.string().regex(/^\d{5,25}$/),
+  emoji: external_exports.string().min(1).max(50),
+  label: external_exports.string().max(80).optional(),
+  description: external_exports.string().max(100).optional()
+});
+var rrPanelSchema = external_exports.object({
+  title: external_exports.string().trim().min(1).max(256),
+  description: external_exports.string().max(4e3).optional(),
+  color: external_exports.number().int().min(0).max(16777215).optional(),
+  thumbnail: external_exports.string().url().optional().nullable(),
+  image: external_exports.string().url().optional().nullable(),
+  mode: external_exports.enum(["unique", "verify", "reversed", "binding", "temporary"]),
+  temporaryDuration: external_exports.number().int().min(1).max(86400).optional(),
+  bindingRoleId: external_exports.string().regex(/^\d{5,25}$/).optional(),
+  options: external_exports.array(rrOptionSchema).min(1).max(25),
+  useButtons: external_exports.boolean().optional(),
+  buttonStyle: external_exports.number().int().min(1).max(4).optional(),
+  selectPlaceholder: external_exports.string().max(150).optional(),
+  minSelect: external_exports.number().int().min(1).max(25).optional(),
+  maxSelect: external_exports.number().int().min(1).max(25).optional(),
+  dmUser: external_exports.boolean().optional()
+}).strict();
+async function sendReactionRolePanels(guild, res) {
+  const panels = await ReactionRolePanel.find({ guildId: guild.id }).sort({ createdAt: -1 }).lean();
+  sendJson(res, 200, { panels: panels.map((p) => ({ id: String(p._id), ...p })) });
+}
+__name(sendReactionRolePanels, "sendReactionRolePanels");
+async function createReactionRolePanel(guild, req, res) {
+  const parsed = rrPanelSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid reaction role panel", parsed.error.flatten());
+  const data = parsed.data;
+  const panel = await ReactionRolePanel.create({
+    guildId: guild.id,
+    channelId: "",
+    title: data.title,
+    description: data.description,
+    color: data.color,
+    thumbnail: data.thumbnail,
+    image: data.image,
+    mode: data.mode,
+    temporaryDuration: data.temporaryDuration,
+    bindingRoleId: data.bindingRoleId,
+    options: data.options.map((o) => ({ roleId: o.roleId, emoji: o.emoji, label: o.label, description: o.description })),
+    useButtons: data.useButtons ?? false,
+    buttonStyle: data.buttonStyle,
+    selectPlaceholder: data.selectPlaceholder,
+    minSelect: data.minSelect ?? 1,
+    maxSelect: data.maxSelect ?? 1,
+    dmUser: data.dmUser ?? false,
+    active: true
+  });
+  recordActivity("system", "Reaction role panel created", { level: "success", meta: { guildId: guild.id, panelId: String(panel._id) } });
+  sendJson(res, 201, { panel: { id: String(panel._id), ...panel.toObject() } });
+}
+__name(createReactionRolePanel, "createReactionRolePanel");
+async function updateReactionRolePanel(guild, panelId, req, res) {
+  if (!isValidObjectId(panelId)) throw new HttpError(400, "Invalid panel id");
+  const parsed = rrPanelSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid reaction role panel update", parsed.error.flatten());
+  const data = parsed.data;
+  const update = {};
+  if (data.title !== void 0) update.title = data.title;
+  if (data.description !== void 0) update.description = data.description;
+  if (data.color !== void 0) update.color = data.color;
+  if (data.thumbnail !== void 0) update.thumbnail = data.thumbnail;
+  if (data.image !== void 0) update.image = data.image;
+  if (data.mode !== void 0) update.mode = data.mode;
+  if (data.temporaryDuration !== void 0) update.temporaryDuration = data.temporaryDuration;
+  if (data.bindingRoleId !== void 0) update.bindingRoleId = data.bindingRoleId;
+  if (data.options !== void 0) update.options = data.options.map((o) => ({ roleId: o.roleId, emoji: o.emoji, label: o.label, description: o.description }));
+  if (data.useButtons !== void 0) update.useButtons = data.useButtons;
+  if (data.buttonStyle !== void 0) update.buttonStyle = data.buttonStyle;
+  if (data.selectPlaceholder !== void 0) update.selectPlaceholder = data.selectPlaceholder;
+  if (data.minSelect !== void 0) update.minSelect = data.minSelect;
+  if (data.maxSelect !== void 0) update.maxSelect = data.maxSelect;
+  if (data.dmUser !== void 0) update.dmUser = data.dmUser;
+  const panel = await ReactionRolePanel.findOneAndUpdate({ _id: panelId, guildId: guild.id }, update, { new: true });
+  if (!panel) throw new HttpError(404, "Reaction role panel not found");
+  recordActivity("system", "Reaction role panel updated", { meta: { guildId: guild.id, panelId } });
+  sendJson(res, 200, { panel: { id: String(panel._id), ...panel.toObject() } });
+}
+__name(updateReactionRolePanel, "updateReactionRolePanel");
+async function deleteReactionRolePanel(guild, panelId, res) {
+  if (!isValidObjectId(panelId)) throw new HttpError(400, "Invalid panel id");
+  const deleted = await ReactionRolePanel.findOneAndDelete({ _id: panelId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, "Reaction role panel not found");
+  recordActivity("system", "Reaction role panel deleted", { meta: { guildId: guild.id, panelId } });
+  sendJson(res, 200, { ok: true });
+}
+__name(deleteReactionRolePanel, "deleteReactionRolePanel");
+var customCmdSchema = external_exports.object({
+  name: external_exports.string().trim().min(1).max(100).toLowerCase(),
+  aliases: external_exports.array(external_exports.string().trim().max(100)).optional(),
+  content: external_exports.string().trim().min(1).max(4e3),
+  embed: external_exports.record(external_exports.string(), external_exports.any()).optional(),
+  requiredPermissions: external_exports.array(external_exports.string()).optional(),
+  requiredRoles: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  cooldown: external_exports.number().int().min(0).max(86400).optional(),
+  enabled: external_exports.boolean().optional(),
+  nsfw: external_exports.boolean().optional()
+}).strict();
+async function sendCustomCommands(guild, res) {
+  const tags = await CustomCommand.find({ guildId: guild.id }).sort({ name: 1 }).lean();
+  sendJson(res, 200, { commands: tags.map((t) => ({ id: String(t._id), ...t })) });
+}
+__name(sendCustomCommands, "sendCustomCommands");
+async function createCustomCommand(guild, req, res) {
+  const parsed = customCmdSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid custom command", parsed.error.flatten());
+  const data = parsed.data;
+  const existing = await CustomCommand.findOne({ guildId: guild.id, name: data.name });
+  if (existing) throw new HttpError(409, "A command with this name already exists");
+  const tag = await CustomCommand.create({
+    guildId: guild.id,
+    name: data.name,
+    aliases: data.aliases ?? [],
+    content: data.content,
+    embed: data.embed,
+    requiredPermissions: data.requiredPermissions ?? [],
+    requiredRoles: data.requiredRoles ?? [],
+    cooldown: data.cooldown ?? 0,
+    enabled: data.enabled ?? true,
+    nsfw: data.nsfw ?? false,
+    creatorId: guild.ownerId
+  });
+  recordActivity("system", "Custom command created", { level: "success", meta: { guildId: guild.id, name: tag.name } });
+  sendJson(res, 201, { command: { id: String(tag._id), ...tag.toObject() } });
+}
+__name(createCustomCommand, "createCustomCommand");
+async function updateCustomCommand(guild, cmdId, req, res) {
+  if (!isValidObjectId(cmdId)) throw new HttpError(400, "Invalid command id");
+  const parsed = customCmdSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid custom command update", parsed.error.flatten());
+  const tag = await CustomCommand.findOneAndUpdate({ _id: cmdId, guildId: guild.id }, parsed.data, { new: true });
+  if (!tag) throw new HttpError(404, "Custom command not found");
+  recordActivity("system", "Custom command updated", { meta: { guildId: guild.id, commandId: cmdId } });
+  sendJson(res, 200, { command: { id: String(tag._id), ...tag.toObject() } });
+}
+__name(updateCustomCommand, "updateCustomCommand");
+async function deleteCustomCommand(guild, cmdId, res) {
+  if (!isValidObjectId(cmdId)) throw new HttpError(400, "Invalid command id");
+  const deleted = await CustomCommand.findOneAndDelete({ _id: cmdId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, "Custom command not found");
+  recordActivity("system", "Custom command deleted", { meta: { guildId: guild.id, commandId: cmdId } });
+  sendJson(res, 200, { ok: true });
+}
+__name(deleteCustomCommand, "deleteCustomCommand");
+var themeSchema = external_exports.object({
+  preset: external_exports.string().optional(),
+  primaryColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  secondaryColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  accentColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  backgroundColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  surfaceColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  textColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  mutedColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  borderColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  successColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  warningColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  errorColor: external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  fontFamily: external_exports.string().optional(),
+  headingFontFamily: external_exports.string().optional(),
+  borderRadius: external_exports.number().int().min(0).max(50).optional(),
+  glassmorphism: external_exports.boolean().optional(),
+  glassOpacity: external_exports.number().min(0).max(1).optional(),
+  customCSS: external_exports.string().max(1e4).optional(),
+  embedDefaults: external_exports.record(external_exports.string(), external_exports.any()).optional()
+}).strict();
+async function sendThemeConfig(guild, res) {
+  let theme = await ThemeConfig.findOne({ guildId: guild.id }).lean();
+  if (!theme) {
+    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
+  }
+  sendJson(res, 200, { theme: { id: String(theme._id), ...theme } });
+}
+__name(sendThemeConfig, "sendThemeConfig");
+async function updateThemeConfig(guild, req, res) {
+  const parsed = themeSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid theme config", parsed.error.flatten());
+  let theme = await ThemeConfig.findOne({ guildId: guild.id });
+  if (!theme) {
+    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
+  }
+  Object.assign(theme, parsed.data);
+  await theme.save();
+  recordActivity("system", "Theme config updated", { meta: { guildId: guild.id } });
+  sendJson(res, 200, { theme: { id: String(theme._id), ...theme.toObject() } });
+}
+__name(updateThemeConfig, "updateThemeConfig");
+var colorRoleSchema2 = external_exports.object({
+  name: external_exports.string().trim().min(1).max(50),
+  gradient: external_exports.string().min(1),
+  colors: external_exports.array(external_exports.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2),
+  animationDuration: external_exports.number().int().min(1).max(60).optional(),
+  pickable: external_exports.boolean().optional(),
+  requiredRoleId: external_exports.string().regex(/^\d{5,25}$/).optional(),
+  cost: external_exports.number().int().min(0).optional(),
+  maxUsers: external_exports.number().int().min(0).optional(),
+  position: external_exports.number().int().optional(),
+  active: external_exports.boolean().optional()
+}).strict();
+async function sendColorRoles(guild, res) {
+  const roles = await ColorRole.find({ guildId: guild.id }).sort({ position: 1 }).lean();
+  sendJson(res, 200, { roles: roles.map((r) => ({ id: String(r._id), ...r })) });
+}
+__name(sendColorRoles, "sendColorRoles");
+async function createColorRole(guild, req, res) {
+  const parsed = colorRoleSchema2.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid color role", parsed.error.flatten());
+  const data = parsed.data;
+  const role = await ColorRole.create({
+    guildId: guild.id,
+    name: data.name,
+    gradient: data.gradient,
+    colors: data.colors,
+    animationDuration: data.animationDuration ?? 10,
+    pickable: data.pickable ?? true,
+    requiredRoleId: data.requiredRoleId,
+    cost: data.cost ?? 0,
+    maxUsers: data.maxUsers ?? 0,
+    position: data.position ?? 0,
+    active: data.active ?? true
+  });
+  recordActivity("system", "Color role created", { level: "success", meta: { guildId: guild.id, roleId: String(role._id) } });
+  sendJson(res, 201, { role: { id: String(role._id), ...role.toObject() } });
+}
+__name(createColorRole, "createColorRole");
+async function updateColorRole(guild, roleId, req, res) {
+  if (!isValidObjectId(roleId)) throw new HttpError(400, "Invalid role id");
+  const parsed = colorRoleSchema2.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid color role update", parsed.error.flatten());
+  const role = await ColorRole.findOneAndUpdate({ _id: roleId, guildId: guild.id }, parsed.data, { new: true });
+  if (!role) throw new HttpError(404, "Color role not found");
+  recordActivity("system", "Color role updated", { meta: { guildId: guild.id, roleId } });
+  sendJson(res, 200, { role: { id: String(role._id), ...role.toObject() } });
+}
+__name(updateColorRole, "updateColorRole");
+async function deleteColorRole(guild, roleId, res) {
+  if (!isValidObjectId(roleId)) throw new HttpError(400, "Invalid role id");
+  const deleted = await ColorRole.findOneAndDelete({ _id: roleId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, "Color role not found");
+  recordActivity("system", "Color role deleted", { meta: { guildId: guild.id, roleId } });
+  sendJson(res, 200, { ok: true });
+}
+__name(deleteColorRole, "deleteColorRole");
+var welcomeSchema = external_exports.object({
+  welcomeChannelId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  welcomeMessage: external_exports.string().max(2e3).optional(),
+  welcomeEmbed: external_exports.record(external_exports.string(), external_exports.any()).optional(),
+  dmMessage: external_exports.string().max(2e3).optional(),
+  dmEmbed: external_exports.record(external_exports.string(), external_exports.any()).optional(),
+  leaveChannelId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  leaveMessage: external_exports.string().max(2e3).optional(),
+  leaveEmbed: external_exports.record(external_exports.string(), external_exports.any()).optional(),
+  autoRoleId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  botAutoRoleId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  banChannelId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  banMessage: external_exports.string().max(1e3).optional(),
+  updateMemberCount: external_exports.boolean().optional(),
+  vanityRoleId: external_exports.string().regex(/^\d{5,25}$/).optional().nullable(),
+  vanityCode: external_exports.string().max(50).optional(),
+  welcomeImage: external_exports.record(external_exports.string(), external_exports.any()).optional()
+}).strict();
+async function sendWelcomeConfig(guild, res) {
+  let config2 = await WelcomeConfig.findOne({ guildId: guild.id }).lean();
+  if (!config2) {
+    config2 = await WelcomeConfig.create({ guildId: guild.id });
+  }
+  sendJson(res, 200, { config: { id: String(config2._id), ...config2 } });
+}
+__name(sendWelcomeConfig, "sendWelcomeConfig");
+async function updateWelcomeConfig(guild, req, res) {
+  const parsed = welcomeSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid welcome config", parsed.error.flatten());
+  let config2 = await WelcomeConfig.findOne({ guildId: guild.id });
+  if (!config2) {
+    config2 = await WelcomeConfig.create({ guildId: guild.id });
+  }
+  Object.assign(config2, parsed.data);
+  await config2.save();
+  recordActivity("system", "Welcome config updated", { meta: { guildId: guild.id } });
+  sendJson(res, 200, { config: { id: String(config2._id), ...config2.toObject() } });
+}
+__name(updateWelcomeConfig, "updateWelcomeConfig");
+var starboardSchema = external_exports.object({
+  channelId: external_exports.string().regex(/^\d{5,25}$/).optional(),
+  threshold: external_exports.number().int().min(1).max(1e3).optional(),
+  emoji: external_exports.string().min(1).max(50).optional(),
+  allowSelfStar: external_exports.boolean().optional(),
+  allowBotMessages: external_exports.boolean().optional(),
+  requireAttachment: external_exports.boolean().optional(),
+  requireEmbed: external_exports.boolean().optional(),
+  ignoredChannels: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  ignoredRoles: external_exports.array(external_exports.string().regex(/^\d{5,25}$/)).optional(),
+  color: external_exports.number().int().min(0).max(16777215).optional(),
+  includeJumpLink: external_exports.boolean().optional(),
+  showCountOnOriginal: external_exports.boolean().optional(),
+  maxAgeDays: external_exports.number().int().min(0).max(365).optional(),
+  allowMultiple: external_exports.boolean().optional(),
+  enabled: external_exports.boolean().optional()
+}).strict();
+async function sendStarboardConfig(guild, res) {
+  let config2 = await StarboardConfig.findOne({ guildId: guild.id }).lean();
+  if (!config2) {
+    config2 = await StarboardConfig.create({ guildId: guild.id, enabled: true });
+  }
+  sendJson(res, 200, { config: { id: String(config2._id), ...config2 } });
+}
+__name(sendStarboardConfig, "sendStarboardConfig");
+async function updateStarboardConfig(guild, req, res) {
+  const parsed = starboardSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, "Invalid starboard config", parsed.error.flatten());
+  let config2 = await StarboardConfig.findOne({ guildId: guild.id });
+  if (!config2) {
+    config2 = await StarboardConfig.create({ guildId: guild.id, enabled: true });
+  }
+  Object.assign(config2, parsed.data);
+  await config2.save();
+  recordActivity("system", "Starboard config updated", { meta: { guildId: guild.id } });
+  sendJson(res, 200, { config: { id: String(config2._id), ...config2.toObject() } });
+}
+__name(updateStarboardConfig, "updateStarboardConfig");
 function applySecurityHeaders(res) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -191058,7 +191499,7 @@ function isDatabaseError(error62) {
 }
 __name(isDatabaseError, "isDatabaseError");
 function requireObjectId(id) {
-  if (!import_mongoose23.default.isValidObjectId(id)) throw new HttpError(400, "Invalid record id");
+  if (!isValidObjectId(id)) throw new HttpError(400, "Invalid record id");
 }
 __name(requireObjectId, "requireObjectId");
 function escapeRegex2(value) {

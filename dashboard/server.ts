@@ -68,6 +68,21 @@ import { buildSukunaRuntimePrompt, SUKUNA_DEFAULT_PROMPT } from '../src/prompts/
 import { generateLiveText } from '../src/core/gemini-live.js';
 import { getActivity, getCounters, recordActivity, type ActivityKind } from '../src/core/metrics.js';
 
+// Auto-mod rules
+import { AutoModRule, type IAutoModRule } from '../src/db/models/AutoModRule.js';
+// Reaction roles
+import { ReactionRolePanel, type IReactionRolePanel, type IReactionRoleOption } from '../src/db/models/ReactionRolePanel.js';
+// Custom commands
+import { CustomCommand, type ICustomCommand } from '../src/db/models/CustomCommand.js';
+// Themes
+import { ThemeConfig, type IThemeConfig } from '../src/db/models/ThemeConfig.js';
+// Color roles
+import { ColorRole, type IColorRole } from '../src/db/models/ColorRole.js';
+// Starboard
+import { StarboardConfig, type IStarboardConfig } from '../src/db/models/Starboard.js';
+// Welcome config
+import { WelcomeConfig, type IWelcomeConfig } from '../src/db/models/WelcomeConfig.js';
+
 /* ------------------------------------------------------------------ */
 /* Constants                                                          */
 /* ------------------------------------------------------------------ */
@@ -393,6 +408,70 @@ async function routeApi(
   if (resource === 'users') {
     if (!guildId && method === 'GET') return sendUsers(client, url, res);
     if (guildId && method === 'PATCH') return updateUserDoc(guildId, req, res);
+  }
+
+  if (resource === 'automod') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === 'GET') return sendAutomodRules(guild, res);
+    if (!sub && method === 'POST') return createAutomodRule(guild, req, res);
+    if (subId && method === 'PATCH') return updateAutomodRule(guild, subId, req, res);
+    if (subId && method === 'DELETE') return deleteAutomodRule(guild, subId, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'reactionroles') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === 'GET') return sendReactionRolePanels(guild, res);
+    if (!sub && method === 'POST') return createReactionRolePanel(guild, req, res);
+    if (subId && method === 'PATCH') return updateReactionRolePanel(guild, subId, req, res);
+    if (subId && method === 'DELETE') return deleteReactionRolePanel(guild, subId, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'customcmd') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === 'GET') return sendCustomCommands(guild, res);
+    if (!sub && method === 'POST') return createCustomCommand(guild, req, res);
+    if (subId && method === 'PATCH') return updateCustomCommand(guild, subId, req, res);
+    if (subId && method === 'DELETE') return deleteCustomCommand(guild, subId, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'theme') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (method === 'GET') return sendThemeConfig(guild, res);
+    if (method === 'PUT' || method === 'POST') return updateThemeConfig(guild, req, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'colorroles') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (!sub && method === 'GET') return sendColorRoles(guild, res);
+    if (!sub && method === 'POST') return createColorRole(guild, req, res);
+    if (subId && method === 'PATCH') return updateColorRole(guild, subId, req, res);
+    if (subId && method === 'DELETE') return deleteColorRole(guild, subId, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'welcome') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (method === 'GET') return sendWelcomeConfig(guild, res);
+    if (method === 'PUT' || method === 'POST') return updateWelcomeConfig(guild, req, res);
+    throw new HttpError(404, 'Not found');
+  }
+
+  if (resource === 'starboard') {
+    if (!guildId) throw new HttpError(404, 'Not found');
+    const guild = resolveGuild(client, guildId);
+    if (method === 'GET') return sendStarboardConfig(guild, res);
+    if (method === 'PUT' || method === 'POST') return updateStarboardConfig(guild, req, res);
+    throw new HttpError(404, 'Not found');
   }
 
   throw new HttpError(404, 'Not found');
@@ -1717,6 +1796,427 @@ async function updateUserDoc(
 }
 
 /* ------------------------------------------------------------------ */
+/* API: Auto-Mod Rules                                                */
+/* ------------------------------------------------------------------ */
+
+const automodRuleSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    type: z.enum(['spam', 'links', 'invites', 'words', 'caps', 'mentions', 'attachments', 'newlines', 'emojis', 'repeated']),
+    enabled: z.boolean().optional(),
+    actions: z.array(z.enum(['delete', 'warn', 'timeout', 'ban', 'log'] as const)).min(1),
+    timeoutDuration: z.number().int().min(1).max(86400).optional(),
+    warnMessage: z.string().max(500).optional(),
+    logChannel: z.string().regex(/^\d{5,25}$/).optional(),
+    ignoreChannels: z.array(z.string().regex(/^\d{5,25}$/)).optional(),
+    ignoreRoles: z.array(z.string().regex(/^\d{5,25}$/)).optional(),
+    config: z.record(z.string(), z.any()).optional(),
+  })
+  .strict();
+
+function isValidObjectId(id: string): boolean {
+  return /^\d{5,25}$|^[0-9a-fA-F]{24}$/.test(id);
+}
+
+async function sendAutomodRules(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const rules = await AutoModRule.find({ guildId: guild.id }).sort({ createdAt: -1 }).lean();
+  sendJson(res, 200, { rules: rules.map((r) => ({ id: String(r._id), ...r })) });
+}
+
+async function createAutomodRule(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = automodRuleSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid auto-mod rule', parsed.error.flatten());
+  const data = parsed.data;
+  const rule = await AutoModRule.create({
+    guildId: guild.id,
+    name: data.name,
+    type: data.type as IAutoModRule['type'],
+    enabled: data.enabled ?? true,
+    actions: data.actions as IAutoModRule['actions'],
+    timeoutDuration: data.timeoutDuration,
+    warnMessage: data.warnMessage,
+    logChannel: data.logChannel,
+    ignoreChannels: data.ignoreChannels ?? [],
+    ignoreRoles: data.ignoreRoles ?? [],
+    config: data.config ?? {},
+  });
+  recordActivity('system', 'Auto-mod rule created', { level: 'success', meta: { guildId: guild.id, ruleId: String(rule._id) } });
+  sendJson(res, 201, { rule: { id: String(rule._id), ...rule.toObject() } });
+}
+
+async function updateAutomodRule(guild: Guild, ruleId: string, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(ruleId)) throw new HttpError(400, 'Invalid rule id');
+  const parsed = automodRuleSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid auto-mod rule update', parsed.error.flatten());
+  const rule = await AutoModRule.findOneAndUpdate({ _id: ruleId, guildId: guild.id }, parsed.data, { new: true });
+  if (!rule) throw new HttpError(404, 'Auto-mod rule not found');
+  recordActivity('system', 'Auto-mod rule updated', { meta: { guildId: guild.id, ruleId } });
+  sendJson(res, 200, { rule: { id: String(rule._id), ...rule.toObject() } });
+}
+
+async function deleteAutomodRule(guild: Guild, ruleId: string, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(ruleId)) throw new HttpError(400, 'Invalid rule id');
+  const deleted = await AutoModRule.findOneAndDelete({ _id: ruleId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, 'Auto-mod rule not found');
+  recordActivity('system', 'Auto-mod rule deleted', { meta: { guildId: guild.id, ruleId } });
+  sendJson(res, 200, { ok: true });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Reaction Role Panels                                          */
+/* ------------------------------------------------------------------ */
+
+const rrOptionSchema = z.object({
+  roleId: z.string().regex(/^\d{5,25}$/),
+  emoji: z.string().min(1).max(50),
+  label: z.string().max(80).optional(),
+  description: z.string().max(100).optional(),
+});
+
+const rrPanelSchema = z.object({
+  title: z.string().trim().min(1).max(256),
+  description: z.string().max(4000).optional(),
+  color: z.number().int().min(0).max(0xffffff).optional(),
+  thumbnail: z.string().url().optional().nullable(),
+  image: z.string().url().optional().nullable(),
+  mode: z.enum(['unique', 'verify', 'reversed', 'binding', 'temporary']),
+  temporaryDuration: z.number().int().min(1).max(86400).optional(),
+  bindingRoleId: z.string().regex(/^\d{5,25}$/).optional(),
+  options: z.array(rrOptionSchema).min(1).max(25),
+  useButtons: z.boolean().optional(),
+  buttonStyle: z.number().int().min(1).max(4).optional(),
+  selectPlaceholder: z.string().max(150).optional(),
+  minSelect: z.number().int().min(1).max(25).optional(),
+  maxSelect: z.number().int().min(1).max(25).optional(),
+  dmUser: z.boolean().optional(),
+}).strict();
+
+async function sendReactionRolePanels(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const panels = await ReactionRolePanel.find({ guildId: guild.id }).sort({ createdAt: -1 }).lean();
+  sendJson(res, 200, { panels: panels.map((p) => ({ id: String(p._id), ...p })) });
+}
+
+async function createReactionRolePanel(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = rrPanelSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid reaction role panel', parsed.error.flatten());
+  const data = parsed.data;
+  const panel = await ReactionRolePanel.create({
+    guildId: guild.id,
+    channelId: '',
+    title: data.title,
+    description: data.description,
+    color: data.color,
+    thumbnail: data.thumbnail,
+    image: data.image,
+    mode: data.mode as IReactionRolePanel['mode'],
+    temporaryDuration: data.temporaryDuration,
+    bindingRoleId: data.bindingRoleId,
+    options: data.options.map((o) => ({ roleId: o.roleId, emoji: o.emoji, label: o.label, description: o.description })),
+    useButtons: data.useButtons ?? false,
+    buttonStyle: data.buttonStyle as 1 | 2 | 3 | 4 | undefined,
+    selectPlaceholder: data.selectPlaceholder,
+    minSelect: data.minSelect ?? 1,
+    maxSelect: data.maxSelect ?? 1,
+    dmUser: data.dmUser ?? false,
+    active: true,
+  } as any);
+  recordActivity('system', 'Reaction role panel created', { level: 'success', meta: { guildId: guild.id, panelId: String(panel._id) } });
+  sendJson(res, 201, { panel: { id: String(panel._id), ...(panel as any).toObject() } });
+}
+
+async function updateReactionRolePanel(guild: Guild, panelId: string, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(panelId)) throw new HttpError(400, 'Invalid panel id');
+  const parsed = rrPanelSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid reaction role panel update', parsed.error.flatten());
+  const data = parsed.data;
+  const update: Record<string, unknown> = {};
+  if (data.title !== undefined) update.title = data.title;
+  if (data.description !== undefined) update.description = data.description;
+  if (data.color !== undefined) update.color = data.color;
+  if (data.thumbnail !== undefined) update.thumbnail = data.thumbnail;
+  if (data.image !== undefined) update.image = data.image;
+  if (data.mode !== undefined) update.mode = data.mode;
+  if (data.temporaryDuration !== undefined) update.temporaryDuration = data.temporaryDuration;
+  if (data.bindingRoleId !== undefined) update.bindingRoleId = data.bindingRoleId;
+  if (data.options !== undefined) update.options = data.options.map((o) => ({ roleId: o.roleId, emoji: o.emoji, label: o.label, description: o.description }));
+  if (data.useButtons !== undefined) update.useButtons = data.useButtons;
+  if (data.buttonStyle !== undefined) update.buttonStyle = data.buttonStyle;
+  if (data.selectPlaceholder !== undefined) update.selectPlaceholder = data.selectPlaceholder;
+  if (data.minSelect !== undefined) update.minSelect = data.minSelect;
+  if (data.maxSelect !== undefined) update.maxSelect = data.maxSelect;
+  if (data.dmUser !== undefined) update.dmUser = data.dmUser;
+  const panel = await ReactionRolePanel.findOneAndUpdate({ _id: panelId, guildId: guild.id }, update, { new: true });
+  if (!panel) throw new HttpError(404, 'Reaction role panel not found');
+  recordActivity('system', 'Reaction role panel updated', { meta: { guildId: guild.id, panelId } });
+  sendJson(res, 200, { panel: { id: String(panel._id), ...panel.toObject() } });
+}
+
+async function deleteReactionRolePanel(guild: Guild, panelId: string, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(panelId)) throw new HttpError(400, 'Invalid panel id');
+  const deleted = await ReactionRolePanel.findOneAndDelete({ _id: panelId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, 'Reaction role panel not found');
+  recordActivity('system', 'Reaction role panel deleted', { meta: { guildId: guild.id, panelId } });
+  sendJson(res, 200, { ok: true });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Custom Commands (Tags)                                        */
+/* ------------------------------------------------------------------ */
+
+const customCmdSchema = z.object({
+  name: z.string().trim().min(1).max(100).toLowerCase(),
+  aliases: z.array(z.string().trim().max(100)).optional(),
+  content: z.string().trim().min(1).max(4000),
+  embed: z.record(z.string(), z.any()).optional(),
+  requiredPermissions: z.array(z.string()).optional(),
+  requiredRoles: z.array(z.string().regex(/^\d{5,25}$/)).optional(),
+  cooldown: z.number().int().min(0).max(86400).optional(),
+  enabled: z.boolean().optional(),
+  nsfw: z.boolean().optional(),
+}).strict();
+
+async function sendCustomCommands(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const tags = await CustomCommand.find({ guildId: guild.id }).sort({ name: 1 }).lean();
+  sendJson(res, 200, { commands: tags.map((t) => ({ id: String(t._id), ...t })) });
+}
+
+async function createCustomCommand(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = customCmdSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid custom command', parsed.error.flatten());
+  const data = parsed.data;
+  const existing = await CustomCommand.findOne({ guildId: guild.id, name: data.name });
+  if (existing) throw new HttpError(409, 'A command with this name already exists');
+  const tag = await CustomCommand.create({
+    guildId: guild.id,
+    name: data.name,
+    aliases: data.aliases ?? [],
+    content: data.content,
+    embed: data.embed,
+    requiredPermissions: data.requiredPermissions ?? [],
+    requiredRoles: data.requiredRoles ?? [],
+    cooldown: data.cooldown ?? 0,
+    enabled: data.enabled ?? true,
+    nsfw: data.nsfw ?? false,
+    creatorId: guild.ownerId,
+  });
+  recordActivity('system', 'Custom command created', { level: 'success', meta: { guildId: guild.id, name: tag.name } });
+  sendJson(res, 201, { command: { id: String(tag._id), ...tag.toObject() } });
+}
+
+async function updateCustomCommand(guild: Guild, cmdId: string, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(cmdId)) throw new HttpError(400, 'Invalid command id');
+  const parsed = customCmdSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid custom command update', parsed.error.flatten());
+  const tag = await CustomCommand.findOneAndUpdate({ _id: cmdId, guildId: guild.id }, parsed.data, { new: true });
+  if (!tag) throw new HttpError(404, 'Custom command not found');
+  recordActivity('system', 'Custom command updated', { meta: { guildId: guild.id, commandId: cmdId } });
+  sendJson(res, 200, { command: { id: String(tag._id), ...tag.toObject() } });
+}
+
+async function deleteCustomCommand(guild: Guild, cmdId: string, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(cmdId)) throw new HttpError(400, 'Invalid command id');
+  const deleted = await CustomCommand.findOneAndDelete({ _id: cmdId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, 'Custom command not found');
+  recordActivity('system', 'Custom command deleted', { meta: { guildId: guild.id, commandId: cmdId } });
+  sendJson(res, 200, { ok: true });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Theme Configuration                                           */
+/* ------------------------------------------------------------------ */
+
+const themeSchema = z.object({
+  preset: z.string().optional(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  surfaceColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  mutedColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  borderColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  successColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  warningColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  errorColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  fontFamily: z.string().optional(),
+  headingFontFamily: z.string().optional(),
+  borderRadius: z.number().int().min(0).max(50).optional(),
+  glassmorphism: z.boolean().optional(),
+  glassOpacity: z.number().min(0).max(1).optional(),
+  customCSS: z.string().max(10000).optional(),
+  embedDefaults: z.record(z.string(), z.any()).optional(),
+}).strict();
+
+async function sendThemeConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
+  let theme = await ThemeConfig.findOne({ guildId: guild.id }).lean();
+  if (!theme) {
+    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
+  }
+  sendJson(res, 200, { theme: { id: String(theme._id), ...theme } });
+}
+
+async function updateThemeConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = themeSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid theme config', parsed.error.flatten());
+  let theme = await ThemeConfig.findOne({ guildId: guild.id });
+  if (!theme) {
+    theme = await ThemeConfig.create({ guildId: guild.id, active: true });
+  }
+  Object.assign(theme, parsed.data);
+  await theme.save();
+  recordActivity('system', 'Theme config updated', { meta: { guildId: guild.id } });
+  sendJson(res, 200, { theme: { id: String(theme._id), ...theme.toObject() } });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Color Roles                                                   */
+/* ------------------------------------------------------------------ */
+
+const colorRoleSchema = z.object({
+  name: z.string().trim().min(1).max(50),
+  gradient: z.string().min(1),
+  colors: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)).min(2),
+  animationDuration: z.number().int().min(1).max(60).optional(),
+  pickable: z.boolean().optional(),
+  requiredRoleId: z.string().regex(/^\d{5,25}$/).optional(),
+  cost: z.number().int().min(0).optional(),
+  maxUsers: z.number().int().min(0).optional(),
+  position: z.number().int().optional(),
+  active: z.boolean().optional(),
+}).strict();
+
+async function sendColorRoles(guild: Guild, res: http.ServerResponse): Promise<void> {
+  const roles = await ColorRole.find({ guildId: guild.id }).sort({ position: 1 }).lean();
+  sendJson(res, 200, { roles: roles.map((r) => ({ id: String(r._id), ...r })) });
+}
+
+async function createColorRole(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = colorRoleSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid color role', parsed.error.flatten());
+  const data = parsed.data;
+  const role = await ColorRole.create({
+    guildId: guild.id,
+    name: data.name,
+    gradient: data.gradient,
+    colors: data.colors,
+    animationDuration: data.animationDuration ?? 10,
+    pickable: data.pickable ?? true,
+    requiredRoleId: data.requiredRoleId,
+    cost: data.cost ?? 0,
+    maxUsers: data.maxUsers ?? 0,
+    position: data.position ?? 0,
+    active: data.active ?? true,
+  });
+  recordActivity('system', 'Color role created', { level: 'success', meta: { guildId: guild.id, roleId: String(role._id) } });
+  sendJson(res, 201, { role: { id: String(role._id), ...role.toObject() } });
+}
+
+async function updateColorRole(guild: Guild, roleId: string, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(roleId)) throw new HttpError(400, 'Invalid role id');
+  const parsed = colorRoleSchema.partial().safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid color role update', parsed.error.flatten());
+  const role = await ColorRole.findOneAndUpdate({ _id: roleId, guildId: guild.id }, parsed.data, { new: true });
+  if (!role) throw new HttpError(404, 'Color role not found');
+  recordActivity('system', 'Color role updated', { meta: { guildId: guild.id, roleId } });
+  sendJson(res, 200, { role: { id: String(role._id), ...role.toObject() } });
+}
+
+async function deleteColorRole(guild: Guild, roleId: string, res: http.ServerResponse): Promise<void> {
+  if (!isValidObjectId(roleId)) throw new HttpError(400, 'Invalid role id');
+  const deleted = await ColorRole.findOneAndDelete({ _id: roleId, guildId: guild.id });
+  if (!deleted) throw new HttpError(404, 'Color role not found');
+  recordActivity('system', 'Color role deleted', { meta: { guildId: guild.id, roleId } });
+  sendJson(res, 200, { ok: true });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Welcome Configuration                                         */
+/* ------------------------------------------------------------------ */
+
+const welcomeSchema = z.object({
+  welcomeChannelId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  welcomeMessage: z.string().max(2000).optional(),
+  welcomeEmbed: z.record(z.string(), z.any()).optional(),
+  dmMessage: z.string().max(2000).optional(),
+  dmEmbed: z.record(z.string(), z.any()).optional(),
+  leaveChannelId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  leaveMessage: z.string().max(2000).optional(),
+  leaveEmbed: z.record(z.string(), z.any()).optional(),
+  autoRoleId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  botAutoRoleId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  banChannelId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  banMessage: z.string().max(1000).optional(),
+  updateMemberCount: z.boolean().optional(),
+  vanityRoleId: z.string().regex(/^\d{5,25}$/).optional().nullable(),
+  vanityCode: z.string().max(50).optional(),
+  welcomeImage: z.record(z.string(), z.any()).optional(),
+}).strict();
+
+async function sendWelcomeConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
+  let config = await WelcomeConfig.findOne({ guildId: guild.id }).lean();
+  if (!config) {
+    config = await WelcomeConfig.create({ guildId: guild.id });
+  }
+  sendJson(res, 200, { config: { id: String(config._id), ...config } });
+}
+
+async function updateWelcomeConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = welcomeSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid welcome config', parsed.error.flatten());
+  let config = await WelcomeConfig.findOne({ guildId: guild.id });
+  if (!config) {
+    config = await WelcomeConfig.create({ guildId: guild.id });
+  }
+  Object.assign(config, parsed.data);
+  await config.save();
+  recordActivity('system', 'Welcome config updated', { meta: { guildId: guild.id } });
+  sendJson(res, 200, { config: { id: String(config._id), ...config.toObject() } });
+}
+
+/* ------------------------------------------------------------------ */
+/* API: Starboard Configuration                                       */
+/* ------------------------------------------------------------------ */
+
+const starboardSchema = z.object({
+  channelId: z.string().regex(/^\d{5,25}$/).optional(),
+  threshold: z.number().int().min(1).max(1000).optional(),
+  emoji: z.string().min(1).max(50).optional(),
+  allowSelfStar: z.boolean().optional(),
+  allowBotMessages: z.boolean().optional(),
+  requireAttachment: z.boolean().optional(),
+  requireEmbed: z.boolean().optional(),
+  ignoredChannels: z.array(z.string().regex(/^\d{5,25}$/)).optional(),
+  ignoredRoles: z.array(z.string().regex(/^\d{5,25}$/)).optional(),
+  color: z.number().int().min(0).max(0xffffff).optional(),
+  includeJumpLink: z.boolean().optional(),
+  showCountOnOriginal: z.boolean().optional(),
+  maxAgeDays: z.number().int().min(0).max(365).optional(),
+  allowMultiple: z.boolean().optional(),
+  enabled: z.boolean().optional(),
+}).strict();
+
+async function sendStarboardConfig(guild: Guild, res: http.ServerResponse): Promise<void> {
+  let config = await StarboardConfig.findOne({ guildId: guild.id }).lean();
+  if (!config) {
+    config = await StarboardConfig.create({ guildId: guild.id, enabled: true });
+  }
+  sendJson(res, 200, { config: { id: String(config._id), ...config } });
+}
+
+async function updateStarboardConfig(guild: Guild, req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  const parsed = starboardSchema.safeParse(await readJson(req));
+  if (!parsed.success) throw new HttpError(400, 'Invalid starboard config', parsed.error.flatten());
+  let config = await StarboardConfig.findOne({ guildId: guild.id });
+  if (!config) {
+    config = await StarboardConfig.create({ guildId: guild.id, enabled: true });
+  }
+  Object.assign(config, parsed.data);
+  await config.save();
+  recordActivity('system', 'Starboard config updated', { meta: { guildId: guild.id } });
+  sendJson(res, 200, { config: { id: String(config._id), ...config.toObject() } });
+}
+
+/* ------------------------------------------------------------------ */
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -1819,7 +2319,7 @@ function isDatabaseError(error: unknown): boolean {
 }
 
 function requireObjectId(id: string): void {
-  if (!mongoose.isValidObjectId(id)) throw new HttpError(400, 'Invalid record id');
+  if (!isValidObjectId(id)) throw new HttpError(400, 'Invalid record id');
 }
 
 function escapeRegex(value: string): string {
