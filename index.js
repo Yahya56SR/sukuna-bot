@@ -196585,13 +196585,13 @@ var systemsInteractionEvent = {
     if (customId.startsWith("vcverify_")) {
       try {
         if (customId.startsWith("vcverify_claim_")) {
-          await vcVerification.handleClaim(interaction, parseInt(customId.replace("vcverify_claim_", "")));
+          await vcVerification.handleClaim(interaction, customId.replace("vcverify_claim_", ""));
         } else if (customId.startsWith("vcverify_approve_")) {
-          await vcVerification.handleApprove(interaction, parseInt(customId.replace("vcverify_approve_", "")));
+          await vcVerification.handleApprove(interaction, customId.replace("vcverify_approve_", ""));
         } else if (customId.startsWith("vcverify_deny_")) {
-          await vcVerification.handleDeny(interaction, parseInt(customId.replace("vcverify_deny_", "")));
+          await vcVerification.handleDeny(interaction, customId.replace("vcverify_deny_", ""));
         } else if (customId.startsWith("vcverify_deny_reason_")) {
-          await vcVerification.handleDenyModal(interaction, parseInt(customId.replace("vcverify_deny_reason_", "")));
+          await vcVerification.handleDenyModal(interaction, customId.replace("vcverify_deny_reason_", ""));
         }
       } catch (error62) {
         console.error("[Systems] VC verification interaction error:", error62);
