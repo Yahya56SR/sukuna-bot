@@ -1,0 +1,20 @@
+import { Events } from 'discord.js';
+import { verifyMemberAdd } from '../systems/verification/index.js';
+import { welcomer } from '../systems/welcomer/index.js';
+
+export const welcomeMemberAddEvent = {
+	name: Events.GuildMemberAdd as keyof import('discord.js').ClientEvents,
+	execute: async (client: any, member: any) => {
+		if (member.user?.bot) return;
+		await verifyMemberAdd.execute(client, member).catch(() => {});
+		await welcomer.sendWelcome(member).catch(() => {});
+	},
+};
+
+export const welcomeMemberRemoveEvent = {
+	name: Events.GuildMemberRemove as keyof import('discord.js').ClientEvents,
+	execute: async (client: any, member: any) => {
+		if (member.user?.bot) return;
+		await welcomer.sendGoodbye(member).catch(() => {});
+	},
+};

@@ -85,6 +85,41 @@ export { GameProfile, type IGameProfile } from './models/GameProfile.js';
 
 // Welcome & Greetings
 export { WelcomeConfig, type IWelcomeConfig } from './models/WelcomeConfig.js';
+export { WelcomerConfig, type IWelcomerConfig } from './models/WelcomerConfig.js';
+
+// Anti-nuke
+export { AntinukeConfig, type IAntinukeConfig } from './models/Antinuke.js';
+export { AntinukeIncident, type IAntinukeIncident } from './models/Antinuke.js';
+
+// Auto-reply
+export { AutoReply, type IAutoReply } from './models/AutoReply.js';
+
+// Boosters
+export { BoosterConfig, type IBoosterConfig } from './models/BoosterConfig.js';
+
+// Presentations
+export {
+  PresentationConfig,
+  PresentationApplication,
+  type IPresentationConfig,
+  type IPresentationApplication,
+} from './models/Presentation.js';
+
+// Media reactions
+export {
+  MediaReactionConfig,
+  type IMediaReactionConfig,
+  type MediaKind,
+  type EnforceMode,
+} from './models/MediaReaction.js';
+
+// Verification
+export {
+  VerificationConfig,
+  VerificationRequest,
+  type IVerificationConfig,
+  type IVerificationRequest,
+} from './models/Verification.js';
 
 // Notifications & Feeds
 export { NotificationFeed, type INotificationFeed, type FeedType } from './models/NotificationFeed.js';
