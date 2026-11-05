@@ -75,6 +75,13 @@ const ROUTES = {
   commands: { title: 'Commands', subtitle: 'Everything registered on the bot', render: renderCommands },
   activity: { title: 'Activity', subtitle: 'Live commands, AI replies, warnings and errors', render: renderActivity },
   system: { title: 'System', subtitle: 'Runtime, database and dashboard security', render: renderSystem },
+  automod: { title: 'Auto-Mod', subtitle: 'Automated moderation rules', render: renderAutoMod },
+  reactionroles: { title: 'Reaction Roles', subtitle: 'Button and select-menu role panels', render: renderReactionRoles },
+  customcmd: { title: 'Custom Commands', subtitle: 'Custom tags with embed support', render: renderCustomCmd },
+  theme: { title: 'Theme Editor', subtitle: 'Visual theme and color customization', render: renderTheme },
+  colorroles: { title: 'Color Roles', subtitle: 'Gradient role management', render: renderColorRoles },
+  welcome: { title: 'Welcome System', subtitle: 'Welcome, leave and auto-role settings', render: renderWelcome },
+  starboard: { title: 'Starboard', subtitle: 'Starred messages configuration', render: renderStarboard },
 };
 
 /* --------------------------------------------------------------------------
@@ -1992,6 +1999,360 @@ async function renderSystem(token) {
 }
 
 /* --------------------------------------------------------------------------
+   Auto-Mod Rules
+   -------------------------------------------------------------------------- */
+
+async function renderAutoMod(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to manage auto-mod rules.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/automod');
+    if (!isCurrent(token)) return;
+    setView(automodHtml(data.rules || []));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load auto-mod rules.'));
+  }
+}
+
+function automodHtml(rules) {
+  return '<section class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><h3>Auto-Moderation Rules</h3>' +
+    '<p>Automatically detect and act on rule-breaking messages.</p></div>' +
+    '<button class="btn primary" type="button" data-action="automod-new">+ New Rule</button></div>' +
+    '<div class="card-body flush">' +
+    (rules.length
+      ? '<table style="width:100%"><thead><tr><th>Name</th><th class="muted">Type</th><th class="muted">Actions</th><th class="muted right">Enabled</th><th class="right"></th></tr></thead><tbody>' +
+      rules.map(rule => '<tr>' +
+        '<td><strong>' + esc(rule.name) + '</strong></td>' +
+        '<td class="muted">' + esc(rule.type) + '</td>' +
+        '<td class="muted">' + esc(rule.actions.join(', ')) + '</td>' +
+        '<td class="right"><label class="switch"><input type="checkbox" name="rule-enabled" value="' + esc(rule.id) + '" ' + (rule.enabled ? 'checked' : '') + ' data-action="automod-toggle"><span class="switch-track"></span></label></td>' +
+        '<td class="right"><button class="btn ghost small" type="button" data-action="automod-edit" data-id="' + esc(rule.id) + '">Edit</button> <button class="btn danger small" type="button" data-action="automod-delete" data-id="' + esc(rule.id) + '">Delete</button></td>' +
+        '</tr>').join('') +
+      '</tbody></table>'
+      : '<div class="empty-state"><span class="big">🛡</span><span>No auto-mod rules yet.</span></div>') +
+    '</div>' +
+    '</div>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
+   Reaction Role Panels
+   -------------------------------------------------------------------------- */
+
+async function renderReactionRoles(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to manage reaction roles.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/reactionroles');
+    if (!isCurrent(token)) return;
+    setView(rrHtml(data.panels || []));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load reaction role panels.'));
+  }
+}
+
+function rrHtml(panels) {
+  return '<section class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><h3>Reaction Role Panels</h3>' +
+    '<p>Button and select-menu panels for self-assignable roles.</p></div>' +
+    '<button class="btn primary" type="button" data-action="rr-new">+ New Panel</button></div>' +
+    '<div class="card-body flush">' +
+    (panels.length
+      ? panels.map(panel => '<div class="card" style="margin-bottom:12px">' +
+        '<div class="card-body">' +
+        '<div class="row wrap" style="margin-bottom:8px"><strong>' + esc(panel.title) + '</strong>' +
+        '<span class="badge ' + (panel.active ? 'green' : 'red') + '">' + (panel.active ? 'Active' : 'Inactive') + '</span>' +
+        '<span class="badge blue">' + esc(panel.mode) + '</span>' +
+        '<span class="spacer"></span>' +
+        '<button class="btn ghost small" type="button" data-action="rr-edit" data-id="' + esc(panel.id) + '">Edit</button>' +
+        '<button class="btn ghost small" type="button" data-action="rr-delete" data-id="' + esc(panel.id) + '">Delete</button>' +
+        '</div>' +
+        '<p class="muted small">' + esc(panel.description || 'No description') + '</p>' +
+        '<div class="row wrap">' +
+        panel.options.map(o => '<span class="badge">' + esc(o.emoji) + ' ' + esc(o.label || o.roleId.slice(-4)) + '</span>').join('') +
+        '</div>' +
+        '</div>' +
+        '</div>').join('')
+      : '<div class="empty-state"><span class="big">🎭</span><span>No reaction role panels yet.</span></div>') +
+    '</div>' +
+    '</div>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
+   Custom Commands (Tags)
+   -------------------------------------------------------------------------- */
+
+async function renderCustomCmd(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to manage custom commands.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/customcmd');
+    if (!isCurrent(token)) return;
+    setView(tagHtml(data.commands || []));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load custom commands.'));
+  }
+}
+
+function tagHtml(tags) {
+  return '<section class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><h3>Custom Commands (Tags)</h3>' +
+    '<p>Create custom slash commands with automatic responses.</p></div>' +
+    '<button class="btn primary" type="button" data-action="tag-new">+ New Command</button></div>' +
+    '<div class="card-body flush">' +
+    (tags.length
+      ? '<table style="width:100%"><thead><tr><th>Name</th><th class="muted">Aliases</th><th class="muted right">Uses</th><th class="right"></th></tr></thead><tbody>' +
+      tags.map(tag => '<tr>' +
+        '<td><strong>/' + esc(tag.name) + '</strong></td>' +
+        '<td class="muted">' + (tag.aliases && tag.aliases.length ? tag.aliases.map(a => '/'+a).join(', ') : '—') + '</td>' +
+        '<td class="num right">' + esc(tag.uses || 0) + '</td>' +
+        '<td class="right"><button class="btn ghost small" type="button" data-action="tag-edit" data-id="' + esc(tag.id) + '">Edit</button> <button class="btn danger small" type="button" data-action="tag-delete" data-id="' + esc(tag.id) + '">Delete</button></td>' +
+        '</tr>').join('') +
+      '</tbody></table>'
+      : '<div class="empty-state"><span class="big">🏷</span><span>No custom commands yet.</span></div>') +
+    '</div>' +
+    '</div>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
+   Theme Editor
+   -------------------------------------------------------------------------- */
+
+async function renderTheme(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to customize its theme.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/theme');
+    if (!isCurrent(token)) return;
+    setView(themeHtml(data.theme || {}));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load theme config.'));
+  }
+}
+
+function themeHtml(theme) {
+  const c = (key) => (theme[key] || '#e5484d');
+  return '<section class="card pad">' +
+    '<div class="section-head"><div><h3>Visual Theme Editor</h3>' +
+    '<p>Customize colors, fonts, and visual style for this server.</p></div></div>' +
+    '<form id="theme-form" class="stack" style="margin-top:16px">' +
+    '<div class="form-grid">' +
+    '<div class="field"><label class="field-label" for="f-theme-preset">Preset</label>' +
+    '<select class="select" id="f-theme-preset" name="preset">' +
+    '<option value="">None (custom)</option>' +
+    '<option value="love-red">愛 Red (default)</option>' +
+    '<option value="ocean-blue">Ocean Blue</option>' +
+    '<option value="emerald-green">Emerald Green</option>' +
+    '<option value="midnight-purple">Midnight Purple</option>' +
+    '<option value="sunset-orange">Sunset Orange</option>' +
+    '</select>' +
+    '<span class="field-hint">Pick a preset to auto-fill colors, then customize as needed.</span></div>' +
+    colorField('primaryColor', 'Primary', theme.primaryColor) +
+    colorField('secondaryColor', 'Secondary / Background', theme.secondaryColor) +
+    colorField('accentColor', 'Accent', theme.accentColor) +
+    colorField('surfaceColor', 'Surface / Cards', theme.surfaceColor) +
+    colorField('textColor', 'Text', theme.textColor) +
+    colorField('mutedColor', 'Muted Text', theme.mutedColor) +
+    colorField('borderColor', 'Border', theme.borderColor) +
+    colorField('successColor', 'Success', theme.successColor) +
+    colorField('warningColor', 'Warning', theme.warningColor) +
+    colorField('errorColor', 'Error', theme.errorColor) +
+    '</div>' +
+    '<div class="field" style="margin-top:16px"><label class="field-label" for="f-theme-font">Font Family</label>' +
+    '<input class="input" id="f-theme-font" name="fontFamily" placeholder="e.g. ui-sans-serif" value="' + esc(theme.fontFamily || '') + '">' +
+    '<span class="field-hint">CSS font family name. Leave empty for system default.</span></div>' +
+    '<div class="field" style="margin-top:16px"><label class="field-label" for="f-theme-radius">Border Radius (px)</label>' +
+    '<input class="input" type="number" id="f-theme-radius" name="borderRadius" min="0" max="50" value="' + esc(theme.borderRadius || 14) + '">' +
+    '<span class="field-hint">Corner radius for cards, buttons, and inputs.</span></div>' +
+    switchRow('themeGlass', 'Glassmorphism (frosted glass)', 'Enable frosted glass effects on cards and panels', theme.glassmorphism !== false) +
+    rangeField('themeGlassOpacity', 'Glass Opacity', theme.glassOpacity ?? 0.8, 0, 1, 0.1, 'decimal') +
+    '<div class="field span-2" style="margin-top:16px"><label class="field-label" for="f-theme-css">Custom CSS</label>' +
+    '<textarea class="textarea code" id="f-theme-css" name="customCSS" rows="6" placeholder="/* Custom CSS overrides */">' + esc(theme.customCSS || '') + '</textarea>' +
+    '<span class="field-hint">Advanced: raw CSS injected into the dashboard for this guild.</span></div>' +
+    '<div class="sticky-actions"><span class="muted small">Theme changes apply immediately to this guild\'s dashboard.</span>' +
+    '<div class="row"><button class="btn ghost" type="button" data-action="theme-reset">Reset to Default</button>' +
+    '<button class="btn primary" type="submit">Save Theme</button></div>' +
+    '</form>' +
+    '</section>';
+}
+
+function colorField(name, label, value) {
+  return '<div class="field"><label class="field-label" for="f-' + name + '">' + esc(label) + ' Color</label>' +
+    '<div class="row" style="gap:8px;align-items:center">' +
+    '<input class="input sm" id="f-' + name + '" name="' + name + '" type="color" value="' + esc(value || '#e5484d') + '" style="width:48px;height:32px;border:none;cursor:pointer">' +
+    '<input class="input" style="max-width:160px" type="text" maxlength="7" placeholder="#RRGGBB" value="' + esc(value || '#e5484d') + '">' +
+    '</div></div>';
+}
+
+/* --------------------------------------------------------------------------
+   Color Roles
+   -------------------------------------------------------------------------- */
+
+async function renderColorRoles(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to manage color roles.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/colorroles');
+    if (!isCurrent(token)) return;
+    setView(colorRoleHtml(data.roles || []));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load color roles.'));
+  }
+}
+
+function colorRoleHtml(roles) {
+  return '<section class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><h3>Gradient Color Roles</h3>' +
+    '<p>Self-pickable gradient roles with animated colors.</p></div>' +
+    '<button class="btn primary" type="button" data-action="colorrole-new">+ New Color Role</button></div>' +
+    '<div class="card-body flush">' +
+    (roles.length
+      ? roles.map(role => '<div class="card" style="margin-bottom:12px">' +
+        '<div class="card-body">' +
+        '<div class="row wrap" style="margin-bottom:8px"><strong>' + esc(role.name) + '</strong>' +
+        '<span class="badge ' + (role.active ? 'green' : 'red') + '">' + (role.active ? 'Active' : 'Inactive') + '</span>' +
+        '<span class="badge blue">' + esc(role.pickable ? 'Pickable' : 'Staff Only') + '</span>' +
+        '<span class="spacer"></span>' +
+        '<button class="btn ghost small" type="button" data-action="colorrole-edit" data-id="' + esc(role.id) + '">Edit</button>' +
+        '<button class="btn danger small" type="button" data-action="colorrole-delete" data-id="' + esc(role.id) + '">Delete</button>' +
+        '</div>' +
+        '<div class="gradient-preview" style="height:24px;border-radius:8px;background:' + esc(role.gradient) + ';margin-bottom:8px"></div>' +
+        '<p class="muted small">Gradient: ' + esc(role.colors.join(', ')) + ' · Animation: ' + esc(role.animationDuration || 10) + 's' +
+        (role.cost ? ' · Cost: ' + esc(role.cost) + ' coins' : '') +
+        (role.maxUsers ? ' · Max users: ' + esc(role.maxUsers) : '') +
+        '</p>' +
+        '</div>' +
+        '</div>').join('')
+      : '<div class="empty-state"><span class="big">🌈</span><span>No color roles yet.</span></div>') +
+    '</div>' +
+    '</div>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
+   Welcome System
+   -------------------------------------------------------------------------- */
+
+async function renderWelcome(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to configure welcome.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/welcome');
+    if (!isCurrent(token)) return;
+    setView(welcomeHtml(data.config || {}));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load welcome config.'));
+  }
+}
+
+function welcomeHtml(config) {
+  return '<section class="stack">' +
+    '<div class="card pad">' +
+    '<div class="section-head"><div><h3>Welcome &amp; Greetings</h3>' +
+    '<p>Welcome new members with custom messages, embeds and auto-roles.</p></div></div>' +
+    '<form id="welcome-form" class="stack" style="margin-top:16px">' +
+    '<div class="form-grid">' +
+    '<div class="field"><label class="field-label" for="f-welcome-channel">Welcome Channel</label>' +
+    '<input class="input" id="f-welcome-channel" name="welcomeChannelId" placeholder="Channel ID" value="' + esc(config.welcomeChannelId || '') + '">' +
+    '<span class="field-hint">Channel ID where welcome messages are posted.</span></div>' +
+    '<div class="field span-2"><label class="field-label" for="f-welcome-message">Welcome Message</label>' +
+    '<textarea class="textarea" id="f-welcome-message" name="welcomeMessage" rows="3" placeholder="Welcome {user} to {server}!">' + esc(config.welcomeMessage || '') + '</textarea>' +
+    '<span class="field-hint">Variables: {user}, {server}, {memberCount}</span></div>' +
+    '<div class="field span-2"><label class="field-label" for="f-welcome-dm">Welcome DM</label>' +
+    '<textarea class="textarea" id="f-welcome-dm" name="dmMessage" rows="3" placeholder="Welcome to {server}! We\'re glad to have you.' + '" + esc(config.dmMessage || '') + '</textarea>' +
+    '<span class="field-hint">Sent as a direct message when a member joins.</span></div>' +
+    '<div class="field span-2"><label class="field-label" for="f-leave-message">Leave Message</label>' +
+    '<textarea class="textarea" id="f-leave-message" name="leaveMessage" rows="3" placeholder="Goodbye {user} from {server}!"' + esc(config.leaveMessage || '') + '</textarea>' +
+    '<span class="field-hint">Posted in the welcome channel when a member leaves.</span></div>' +
+    '<div class="field"><label class="field-label" for="f-auto-role">Auto-Role (Humans)</label>' +
+    '<input class="input" id="f-auto-role" name="autoRoleId" placeholder="Role ID" value="' + esc(config.autoRoleId || '') + '">' +
+    '<span class="field-hint">Role automatically given to human members on join.</span></div>' +
+    '<div class="field"><label class="field-label" for="f-bot-role">Auto-Role (Bots)</label>' +
+    '<input class="input" id="f-bot-role" name="botAutoRoleId" placeholder="Role ID" value="' + esc(config.botAutoRoleId || '') + '">' +
+    '<span class="field-hint">Role automatically given to bot accounts on join.</span></div>' +
+    '</div>' +
+    '<div class="sticky-actions"><button class="btn primary" type="submit">Save Welcome Settings</button></div>' +
+    '</form>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
+   Starboard
+   -------------------------------------------------------------------------- */
+
+async function renderStarboard(token) {
+  setLoading();
+  if (!state.selectedGuildId) {
+    setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span><strong>Select a guild first</strong><p class="muted small">Go to Guilds and pick a server to configure starboard.</p></div></div>');
+    return;
+  }
+  try {
+    const data = await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/starboard');
+    if (!isCurrent(token)) return;
+    setView(starboardHtml(data.config || {}));
+  } catch (error) {
+    if (!isCurrent(token)) return;
+    setView(errorState(error.message || 'Failed to load starboard config.'));
+  }
+}
+
+function starboardHtml(config) {
+  return '<section class="card pad">' +
+    '<div class="section-head"><div><h3>Starboard</h3>' +
+    '<p>Starred messages are automatically posted to a channel.</p></div>' +
+    '<form id="starboard-form" class="stack" style="margin-top:16px">' +
+    '<div class="form-grid">' +
+    '<div class="field"><label class="field-label" for="f-sb-channel">Starboard Channel</label>' +
+    '<input class="input" id="f-sb-channel" name="channelId" placeholder="Channel ID" value="' + esc(config.channelId || '') + '">' +
+    '<span class="field-hint">Channel where starred messages are posted.</span></div>' +
+    fieldNumber('f-sb-threshold', 'Star Threshold', config.threshold, 1, 1000, 'Number of stars needed to post to starboard') +
+    '<div class="field"><label class="field-label" for="f-sb-emoji">Star Emoji</label>' +
+    '<input class="input" id="f-sb-emoji" name="emoji" maxlength="50" value="' + esc(config.emoji || '⭐') + '">' +
+    '<span class="field-hint">Emoji used for starring messages.</span></div>' +
+    switchRow('sbSelfStar', 'Allow Self-Star', 'Users can star their own messages', config.allowSelfStar) +
+    switchRow('sbBotMsgs', 'Allow Bot Messages', 'Bot messages can be starred', config.allowBotMessages) +
+    switchRow('sbRequireAttach', 'Require Attachment', 'Only star messages with attachments', config.requireAttachment) +
+    switchRow('sbRequireEmbed', 'Require Embed', 'Only star messages with embeds', config.requireEmbed) +
+    fieldNumber('sbMaxAge', 'Max Age (days)', config.maxAgeDays, 0, 365, 'Messages older than this cannot be starred. 0 = no limit') +
+    switchRow('sbMultiple', 'Allow Multiple Entries', 'A message can appear on starboard multiple times at different thresholds', config.allowMultiple) +
+    '</div>' +
+    '<div class="sticky-actions"><button class="btn primary" type="submit">Save Starboard Settings</button></div>' +
+    '</form>' +
+    '</section>';
+}
+
+/* --------------------------------------------------------------------------
    Event handling
    -------------------------------------------------------------------------- */
 
@@ -2210,6 +2571,84 @@ document.addEventListener('submit', async (event) => {
         await runForm(form, () => saveUser(form));
         break;
 
+      case 'theme-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            preset: String(data.get('preset') || '') || undefined,
+            primaryColor: String(data.get('primaryColor') || '#e5484d'),
+            secondaryColor: String(data.get('secondaryColor') || '#10141d'),
+            accentColor: String(data.get('accentColor') || '#ff6b70'),
+            backgroundColor: String(data.get('backgroundColor') || '#0b0d12'),
+            surfaceColor: String(data.get('surfaceColor') || '#121722'),
+            textColor: String(data.get('textColor') || '#e8ecf4'),
+            mutedColor: String(data.get('mutedColor') || '#768099'),
+            borderColor: String(data.get('borderColor') || '#232b3b'),
+            successColor: String(data.get('successColor') || '#34d399'),
+            warningColor: String(data.get('warningColor') || '#f5b544'),
+            errorColor: String(data.get('errorColor') || '#e5484d'),
+            fontFamily: String(data.get('fontFamily') || '') || undefined,
+            borderRadius: Number(data.get('borderRadius') || 14),
+            glassmorphism: data.get('themeGlass') === 'on',
+            glassOpacity: Number(data.get('themeGlassOpacity') || 0.8),
+            customCSS: String(data.get('customCSS') || '') || undefined,
+          };
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/theme', {
+            method: 'PUT',
+            body,
+          });
+          showToast('Theme saved', 'success');
+        });
+        break;
+      }
+
+      case 'welcome-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            welcomeChannelId: String(data.get('welcomeChannelId') || '') || null,
+            welcomeMessage: String(data.get('welcomeMessage') || '') || undefined,
+            dmMessage: String(data.get('dmMessage') || '') || undefined,
+            leaveChannelId: String(data.get('leaveChannelId') || '') || null,
+            leaveMessage: String(data.get('leaveMessage') || '') || undefined,
+            autoRoleId: String(data.get('autoRoleId') || '') || null,
+            botAutoRoleId: String(data.get('botAutoRoleId') || '') || null,
+          };
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/welcome', {
+            method: 'PUT',
+            body,
+          });
+          showToast('Welcome settings saved', 'success');
+        });
+        break;
+      }
+
+      case 'starboard-form': {
+        const guildId = state.selectedGuildId;
+        await runForm(form, async () => {
+          const data = new FormData(form);
+          const body = {
+            channelId: String(data.get('channelId') || '') || undefined,
+            threshold: Number(data.get('threshold') || 5),
+            emoji: String(data.get('emoji') || '⭐'),
+            allowSelfStar: data.get('sbSelfStar') === 'on',
+            allowBotMessages: data.get('sbBotMsgs') === 'on',
+            requireAttachment: data.get('sbRequireAttach') === 'on',
+            requireEmbed: data.get('sbRequireEmbed') === 'on',
+            maxAgeDays: Number(data.get('sbMaxAge') || 0),
+            allowMultiple: data.get('sbMultiple') === 'on',
+          };
+          await api('/api/guilds/' + encodeURIComponent(guildId) + '/starboard', {
+            method: 'PUT',
+            body,
+          });
+          showToast('Starboard saved', 'success');
+        });
+        break;
+      }
+
       default:
         break;
     }
@@ -2416,6 +2855,120 @@ document.addEventListener('click', (event) => {
     case 'modal-close':
       if (event.target === trigger || trigger.classList.contains('modal-close')) closeModal();
       break;
+
+    case 'automod-new':
+      alert('Auto-mod rule creation modal coming soon - use the API directly or stay tuned for the full builder UI.');
+      break;
+
+    case 'automod-edit':
+      alert('Edit auto-mod rule - feature coming soon.');
+      break;
+
+    case 'automod-delete': {
+      (async () => {
+        const confirmed = await confirmAction('Delete Auto-Mod Rule', 'Are you sure you want to delete this rule?', 'Delete');
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/automod/' + encodeURIComponent(trigger.dataset.id), { method: 'DELETE' });
+          showToast('Rule deleted', 'success');
+          renderAutoMod(state.renderToken);
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
+
+    case 'automod-toggle': {
+      (async () => {
+        const checked = trigger.checked;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/automod/' + encodeURIComponent(trigger.value), {
+            method: 'PATCH',
+            body: { enabled: checked },
+          });
+          showToast(checked ? 'Rule enabled' : 'Rule disabled', 'success');
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
+
+    case 'rr-new':
+      alert('Reaction role panel creation - feature coming soon.');
+      break;
+
+    case 'rr-edit':
+      alert('Edit reaction role panel - feature coming soon.');
+      break;
+
+    case 'rr-delete': {
+      (async () => {
+        const confirmed = await confirmAction('Delete Panel', 'Are you sure you want to delete this reaction role panel?', 'Delete');
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/reactionroles/' + encodeURIComponent(trigger.dataset.id), { method: 'DELETE' });
+          showToast('Panel deleted', 'success');
+          renderReactionRoles(state.renderToken);
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
+
+    case 'tag-new':
+      alert('Custom command creation - feature coming soon.');
+      break;
+
+    case 'tag-edit':
+      alert('Edit custom command - feature coming soon.');
+      break;
+
+    case 'tag-delete': {
+      (async () => {
+        const confirmed = await confirmAction('Delete Command', 'Are you sure you want to delete this custom command?', 'Delete');
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/customcmd/' + encodeURIComponent(trigger.dataset.id), { method: 'DELETE' });
+          showToast('Command deleted', 'success');
+          renderCustomCmd(state.renderToken);
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
+
+    case 'colorrole-new':
+      alert('Color role creation - feature coming soon.');
+      break;
+
+    case 'colorrole-edit':
+      alert('Edit color role - feature coming soon.');
+      break;
+
+    case 'colorrole-delete': {
+      (async () => {
+        const confirmed = await confirmAction('Delete Color Role', 'Are you sure you want to delete this color role?', 'Delete');
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/colorroles/' + encodeURIComponent(trigger.dataset.id), { method: 'DELETE' });
+          showToast('Color role deleted', 'success');
+          renderColorRoles(state.renderToken);
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
+
+    case 'theme-reset': {
+      (async () => {
+        const confirmed = await confirmAction('Reset Theme', 'Reset theme to default values?', 'Reset');
+        if (!confirmed) return;
+        try {
+          await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/theme', {
+            method: 'PUT',
+            body: {},
+          });
+          showToast('Theme reset', 'success');
+          renderTheme(state.renderToken);
+        } catch (error) { showToast(error.message, 'error'); }
+      })();
+      break;
+    }
 
     default:
       break;
