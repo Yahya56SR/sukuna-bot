@@ -403,6 +403,56 @@ async function routeApi(
       if (!subId && method === 'GET') return sendEvents(guild, res);
       if (!subId && method === 'POST') return addEvent(guild, req, res);
     }
+
+    if (sub === 'automod') {
+      if (!subId && method === 'GET') return sendAutomodRules(guild, res);
+      if (!subId && method === 'POST') return createAutomodRule(guild, req, res);
+      if (subId && method === 'PATCH') return updateAutomodRule(guild, subId, req, res);
+      if (subId && method === 'DELETE') return deleteAutomodRule(guild, subId, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'reactionroles') {
+      if (!subId && method === 'GET') return sendReactionRolePanels(guild, res);
+      if (!subId && method === 'POST') return createReactionRolePanel(guild, req, res);
+      if (subId && method === 'PATCH') return updateReactionRolePanel(guild, subId, req, res);
+      if (subId && method === 'DELETE') return deleteReactionRolePanel(guild, subId, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'customcmd') {
+      if (!subId && method === 'GET') return sendCustomCommands(guild, res);
+      if (!subId && method === 'POST') return createCustomCommand(guild, req, res);
+      if (subId && method === 'PATCH') return updateCustomCommand(guild, subId, req, res);
+      if (subId && method === 'DELETE') return deleteCustomCommand(guild, subId, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'theme') {
+      if (method === 'GET') return sendThemeConfig(guild, res);
+      if (method === 'PUT' || method === 'POST') return updateThemeConfig(guild, req, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'colorroles') {
+      if (!subId && method === 'GET') return sendColorRoles(guild, res);
+      if (!subId && method === 'POST') return createColorRole(guild, req, res);
+      if (subId && method === 'PATCH') return updateColorRole(guild, subId, req, res);
+      if (subId && method === 'DELETE') return deleteColorRole(guild, subId, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'welcome') {
+      if (method === 'GET') return sendWelcomeConfig(guild, res);
+      if (method === 'PUT' || method === 'POST') return updateWelcomeConfig(guild, req, res);
+      throw new HttpError(404, 'Not found');
+    }
+
+    if (sub === 'starboard') {
+      if (method === 'GET') return sendStarboardConfig(guild, res);
+      if (method === 'PUT' || method === 'POST') return updateStarboardConfig(guild, req, res);
+      throw new HttpError(404, 'Not found');
+    }
   }
 
   if (resource === 'users') {
@@ -410,69 +460,6 @@ async function routeApi(
     if (guildId && method === 'PATCH') return updateUserDoc(guildId, req, res);
   }
 
-  if (resource === 'automod') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (!sub && method === 'GET') return sendAutomodRules(guild, res);
-    if (!sub && method === 'POST') return createAutomodRule(guild, req, res);
-    if (subId && method === 'PATCH') return updateAutomodRule(guild, subId, req, res);
-    if (subId && method === 'DELETE') return deleteAutomodRule(guild, subId, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'reactionroles') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (!sub && method === 'GET') return sendReactionRolePanels(guild, res);
-    if (!sub && method === 'POST') return createReactionRolePanel(guild, req, res);
-    if (subId && method === 'PATCH') return updateReactionRolePanel(guild, subId, req, res);
-    if (subId && method === 'DELETE') return deleteReactionRolePanel(guild, subId, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'customcmd') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (!sub && method === 'GET') return sendCustomCommands(guild, res);
-    if (!sub && method === 'POST') return createCustomCommand(guild, req, res);
-    if (subId && method === 'PATCH') return updateCustomCommand(guild, subId, req, res);
-    if (subId && method === 'DELETE') return deleteCustomCommand(guild, subId, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'theme') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (method === 'GET') return sendThemeConfig(guild, res);
-    if (method === 'PUT' || method === 'POST') return updateThemeConfig(guild, req, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'colorroles') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (!sub && method === 'GET') return sendColorRoles(guild, res);
-    if (!sub && method === 'POST') return createColorRole(guild, req, res);
-    if (subId && method === 'PATCH') return updateColorRole(guild, subId, req, res);
-    if (subId && method === 'DELETE') return deleteColorRole(guild, subId, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'welcome') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (method === 'GET') return sendWelcomeConfig(guild, res);
-    if (method === 'PUT' || method === 'POST') return updateWelcomeConfig(guild, req, res);
-    throw new HttpError(404, 'Not found');
-  }
-
-  if (resource === 'starboard') {
-    if (!guildId) throw new HttpError(404, 'Not found');
-    const guild = resolveGuild(client, guildId);
-    if (method === 'GET') return sendStarboardConfig(guild, res);
-    if (method === 'PUT' || method === 'POST') return updateStarboardConfig(guild, req, res);
-    throw new HttpError(404, 'Not found');
-  }
 
   throw new HttpError(404, 'Not found');
 }
