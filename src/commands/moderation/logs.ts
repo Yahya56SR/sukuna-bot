@@ -29,12 +29,6 @@ const logEvents: { name: string; value: LogEventType; description: string }[] = 
   { name: 'Thread Delete', value: 'threadDelete', description: 'When a thread is deleted' },
   { name: 'Thread Update', value: 'threadUpdate', description: 'When a thread is updated' },
   { name: 'Warn', value: 'moderationWarn', description: 'When a user is warned' },
-  { name: 'Timeout', value: 'moderationTimeout', description: 'When a user is timed out' },
-  { name: 'Ban', value: 'moderationBan', description: 'When a user is banned' },
-  { name: 'Kick', value: 'moderationKick', description: 'When a user is kicked' },
-  { name: 'Unban', value: 'moderationUnban', description: 'When a user is unbanned' },
-  { name: 'Note', value: 'moderationNote', description: 'When a mod note is added' },
-  { name: 'Auto-Mod Trigger', value: 'automodTrigger', description: 'When auto-mod triggers' },
 ];
 
 export const logsCommand: Command = {
