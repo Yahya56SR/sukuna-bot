@@ -1,10 +1,14 @@
-import { Events, type ClientEvents } from 'discord.js';
+import { Events, type ClientEvents, Message } from 'discord.js';
 import { bumpCounter } from '../core/metrics.js';
 import { addXp, getUserXp } from '../db/utils.js';
 import { handleLevelUp } from '../handlers/levelUp.js';
 import { randomXp } from '../utils/level.js';
 import { readLevelSettings } from '../utils/levelSettings.js';
 import { handleSukunaMessage } from '../utils/sukuna.js';
+import { checkAutomod } from '../handlers/automod.js';
+import { executeCustomCommand } from '../commands/utility/customcmd.js';
+import { handleAfkMessage } from '../commands/utility/afk.js';
+import { handleStarboardReaction } from '../commands/utility/starboard.js';
 
 /**
  * MEE6-style XP earning:
@@ -16,7 +20,7 @@ import { handleSukunaMessage } from '../utils/sukuna.js';
  */
 export const messageCreate = {
   name: Events.MessageCreate as keyof ClientEvents,
-  execute: async (client: any, message: any) => {
+  execute: async (client: any, message: Message) => {
     // Run the Sukuna AI persona first: it also records bot messages as context.
     try {
       handleSukunaMessage(message);
@@ -77,6 +81,33 @@ export const messageCreate = {
     if (storedExpiry > now) {
       xpCooldowns.set(cooldownKey, storedExpiry);
       return;
+    }
+
+    // Run auto-mod check (before XP to potentially delete message)
+    try {
+      await checkAutomod(message);
+    } catch (err) {
+      client.logger?.warn({ err }, 'automod check failed');
+    }
+
+    // Check custom commands (tags)
+    try {
+      const prefixMatch = message.content.match(/^([!/])(\w+)/);
+      if (prefixMatch && !message.author.bot) {
+        const commandName = prefixMatch[2].toLowerCase();
+        const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
+        const handled = await executeCustomCommand(message, commandName, args);
+        if (handled) return; // Don't process XP if command was handled
+      }
+    } catch (err) {
+      client.logger?.warn({ err }, 'custom command handler failed');
+    }
+
+    // Handle AFK
+    try {
+      await handleAfkMessage(message);
+    } catch (err) {
+      client.logger?.warn({ err }, 'afk handler failed');
     }
 
     const amount = randomXp(settings.perMessageMin, settings.perMessageMax);

@@ -13,6 +13,9 @@ import { replyError } from '../core/respond.js';
 import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
 import { readVcPanelById } from '../db/models/Vc.js';
 import { connectVoice, disconnectVoice, isVoiceConnected } from '../voice/manager.js';
+import { handleButtonInteraction as handleReactionRoleButton, handleSelectMenuInteraction as handleReactionRoleSelect } from '../handlers/reactionRoles.js';
+import { handleSuggestionVote } from '../commands/utility/suggest.js';
+import { handleAutomodConfigModal, handleTagEmbedModal } from '../commands/moderation/automod.js';
 
 export const interactionCreate = {
   name: Events.InteractionCreate as keyof ClientEvents,
@@ -23,9 +26,21 @@ export const interactionCreate = {
       return;
     }
 
-    // Handle button interactions (ticket system)
+    // Handle modal submissions
+    if (interaction.isModalSubmit()) {
+      await handleModalSubmit(client, interaction);
+      return;
+    }
+
+    // Handle button interactions
     if (interaction.isButton()) {
       await handleButtonInteraction(client, interaction);
+      return;
+    }
+
+    // Handle select menu interactions
+    if (interaction.isStringSelectMenu()) {
+      await handleSelectMenuInteraction(client, interaction);
       return;
     }
 
@@ -134,12 +149,43 @@ export const interactionCreate = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Ticket button interactions                                                 */
+/* Modal submissions                                                          */
+/* -------------------------------------------------------------------------- */
+
+async function handleModalSubmit(client: any, interaction: any): Promise<void> {
+  const { customId } = interaction;
+
+  if (customId.startsWith('automod_config:')) {
+    await handleAutomodConfigModal(interaction);
+    return;
+  }
+
+  if (customId.startsWith('tag_embed:')) {
+    await handleTagEmbedModal(interaction);
+    return;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Button interactions                                                        */
 /* -------------------------------------------------------------------------- */
 
 async function handleButtonInteraction(client: any, interaction: any): Promise<void> {
   const { customId } = interaction;
 
+  // Reaction roles
+  if (customId.startsWith('rr:')) {
+    await handleReactionRoleButton(interaction);
+    return;
+  }
+
+  // Suggestion votes
+  if (customId.startsWith('suggest_')) {
+    await handleSuggestionVote(interaction);
+    return;
+  }
+
+  // Ticket system
   if (customId.startsWith('ticket_create:')) {
     await handleTicketCreate(client, interaction);
     return;
@@ -155,6 +201,24 @@ async function handleButtonInteraction(client: any, interaction: any): Promise<v
     return;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Select menu interactions                                                   */
+/* -------------------------------------------------------------------------- */
+
+async function handleSelectMenuInteraction(client: any, interaction: any): Promise<void> {
+  const { customId } = interaction;
+
+  // Reaction roles
+  if (customId.startsWith('rr_select:')) {
+    await handleReactionRoleSelect(interaction);
+    return;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Ticket button interactions                                                 */
+/* -------------------------------------------------------------------------- */
 
 async function handleTicketCreate(client: any, interaction: any): Promise<void> {
   await interaction.deferReply({ flags: 64 });

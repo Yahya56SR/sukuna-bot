@@ -11126,7 +11126,7 @@ var require_collection = __commonJS({
     "use strict";
     var EventEmitter9 = require("events").EventEmitter;
     var immediate = require_immediate();
-    function Collection2(name, conn, opts) {
+    function Collection3(name, conn, opts) {
       if (opts === void 0) {
         opts = {};
       }
@@ -11141,21 +11141,21 @@ var require_collection = __commonJS({
         this.onOpen();
       }
     }
-    __name(Collection2, "Collection");
-    Collection2.prototype.name;
-    Collection2.prototype.collectionName;
-    Collection2.prototype.conn;
-    Collection2.prototype.onOpen = function() {
+    __name(Collection3, "Collection");
+    Collection3.prototype.name;
+    Collection3.prototype.collectionName;
+    Collection3.prototype.conn;
+    Collection3.prototype.onOpen = function() {
       this.buffer = false;
       immediate(() => this.doQueue());
     };
-    Collection2.prototype.onClose = function() {
+    Collection3.prototype.onClose = function() {
     };
-    Collection2.prototype.addQueue = function(name, args) {
+    Collection3.prototype.addQueue = function(name, args) {
       this.queue.push([name, args]);
       return this;
     };
-    Collection2.prototype.removeQueue = function(name, args) {
+    Collection3.prototype.removeQueue = function(name, args) {
       const index = this.queue.findIndex((v) => v[0] === name && v[1] === args);
       if (index === -1) {
         return false;
@@ -11163,7 +11163,7 @@ var require_collection = __commonJS({
       this.queue.splice(index, 1);
       return true;
     };
-    Collection2.prototype.doQueue = function() {
+    Collection3.prototype.doQueue = function() {
       for (const method of this.queue) {
         if (typeof method[0] === "function") {
           method[0].apply(this, method[1]);
@@ -11178,61 +11178,61 @@ var require_collection = __commonJS({
       });
       return this;
     };
-    Collection2.prototype.ensureIndex = function() {
+    Collection3.prototype.ensureIndex = function() {
       throw new Error("Collection#ensureIndex unimplemented by driver");
     };
-    Collection2.prototype.createIndex = function() {
+    Collection3.prototype.createIndex = function() {
       throw new Error("Collection#createIndex unimplemented by driver");
     };
-    Collection2.prototype.findAndModify = function() {
+    Collection3.prototype.findAndModify = function() {
       throw new Error("Collection#findAndModify unimplemented by driver");
     };
-    Collection2.prototype.findOneAndUpdate = function() {
+    Collection3.prototype.findOneAndUpdate = function() {
       throw new Error("Collection#findOneAndUpdate unimplemented by driver");
     };
-    Collection2.prototype.findOneAndDelete = function() {
+    Collection3.prototype.findOneAndDelete = function() {
       throw new Error("Collection#findOneAndDelete unimplemented by driver");
     };
-    Collection2.prototype.findOneAndReplace = function() {
+    Collection3.prototype.findOneAndReplace = function() {
       throw new Error("Collection#findOneAndReplace unimplemented by driver");
     };
-    Collection2.prototype.findOne = function() {
+    Collection3.prototype.findOne = function() {
       throw new Error("Collection#findOne unimplemented by driver");
     };
-    Collection2.prototype.find = function() {
+    Collection3.prototype.find = function() {
       throw new Error("Collection#find unimplemented by driver");
     };
-    Collection2.prototype.insert = function() {
+    Collection3.prototype.insert = function() {
       throw new Error("Collection#insert unimplemented by driver");
     };
-    Collection2.prototype.insertOne = function() {
+    Collection3.prototype.insertOne = function() {
       throw new Error("Collection#insertOne unimplemented by driver");
     };
-    Collection2.prototype.insertMany = function() {
+    Collection3.prototype.insertMany = function() {
       throw new Error("Collection#insertMany unimplemented by driver");
     };
-    Collection2.prototype.save = function() {
+    Collection3.prototype.save = function() {
       throw new Error("Collection#save unimplemented by driver");
     };
-    Collection2.prototype.updateOne = function() {
+    Collection3.prototype.updateOne = function() {
       throw new Error("Collection#updateOne unimplemented by driver");
     };
-    Collection2.prototype.updateMany = function() {
+    Collection3.prototype.updateMany = function() {
       throw new Error("Collection#updateMany unimplemented by driver");
     };
-    Collection2.prototype.deleteOne = function() {
+    Collection3.prototype.deleteOne = function() {
       throw new Error("Collection#deleteOne unimplemented by driver");
     };
-    Collection2.prototype.deleteMany = function() {
+    Collection3.prototype.deleteMany = function() {
       throw new Error("Collection#deleteMany unimplemented by driver");
     };
-    Collection2.prototype.getIndexes = function() {
+    Collection3.prototype.getIndexes = function() {
       throw new Error("Collection#getIndexes unimplemented by driver");
     };
-    Collection2.prototype.watch = function() {
+    Collection3.prototype.watch = function() {
       throw new Error("Collection#watch unimplemented by driver");
     };
-    Collection2.prototype._shouldBufferCommands = /* @__PURE__ */ __name(function _shouldBufferCommands() {
+    Collection3.prototype._shouldBufferCommands = /* @__PURE__ */ __name(function _shouldBufferCommands() {
       const opts = this.opts;
       if (opts.bufferCommands != null) {
         return opts.bufferCommands;
@@ -11242,7 +11242,7 @@ var require_collection = __commonJS({
       }
       return this.conn._shouldBufferCommands();
     }, "_shouldBufferCommands");
-    Collection2.prototype._getBufferTimeoutMS = /* @__PURE__ */ __name(function _getBufferTimeoutMS() {
+    Collection3.prototype._getBufferTimeoutMS = /* @__PURE__ */ __name(function _getBufferTimeoutMS() {
       const conn = this.conn;
       const opts = this.opts;
       if (opts.bufferTimeoutMS != null) {
@@ -11253,7 +11253,7 @@ var require_collection = __commonJS({
       }
       return conn._getBufferTimeoutMS();
     }, "_getBufferTimeoutMS");
-    module2.exports = Collection2;
+    module2.exports = Collection3;
   }
 });
 
@@ -15715,7 +15715,7 @@ var require_collection2 = __commonJS({
     var read_preference_1 = require_read_preference();
     var utils_1 = require_utils();
     var write_concern_1 = require_write_concern();
-    var Collection2 = class {
+    var Collection3 = class {
       static {
         __name(this, "Collection");
       }
@@ -16387,7 +16387,7 @@ var require_collection2 = __commonJS({
         return await (0, execute_operation_1.executeOperation)(this.client, new update_1.UpdateSearchIndexOperation(this, name, definition));
       }
     };
-    exports2.Collection = Collection2;
+    exports2.Collection = Collection3;
   }
 });
 
@@ -27651,13 +27651,13 @@ var require_monitor = __commonJS({
           timeSinceLastCall
         };
       }
-      _reschedule(ms) {
+      _reschedule(ms2) {
         if (this.stopped)
           return;
         if (this.timerId) {
           (0, timers_1.clearTimeout)(this.timerId);
         }
-        this.timerId = (0, timers_1.setTimeout)(this._executeAndReschedule, ms || this.heartbeatFrequencyMS);
+        this.timerId = (0, timers_1.setTimeout)(this._executeAndReschedule, ms2 || this.heartbeatFrequencyMS);
       }
     };
     exports2.MonitorInterval = MonitorInterval;
@@ -30549,14 +30549,14 @@ var require_command_builder = __commonJS({
         const namespaces = /* @__PURE__ */ new Map();
         this.previousModelIndex = this.currentModelIndex;
         while (this.currentModelIndex < this.models.length) {
-          const model9 = this.models[this.currentModelIndex];
-          const ns = model9.namespace;
+          const model28 = this.models[this.currentModelIndex];
+          const ns = model28.namespace;
           const nsIndex = namespaces.get(ns);
-          if (model9.name === "deleteMany" || model9.name === "updateMany") {
+          if (model28.name === "deleteMany" || model28.name === "updateMany") {
             this.isBatchRetryable = false;
           }
           if (nsIndex != null) {
-            const operation = buildOperation(model9, nsIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model28, nsIndex, this.pkFactory, this.options);
             let operationBuffer;
             try {
               operationBuffer = bson_1.BSON.serialize(operation);
@@ -30573,7 +30573,7 @@ var require_command_builder = __commonJS({
           } else {
             namespaces.set(ns, currentNamespaceIndex);
             const nsInfo = { ns };
-            const operation = buildOperation(model9, currentNamespaceIndex, this.pkFactory, this.options);
+            const operation = buildOperation(model28, currentNamespaceIndex, this.pkFactory, this.options);
             let nsInfoBuffer;
             let operationBuffer;
             try {
@@ -30623,44 +30623,44 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateBufferSize, "validateBufferSize");
-    var buildInsertOneOperation = /* @__PURE__ */ __name((model9, index, pkFactory) => {
+    var buildInsertOneOperation = /* @__PURE__ */ __name((model28, index, pkFactory) => {
       const document = {
         insert: index,
-        document: model9.document
+        document: model28.document
       };
-      document.document._id = model9.document._id ?? pkFactory.createPk();
+      document.document._id = model28.document._id ?? pkFactory.createPk();
       return document;
     }, "buildInsertOneOperation");
     exports2.buildInsertOneOperation = buildInsertOneOperation;
-    var buildDeleteOneOperation = /* @__PURE__ */ __name((model9, index) => {
-      return createDeleteOperation(model9, index, false);
+    var buildDeleteOneOperation = /* @__PURE__ */ __name((model28, index) => {
+      return createDeleteOperation(model28, index, false);
     }, "buildDeleteOneOperation");
     exports2.buildDeleteOneOperation = buildDeleteOneOperation;
-    var buildDeleteManyOperation = /* @__PURE__ */ __name((model9, index) => {
-      return createDeleteOperation(model9, index, true);
+    var buildDeleteManyOperation = /* @__PURE__ */ __name((model28, index) => {
+      return createDeleteOperation(model28, index, true);
     }, "buildDeleteManyOperation");
     exports2.buildDeleteManyOperation = buildDeleteManyOperation;
-    function createDeleteOperation(model9, index, multi) {
+    function createDeleteOperation(model28, index, multi) {
       const document = {
         delete: index,
         multi,
-        filter: model9.filter
+        filter: model28.filter
       };
-      if (model9.hint) {
-        document.hint = model9.hint;
+      if (model28.hint) {
+        document.hint = model28.hint;
       }
-      if (model9.collation) {
-        document.collation = model9.collation;
+      if (model28.collation) {
+        document.collation = model28.collation;
       }
       return document;
     }
     __name(createDeleteOperation, "createDeleteOperation");
-    var buildUpdateOneOperation = /* @__PURE__ */ __name((model9, index, options) => {
-      return createUpdateOperation(model9, index, false, options);
+    var buildUpdateOneOperation = /* @__PURE__ */ __name((model28, index, options) => {
+      return createUpdateOperation(model28, index, false, options);
     }, "buildUpdateOneOperation");
     exports2.buildUpdateOneOperation = buildUpdateOneOperation;
-    var buildUpdateManyOperation = /* @__PURE__ */ __name((model9, index, options) => {
-      return createUpdateOperation(model9, index, true, options);
+    var buildUpdateManyOperation = /* @__PURE__ */ __name((model28, index, options) => {
+      return createUpdateOperation(model28, index, true, options);
     }, "buildUpdateManyOperation");
     exports2.buildUpdateManyOperation = buildUpdateManyOperation;
     function validateUpdate(update, options) {
@@ -30669,71 +30669,71 @@ var require_command_builder = __commonJS({
       }
     }
     __name(validateUpdate, "validateUpdate");
-    function createUpdateOperation(model9, index, multi, options) {
-      validateUpdate(model9.update, options);
+    function createUpdateOperation(model28, index, multi, options) {
+      validateUpdate(model28.update, options);
       const document = {
         update: index,
         multi,
-        filter: model9.filter,
-        updateMods: model9.update
+        filter: model28.filter,
+        updateMods: model28.update
       };
-      if (model9.hint) {
-        document.hint = model9.hint;
+      if (model28.hint) {
+        document.hint = model28.hint;
       }
-      if (model9.upsert) {
-        document.upsert = model9.upsert;
+      if (model28.upsert) {
+        document.upsert = model28.upsert;
       }
-      if (model9.arrayFilters) {
-        document.arrayFilters = model9.arrayFilters;
+      if (model28.arrayFilters) {
+        document.arrayFilters = model28.arrayFilters;
       }
-      if (model9.collation) {
-        document.collation = model9.collation;
+      if (model28.collation) {
+        document.collation = model28.collation;
       }
-      if (!multi && "sort" in model9 && model9.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model9.sort);
+      if (!multi && "sort" in model28 && model28.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model28.sort);
       }
       return document;
     }
     __name(createUpdateOperation, "createUpdateOperation");
-    var buildReplaceOneOperation = /* @__PURE__ */ __name((model9, index) => {
-      if ((0, utils_1.hasAtomicOperators)(model9.replacement)) {
+    var buildReplaceOneOperation = /* @__PURE__ */ __name((model28, index) => {
+      if ((0, utils_1.hasAtomicOperators)(model28.replacement)) {
         throw new error_1.MongoAPIError("Client bulk write replace models must not contain atomic modifiers (start with $) and must not be empty.");
       }
       const document = {
         update: index,
         multi: false,
-        filter: model9.filter,
-        updateMods: model9.replacement
+        filter: model28.filter,
+        updateMods: model28.replacement
       };
-      if (model9.hint) {
-        document.hint = model9.hint;
+      if (model28.hint) {
+        document.hint = model28.hint;
       }
-      if (model9.upsert) {
-        document.upsert = model9.upsert;
+      if (model28.upsert) {
+        document.upsert = model28.upsert;
       }
-      if (model9.collation) {
-        document.collation = model9.collation;
+      if (model28.collation) {
+        document.collation = model28.collation;
       }
-      if (model9.sort != null) {
-        document.sort = (0, sort_1.formatSort)(model9.sort);
+      if (model28.sort != null) {
+        document.sort = (0, sort_1.formatSort)(model28.sort);
       }
       return document;
     }, "buildReplaceOneOperation");
     exports2.buildReplaceOneOperation = buildReplaceOneOperation;
-    function buildOperation(model9, index, pkFactory, options) {
-      switch (model9.name) {
+    function buildOperation(model28, index, pkFactory, options) {
+      switch (model28.name) {
         case "insertOne":
-          return (0, exports2.buildInsertOneOperation)(model9, index, pkFactory);
+          return (0, exports2.buildInsertOneOperation)(model28, index, pkFactory);
         case "deleteOne":
-          return (0, exports2.buildDeleteOneOperation)(model9, index);
+          return (0, exports2.buildDeleteOneOperation)(model28, index);
         case "deleteMany":
-          return (0, exports2.buildDeleteManyOperation)(model9, index);
+          return (0, exports2.buildDeleteManyOperation)(model28, index);
         case "updateOne":
-          return (0, exports2.buildUpdateOneOperation)(model9, index, options);
+          return (0, exports2.buildUpdateOneOperation)(model28, index, options);
         case "updateMany":
-          return (0, exports2.buildUpdateManyOperation)(model9, index, options);
+          return (0, exports2.buildUpdateManyOperation)(model28, index, options);
         case "replaceOne":
-          return (0, exports2.buildReplaceOneOperation)(model9, index);
+          return (0, exports2.buildReplaceOneOperation)(model28, index);
       }
     }
     __name(buildOperation, "buildOperation");
@@ -34461,7 +34461,7 @@ var require_collection3 = __commonJS({
     "use strict";
     var MongooseCollection = require_collection();
     var MongooseError = require_mongooseError();
-    var Collection2 = require_lib3().Collection;
+    var Collection3 = require_lib3().Collection;
     var ObjectId2 = require_objectid();
     var getConstructorName = require_getConstructorName();
     var internalToObjectOptions = require_options().internalToObjectOptions;
@@ -34629,12 +34629,12 @@ var require_collection3 = __commonJS({
       };
     }
     __name(iter, "iter");
-    for (const key of Object.getOwnPropertyNames(Collection2.prototype)) {
-      const descriptor = Object.getOwnPropertyDescriptor(Collection2.prototype, key);
+    for (const key of Object.getOwnPropertyNames(Collection3.prototype)) {
+      const descriptor = Object.getOwnPropertyDescriptor(Collection3.prototype, key);
       if (descriptor.get !== void 0) {
         continue;
       }
-      if (typeof Collection2.prototype[key] !== "function") {
+      if (typeof Collection3.prototype[key] !== "function") {
         continue;
       }
       iter(key);
@@ -35553,9 +35553,9 @@ var require_cast = __commonJS({
       /*!
        * ignore
        */
-      setModel(model9) {
+      setModel(model28) {
         this.message = formatMessage(
-          model9,
+          model28,
           this.kind,
           this.value,
           this.path,
@@ -35598,22 +35598,22 @@ var require_cast = __commonJS({
       }
     }
     __name(getMessageFormat, "getMessageFormat");
-    function formatMessage(model9, kind, value, path3, messageFormat, valueType, reason) {
+    function formatMessage(model28, kind, value, path3, messageFormat, valueType, reason) {
       if (typeof messageFormat === "string") {
         const stringValue = getStringValue(value);
         let ret = messageFormat.replace("{KIND}", kind).replace("{VALUE}", stringValue).replace("{PATH}", path3);
-        if (model9 != null) {
-          ret = ret.replace("{MODEL}", model9.modelName);
+        if (model28 != null) {
+          ret = ret.replace("{MODEL}", model28.modelName);
         }
         return ret;
       } else if (typeof messageFormat === "function") {
-        return messageFormat(value, path3, model9, kind);
+        return messageFormat(value, path3, model28, kind);
       } else {
         const stringValue = getStringValue(value);
         const valueTypeMsg = valueType ? " (type " + valueType + ")" : "";
         let ret = "Cast to " + kind + " failed for value " + stringValue + valueTypeMsg + ' at path "' + path3 + '"';
-        if (model9 != null) {
-          ret += ' for model "' + model9.modelName + '"';
+        if (model28 != null) {
+          ret += ' for model "' + model28.modelName + '"';
         }
         if (reason != null && typeof reason.constructor === "function" && reason.constructor.name !== "AssertionError" && reason.constructor.name !== "Error" && reason.constructor.name !== "BSONError") {
           ret += ' because of "' + reason.constructor.name + '"';
@@ -35636,13 +35636,13 @@ var require_notFound = __commonJS({
       static {
         __name(this, "DocumentNotFoundError");
       }
-      constructor(filter, model9, numAffected, result) {
+      constructor(filter, model28, numAffected, result) {
         let msg;
         const messages = MongooseError.messages;
         if (messages.DocumentNotFoundError != null) {
-          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model9) : messages.DocumentNotFoundError;
+          msg = typeof messages.DocumentNotFoundError === "function" ? messages.DocumentNotFoundError(filter, model28) : messages.DocumentNotFoundError;
         } else {
-          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model9 + '"';
+          msg = 'No document found for query "' + util.inspect(filter) + '" on model "' + model28 + '"';
         }
         super(msg);
         this.result = result;
@@ -36368,43 +36368,43 @@ var require_ms = __commonJS({
       }
     }
     __name(parse3, "parse");
-    function fmtShort(ms) {
-      var msAbs = Math.abs(ms);
+    function fmtShort(ms2) {
+      var msAbs = Math.abs(ms2);
       if (msAbs >= d) {
-        return Math.round(ms / d) + "d";
+        return Math.round(ms2 / d) + "d";
       }
       if (msAbs >= h) {
-        return Math.round(ms / h) + "h";
+        return Math.round(ms2 / h) + "h";
       }
       if (msAbs >= m) {
-        return Math.round(ms / m) + "m";
+        return Math.round(ms2 / m) + "m";
       }
       if (msAbs >= s) {
-        return Math.round(ms / s) + "s";
+        return Math.round(ms2 / s) + "s";
       }
-      return ms + "ms";
+      return ms2 + "ms";
     }
     __name(fmtShort, "fmtShort");
-    function fmtLong(ms) {
-      var msAbs = Math.abs(ms);
+    function fmtLong(ms2) {
+      var msAbs = Math.abs(ms2);
       if (msAbs >= d) {
-        return plural2(ms, msAbs, d, "day");
+        return plural2(ms2, msAbs, d, "day");
       }
       if (msAbs >= h) {
-        return plural2(ms, msAbs, h, "hour");
+        return plural2(ms2, msAbs, h, "hour");
       }
       if (msAbs >= m) {
-        return plural2(ms, msAbs, m, "minute");
+        return plural2(ms2, msAbs, m, "minute");
       }
       if (msAbs >= s) {
-        return plural2(ms, msAbs, s, "second");
+        return plural2(ms2, msAbs, s, "second");
       }
-      return ms + " ms";
+      return ms2 + " ms";
     }
     __name(fmtLong, "fmtLong");
-    function plural2(ms, msAbs, n, name) {
+    function plural2(ms2, msAbs, n, name) {
       var isPlural = msAbs >= n * 1.5;
-      return Math.round(ms / n) + " " + name + (isPlural ? "s" : "");
+      return Math.round(ms2 / n) + " " + name + (isPlural ? "s" : "");
     }
     __name(plural2, "plural");
   }
@@ -37497,7 +37497,7 @@ var require_compile = __commonJS({
     var documentSchemaSymbol = require_symbols().documentSchemaSymbol;
     var internalToObjectOptions = require_options().internalToObjectOptions;
     var utils = require_utils3();
-    var Document5;
+    var Document24;
     var getSymbol = require_symbols().getSymbol;
     var scopeSymbol = require_symbols().scopeSymbol;
     var isPOJO = utils.isPOJO;
@@ -37513,7 +37513,7 @@ var require_compile = __commonJS({
       noDottedPath: true
     });
     function compile2(tree, proto, prefix, options) {
-      Document5 = Document5 || require_document2();
+      Document24 = Document24 || require_document2();
       const typeKey = options.typeKey;
       for (const key of Object.keys(tree)) {
         const limb = tree[key];
@@ -37524,7 +37524,7 @@ var require_compile = __commonJS({
     }
     __name(compile2, "compile");
     function defineKey({ prop, subprops, prototype, prefix, options }) {
-      Document5 = Document5 || require_document2();
+      Document24 = Document24 || require_document2();
       const path3 = (prefix ? prefix + "." : "") + prop;
       prefix = prefix || "";
       const useGetOptions = prefix ? Object.freeze({}) : noDottedPathGetOptions;
@@ -37541,7 +37541,7 @@ var require_compile = __commonJS({
               this.$__.getters = {};
             }
             if (!this.$__.getters[path3]) {
-              const nested = Object.create(Document5.prototype, getOwnPropertyDescriptors(this));
+              const nested = Object.create(Document24.prototype, getOwnPropertyDescriptors(this));
               if (!prefix) {
                 nested.$__[scopeSymbol] = this;
               }
@@ -37622,7 +37622,7 @@ var require_compile = __commonJS({
           set: /* @__PURE__ */ __name(function(v) {
             if (v?.$__isNested) {
               v = v.$__get();
-            } else if (v instanceof Document5 && !v.$__isNested) {
+            } else if (v instanceof Document24 && !v.$__isNested) {
               v = v.$toObject(internalToObjectOptions);
             }
             const doc = this.$__[scopeSymbol] || this;
@@ -38185,9 +38185,9 @@ var require_queryHelpers = __commonJS({
       }
       return pop;
     }, "preparePopulationOptionsMQ");
-    exports2.createModel = /* @__PURE__ */ __name(function createModel(model9, doc, fields, userProvidedFields, options) {
-      model9.hooks.execPreSync("createModel", doc);
-      const discriminatorMapping = model9.schema ? model9.schema.discriminatorMapping : null;
+    exports2.createModel = /* @__PURE__ */ __name(function createModel(model28, doc, fields, userProvidedFields, options) {
+      model28.hooks.execPreSync("createModel", doc);
+      const discriminatorMapping = model28.schema ? model28.schema.discriminatorMapping : null;
       const key = discriminatorMapping?.isRoot ? discriminatorMapping.key : null;
       const _opts = {
         skipId: true,
@@ -38201,17 +38201,17 @@ var require_queryHelpers = __commonJS({
         _opts.strict = options.strict;
       }
       const value = doc[key];
-      if (key && value && model9.discriminators) {
-        const discriminator = getDiscriminatorByKey(model9.discriminators, value) || getDiscriminatorByValue(model9.discriminators, value);
+      if (key && value && model28.discriminators) {
+        const discriminator = getDiscriminatorByKey(model28.discriminators, value) || getDiscriminatorByValue(model28.discriminators, value);
         if (discriminator) {
           const _fields = clone2(userProvidedFields);
           exports2.applyPaths(_fields, discriminator.schema);
           return new discriminator(void 0, _fields, _opts);
         }
       }
-      return new model9(void 0, fields, _opts);
+      return new model28(void 0, fields, _opts);
     }, "createModel");
-    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model9, doc, fields, userProvidedFields, options, populatedIds, callback) {
+    exports2.createModelAndInit = /* @__PURE__ */ __name(function createModelAndInit(model28, doc, fields, userProvidedFields, options, populatedIds, callback) {
       const initOpts = {};
       if (populatedIds) {
         initOpts.populated = populatedIds;
@@ -38219,7 +38219,7 @@ var require_queryHelpers = __commonJS({
       if (options?.middleware != null) {
         initOpts.middleware = options.middleware;
       }
-      const casted = exports2.createModel(model9, doc, fields, userProvidedFields, options);
+      const casted = exports2.createModel(model28, doc, fields, userProvidedFields, options);
       try {
         casted.$init(doc, initOpts, callback);
       } catch (error62) {
@@ -38553,7 +38553,7 @@ var require_toObjectRecursive = __commonJS({
 var require_subdocument = __commonJS({
   "node_modules/mongoose/lib/types/subdocument.js"(exports2, module2) {
     "use strict";
-    var Document5 = require_document2();
+    var Document24 = require_document2();
     var internalToObjectOptions = require_options().internalToObjectOptions;
     var util = require("util");
     var utils = require_utils3();
@@ -38569,11 +38569,11 @@ var require_subdocument = __commonJS({
       if (options?.path != null) {
         this.$basePath = options.path;
       }
-      Document5.call(this, value, fields, options);
+      Document24.call(this, value, fields, options);
       delete this.$__.priorDoc;
     }
     __name(Subdocument, "Subdocument");
-    Subdocument.prototype = Object.create(Document5.prototype);
+    Subdocument.prototype = Object.create(Document24.prototype);
     Object.defineProperty(Subdocument.prototype, "$isSubdocument", {
       configurable: false,
       writable: false,
@@ -38624,10 +38624,10 @@ var require_subdocument = __commonJS({
       if (parent != null && fullPath != null) {
         return parent.$isValid(fullPath);
       }
-      return Document5.prototype.$isValid.call(this, path3);
+      return Document24.prototype.$isValid.call(this, path3);
     };
     Subdocument.prototype.markModified = function(path3) {
-      Document5.prototype.markModified.call(this, path3);
+      Document24.prototype.markModified.call(this, path3);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path3);
       if (parent == null || fullPath == null) {
@@ -38650,10 +38650,10 @@ var require_subdocument = __commonJS({
         }
         return parent.$isModified(paths, options, modifiedPaths);
       }
-      return Document5.prototype.isModified.call(this, paths, options, modifiedPaths);
+      return Document24.prototype.isModified.call(this, paths, options, modifiedPaths);
     };
     Subdocument.prototype.$markValid = function(path3) {
-      Document5.prototype.$markValid.call(this, path3);
+      Document24.prototype.$markValid.call(this, path3);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
@@ -38661,7 +38661,7 @@ var require_subdocument = __commonJS({
       }
     };
     Subdocument.prototype.invalidate = function(path3, err, val) {
-      Document5.prototype.invalidate.call(this, path3, err, val);
+      Document24.prototype.invalidate.call(this, path3, err, val);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
@@ -38672,7 +38672,7 @@ var require_subdocument = __commonJS({
       return this.ownerDocument().$__.validationError;
     };
     Subdocument.prototype.$ignore = function(path3) {
-      Document5.prototype.$ignore.call(this, path3);
+      Document24.prototype.$ignore.call(this, path3);
       const parent = this.$parent();
       const fullPath = this.$__pathRelativeToParent(path3);
       if (parent != null && fullPath != null) {
@@ -38755,7 +38755,7 @@ var require_subdocument = __commonJS({
       Subdocument.prototype[util.inspect.custom] = Subdocument.prototype.inspect;
     }
     Subdocument.prototype.$toObject = /* @__PURE__ */ __name(function $toObject(options, json2) {
-      const ret = Document5.prototype.$toObject.call(this, options, json2);
+      const ret = Document24.prototype.$toObject.call(this, options, json2);
       if (utils.hasOwnKeys(ret) === false && options?._calledWithOptions != null) {
         const minimize = options._calledWithOptions?.minimize ?? this?.$__schemaTypeOptions?.minimize ?? options.minimize;
         if (minimize && !this.constructor.$__required && !this.$isDocumentArrayElement) {
@@ -38884,7 +38884,7 @@ var require_arraySubdocument = __commonJS({
 var require_methods = __commonJS({
   "node_modules/mongoose/lib/types/array/methods/index.js"(exports2, module2) {
     "use strict";
-    var Document5 = require_document2();
+    var Document24 = require_document2();
     var ArraySubdocument = require_arraySubdocument();
     var MongooseError = require_mongooseError();
     var cleanModifiedSubpaths = require_cleanModifiedSubpaths();
@@ -39431,7 +39431,7 @@ var require_methods = __commonJS({
         this._markModified();
         while (i--) {
           mem = cur[i];
-          if (mem instanceof Document5) {
+          if (mem instanceof Document24) {
             const some = values.some(function(v) {
               return mem.equals(v);
             });
@@ -39670,7 +39670,7 @@ var require_methods = __commonJS({
           options = clone2(options);
           options._isNested = true;
           return [].concat(arr).map(function(doc) {
-            return doc instanceof Document5 ? doc.toObject(options) : doc;
+            return doc instanceof Document24 ? doc.toObject(options) : doc;
           });
         }
         return [].concat(arr);
@@ -39712,8 +39712,8 @@ var require_methods = __commonJS({
         if (arg == null) {
           return false;
         }
-        const model9 = arg.constructor;
-        if (!(arg instanceof Document5) || model9.modelName !== ref && model9.baseModelName !== ref) {
+        const model28 = arg.constructor;
+        if (!(arg instanceof Document24) || model28.modelName !== ref && model28.baseModelName !== ref) {
           return false;
         }
       }
@@ -39795,7 +39795,7 @@ var require_methods2 = __commonJS({
   "node_modules/mongoose/lib/types/documentArray/methods/index.js"(exports2, module2) {
     "use strict";
     var ArrayMethods = require_methods();
-    var Document5 = require_document2();
+    var Document24 = require_document2();
     var getDiscriminatorByKey = require_getDiscriminatorByKey();
     var getDiscriminatorByValue = require_getDiscriminatorByValue();
     var internalToObjectOptions = require_options().internalToObjectOptions;
@@ -39919,7 +39919,7 @@ var require_methods2 = __commonJS({
           _id = val.get("_id");
           if (_id == null) {
             continue;
-          } else if (_id instanceof Document5) {
+          } else if (_id instanceof Document24) {
             _id = _id.get("_id");
             if (castedId != null && utils.deepEqual(castedId, _id)) {
               return val;
@@ -40306,7 +40306,7 @@ var require_document2 = __commonJS({
     var ObjectParameterError = require_objectParameter();
     var ParallelValidateError = require_parallelValidate();
     var PathTrie = require_pathTrie();
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var StrictModeError = require_strict();
     var ValidationError = require_validation();
     var ValidatorError = require_validator();
@@ -40358,7 +40358,7 @@ var require_document2 = __commonJS({
     var VERSION_WHERE = 1;
     var VERSION_INC = 2;
     var VERSION_ALL = VERSION_WHERE | VERSION_INC;
-    function Document5(obj, fields, options) {
+    function Document24(obj, fields, options) {
       if (typeof options === "boolean") {
         throw new Error("The skipId parameter has been removed. Use { skipId: true } in the options parameter instead.");
       }
@@ -40366,7 +40366,7 @@ var require_document2 = __commonJS({
       let skipId = options.skipId;
       this.$__ = new InternalCache();
       if (this.$__schema == null) {
-        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema9(fields) : fields;
+        const _schema = utils.isObject(fields) && !fields.instanceOfSchema ? new Schema28(fields) : fields;
         this.$__setSchema(_schema);
         fields = options;
         skipId = options.skipId;
@@ -40423,7 +40423,7 @@ var require_document2 = __commonJS({
         } else {
           this.$set(obj, void 0, true, options);
         }
-        if (obj.$__ != null && obj instanceof Document5) {
+        if (obj.$__ != null && obj instanceof Document24) {
           this.$isNew = obj.$isNew;
         }
       }
@@ -40445,9 +40445,9 @@ var require_document2 = __commonJS({
       }
       applyQueue(this);
     }
-    __name(Document5, "Document");
-    Document5.prototype.$isMongooseDocumentPrototype = true;
-    Object.defineProperty(Document5.prototype, "isNew", {
+    __name(Document24, "Document");
+    Document24.prototype.$isMongooseDocumentPrototype = true;
+    Object.defineProperty(Document24.prototype, "isNew", {
       get: /* @__PURE__ */ __name(function() {
         return this.$isNew;
       }, "get"),
@@ -40455,7 +40455,7 @@ var require_document2 = __commonJS({
         this.$isNew = value;
       }, "set")
     });
-    Object.defineProperty(Document5.prototype, "errors", {
+    Object.defineProperty(Document24.prototype, "errors", {
       get: /* @__PURE__ */ __name(function() {
         return this.$errors;
       }, "get"),
@@ -40463,7 +40463,7 @@ var require_document2 = __commonJS({
         this.$errors = value;
       }, "set")
     });
-    Document5.prototype.$isNew = true;
+    Document24.prototype.$isNew = true;
     utils.each(
       [
         "on",
@@ -40476,7 +40476,7 @@ var require_document2 = __commonJS({
         "addListener"
       ],
       function(emitterFn) {
-        Document5.prototype[emitterFn] = function() {
+        Document24.prototype[emitterFn] = function() {
           if (!this.$__.emitter) {
             if (emitterFn === "emit") {
               return;
@@ -40486,16 +40486,16 @@ var require_document2 = __commonJS({
           }
           return this.$__.emitter[emitterFn].apply(this.$__.emitter, arguments);
         };
-        Document5.prototype[`$${emitterFn}`] = Document5.prototype[emitterFn];
+        Document24.prototype[`$${emitterFn}`] = Document24.prototype[emitterFn];
       }
     );
-    Document5.prototype.constructor = Document5;
+    Document24.prototype.constructor = Document24;
     for (const i in EventEmitter9.prototype) {
-      Document5[i] = EventEmitter9.prototype[i];
+      Document24[i] = EventEmitter9.prototype[i];
     }
-    Document5.prototype.$__schema;
-    Document5.prototype.schema;
-    Object.defineProperty(Document5.prototype, "$locals", {
+    Document24.prototype.$__schema;
+    Document24.prototype.schema;
+    Object.defineProperty(Document24.prototype, "$locals", {
       configurable: false,
       enumerable: false,
       get: /* @__PURE__ */ __name(function() {
@@ -40508,15 +40508,15 @@ var require_document2 = __commonJS({
         this.$__.locals = v;
       }, "set")
     });
-    Document5.prototype.isNew;
-    Object.defineProperty(Document5.prototype, "$where", {
+    Document24.prototype.isNew;
+    Object.defineProperty(Document24.prototype, "$where", {
       configurable: false,
       enumerable: false,
       writable: true
     });
-    Document5.prototype.id;
-    Document5.prototype.$errors;
-    Object.defineProperty(Document5.prototype, "$op", {
+    Document24.prototype.id;
+    Document24.prototype.$errors;
+    Object.defineProperty(Document24.prototype, "$op", {
       get: /* @__PURE__ */ __name(function() {
         return this.$__.op || null;
       }, "get"),
@@ -40571,7 +40571,7 @@ var require_document2 = __commonJS({
       }
     }
     __name($applyDefaultsToNested, "$applyDefaultsToNested");
-    Document5.prototype.$__buildDoc = function(obj, fields, skipId, exclude, hasIncludedChildren) {
+    Document24.prototype.$__buildDoc = function(obj, fields, skipId, exclude, hasIncludedChildren) {
       if (!utils.hasOwnKeys(this.$__schema.nested)) {
         this._doc = {};
         return;
@@ -40619,10 +40619,10 @@ var require_document2 = __commonJS({
       }
       this._doc = doc;
     };
-    Document5.prototype.toBSON = function() {
+    Document24.prototype.toBSON = function() {
       return this.toObject(internalToObjectOptions);
     };
-    Document5.prototype.init = function(doc, opts, fn) {
+    Document24.prototype.init = function(doc, opts, fn) {
       if (typeof opts === "function") {
         fn = opts;
         opts = null;
@@ -40636,10 +40636,10 @@ var require_document2 = __commonJS({
       }
       return this;
     };
-    Document5.prototype.$init = function() {
+    Document24.prototype.$init = function() {
       return this.constructor.prototype.init.apply(this, arguments);
     };
-    Document5.prototype.$__init = function(doc, opts) {
+    Document24.prototype.$__init = function(doc, opts) {
       if (doc == null) {
         throw new ObjectParameterError(doc, "doc", "init");
       }
@@ -40777,7 +40777,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(init, "init");
-    Document5.prototype.updateOne = /* @__PURE__ */ __name(function updateOne(update, options) {
+    Document24.prototype.updateOne = /* @__PURE__ */ __name(function updateOne(update, options) {
       const query = this.constructor.updateOne();
       const self2 = this;
       query.pre(/* @__PURE__ */ __name(async function queryPreUpdateOne() {
@@ -40801,12 +40801,12 @@ var require_document2 = __commonJS({
       }, "queryPostUpdateOne"));
       return query;
     }, "updateOne");
-    Document5.prototype.replaceOne = /* @__PURE__ */ __name(function replaceOne() {
+    Document24.prototype.replaceOne = /* @__PURE__ */ __name(function replaceOne() {
       const args = [...arguments];
       args.unshift({ _id: this._doc._id });
       return this.constructor.replaceOne.apply(this.constructor, args);
     }, "replaceOne");
-    Document5.prototype.$session = /* @__PURE__ */ __name(function $session(session) {
+    Document24.prototype.$session = /* @__PURE__ */ __name(function $session(session) {
       if (arguments.length === 0) {
         if (this.$__.session?.hasEnded) {
           this.$__.session = null;
@@ -40829,7 +40829,7 @@ var require_document2 = __commonJS({
       }
       return session;
     }, "$session");
-    Document5.prototype.$timestamps = /* @__PURE__ */ __name(function $timestamps(value) {
+    Document24.prototype.$timestamps = /* @__PURE__ */ __name(function $timestamps(value) {
       if (arguments.length === 0) {
         if (this.$__.timestamps != null) {
           return this.$__.timestamps;
@@ -40845,7 +40845,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$timestamps");
-    Document5.prototype.overwrite = /* @__PURE__ */ __name(function overwrite(obj) {
+    Document24.prototype.overwrite = /* @__PURE__ */ __name(function overwrite(obj) {
       const keys = new Set(Object.keys(this._doc));
       for (const key of Object.keys(obj)) {
         keys.add(key);
@@ -40865,7 +40865,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "overwrite");
-    Document5.prototype.$set = /* @__PURE__ */ __name(function $set(path3, val, type, options) {
+    Document24.prototype.$set = /* @__PURE__ */ __name(function $set(path3, val, type, options) {
       if (utils.isPOJO(type)) {
         options = type;
         type = void 0;
@@ -40888,7 +40888,7 @@ var require_document2 = __commonJS({
       if (path3 == null) {
         [path3, val] = [val, path3];
       } else if (typeof path3 !== "string") {
-        if (path3 instanceof Document5) {
+        if (path3 instanceof Document24) {
           if (path3.$__isNested) {
             path3 = path3.toObject();
           } else {
@@ -40933,7 +40933,7 @@ var require_document2 = __commonJS({
             }
             if (pathtype === "real" || pathtype === "virtual") {
               this.$set(pathName, valForKey, constructing, options);
-            } else if (pathtype === "nested" && valForKey instanceof Document5) {
+            } else if (pathtype === "nested" && valForKey instanceof Document24) {
               this.$set(
                 pathName,
                 valForKey.toObject({ transform: false }),
@@ -41100,7 +41100,7 @@ var require_document2 = __commonJS({
         _markValidSubpaths(this, path3);
       }
       if (val != null && merge2 && schema.$isSingleNested) {
-        if (val instanceof Document5) {
+        if (val instanceof Document24) {
           val = val.toObject({ virtuals: false, transform: false });
         }
         const keys2 = Object.keys(val);
@@ -41111,14 +41111,14 @@ var require_document2 = __commonJS({
       }
       let shouldSet = true;
       try {
-        const refMatches = !(val instanceof Document5) ? false : (() => {
+        const refMatches = !(val instanceof Document24) ? false : (() => {
           if (schema.options == null) {
             return false;
           }
-          const model9 = val.constructor;
+          const model28 = val.constructor;
           const refOpt = typeof schema.options.ref === "function" && !schema.options.ref[modelSymbol] ? schema.options.ref.call(this, this) : schema.options.ref;
           const ref = refOpt?.modelName || refOpt;
-          if (ref != null && (ref === model9.modelName || ref === model9.baseModelName)) {
+          if (ref != null && (ref === model28.modelName || ref === model28.baseModelName)) {
             return true;
           }
           let refPath = schema.options.refPath;
@@ -41137,10 +41137,10 @@ var require_document2 = __commonJS({
             throw new MongooseError("`refPath` must be a string or a function that returns a string, got " + inspect(refPath));
           }
           const modelName = this.ownerDocument().get(refPath);
-          return modelName === model9.modelName || modelName === model9.baseModelName;
+          return modelName === model28.modelName || modelName === model28.baseModelName;
         })();
         let didPopulate = false;
-        if (refMatches && val instanceof Document5 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
+        if (refMatches && val instanceof Document24 && (!val.$__.wasPopulated || utils.deepEqual(val.$__.wasPopulated.value, val._doc._id))) {
           const unpopulatedValue = schema?.$isSingleNested ? schema.cast(val, this) : val._doc._id;
           this.$populated(path3, unpopulatedValue, { [populateModelSymbol]: val.constructor });
           val.$__.wasPopulated = { value: unpopulatedValue };
@@ -41183,7 +41183,7 @@ var require_document2 = __commonJS({
         if (!didPopulate && this.$__.populated) {
           if (Array.isArray(val) && this.$__.populated[path3]) {
             for (let i2 = 0; i2 < val.length; ++i2) {
-              if (val[i2] instanceof Document5) {
+              if (val[i2] instanceof Document24) {
                 val.set(i2, val[i2]._doc._id, true);
               }
             }
@@ -41244,7 +41244,7 @@ var require_document2 = __commonJS({
         return false;
       }
       for (const el of val) {
-        if (!(el instanceof Document5)) {
+        if (!(el instanceof Document24)) {
           return false;
         }
         const modelName = el.constructor.modelName;
@@ -41258,8 +41258,8 @@ var require_document2 = __commonJS({
       return true;
     }
     __name(_isManuallyPopulatedArray, "_isManuallyPopulatedArray");
-    Document5.prototype.set = Document5.prototype.$set;
-    Document5.prototype.$__shouldModify = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
+    Document24.prototype.set = Document24.prototype.$set;
+    Document24.prototype.$__shouldModify = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
       if (options?._skipMarkModified) {
         return false;
       }
@@ -41275,7 +41275,7 @@ var require_document2 = __commonJS({
       if (val === void 0 && path3 in this.$__.activePaths.getStatePaths("default")) {
         return false;
       }
-      if (this.$populated(path3) && val instanceof Document5 && deepEqual(val._doc._id, priorVal)) {
+      if (this.$populated(path3) && val instanceof Document24 && deepEqual(val._doc._id, priorVal)) {
         return false;
       }
       if (!deepEqual(val, priorVal !== void 0 ? priorVal : utils.getValue(path3, this))) {
@@ -41286,7 +41286,7 @@ var require_document2 = __commonJS({
       }
       return false;
     };
-    Document5.prototype.$__set = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
+    Document24.prototype.$__set = function(pathToMark, path3, options, constructing, parts, schema, val, priorVal) {
       Embedded = Embedded || require_arraySubdocument();
       const shouldModify = this.$isNew && !options?._skipMarkModified ? true : this.$__shouldModify(pathToMark, path3, options, constructing, parts, schema, val, priorVal);
       if (shouldModify) {
@@ -41371,7 +41371,7 @@ var require_document2 = __commonJS({
         }
       }
     };
-    Document5.prototype.$__getValue = function(path3) {
+    Document24.prototype.$__getValue = function(path3) {
       if (typeof path3 !== "string" && !Array.isArray(path3)) {
         throw new TypeError(
           `Invalid \`path\`. Must be either string or array. Got "${path3}" (type ${typeof path3})`
@@ -41379,7 +41379,7 @@ var require_document2 = __commonJS({
       }
       return utils.getValue(path3, this._doc);
     };
-    Document5.prototype.$inc = /* @__PURE__ */ __name(function $inc(path3, val) {
+    Document24.prototype.$inc = /* @__PURE__ */ __name(function $inc(path3, val) {
       if (val == null) {
         val = 1;
       }
@@ -41422,7 +41422,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$inc");
-    Document5.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path3, val) {
+    Document24.prototype.$__setValue = /* @__PURE__ */ __name(function $__setValue(path3, val) {
       if (Array.isArray(path3) && path3.length === 1) {
         this._doc[path3[0]] = val;
         return this;
@@ -41430,7 +41430,7 @@ var require_document2 = __commonJS({
       utils.setValue(path3, val, this._doc);
       return this;
     }, "$__setValue");
-    Document5.prototype.get = function(path3, type, options) {
+    Document24.prototype.get = function(path3, type, options) {
       let adhoc;
       if (options == null) {
         options = {};
@@ -41495,9 +41495,9 @@ var require_document2 = __commonJS({
       }
       return obj;
     };
-    Document5.prototype[getSymbol] = Document5.prototype.get;
-    Document5.prototype.$get = Document5.prototype.get;
-    Document5.prototype.$__path = function(path3) {
+    Document24.prototype[getSymbol] = Document24.prototype.get;
+    Document24.prototype.$get = Document24.prototype.get;
+    Document24.prototype.$__path = function(path3) {
       const adhocs = this.$__.adhocPaths;
       const adhocType = adhocs && Object.hasOwn(adhocs, path3) ? adhocs[path3] : null;
       if (adhocType) {
@@ -41505,7 +41505,7 @@ var require_document2 = __commonJS({
       }
       return this.$__schema.path(path3);
     };
-    Document5.prototype.markModified = function(path3, scope) {
+    Document24.prototype.markModified = function(path3, scope) {
       this.$__saveInitialState(path3);
       this.$__.activePaths.modify(path3);
       if (scope != null && !this.$isSubdocument) {
@@ -41513,7 +41513,7 @@ var require_document2 = __commonJS({
         this.$__.pathsToScopes[path3] = scope;
       }
     };
-    Document5.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path3) {
+    Document24.prototype.$__saveInitialState = /* @__PURE__ */ __name(function $__saveInitialState(path3) {
       const savedState = this.$__.savedState;
       const savedStatePath = path3;
       if (savedState != null) {
@@ -41524,19 +41524,19 @@ var require_document2 = __commonJS({
         }
       }
     }, "$__saveInitialState");
-    Document5.prototype.unmarkModified = function(path3) {
+    Document24.prototype.unmarkModified = function(path3) {
       this.$__.activePaths.init(path3);
       if (this.$__.pathsToScopes != null) {
         delete this.$__.pathsToScopes[path3];
       }
     };
-    Document5.prototype.$ignore = function(path3) {
+    Document24.prototype.$ignore = function(path3) {
       this.$__.activePaths.ignore(path3);
     };
-    Document5.prototype.directModifiedPaths = function() {
+    Document24.prototype.directModifiedPaths = function() {
       return Object.keys(this.$__.activePaths.getStatePaths("modify"));
     };
-    Document5.prototype.$isEmpty = function(path3) {
+    Document24.prototype.$isEmpty = function(path3) {
       const isEmptyOptions = {
         minimize: true,
         virtuals: false,
@@ -41573,7 +41573,7 @@ var require_document2 = __commonJS({
       return true;
     }
     __name(_isEmpty, "_isEmpty");
-    Document5.prototype.modifiedPaths = function(options) {
+    Document24.prototype.modifiedPaths = function(options) {
       options = options || {};
       const directModifiedPaths = Object.keys(this.$__.activePaths.getStatePaths("modify"));
       const result = /* @__PURE__ */ new Set();
@@ -41624,8 +41624,8 @@ var require_document2 = __commonJS({
       }
       return Array.from(result);
     };
-    Document5.prototype[documentModifiedPaths] = Document5.prototype.modifiedPaths;
-    Document5.prototype.isModified = function(paths, options, modifiedPaths) {
+    Document24.prototype[documentModifiedPaths] = Document24.prototype.modifiedPaths;
+    Document24.prototype.isModified = function(paths, options, modifiedPaths) {
       if (paths) {
         const ignoreAtomics = options?.ignoreAtomics;
         const directModifiedPathsObj = this.$__.activePaths.states.modify;
@@ -41662,9 +41662,9 @@ var require_document2 = __commonJS({
       }
       return this.$__.activePaths.some("modify");
     };
-    Document5.prototype.$isModified = Document5.prototype.isModified;
-    Document5.prototype[documentIsModified] = Document5.prototype.isModified;
-    Document5.prototype.$isDefault = function(path3) {
+    Document24.prototype.$isModified = Document24.prototype.isModified;
+    Document24.prototype[documentIsModified] = Document24.prototype.isModified;
+    Document24.prototype.$isDefault = function(path3) {
       if (path3 == null) {
         return this.$__.activePaths.some("default");
       }
@@ -41677,14 +41677,14 @@ var require_document2 = __commonJS({
       }
       return paths.some((path4) => Object.hasOwn(this.$__.activePaths.getStatePaths("default"), path4));
     };
-    Document5.prototype.$isDeleted = function(val) {
+    Document24.prototype.$isDeleted = function(val) {
       if (arguments.length === 0) {
         return !!this.$__.isDeleted;
       }
       this.$__.isDeleted = !!val;
       return this;
     };
-    Document5.prototype.isDirectModified = function(path3) {
+    Document24.prototype.isDirectModified = function(path3) {
       if (path3 == null) {
         return this.$__.activePaths.some("modify");
       }
@@ -41709,7 +41709,7 @@ var require_document2 = __commonJS({
       }
       return paths.some((path4) => this.isDirectModified(path4));
     };
-    Document5.prototype.isInit = function(path3) {
+    Document24.prototype.isInit = function(path3) {
       if (path3 == null) {
         return this.$__.activePaths.some("init");
       }
@@ -41722,7 +41722,7 @@ var require_document2 = __commonJS({
       }
       return paths.some((path4) => Object.hasOwn(this.$__.activePaths.getStatePaths("init"), path4));
     };
-    Document5.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path3) {
+    Document24.prototype.isSelected = /* @__PURE__ */ __name(function isSelected(path3) {
       if (this.$__.selected == null) {
         return true;
       }
@@ -41802,8 +41802,8 @@ var require_document2 = __commonJS({
       };
     }
     __name(_getProjectionIndex, "_getProjectionIndex");
-    Document5.prototype.$__isSelected = Document5.prototype.isSelected;
-    Document5.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path3) {
+    Document24.prototype.$__isSelected = Document24.prototype.isSelected;
+    Document24.prototype.isDirectSelected = /* @__PURE__ */ __name(function isDirectSelected(path3) {
       if (this.$__.selected == null) {
         return true;
       }
@@ -41828,7 +41828,7 @@ var require_document2 = __commonJS({
       }
       return !index.inclusive;
     }, "isDirectSelected");
-    Document5.prototype.validate = /* @__PURE__ */ __name(async function validate2(pathsToValidate, options) {
+    Document24.prototype.validate = /* @__PURE__ */ __name(async function validate2(pathsToValidate, options) {
       if (typeof pathsToValidate === "function" || typeof options === "function" || typeof arguments[2] === "function") {
         throw new MongooseError("Document.prototype.validate() no longer accepts a callback");
       }
@@ -41990,7 +41990,7 @@ var require_document2 = __commonJS({
         this.$__.validating = null;
       }
     }, "validate");
-    Document5.prototype.$validate = Document5.prototype.validate;
+    Document24.prototype.$validate = Document24.prototype.validate;
     function _completeValidate(doc) {
       let error62 = doc.$__.validationError;
       doc.$__.validationError = null;
@@ -42310,11 +42310,11 @@ var require_document2 = __commonJS({
       }
     }
     __name(_pushNestedArrayPaths, "_pushNestedArrayPaths");
-    Document5.prototype._execDocumentPreHooks = /* @__PURE__ */ __name(function _execDocumentPreHooks(opName, options, argsForHooks) {
+    Document24.prototype._execDocumentPreHooks = /* @__PURE__ */ __name(function _execDocumentPreHooks(opName, options, argsForHooks) {
       const filter = buildMiddlewareFilter(options, "pre");
       return this.$__middleware.execPre(opName, this, argsForHooks || [], { filter });
     }, "_execDocumentPreHooks");
-    Document5.prototype._execDocumentPostHooks = /* @__PURE__ */ __name(function _execDocumentPostHooks(opName, options, error62) {
+    Document24.prototype._execDocumentPostHooks = /* @__PURE__ */ __name(function _execDocumentPostHooks(opName, options, error62) {
       const filter = buildMiddlewareFilter(options, "post");
       return this.$__middleware.execPost(opName, this, [this], { error: error62, filter });
     }, "_execDocumentPostHooks");
@@ -42361,11 +42361,11 @@ var require_document2 = __commonJS({
       return paths;
     }
     __name(_handlePathsToSkip, "_handlePathsToSkip");
-    Document5.prototype.validateSync = function() {
+    Document24.prototype.validateSync = function() {
       utils.warn("Mongoose: `Document.prototype.validateSync()` is deprecated and will be removed in Mongoose 10. Use `Document.prototype.validate()` instead.");
       return this.$__validateSync.apply(this, arguments);
     };
-    Document5.prototype.$__validateSync = function(pathsToValidate, options) {
+    Document24.prototype.$__validateSync = function(pathsToValidate, options) {
       const _this = this;
       if (arguments.length === 1 && typeof arguments[0] === "object" && !Array.isArray(arguments[0])) {
         options = arguments[0];
@@ -42448,7 +42448,7 @@ var require_document2 = __commonJS({
       }
       return err;
     };
-    Document5.prototype.invalidate = function(path3, err, val, kind) {
+    Document24.prototype.invalidate = function(path3, err, val, kind) {
       if (!this.$__.validationError) {
         this.$__.validationError = new ValidationError(this);
       }
@@ -42475,7 +42475,7 @@ var require_document2 = __commonJS({
       this.$__.validationError.addError(path3, err);
       return this.$__.validationError;
     };
-    Document5.prototype.$markValid = function(path3) {
+    Document24.prototype.$markValid = function(path3) {
       if (!this.$__.validationError?.errors[path3]) {
         return;
       }
@@ -42514,7 +42514,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(_checkImmutableSubpaths, "_checkImmutableSubpaths");
-    Document5.prototype.$isValid = function(path3) {
+    Document24.prototype.$isValid = function(path3) {
       if (this.$__.validationError == null || utils.hasOwnKeys(this.$__.validationError.errors) === false) {
         return true;
       }
@@ -42529,7 +42529,7 @@ var require_document2 = __commonJS({
       }
       return this.$__.validationError.errors[path3] == null;
     };
-    Document5.prototype.$__reset = /* @__PURE__ */ __name(function reset(skipBackup, hasOnlyPrimitiveValues) {
+    Document24.prototype.$__reset = /* @__PURE__ */ __name(function reset(skipBackup, hasOnlyPrimitiveValues) {
       hasOnlyPrimitiveValues = hasOnlyPrimitiveValues ?? this.$__hasOnlyPrimitiveValues();
       const subdocs = !this.$isSubdocument && !hasOnlyPrimitiveValues ? this.$getAllSubdocs({ useCache: true }) : null;
       if (subdocs?.length > 0) {
@@ -42561,7 +42561,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "reset");
-    Document5.prototype.$__resetAtomics = /* @__PURE__ */ __name(function $__resetAtomics() {
+    Document24.prototype.$__resetAtomics = /* @__PURE__ */ __name(function $__resetAtomics() {
       const activePaths = this.$__.activePaths;
       const modifyPaths = activePaths.getStatePaths("modify");
       const defaultPaths = activePaths.getStatePaths("default");
@@ -42586,7 +42586,7 @@ var require_document2 = __commonJS({
       }
     }
     __name(_clearAtomicsOnPaths, "_clearAtomicsOnPaths");
-    Document5.prototype.$__undoReset = /* @__PURE__ */ __name(function $__undoReset() {
+    Document24.prototype.$__undoReset = /* @__PURE__ */ __name(function $__undoReset() {
       if (this.$__.backup?.activePaths == null) {
         return;
       }
@@ -42606,7 +42606,7 @@ var require_document2 = __commonJS({
         }
       }
     }, "$__undoReset");
-    Document5.prototype.$__dirty = function() {
+    Document24.prototype.$__dirty = function() {
       const _this = this;
       let all = this.$__.activePaths.map("modify", function(path3) {
         return {
@@ -42650,7 +42650,7 @@ var require_document2 = __commonJS({
       });
       return minimal;
     };
-    Document5.prototype.$__setSchema = function(schema) {
+    Document24.prototype.$__setSchema = function(schema) {
       compile2(schema.tree, this, void 0, schema.options);
       for (const key of Object.keys(schema.virtuals)) {
         schema.virtuals[key]._applyDefaultGetters();
@@ -42662,7 +42662,7 @@ var require_document2 = __commonJS({
       this.$__middleware = schema._getDocumentMiddleware(this.$isSubdocument);
       this[documentSchemaSymbol] = schema;
     };
-    Document5.prototype.$__getArrayPathsToValidate = function() {
+    Document24.prototype.$__getArrayPathsToValidate = function() {
       DocumentArray || (DocumentArray = require_documentArray());
       return this.$__.activePaths.map("init", "modify", function(i) {
         return this.$__getValue(i);
@@ -42674,7 +42674,7 @@ var require_document2 = __commonJS({
         return doc;
       });
     };
-    Document5.prototype.$getAllSubdocs = function(options) {
+    Document24.prototype.$getAllSubdocs = function(options) {
       if (options?.useCache && this.$__.saveOptions?.__subdocs) {
         return this.$__.saveOptions.__subdocs;
       }
@@ -42683,8 +42683,8 @@ var require_document2 = __commonJS({
       const subDocs = [];
       function getSubdocs(doc) {
         const newSubdocs = [];
-        for (const { model: model9 } of doc.$__schema.childSchemas) {
-          const val = doc.$__getValue(model9.path);
+        for (const { model: model28 } of doc.$__schema.childSchemas) {
+          const val = doc.$__getValue(model28.path);
           if (val == null) {
             continue;
           }
@@ -42730,14 +42730,14 @@ var require_document2 = __commonJS({
       }
     }
     __name(applyQueue, "applyQueue");
-    Document5.prototype.$__handleReject = /* @__PURE__ */ __name(function handleReject(err) {
+    Document24.prototype.$__handleReject = /* @__PURE__ */ __name(function handleReject(err) {
       if (this.$listeners("error").length) {
         this.$emit("error", err);
       } else if (this.constructor.listeners?.("error").length) {
         this.constructor.emit("error", err);
       }
     }, "handleReject");
-    Document5.prototype.$toObject = function(options, json2) {
+    Document24.prototype.$toObject = function(options, json2) {
       const defaultOptions = this.$__schema._defaultToObjectOptions(json2);
       const hasOnlyPrimitiveValues = this.$__hasOnlyPrimitiveValues();
       options = utils.isPOJO(options) ? { ...options } : {};
@@ -42836,7 +42836,7 @@ var require_document2 = __commonJS({
       }
       return ret;
     };
-    Document5.prototype.$__toObjectShallow = /* @__PURE__ */ __name(function $__toObjectShallow(schemaFieldsOnly) {
+    Document24.prototype.$__toObjectShallow = /* @__PURE__ */ __name(function $__toObjectShallow(schemaFieldsOnly) {
       const ret = {};
       if (this._doc != null) {
         const keys = schemaFieldsOnly ? Object.keys(this.$__schema.paths) : Object.keys(this._doc);
@@ -42851,7 +42851,7 @@ var require_document2 = __commonJS({
       }
       return ret;
     }, "$__toObjectShallow");
-    Document5.prototype.toObject = function(options) {
+    Document24.prototype.toObject = function(options) {
       return this.$toObject(options);
     };
     function applyVirtuals(self2, json2, options, toObjectOptions) {
@@ -43057,24 +43057,24 @@ var require_document2 = __commonJS({
       return json2;
     }
     __name(omitDeselectedFields, "omitDeselectedFields");
-    Document5.prototype.toJSON = function(options) {
+    Document24.prototype.toJSON = function(options) {
       return this.$toObject(options, true);
     };
-    Document5.prototype.ownerDocument = function() {
+    Document24.prototype.ownerDocument = function() {
       return this;
     };
-    Document5.prototype.parent = function() {
+    Document24.prototype.parent = function() {
       if (this.$isSubdocument || this.$__.wasPopulated) {
         return this.$__.parent;
       }
       return this;
     };
-    Document5.prototype.$parent = Document5.prototype.parent;
-    Document5.prototype.$__setParent = /* @__PURE__ */ __name(function $__setParent(parent) {
+    Document24.prototype.$parent = Document24.prototype.parent;
+    Document24.prototype.$__setParent = /* @__PURE__ */ __name(function $__setParent(parent) {
       this.$__.parent = parent;
       this.$__parent = parent;
     }, "$__setParent");
-    Document5.prototype.inspect = function(options) {
+    Document24.prototype.inspect = function(options) {
       const isPOJO = utils.isPOJO(options);
       let opts;
       if (isPOJO) {
@@ -43088,16 +43088,16 @@ var require_document2 = __commonJS({
       return ret;
     };
     if (inspect.custom) {
-      Document5.prototype[inspect.custom] = Document5.prototype.inspect;
+      Document24.prototype[inspect.custom] = Document24.prototype.inspect;
     }
-    Document5.prototype.toString = function() {
+    Document24.prototype.toString = function() {
       const ret = this.inspect();
       if (typeof ret === "string") {
         return ret;
       }
       return inspect(ret);
     };
-    Document5.prototype.equals = function(doc) {
+    Document24.prototype.equals = function(doc) {
       if (!doc) {
         return false;
       }
@@ -43108,7 +43108,7 @@ var require_document2 = __commonJS({
       }
       return tid && tid.equals ? tid.equals(docid) : tid === docid;
     };
-    Document5.prototype.populate = /* @__PURE__ */ __name(async function populate() {
+    Document24.prototype.populate = /* @__PURE__ */ __name(async function populate() {
       const pop = {};
       const args = [...arguments];
       if (typeof args[args.length - 1] === "function") {
@@ -43146,7 +43146,7 @@ var require_document2 = __commonJS({
       });
       return topLevelModel.populate(this, paths);
     }, "populate");
-    Document5.prototype.$getPopulatedDocs = /* @__PURE__ */ __name(function $getPopulatedDocs() {
+    Document24.prototype.$getPopulatedDocs = /* @__PURE__ */ __name(function $getPopulatedDocs() {
       let keys = [];
       if (this.$__.populated != null) {
         keys = keys.concat(Object.keys(this.$__.populated));
@@ -43156,13 +43156,13 @@ var require_document2 = __commonJS({
         const value = this.$get(key);
         if (Array.isArray(value)) {
           result = result.concat(value);
-        } else if (value instanceof Document5) {
+        } else if (value instanceof Document24) {
           result.push(value);
         }
       }
       return result;
     }, "$getPopulatedDocs");
-    Document5.prototype.populated = function(path3, val, options) {
+    Document24.prototype.populated = function(path3, val, options) {
       if (val == null || val === true) {
         if (!this.$__.populated) {
           return void 0;
@@ -43191,8 +43191,8 @@ var require_document2 = __commonJS({
       }
       return val;
     };
-    Document5.prototype.$populated = Document5.prototype.populated;
-    Document5.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path3, values) {
+    Document24.prototype.$populated = Document24.prototype.populated;
+    Document24.prototype.$assertPopulated = /* @__PURE__ */ __name(function $assertPopulated(path3, values) {
       if (Array.isArray(path3)) {
         path3.forEach((p) => this.$assertPopulated(p, values));
         return this;
@@ -43205,7 +43205,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$assertPopulated");
-    Document5.prototype.depopulate = function(path3) {
+    Document24.prototype.depopulate = function(path3) {
       if (typeof path3 === "string") {
         path3 = path3.indexOf(" ") === -1 ? [path3] : path3.split(" ");
       }
@@ -43234,7 +43234,7 @@ var require_document2 = __commonJS({
                 if (subdoc == null) {
                   continue;
                 }
-                rawArray[i] = subdoc instanceof Document5 ? subdoc._doc._id : subdoc._id;
+                rawArray[i] = subdoc instanceof Document24 ? subdoc._doc._id : subdoc._id;
               }
             } else {
               utils.setValue(key, populatedIds, this._doc);
@@ -43261,7 +43261,7 @@ var require_document2 = __commonJS({
                 if (subdoc == null) {
                   continue;
                 }
-                rawArray[i] = subdoc instanceof Document5 ? subdoc._doc._id : subdoc._id;
+                rawArray[i] = subdoc instanceof Document24 ? subdoc._doc._id : subdoc._id;
               }
             } else {
               utils.setValue(singlePath, populatedIds, this._doc);
@@ -43273,19 +43273,19 @@ var require_document2 = __commonJS({
       }
       return this;
     };
-    Document5.prototype.$__fullPath = function(path3) {
+    Document24.prototype.$__fullPath = function(path3) {
       return path3 || "";
     };
-    Document5.prototype.$getChanges = function() {
+    Document24.prototype.$getChanges = function() {
       const delta = this.$__delta();
       const changes = delta ? delta[1] : {};
       return changes;
     };
-    Document5.prototype.getChanges = function() {
+    Document24.prototype.getChanges = function() {
       utils.warn("`getChanges()` is deprecated, use `$getChanges()` instead.");
       return this.$getChanges();
     };
-    Document5.prototype.$__delta = /* @__PURE__ */ __name(function $__delta(pathsToSave, pathsToSaveSet) {
+    Document24.prototype.$__delta = /* @__PURE__ */ __name(function $__delta(pathsToSave, pathsToSaveSet) {
       const allDirty = this.$__dirty();
       let dirty = allDirty;
       let unsavedDirty = null;
@@ -43535,7 +43535,7 @@ var require_document2 = __commonJS({
       return skipVersioning[path3];
     }
     __name(shouldSkipVersioning, "shouldSkipVersioning");
-    Document5.prototype.$clone = function() {
+    Document24.prototype.$clone = function() {
       const Model = this.constructor;
       const clonedDoc = new Model();
       clonedDoc.$isNew = this.$isNew;
@@ -43559,7 +43559,7 @@ var require_document2 = __commonJS({
       }
       return clonedDoc;
     };
-    Document5.prototype.$createModifiedPathsSnapshot = /* @__PURE__ */ __name(function $createModifiedPathsSnapshot() {
+    Document24.prototype.$createModifiedPathsSnapshot = /* @__PURE__ */ __name(function $createModifiedPathsSnapshot() {
       const subdocSnapshot = /* @__PURE__ */ new WeakMap();
       if (!this.$isSubdocument) {
         const subdocs = this.$getAllSubdocs();
@@ -43573,7 +43573,7 @@ var require_document2 = __commonJS({
         this.$__.version
       );
     }, "$createModifiedPathsSnapshot");
-    Document5.prototype.$restoreModifiedPathsSnapshot = /* @__PURE__ */ __name(function $restoreModifiedPathsSnapshot(snapshot) {
+    Document24.prototype.$restoreModifiedPathsSnapshot = /* @__PURE__ */ __name(function $restoreModifiedPathsSnapshot(snapshot) {
       this.$__.activePaths = snapshot.activePaths.clone();
       this.$__.version = snapshot.version;
       if (!this.$isSubdocument) {
@@ -43586,7 +43586,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$restoreModifiedPathsSnapshot");
-    Document5.prototype.$clearModifiedPaths = /* @__PURE__ */ __name(function $clearModifiedPaths() {
+    Document24.prototype.$clearModifiedPaths = /* @__PURE__ */ __name(function $clearModifiedPaths() {
       this.$__.activePaths.clear("modify");
       this.$__.activePaths.clear("init");
       this.$__.version = 0;
@@ -43598,7 +43598,7 @@ var require_document2 = __commonJS({
       }
       return this;
     }, "$clearModifiedPaths");
-    Document5.prototype.$__hasOnlyPrimitiveValues = /* @__PURE__ */ __name(function $__hasOnlyPrimitiveValues() {
+    Document24.prototype.$__hasOnlyPrimitiveValues = /* @__PURE__ */ __name(function $__hasOnlyPrimitiveValues() {
       if (this.$__.populated) {
         return false;
       }
@@ -43622,7 +43622,7 @@ var require_document2 = __commonJS({
       }
       return true;
     }, "$__hasOnlyPrimitiveValues");
-    Document5.prototype._applyVersionIncrement = /* @__PURE__ */ __name(function _applyVersionIncrement() {
+    Document24.prototype._applyVersionIncrement = /* @__PURE__ */ __name(function _applyVersionIncrement() {
       if (!this.$__.version) return;
       const doIncrement = VERSION_INC === (VERSION_INC & this.$__.version);
       this.$__.version = void 0;
@@ -43632,11 +43632,11 @@ var require_document2 = __commonJS({
         this.$__setValue(key, version3 + 1);
       }
     }, "_applyVersionIncrement");
-    Document5.VERSION_WHERE = VERSION_WHERE;
-    Document5.VERSION_INC = VERSION_INC;
-    Document5.VERSION_ALL = VERSION_ALL;
-    Document5.ValidationError = ValidationError;
-    module2.exports = exports2 = Document5;
+    Document24.VERSION_WHERE = VERSION_WHERE;
+    Document24.VERSION_INC = VERSION_INC;
+    Document24.VERSION_ALL = VERSION_ALL;
+    Document24.ValidationError = ValidationError;
+    module2.exports = exports2 = Document24;
   }
 });
 
@@ -43645,7 +43645,7 @@ var require_utils3 = __commonJS({
   "node_modules/mongoose/lib/utils.js"(exports2) {
     "use strict";
     var UUID = require_bson2().UUID;
-    var ms = require_ms();
+    var ms2 = require_ms();
     var mpath = require_mpath();
     var ObjectId2 = require_objectid();
     var PopulateOptions = require_populateOptions();
@@ -43661,7 +43661,7 @@ var require_utils3 = __commonJS({
     var schemaMerge = require_merge();
     var specialProperties = require_specialProperties();
     var { trustedSymbol } = require_trusted();
-    var Document5;
+    var Document24;
     exports2.specialProperties = specialProperties;
     exports2.isMongooseArray = isMongooseArray.isMongooseArray;
     exports2.isMongooseDocumentArray = isMongooseDocumentArray.isMongooseDocumentArray;
@@ -43878,12 +43878,12 @@ var require_utils3 = __commonJS({
       return to;
     }, "merge");
     exports2.toObject = /* @__PURE__ */ __name(function toObject(obj) {
-      Document5 || (Document5 = require_document2());
+      Document24 || (Document24 = require_document2());
       let ret;
       if (obj == null) {
         return obj;
       }
-      if (obj instanceof Document5) {
+      if (obj instanceof Document24) {
         return obj.toObject();
       }
       if (Array.isArray(obj)) {
@@ -43964,10 +43964,10 @@ var require_utils3 = __commonJS({
       if (!("expires" in object2)) {
         return;
       }
-      object2.expireAfterSeconds = typeof object2.expires !== "string" ? object2.expires : Math.round(ms(object2.expires) / 1e3);
+      object2.expireAfterSeconds = typeof object2.expires !== "string" ? object2.expires : Math.round(ms2(object2.expires) / 1e3);
       delete object2.expires;
     }, "expires");
-    exports2.populate = /* @__PURE__ */ __name(function populate(path3, select, model9, match, options, subPopulate, justOne, count) {
+    exports2.populate = /* @__PURE__ */ __name(function populate(path3, select, model28, match, options, subPopulate, justOne, count) {
       let obj = null;
       if (arguments.length === 1) {
         if (path3 instanceof PopulateOptions) {
@@ -43984,18 +43984,18 @@ var require_utils3 = __commonJS({
         } else {
           obj = { path: path3 };
         }
-      } else if (typeof model9 === "object") {
+      } else if (typeof model28 === "object") {
         obj = {
           path: path3,
           select,
-          match: model9,
+          match: model28,
           options: match
         };
       } else {
         obj = {
           path: path3,
           select,
-          model: model9,
+          model: model28,
           match,
           options,
           populate: subPopulate,
@@ -49286,28 +49286,28 @@ var require_discriminator = __commonJS({
       __name(setIntersection, "setIntersection");
     }
     __name(validateDiscriminatorSchemasForEncryption, "validateDiscriminatorSchemasForEncryption");
-    module2.exports = /* @__PURE__ */ __name(function discriminator(model9, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
+    module2.exports = /* @__PURE__ */ __name(function discriminator(model28, name, schema, tiedValue, applyPlugins, mergeHooks, overwriteExisting) {
       if (!schema?.instanceOfSchema) {
         throw new Error("You must pass a valid discriminator Schema");
       }
       mergeHooks = mergeHooks == null ? true : mergeHooks;
-      if (model9.schema.discriminatorMapping && !model9.schema.discriminatorMapping.isRoot) {
+      if (model28.schema.discriminatorMapping && !model28.schema.discriminatorMapping.isRoot) {
         throw new Error('Discriminator "' + name + '" can only be a discriminator of the root model');
       }
       if (applyPlugins) {
         const applyPluginsToDiscriminators = get(
-          model9.base,
+          model28.base,
           "options.applyPluginsToDiscriminators",
           false
         ) || !mergeHooks;
-        model9.base._applyPlugins(schema, {
+        model28.base._applyPlugins(schema, {
           skipTopLevel: !applyPluginsToDiscriminators
         });
       } else if (!mergeHooks) {
         applyBuiltinPlugins(schema);
       }
-      const key = model9.schema.options.discriminatorKey;
-      const existingPath = model9.schema.path(key);
+      const key = model28.schema.options.discriminatorKey;
+      const existingPath = model28.schema.path(key);
       if (existingPath != null) {
         if (!utils.hasUserDefinedProperty(existingPath.options, "select")) {
           existingPath.options.select = true;
@@ -49320,12 +49320,12 @@ var require_discriminator = __commonJS({
           select: true,
           $skipDiscriminatorCheck: true
         };
-        baseSchemaAddition[key][model9.schema.options.typeKey] = String;
-        model9.schema.add(baseSchemaAddition);
+        baseSchemaAddition[key][model28.schema.options.typeKey] = String;
+        model28.schema.add(baseSchemaAddition);
         defineKey({
           prop: key,
-          prototype: model9.prototype,
-          options: model9.schema.options
+          prototype: model28.prototype,
+          options: model28.schema.options
         });
       }
       if (schema.path(key) && schema.path(key).options.$skipDiscriminatorCheck !== true) {
@@ -49335,7 +49335,7 @@ var require_discriminator = __commonJS({
       if (typeof tiedValue === "string" && tiedValue.length || tiedValue != null) {
         value = tiedValue;
       }
-      validateDiscriminatorSchemasForEncryption(model9.schema, schema);
+      validateDiscriminatorSchemasForEncryption(model28.schema, schema);
       function merge2(schema2, baseSchema) {
         schema2._baseSchema = baseSchema;
         if (baseSchema.paths._id && baseSchema.paths._id.options && !baseSchema.paths._id.options.auto) {
@@ -49412,7 +49412,7 @@ var require_discriminator = __commonJS({
         }
         schema2.options.id = id;
         if (mergeHooks) {
-          schema2.s.hooks = model9.schema.s.hooks.merge(schema2.s.hooks);
+          schema2.s.hooks = model28.schema.s.hooks.merge(schema2.s.hooks);
         }
         if (applyPlugins) {
           schema2.plugins = Array.prototype.slice.call(baseSchema.plugins);
@@ -49421,18 +49421,18 @@ var require_discriminator = __commonJS({
         delete schema2._requiredpaths;
       }
       __name(merge2, "merge");
-      merge2(schema, model9.schema);
-      if (!model9.discriminators) {
-        model9.discriminators = {};
+      merge2(schema, model28.schema);
+      if (!model28.discriminators) {
+        model28.discriminators = {};
       }
-      if (!model9.schema.discriminatorMapping) {
-        model9.schema.discriminatorMapping = { key, value: null, isRoot: true };
+      if (!model28.schema.discriminatorMapping) {
+        model28.schema.discriminatorMapping = { key, value: null, isRoot: true };
       }
-      if (!model9.schema.discriminators) {
-        model9.schema.discriminators = {};
+      if (!model28.schema.discriminators) {
+        model28.schema.discriminators = {};
       }
-      model9.schema.discriminators[name] = schema;
-      if (model9.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
+      model28.schema.discriminators[name] = schema;
+      if (model28.discriminators[name] && !schema.options.overwriteModels && !overwriteExisting) {
         throw new Error('Discriminator with name "' + name + '" already exists');
       }
       return schema;
@@ -50535,7 +50535,7 @@ var require_map2 = __commonJS({
     var SchemaMapOptions = require_schemaMapOptions();
     var SchemaType = require_schemaType();
     var MongooseError = require_mongooseError();
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var utils = require_utils3();
     var SchemaMap = class extends SchemaType {
       static {
@@ -50647,7 +50647,7 @@ var require_map2 = __commonJS({
       if (utils.hasUserDefinedProperty(obj, "of")) {
         const isInlineSchema = utils.isPOJO(obj.of) && utils.hasOwnKeys(obj.of) && !utils.hasUserDefinedProperty(obj.of, schema.options.typeKey);
         if (isInlineSchema) {
-          _mapType = { [schema.options.typeKey]: new Schema9(obj.of) };
+          _mapType = { [schema.options.typeKey]: new Schema28(obj.of) };
         } else if (utils.isPOJO(obj.of)) {
           _mapType = Object.assign({}, obj.of);
         } else {
@@ -50729,7 +50729,7 @@ var require_objectId = __commonJS({
     var isBsonType = require_isBsonType();
     var utils = require_utils3();
     var CastError = SchemaType.CastError;
-    var Document5;
+    var Document24;
     function SchemaObjectId(key, options, _schemaOptions, parentSchema) {
       const isKeyHexStr = typeof key === "string" && key.length === 24 && /^[a-f0-9]+$/i.test(key);
       const suppressWarning = options?.suppressWarning;
@@ -50824,8 +50824,8 @@ var require_objectId = __commonJS({
     __name(defaultId, "defaultId");
     defaultId.$runBeforeSetters = true;
     function resetId(v) {
-      Document5 || (Document5 = require_document2());
-      if (this instanceof Document5) {
+      Document24 || (Document24 = require_document2());
+      if (this instanceof Document24) {
         if (v === void 0) {
           const _v = new oid();
           return _v;
@@ -51544,9 +51544,9 @@ var require_schema2 = __commonJS({
     var isPOJO = utils.isPOJO;
     var id = 0;
     var numberRE = /^\d+$/;
-    function Schema9(obj, options) {
-      if (!(this instanceof Schema9)) {
-        return new Schema9(obj, options);
+    function Schema28(obj, options) {
+      if (!(this instanceof Schema28)) {
+        return new Schema28(obj, options);
       }
       this.obj = obj;
       this.paths = {};
@@ -51601,7 +51601,7 @@ var require_schema2 = __commonJS({
       }
       this.setupTimestamp(this.options.timestamps);
     }
-    __name(Schema9, "Schema");
+    __name(Schema28, "Schema");
     function aliasFields(schema, paths) {
       for (const path3 of Object.keys(paths)) {
         let alias = null;
@@ -51658,37 +51658,37 @@ var require_schema2 = __commonJS({
       }
     }
     __name(aliasFields, "aliasFields");
-    Schema9.prototype = Object.create(EventEmitter9.prototype);
-    Schema9.prototype.constructor = Schema9;
-    Schema9.prototype.instanceOfSchema = true;
-    Object.defineProperty(Schema9.prototype, "$schemaType", {
+    Schema28.prototype = Object.create(EventEmitter9.prototype);
+    Schema28.prototype.constructor = Schema28;
+    Schema28.prototype.instanceOfSchema = true;
+    Object.defineProperty(Schema28.prototype, "$schemaType", {
       configurable: false,
       enumerable: false,
       writable: true
     });
-    Object.defineProperty(Schema9.prototype, "childSchemas", {
+    Object.defineProperty(Schema28.prototype, "childSchemas", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Object.defineProperty(Schema9.prototype, "virtuals", {
+    Object.defineProperty(Schema28.prototype, "virtuals", {
       configurable: false,
       enumerable: true,
       writable: true
     });
-    Schema9.prototype.obj;
-    Schema9.prototype.paths;
-    Schema9.prototype.tree;
-    Schema9.create = /* @__PURE__ */ __name(function create(definition, options) {
-      return new Schema9(definition, options);
+    Schema28.prototype.obj;
+    Schema28.prototype.paths;
+    Schema28.prototype.tree;
+    Schema28.create = /* @__PURE__ */ __name(function create(definition, options) {
+      return new Schema28(definition, options);
     }, "create");
-    Schema9.prototype.clone = function() {
+    Schema28.prototype.clone = function() {
       const s = this._clone();
       s.on("init", (v) => this.emit("init", v));
       return s;
     };
-    Schema9.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
-      Constructor = Constructor || (this.base == null ? Schema9 : this.base.Schema);
+    Schema28.prototype._clone = /* @__PURE__ */ __name(function _clone(Constructor) {
+      Constructor = Constructor || (this.base == null ? Schema28 : this.base.Schema);
       const s = new Constructor({}, this._userProvidedOptions);
       s.base = this.base;
       s.obj = this.obj;
@@ -51756,8 +51756,8 @@ var require_schema2 = __commonJS({
       s.encryptedFields = clone2(this.encryptedFields);
       return s;
     }, "_clone");
-    Schema9.prototype.pick = function(paths, options) {
-      const newSchema = new Schema9({}, options || this.options);
+    Schema28.prototype.pick = function(paths, options) {
+      const newSchema = new Schema28({}, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError('Schema#pick() only accepts an array argument, got "' + typeof paths + '"');
       }
@@ -51786,8 +51786,8 @@ var require_schema2 = __commonJS({
       }
       return newSchema;
     };
-    Schema9.prototype.omit = function(paths, options) {
-      const newSchema = new Schema9(this, options || this.options);
+    Schema28.prototype.omit = function(paths, options) {
+      const newSchema = new Schema28(this, options || this.options);
       if (!Array.isArray(paths)) {
         throw new MongooseError(
           'Schema#omit() only accepts an array argument, got "' + typeof paths + '"'
@@ -51796,7 +51796,7 @@ var require_schema2 = __commonJS({
       newSchema.remove(paths);
       return newSchema;
     };
-    Schema9.prototype.defaultOptions = function(options) {
+    Schema28.prototype.defaultOptions = function(options) {
       this._userProvidedOptions = options == null ? {} : clone2(options);
       const baseOptions = this.base?.options || {};
       const defaultStrict = baseOptions.strict ?? true;
@@ -51844,12 +51844,12 @@ var require_schema2 = __commonJS({
       }
       return options;
     };
-    Schema9.prototype.discriminator = function(name, schema, options) {
+    Schema28.prototype.discriminator = function(name, schema, options) {
       this._applyDiscriminators = this._applyDiscriminators || /* @__PURE__ */ new Map();
       this._applyDiscriminators.set(name, { schema, options });
       return this;
     };
-    Schema9.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
+    Schema28.prototype._getDocumentMiddleware = /* @__PURE__ */ __name(function _getDocumentMiddleware(isSubdocument) {
       const hasShardKey = !!(this.options.shardKey || this.options.shardkey);
       return this.s.hooks.filter((hook) => {
         if (isSubdocument && hook.fn[symbols.skipOnSubdocuments]) {
@@ -51875,7 +51875,7 @@ var require_schema2 = __commonJS({
         return true;
       });
     }, "_getDocumentMiddleware");
-    Schema9.prototype._defaultToObjectOptions = function(json2) {
+    Schema28.prototype._defaultToObjectOptions = function(json2) {
       const path3 = json2 ? "toJSON" : "toObject";
       if (this._defaultToObjectOptionsMap && path3 in this._defaultToObjectOptionsMap) {
         return this._defaultToObjectOptionsMap[path3];
@@ -51887,7 +51887,7 @@ var require_schema2 = __commonJS({
       this._defaultToObjectOptionsMap[path3] = utils.hasOwnKeys(defaultOptions) ? defaultOptions : null;
       return defaultOptions;
     };
-    Schema9.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
+    Schema28.prototype.encryptionType = /* @__PURE__ */ __name(function encryptionType(encryptionType) {
       if (arguments.length === 0) {
         return this.options.encryptionType;
       }
@@ -51896,8 +51896,8 @@ var require_schema2 = __commonJS({
       }
       this.options.encryptionType = encryptionType;
     }, "encryptionType");
-    Schema9.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
-      if (obj instanceof Schema9 || obj?.instanceOfSchema) {
+    Schema28.prototype.add = /* @__PURE__ */ __name(function add(obj, prefix) {
+      if (obj instanceof Schema28 || obj?.instanceOfSchema) {
         merge2(this, obj);
         return this;
       }
@@ -51924,7 +51924,7 @@ var require_schema2 = __commonJS({
         }
         let isMongooseTypeString = false;
         if (typeof val === "string") {
-          const MongooseTypes2 = this.base?.Schema.Types ?? Schema9.Types;
+          const MongooseTypes2 = this.base?.Schema.Types ?? Schema28.Types;
           const upperVal = val.charAt(0).toUpperCase() + val.substring(1);
           isMongooseTypeString = MongooseTypes2[upperVal] != null;
         }
@@ -51976,7 +51976,7 @@ var require_schema2 = __commonJS({
             if (this._userProvidedOptions.toJSON != null) {
               childSchemaOptions.toJSON = utils.omit(this._userProvidedOptions.toJSON, ["transform"]);
             }
-            const _schema = new Schema9(_typeDef, childSchemaOptions);
+            const _schema = new Schema28(_typeDef, childSchemaOptions);
             _schema.$implicitlyCreated = true;
             const schemaWrappedPath = Object.assign({}, val, { [typeKey]: _schema });
             this.path(prefix + key, schemaWrappedPath);
@@ -52017,23 +52017,23 @@ var require_schema2 = __commonJS({
       aliasFields(this, aliasObj);
       return this;
     }, "add");
-    Schema9.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path3, fieldConfig) {
+    Schema28.prototype._addEncryptedField = /* @__PURE__ */ __name(function _addEncryptedField(path3, fieldConfig) {
       const type = this.path(path3).autoEncryptionType();
       if (type == null) {
         throw new MongooseError(`Invalid BSON type for FLE field: '${path3}'`);
       }
       this.encryptedFields[path3] = clone2(fieldConfig);
     }, "_addEncryptedField");
-    Schema9.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path3) {
+    Schema28.prototype._removeEncryptedField = /* @__PURE__ */ __name(function _removeEncryptedField(path3) {
       delete this.encryptedFields[path3];
     }, "_removeEncryptedField");
-    Schema9.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
+    Schema28.prototype._hasEncryptedFields = /* @__PURE__ */ __name(function _hasEncryptedFields() {
       return utils.hasOwnKeys(this.encryptedFields);
     }, "_hasEncryptedFields");
-    Schema9.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path3) {
+    Schema28.prototype._hasEncryptedField = /* @__PURE__ */ __name(function _hasEncryptedField(path3) {
       return path3 in this.encryptedFields;
     }, "_hasEncryptedField");
-    Schema9.prototype._buildEncryptedFields = function() {
+    Schema28.prototype._buildEncryptedFields = function() {
       const fields = Object.entries(this.encryptedFields).map(
         ([path3, config2]) => {
           const bsonType = this.path(path3).autoEncryptionType();
@@ -52042,7 +52042,7 @@ var require_schema2 = __commonJS({
       );
       return { fields };
     };
-    Schema9.prototype._buildSchemaMap = function() {
+    Schema28.prototype._buildSchemaMap = function() {
       function buildNestedPath(path3, object2, value) {
         let i = 0, component = path3[i];
         for (; i < path3.length - 1; ++i, component = path3[i]) {
@@ -52071,11 +52071,11 @@ var require_schema2 = __commonJS({
         properties
       };
     };
-    Schema9.prototype.alias = /* @__PURE__ */ __name(function alias(path3, alias) {
+    Schema28.prototype.alias = /* @__PURE__ */ __name(function alias(path3, alias) {
       aliasFields(this, { [path3]: alias });
       return this;
     }, "alias");
-    Schema9.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
+    Schema28.prototype.removeIndex = /* @__PURE__ */ __name(function removeIndex(index) {
       if (arguments.length > 1) {
         throw new MongooseError("removeIndex() takes only 1 argument");
       }
@@ -52097,22 +52097,22 @@ var require_schema2 = __commonJS({
       }
       return this;
     }, "removeIndex");
-    Schema9.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
+    Schema28.prototype.clearIndexes = /* @__PURE__ */ __name(function clearIndexes() {
       this._indexes.length = 0;
       return this;
     }, "clearIndexes");
-    Schema9.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
+    Schema28.prototype.searchIndex = /* @__PURE__ */ __name(function searchIndex(description) {
       this._searchIndexes.push(description);
       return this;
     }, "searchIndex");
-    Schema9.reserved = /* @__PURE__ */ Object.create(null);
-    Schema9.prototype.reserved = Schema9.reserved;
-    var reserved = Schema9.reserved;
+    Schema28.reserved = /* @__PURE__ */ Object.create(null);
+    Schema28.prototype.reserved = Schema28.reserved;
+    var reserved = Schema28.reserved;
     reserved["prototype"] = // EventEmitter
     reserved.emit = reserved.listeners = reserved.removeListener = // document properties and functions
     reserved.collection = reserved.errors = reserved.get = reserved.init = reserved.isModified = reserved.isNew = reserved.populated = reserved.remove = reserved.save = reserved.toObject = reserved.validate = 1;
     reserved.collection = 1;
-    Schema9.prototype.path = function(path3, obj) {
+    Schema28.prototype.path = function(path3, obj) {
       if (obj === void 0) {
         if (Object.hasOwn(this.paths, path3)) {
           return this.paths[path3];
@@ -52257,7 +52257,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema9.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
+    Schema28.prototype._gatherChildSchemas = /* @__PURE__ */ __name(function _gatherChildSchemas() {
       const childSchemas = [];
       for (const path3 of Object.keys(this.paths)) {
         if (typeof path3 !== "string") {
@@ -52335,13 +52335,13 @@ var require_schema2 = __commonJS({
       return null;
     }
     __name(getMapPath, "getMapPath");
-    Object.defineProperty(Schema9.prototype, "base", {
+    Object.defineProperty(Schema28.prototype, "base", {
       configurable: true,
       enumerable: false,
       writable: true,
       value: null
     });
-    Schema9.prototype.interpretAsType = function(path3, obj, options) {
+    Schema28.prototype.interpretAsType = function(path3, obj, options) {
       if (obj instanceof SchemaType) {
         if (obj.path === path3) {
           return obj;
@@ -52350,7 +52350,7 @@ var require_schema2 = __commonJS({
         clone3.path = path3;
         return clone3;
       }
-      const MongooseTypes2 = this.base?.Schema.Types ?? Schema9.Types;
+      const MongooseTypes2 = this.base?.Schema.Types ?? Schema28.Types;
       const Types = this.base?.Types ?? require_types();
       if (!utils.isPOJO(obj) && !(obj instanceof SchemaTypeOptions)) {
         const constructorName = utils.getFunctionName(obj.constructor);
@@ -52376,9 +52376,9 @@ var require_schema2 = __commonJS({
       if (Array.isArray(type) || type === Array || type === "array" || type === MongooseTypes2.Array) {
         let cast = type === Array || type === "array" ? obj.cast || obj.of : type[0];
         if (cast?.instanceOfSchema) {
-          if (!(cast instanceof Schema9)) {
+          if (!(cast instanceof Schema28)) {
             if (this.options._isMerging) {
-              cast = new Schema9(cast);
+              cast = new Schema28(cast);
             } else {
               throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
@@ -52386,9 +52386,9 @@ var require_schema2 = __commonJS({
           return new MongooseTypes2.DocumentArray(path3, cast, obj, null, this);
         }
         if (cast && cast[options.typeKey] && cast[options.typeKey].instanceOfSchema) {
-          if (!(cast[options.typeKey] instanceof Schema9)) {
+          if (!(cast[options.typeKey] instanceof Schema28)) {
             if (this.options._isMerging) {
-              cast[options.typeKey] = new Schema9(cast[options.typeKey]);
+              cast[options.typeKey] = new Schema28(cast[options.typeKey]);
             } else {
               throw new TypeError("Schema for array path `" + path3 + `\` is from a different copy of the Mongoose module. Please make sure you're using the same version of Mongoose everywhere with \`npm list mongoose\`. If you are still getting this error, please add \`new Schema()\` around the path: ${path3}: new Schema(...)`);
             }
@@ -52426,10 +52426,10 @@ var require_schema2 = __commonJS({
             }
             if (Object.hasOwn(this._userProvidedOptions, "_id")) {
               childSchemaOptions._id = this._userProvidedOptions._id;
-            } else if (Schema9.Types.DocumentArray.defaultOptions._id != null) {
-              childSchemaOptions._id = Schema9.Types.DocumentArray.defaultOptions._id;
+            } else if (Schema28.Types.DocumentArray.defaultOptions._id != null) {
+              childSchemaOptions._id = Schema28.Types.DocumentArray.defaultOptions._id;
             }
-            const childSchema = new Schema9(castFromTypeKey, childSchemaOptions);
+            const childSchema = new Schema28(castFromTypeKey, childSchemaOptions);
             childSchema.$implicitlyCreated = true;
             return new MongooseTypes2.DocumentArray(path3, childSchema, obj, null, this);
           } else {
@@ -52489,7 +52489,7 @@ var require_schema2 = __commonJS({
       const schemaType = new MongooseTypes2[name](path3, obj, options, this);
       return schemaType;
     };
-    Schema9.prototype.eachPath = function(fn) {
+    Schema28.prototype.eachPath = function(fn) {
       const keys = Object.keys(this.paths);
       const len = keys.length;
       for (let i = 0; i < len; ++i) {
@@ -52497,7 +52497,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema9.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
+    Schema28.prototype.requiredPaths = /* @__PURE__ */ __name(function requiredPaths(invalidate) {
       if (this._requiredpaths && !invalidate) {
         return this._requiredpaths;
       }
@@ -52513,7 +52513,7 @@ var require_schema2 = __commonJS({
       this._requiredpaths = ret;
       return this._requiredpaths;
     }, "requiredPaths");
-    Schema9.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
+    Schema28.prototype.pathsWithTransforms = /* @__PURE__ */ __name(function pathsWithTransforms(invalidate) {
       if (this._pathsWithTransforms !== void 0 && !invalidate) {
         return this._pathsWithTransforms;
       }
@@ -52530,14 +52530,14 @@ var require_schema2 = __commonJS({
       this._pathsWithTransforms = ret.length ? ret : null;
       return this._pathsWithTransforms;
     }, "pathsWithTransforms");
-    Schema9.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
+    Schema28.prototype.indexedPaths = /* @__PURE__ */ __name(function indexedPaths() {
       if (this._indexedpaths) {
         return this._indexedpaths;
       }
       this._indexedpaths = this.indexes();
       return this._indexedpaths;
     }, "indexedPaths");
-    Schema9.prototype.pathType = function(path3) {
+    Schema28.prototype.pathType = function(path3) {
       if (Object.hasOwn(this.paths, path3)) {
         return "real";
       }
@@ -52564,7 +52564,7 @@ var require_schema2 = __commonJS({
       }
       return "adhocOrUndefined";
     };
-    Schema9.prototype.hasMixedParent = function(path3) {
+    Schema28.prototype.hasMixedParent = function(path3) {
       const subpaths = path3.split(/\./g);
       path3 = "";
       for (let i = 0; i < subpaths.length; ++i) {
@@ -52575,7 +52575,7 @@ var require_schema2 = __commonJS({
       }
       return null;
     };
-    Schema9.prototype.setupTimestamp = function(timestamps) {
+    Schema28.prototype.setupTimestamp = function(timestamps) {
       return setupTimestamps(this, timestamps);
     };
     function getPositionalPathType(self2, path3, cleanPath) {
@@ -52631,11 +52631,11 @@ var require_schema2 = __commonJS({
       return self2.subpaths[cleanPath];
     }
     __name(getPositionalPath, "getPositionalPath");
-    Schema9.prototype.queue = function(name, args) {
+    Schema28.prototype.queue = function(name, args) {
       this.callQueue.push([name, args]);
       return this;
     };
-    Schema9.prototype.pre = function(name) {
+    Schema28.prototype.pre = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52655,7 +52655,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.pre.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema9.prototype.post = function(name) {
+    Schema28.prototype.post = function(name) {
       if (name instanceof RegExp) {
         const remainingArgs = Array.prototype.slice.call(arguments, 1);
         for (const fn of hookNames) {
@@ -52675,7 +52675,7 @@ var require_schema2 = __commonJS({
       this.s.hooks.post.apply(this.s.hooks, arguments);
       return this;
     };
-    Schema9.prototype.plugin = function(fn, opts) {
+    Schema28.prototype.plugin = function(fn, opts) {
       if (typeof fn !== "function") {
         throw new MongooseError('First param to `schema.plugin()` must be a function, got "' + typeof fn + '"');
       }
@@ -52690,7 +52690,7 @@ var require_schema2 = __commonJS({
       fn(this, opts);
       return this;
     };
-    Schema9.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
+    Schema28.prototype.queryHelper = /* @__PURE__ */ __name(function queryHelper(name, fn) {
       if (typeof name !== "string") {
         throw new MongooseError('First param to `schema.queryHelper()` must be a string, got "' + typeof name + '"');
       }
@@ -52700,7 +52700,7 @@ var require_schema2 = __commonJS({
       this.query[name] = fn;
       return this;
     }, "queryHelper");
-    Schema9.prototype.method = function(name, fn, options) {
+    Schema28.prototype.method = function(name, fn, options) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.methods[i] = name[i];
@@ -52712,7 +52712,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema9.prototype.static = function(name, fn) {
+    Schema28.prototype.static = function(name, fn) {
       if (typeof name !== "string") {
         for (const i in name) {
           this.statics[i] = name[i];
@@ -52722,7 +52722,7 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema9.prototype.index = function(fields, options) {
+    Schema28.prototype.index = function(fields, options) {
       fields || (fields = {});
       options || (options = {});
       if (options.expires) {
@@ -52743,7 +52743,7 @@ var require_schema2 = __commonJS({
       this._indexes.push([fields, options]);
       return this;
     };
-    Schema9.prototype.set = function(key, value, tags) {
+    Schema28.prototype.set = function(key, value, tags) {
       if (arguments.length === 1) {
         return this.options[key];
       }
@@ -52808,11 +52808,11 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_propagateOptionsToImplicitlyCreatedSchemas, "_propagateOptionsToImplicitlyCreatedSchemas");
-    Schema9.prototype.get = function(key) {
+    Schema28.prototype.get = function(key) {
       return this.options[key];
     };
     var indexTypes = "2d 2dsphere hashed text".split(" ");
-    Object.defineProperty(Schema9, "indexTypes", {
+    Object.defineProperty(Schema28, "indexTypes", {
       get: /* @__PURE__ */ __name(function() {
         return indexTypes;
       }, "get"),
@@ -52820,10 +52820,10 @@ var require_schema2 = __commonJS({
         throw new MongooseError("Cannot overwrite Schema.indexTypes");
       }, "set")
     });
-    Schema9.prototype.indexes = function() {
+    Schema28.prototype.indexes = function() {
       return getIndexes(this);
     };
-    Schema9.prototype.virtual = function(name, options) {
+    Schema28.prototype.virtual = function(name, options) {
       if (name instanceof VirtualType || getConstructorName(name) === "VirtualType") {
         return this.virtual(name.path, name.options);
       }
@@ -52929,10 +52929,10 @@ var require_schema2 = __commonJS({
       }
       return virtuals[name];
     };
-    Schema9.prototype.virtualpath = function(name) {
+    Schema28.prototype.virtualpath = function(name) {
       return Object.hasOwn(this.virtuals, name) ? this.virtuals[name] : null;
     };
-    Schema9.prototype.remove = function(path3) {
+    Schema28.prototype.remove = function(path3) {
       if (typeof path3 === "string") {
         path3 = [path3];
       }
@@ -53001,7 +53001,7 @@ var require_schema2 = __commonJS({
       delete branch[last];
     }
     __name(_deletePath, "_deletePath");
-    Schema9.prototype.removeVirtual = function(path3) {
+    Schema28.prototype.removeVirtual = function(path3) {
       if (typeof path3 === "string") {
         path3 = [path3];
       }
@@ -53023,27 +53023,27 @@ var require_schema2 = __commonJS({
       }
       return this;
     };
-    Schema9.prototype.loadClass = function(model9, virtualsOnly) {
-      if (model9 === Object.prototype || model9 === Function.prototype || Object.hasOwn(model9.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model9.prototype, "$isMongooseDocumentPrototype")) {
+    Schema28.prototype.loadClass = function(model28, virtualsOnly) {
+      if (model28 === Object.prototype || model28 === Function.prototype || Object.hasOwn(model28.prototype, "$isMongooseModelPrototype") || Object.hasOwn(model28.prototype, "$isMongooseDocumentPrototype")) {
         return this;
       }
-      this.loadClass(Object.getPrototypeOf(model9), virtualsOnly);
+      this.loadClass(Object.getPrototypeOf(model28), virtualsOnly);
       if (!virtualsOnly) {
-        Object.getOwnPropertyNames(model9).forEach(function(name) {
+        Object.getOwnPropertyNames(model28).forEach(function(name) {
           if (name.match(/^(length|name|prototype|constructor|__proto__)$/)) {
             return;
           }
-          const prop = Object.getOwnPropertyDescriptor(model9, name);
+          const prop = Object.getOwnPropertyDescriptor(model28, name);
           if (Object.hasOwn(prop, "value")) {
             this.static(name, prop.value);
           }
         }, this);
       }
-      Object.getOwnPropertyNames(model9.prototype).forEach(function(name) {
+      Object.getOwnPropertyNames(model28.prototype).forEach(function(name) {
         if (name.match(/^(constructor)$/)) {
           return;
         }
-        const method = Object.getOwnPropertyDescriptor(model9.prototype, name);
+        const method = Object.getOwnPropertyDescriptor(model28.prototype, name);
         if (!virtualsOnly) {
           if (typeof method.value === "function") {
             this.method(name, method.value);
@@ -53064,7 +53064,7 @@ var require_schema2 = __commonJS({
       }, this);
       return this;
     };
-    Schema9.prototype._getSchema = function(path3) {
+    Schema28.prototype._getSchema = function(path3) {
       const _this = this;
       const pathschema = _this.path(path3);
       const resultPath = [];
@@ -53141,7 +53141,7 @@ var require_schema2 = __commonJS({
       }
       return search(parts, _this);
     };
-    Schema9.prototype._getPathType = function(path3) {
+    Schema28.prototype._getPathType = function(path3) {
       const _this = this;
       const pathschema = _this.path(path3);
       if (pathschema) {
@@ -53181,7 +53181,7 @@ var require_schema2 = __commonJS({
       __name(search, "search");
       return search(path3.split("."), _this);
     };
-    Schema9.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
+    Schema28.prototype._transformDuplicateKeyError = /* @__PURE__ */ __name(function _transformDuplicateKeyError(error62) {
       if (!this._duplicateKeyErrorMessagesByPath) {
         return error62;
       }
@@ -53206,7 +53206,7 @@ var require_schema2 = __commonJS({
       return piece.startsWith("$[") && piece.endsWith("]");
     }
     __name(isArrayFilter, "isArrayFilter");
-    Schema9.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
+    Schema28.prototype._preCompile = /* @__PURE__ */ __name(function _preCompile() {
       this.plugin(idGetter, { deduplicate: true });
       _precomputeOptimisticConcurrency(this);
       this.pathsWithTransforms();
@@ -53223,7 +53223,7 @@ var require_schema2 = __commonJS({
       }
     }
     __name(_precomputeOptimisticConcurrency, "_precomputeOptimisticConcurrency");
-    Schema9.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
+    Schema28.prototype.toJSONSchema = /* @__PURE__ */ __name(function toJSONSchema2(options) {
       const useBsonType = options?.useBsonType ?? false;
       const result = useBsonType ? { required: [], properties: {} } : { type: "object", required: [], properties: {} };
       for (const path3 of Object.keys(this.paths)) {
@@ -53267,8 +53267,8 @@ var require_schema2 = __commonJS({
       }
       return result;
     }, "toJSONSchema");
-    module2.exports = exports2 = Schema9;
-    Schema9.Types = MongooseTypes = require_schema();
+    module2.exports = exports2 = Schema28;
+    Schema28.Types = MongooseTypes = require_schema();
     exports2.ObjectId = MongooseTypes.ObjectId;
   }
 });
@@ -54171,9 +54171,9 @@ var require_castUpdate = __commonJS({
     }
     __name(walkUpdatePath, "walkUpdatePath");
     function _appendError(error62, query, key, aggregatedError) {
-      const model9 = query?.modelName != null ? query : query?.model;
-      if (model9 != null && typeof error62.setModel === "function") {
-        error62.setModel(model9);
+      const model28 = query?.modelName != null ? query : query?.model;
+      if (model28 != null && typeof error62.setModel === "function") {
+        error62.setModel(model28);
       }
       if (typeof query !== "object" || !query.options.multipleCastError) {
         throw error62;
@@ -54397,7 +54397,7 @@ var require_castArrayFilters = __commonJS({
         query
       );
     }, "castArrayFilters");
-    function castArrayFiltersForUpdate(arrayFilters, update, schema, model9, options, context) {
+    function castArrayFiltersForUpdate(arrayFilters, update, schema, model28, options, context) {
       if (!Array.isArray(arrayFilters)) {
         return;
       }
@@ -54406,8 +54406,8 @@ var require_castArrayFilters = __commonJS({
       if (options.strict != null) {
         strictQuery = options.strict;
       }
-      if (model9?.base.options.strictQuery != null) {
-        strictQuery = model9.base.options.strictQuery;
+      if (model28?.base.options.strictQuery != null) {
+        strictQuery = model28.base.options.strictQuery;
       }
       if (schema._userProvidedOptions.strictQuery != null) {
         strictQuery = schema._userProvidedOptions.strictQuery;
@@ -54721,15 +54721,15 @@ var require_castBulkWrite = __commonJS({
       }
     }, "castBulkWrite");
     module2.exports.castInsertOne = /* @__PURE__ */ __name(async function castInsertOne(originalModel, insertOne, options) {
-      const model9 = decideModelByObject(originalModel, insertOne["document"]);
-      const doc = new model9(insertOne["document"]);
-      if (model9.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
+      const model28 = decideModelByObject(originalModel, insertOne["document"]);
+      const doc = new model28(insertOne["document"]);
+      if (model28.schema.options.timestamps && getTimestampsOpt(insertOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model9?.schema?.options?.versionKey;
+      const versionKey = model28?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54747,27 +54747,27 @@ var require_castBulkWrite = __commonJS({
       if (!updateOne["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model9 = decideModelByObject(originalModel, updateOne["filter"]);
-      const schema = model9.schema;
-      const strict = options.strict ?? model9.schema.options.strict;
+      const model28 = decideModelByObject(originalModel, updateOne["filter"]);
+      const schema = model28.schema;
+      const strict = options.strict ?? model28.schema.options.strict;
       const update = clone2(updateOne["update"]);
       _addDiscriminatorToObject(schema, updateOne["filter"]);
       const doInitTimestamps = getTimestampsOpt(updateOne, options);
-      if (model9.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model9.schema.$timestamps.createdAt;
-        const updatedAt = model9.schema.$timestamps.updatedAt;
+      if (model28.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model28.schema.$timestamps.createdAt;
+        const updatedAt = model28.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateOne.timestamps,
           overwriteImmutable: updateOne.overwriteImmutable
         }, updateOne.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model9.schema);
+        applyTimestampsToChildren(now, update, model28.schema);
       }
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateOne.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateOne["filter"], model9.schema, update, {
+        setDefaultsOnInsert(updateOne["filter"], model28.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateOne.upsert
         });
@@ -54775,23 +54775,23 @@ var require_castBulkWrite = __commonJS({
       decorateUpdateWithVersionKey(
         update,
         updateOne,
-        model9.schema.options.versionKey
+        model28.schema.options.versionKey
       );
-      updateOne["filter"] = _castFilter(model9, updateOne["filter"], {
+      updateOne["filter"] = _castFilter(model28, updateOne["filter"], {
         strict,
         upsert: updateOne.upsert
       });
       if (Array.isArray(updateOne.arrayFilters)) {
         updateOne.arrayFilters = clone2(updateOne.arrayFilters);
-        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model9, options);
+        castArrayFiltersForUpdate(updateOne.arrayFilters, update, schema, model28, options);
       }
-      updateOne["update"] = castUpdate(model9.schema, update, {
+      updateOne["update"] = castUpdate(model28.schema, update, {
         strict,
         upsert: updateOne.upsert,
         arrayFilters: updateOne.arrayFilters,
         overwriteDiscriminatorKey: updateOne.overwriteDiscriminatorKey,
         overwriteImmutable: updateOne.overwriteImmutable
-      }, model9, updateOne["filter"]);
+      }, model28, updateOne["filter"]);
       return updateOne;
     }, "castUpdateOne");
     module2.exports.castUpdateMany = /* @__PURE__ */ __name(function castUpdateMany(originalModel, updateMany, options, now) {
@@ -54801,69 +54801,69 @@ var require_castBulkWrite = __commonJS({
       if (!updateMany["update"]) {
         throw new Error("Must provide an update object.");
       }
-      const model9 = decideModelByObject(originalModel, updateMany["filter"]);
-      const schema = model9.schema;
-      const strict = options.strict ?? model9.schema.options.strict;
+      const model28 = decideModelByObject(originalModel, updateMany["filter"]);
+      const schema = model28.schema;
+      const strict = options.strict ?? model28.schema.options.strict;
       const update = clone2(updateMany["update"]);
       const globalSetDefaultsOnInsert = originalModel.base.options.setDefaultsOnInsert;
       const shouldSetDefaultsOnInsert = updateMany.setDefaultsOnInsert ?? globalSetDefaultsOnInsert;
       if (shouldSetDefaultsOnInsert !== false) {
-        setDefaultsOnInsert(updateMany["filter"], model9.schema, update, {
+        setDefaultsOnInsert(updateMany["filter"], model28.schema, update, {
           setDefaultsOnInsert: true,
           upsert: updateMany.upsert
         });
       }
       const doInitTimestamps = getTimestampsOpt(updateMany, options);
-      if (model9.schema.$timestamps != null && doInitTimestamps) {
-        const createdAt = model9.schema.$timestamps.createdAt;
-        const updatedAt = model9.schema.$timestamps.updatedAt;
+      if (model28.schema.$timestamps != null && doInitTimestamps) {
+        const createdAt = model28.schema.$timestamps.createdAt;
+        const updatedAt = model28.schema.$timestamps.updatedAt;
         applyTimestampsToUpdate(now, createdAt, updatedAt, update, {
           timestamps: updateMany.timestamps,
           overwriteImmutable: updateMany.overwriteImmutable
         }, updateMany.upsert);
       }
       if (doInitTimestamps) {
-        applyTimestampsToChildren(now, update, model9.schema);
+        applyTimestampsToChildren(now, update, model28.schema);
       }
       _addDiscriminatorToObject(schema, updateMany["filter"]);
       decorateUpdateWithVersionKey(
         update,
         updateMany,
-        model9.schema.options.versionKey
+        model28.schema.options.versionKey
       );
-      updateMany["filter"] = _castFilter(model9, updateMany["filter"], {
+      updateMany["filter"] = _castFilter(model28, updateMany["filter"], {
         strict,
         upsert: updateMany.upsert
       });
       if (Array.isArray(updateMany.arrayFilters)) {
         updateMany.arrayFilters = clone2(updateMany.arrayFilters);
-        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model9, options);
+        castArrayFiltersForUpdate(updateMany.arrayFilters, update, schema, model28, options);
       }
-      updateMany["update"] = castUpdate(model9.schema, update, {
+      updateMany["update"] = castUpdate(model28.schema, update, {
         strict,
         upsert: updateMany.upsert,
         arrayFilters: updateMany.arrayFilters,
         overwriteDiscriminatorKey: updateMany.overwriteDiscriminatorKey,
         overwriteImmutable: updateMany.overwriteImmutable
-      }, model9, updateMany["filter"]);
+      }, model28, updateMany["filter"]);
     }, "castUpdateMany");
     module2.exports.castReplaceOne = /* @__PURE__ */ __name(async function castReplaceOne(originalModel, replaceOne, options) {
-      const model9 = decideModelByObject(originalModel, replaceOne["filter"]);
-      const schema = model9.schema;
-      const strict = options.strict ?? model9.schema.options.strict;
+      const model28 = decideModelByObject(originalModel, replaceOne["filter"]);
+      const schema = model28.schema;
+      const strict = options.strict ?? model28.schema.options.strict;
       _addDiscriminatorToObject(schema, replaceOne["filter"]);
-      replaceOne["filter"] = _castFilter(model9, replaceOne["filter"], {
+      replaceOne["filter"] = _castFilter(model28, replaceOne["filter"], {
         strict,
         upsert: replaceOne.upsert
       });
-      const doc = new model9(replaceOne["replacement"], strict, { skipId: true });
-      if (model9.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
+      const doc = new model28(replaceOne["replacement"], strict, { skipId: true });
+      if (model28.schema.options.timestamps && getTimestampsOpt(replaceOne, options)) {
         doc.initializeTimestamps();
       }
       if (options.session != null) {
         doc.$session(options.session);
       }
-      const versionKey = model9?.schema?.options?.versionKey;
+      const versionKey = model28?.schema?.options?.versionKey;
       if (versionKey && doc[versionKey] == null) {
         doc[versionKey] = 0;
       }
@@ -54876,16 +54876,16 @@ var require_castBulkWrite = __commonJS({
       replaceOne["replacement"] = replaceOne["replacement"].toBSON();
     }, "castReplaceOne");
     module2.exports.castDeleteOne = /* @__PURE__ */ __name(function castDeleteOne(originalModel, deleteOne) {
-      const model9 = decideModelByObject(originalModel, deleteOne["filter"]);
-      const schema = model9.schema;
+      const model28 = decideModelByObject(originalModel, deleteOne["filter"]);
+      const schema = model28.schema;
       _addDiscriminatorToObject(schema, deleteOne["filter"]);
-      deleteOne["filter"] = _castFilter(model9, deleteOne["filter"]);
+      deleteOne["filter"] = _castFilter(model28, deleteOne["filter"]);
     }, "castDeleteOne");
     module2.exports.castDeleteMany = /* @__PURE__ */ __name(function castDeleteMany(originalModel, deleteMany) {
-      const model9 = decideModelByObject(originalModel, deleteMany["filter"]);
-      const schema = model9.schema;
+      const model28 = decideModelByObject(originalModel, deleteMany["filter"]);
+      const schema = model28.schema;
       _addDiscriminatorToObject(schema, deleteMany["filter"]);
-      deleteMany["filter"] = _castFilter(model9, deleteMany["filter"]);
+      deleteMany["filter"] = _castFilter(model28, deleteMany["filter"]);
     }, "castDeleteMany");
     module2.exports.cast = {
       insertOne: module2.exports.castInsertOne,
@@ -54895,12 +54895,12 @@ var require_castBulkWrite = __commonJS({
       deleteOne: module2.exports.castDeleteOne,
       deleteMany: module2.exports.castDeleteMany
     };
-    function _castFilter(model9, filter, options) {
+    function _castFilter(model28, filter, options) {
       try {
-        return cast(model9.schema, filter, options);
+        return cast(model28.schema, filter, options);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model9);
+          err.setModel(model28);
         }
         throw err;
       }
@@ -54915,12 +54915,12 @@ var require_castBulkWrite = __commonJS({
       }
     }
     __name(_addDiscriminatorToObject, "_addDiscriminatorToObject");
-    function decideModelByObject(model9, object2) {
-      const discriminatorKey = model9.schema.options.discriminatorKey;
+    function decideModelByObject(model28, object2) {
+      const discriminatorKey = model28.schema.options.discriminatorKey;
       if (object2 != null && Object.hasOwn(object2, discriminatorKey)) {
-        model9 = getDiscriminatorByValue(model9.discriminators, object2[discriminatorKey]) || model9;
+        model28 = getDiscriminatorByValue(model28.discriminators, object2[discriminatorKey]) || model28;
       }
-      return model9;
+      return model28;
     }
     __name(decideModelByObject, "decideModelByObject");
     function getTimestampsOpt(opCommand, options) {
@@ -54956,7 +54956,7 @@ var require_connection2 = __commonJS({
     "use strict";
     var ChangeStream = require_changeStream();
     var EventEmitter9 = require("events").EventEmitter;
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var STATES = require_connectionState();
     var MongooseBulkWriteError = require_bulkWriteError();
     var MongooseError = require_error2();
@@ -55221,15 +55221,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model9 of Object.values(this.models)) {
+      for (const model28 of Object.values(this.models)) {
         try {
-          result[model9.modelName] = await model9.createCollection({});
+          result[model28.modelName] = await model28.createCollection({});
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model9.modelName] = err;
+            errorsMap[model28.modelName] = err;
             break;
           } else {
-            result[model9.modelName] = err;
+            result[model28.modelName] = err;
           }
         }
       }
@@ -55376,8 +55376,8 @@ var require_connection2 = __commonJS({
         throw new MongooseError("Connection.prototype.dropDatabase() no longer accepts a callback");
       }
       await this._waitForConnect();
-      for (const model9 of Object.values(this.models)) {
-        delete model9.$init;
+      for (const model28 of Object.values(this.models)) {
+        delete model28.$init;
       }
       return this.db.dropDatabase();
     }, "dropDatabase");
@@ -55445,8 +55445,8 @@ var require_connection2 = __commonJS({
         }
         throw err;
       });
-      for (const model9 of Object.values(this.models)) {
-        model9.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model28 of Object.values(this.models)) {
+        model28.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       if (_fireAndForget) {
@@ -55513,8 +55513,8 @@ var require_connection2 = __commonJS({
       if (this._lastHeartbeatAt != null) {
         this._lastHeartbeatAt = null;
       }
-      for (const model9 of Object.values(this.models)) {
-        delete model9.$init;
+      for (const model28 of Object.values(this.models)) {
+        delete model28.$init;
       }
       return this._close(force, false);
     }, "close");
@@ -55602,9 +55602,9 @@ var require_connection2 = __commonJS({
       };
       options = Object.assign({}, defaultOptions, options ? clone2(options) : {});
       options.$wasForceClosed = this.$wasForceClosed;
-      const Collection2 = this.base?.__driver?.Collection || driver.get().Collection;
+      const Collection3 = this.base?.__driver?.Collection || driver.get().Collection;
       if (!(name in this.collections)) {
-        this.collections[name] = new Collection2(name, this, options);
+        this.collections[name] = new Collection3(name, this, options);
       }
       return this.collections[name];
     };
@@ -55612,7 +55612,7 @@ var require_connection2 = __commonJS({
       this.plugins.push([fn, opts]);
       return this;
     };
-    Connection.prototype.model = /* @__PURE__ */ __name(function model9(name, schema, collection, options) {
+    Connection.prototype.model = /* @__PURE__ */ __name(function model28(name, schema, collection, options) {
       if (!(this instanceof Connection)) {
         throw new MongooseError("`connection.model()` should not be run with `new`. If you are doing `new db.model(foo)(bar)`, use `db.model(foo)(bar)` instead");
       }
@@ -55627,7 +55627,7 @@ var require_connection2 = __commonJS({
       }
       if (utils.isObject(schema)) {
         if (!schema.instanceOfSchema) {
-          schema = new Schema9(schema);
+          schema = new Schema28(schema);
         } else if (!(schema instanceof this.base.Schema)) {
           schema = schema._clone(this.base.Schema);
         }
@@ -55643,52 +55643,52 @@ var require_connection2 = __commonJS({
         }
         return this.models[name];
       }
-      let model10;
+      let model29;
       if (schema?.instanceOfSchema) {
         applyPlugins(schema, this.plugins, null, "$connectionPluginsApplied");
-        model10 = this.base._model(fn || name, schema, collection, opts);
+        model29 = this.base._model(fn || name, schema, collection, opts);
         if (!this.models[name]) {
-          this.models[name] = model10;
+          this.models[name] = model29;
         }
-        model10.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+        model29.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
-        return model10;
+        return model29;
       }
       if (this.models[name] && collection) {
-        model10 = this.models[name];
-        schema = model10.prototype.schema;
-        const sub = model10.__subclass(this, schema, collection);
+        model29 = this.models[name];
+        schema = model29.prototype.schema;
+        const sub = model29.__subclass(this, schema, collection);
         return sub;
       }
       if (arguments.length === 1) {
-        model10 = this.models[name];
-        if (!model10) {
+        model29 = this.models[name];
+        if (!model29) {
           throw new MongooseError.MissingSchemaError(name);
         }
-        return model10;
+        return model29;
       }
-      if (!model10) {
+      if (!model29) {
         throw new MongooseError.MissingSchemaError(name);
       }
-      if (this === model10.prototype.db && (!collection || collection === model10.collection.name)) {
+      if (this === model29.prototype.db && (!collection || collection === model29.collection.name)) {
         if (!this.models[name]) {
-          this.models[name] = model10;
+          this.models[name] = model29;
         }
-        return model10;
+        return model29;
       }
-      this.models[name] = model10.__subclass(this, schema, collection);
+      this.models[name] = model29.__subclass(this, schema, collection);
       return this.models[name];
     }, "model");
     Connection.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       if (typeof name === "string") {
-        const model9 = this.model(name);
-        if (model9 == null) {
+        const model28 = this.model(name);
+        if (model28 == null) {
           return this;
         }
-        const collectionName = model9.collection.name;
+        const collectionName = model28.collection.name;
         delete this.models[name];
         delete this.collections[collectionName];
-        this.emit("deleteModel", model9);
+        this.emit("deleteModel", model28);
       } else if (name instanceof RegExp) {
         const pattern = name;
         const names = this.modelNames();
@@ -55743,15 +55743,15 @@ var require_connection2 = __commonJS({
       const errorsMap = {};
       const { continueOnError } = options;
       delete options.continueOnError;
-      for (const model9 of Object.values(this.models)) {
+      for (const model28 of Object.values(this.models)) {
         try {
-          result[model9.modelName] = await model9.syncIndexes(options);
+          result[model28.modelName] = await model28.syncIndexes(options);
         } catch (err) {
           if (!continueOnError) {
-            errorsMap[model9.modelName] = err;
+            errorsMap[model28.modelName] = err;
             break;
           } else {
-            result[model9.modelName] = err;
+            result[model28.modelName] = err;
           }
         }
       }
@@ -55993,7 +55993,7 @@ var require_connection3 = __commonJS({
     var processConnectionOptions = require_processConnectionOptions();
     var setTimeout2 = require_timers().setTimeout;
     var utils = require_utils3();
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var Date2 = globalThis.Date;
     function NativeConnection() {
       MongooseConnection.apply(this, arguments);
@@ -56183,12 +56183,12 @@ var require_connection3 = __commonJS({
     NativeConnection.prototype._buildEncryptionSchemas = function() {
       const qeMappings = {};
       const csfleMappings = {};
-      const encryptedModels = Object.values(this.models).filter((model9) => model9.schema._hasEncryptedFields());
-      for (const model9 of encryptedModels) {
-        const { schema, collection: { collectionName } } = model9;
+      const encryptedModels = Object.values(this.models).filter((model28) => model28.schema._hasEncryptedFields());
+      for (const model28 of encryptedModels) {
+        const { schema, collection: { collectionName } } = model28;
         const namespace = `${this.$dbName}.${collectionName}`;
         const mappings = schema.encryptionType() === "csfle" ? csfleMappings : qeMappings;
-        mappings[namespace] ??= new Schema9({}, { encryptionType: schema.encryptionType() });
+        mappings[namespace] ??= new Schema28({}, { encryptionType: schema.encryptionType() });
         const isNonRootDiscriminator = schema.discriminatorMapping && !schema.discriminatorMapping.isRoot;
         if (isNonRootDiscriminator) {
           const rootSchema = schema._baseSchema;
@@ -56223,8 +56223,8 @@ var require_connection3 = __commonJS({
       }
       this._connectionString = client.s.url;
       _setClient(this, client, {}, client.s.options.dbName);
-      for (const model9 of Object.values(this.models)) {
-        model9.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      for (const model28 of Object.values(this.models)) {
+        model28.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
         }, "$modelInitNoop"));
       }
       return this;
@@ -56615,10 +56615,10 @@ var require_queryCursor = __commonJS({
       this.skipped = false;
       this.query = query;
       this._closed = false;
-      const model9 = query.model;
+      const model28 = query.model;
       this._mongooseOptions = {};
       this._transforms = [];
-      this.model = model9;
+      this.model = model28;
       this.options = {};
       this._postMiddlewareFilter = null;
       const onPreComplete = /* @__PURE__ */ __name((err) => {
@@ -56657,8 +56657,8 @@ var require_queryCursor = __commonJS({
         if (query._mongooseOptions._asyncIterator) {
           this._mongooseOptions._asyncIterator = true;
         }
-        if (model9.collection._shouldBufferCommands() && model9.collection.buffer) {
-          model9.collection.queue.push([
+        if (model28.collection._shouldBufferCommands() && model28.collection.buffer) {
+          model28.collection.queue.push([
             () => _getRawCursor(query, this)
           ]);
         } else {
@@ -56666,7 +56666,7 @@ var require_queryCursor = __commonJS({
         }
       }, "onPreComplete");
       const preFilter = buildMiddlewareFilter(query.options, "pre");
-      model9.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model28.hooks.execPre("find", query, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
     }
     __name(QueryCursor, "QueryCursor");
     util.inherits(QueryCursor, Readable4);
@@ -56950,8 +56950,8 @@ var require_queryCursor = __commonJS({
       if (ctx.query._mongooseOptions.lean) {
         return ctx.model.hooks.execPost("find", ctx.query, [[doc]], { filter: ctx._postMiddlewareFilter }).then(() => callback(null, doc), (err) => callback(err));
       }
-      const { model: model9, _fields, _userProvidedFields, options } = ctx.query;
-      helpers.createModelAndInit(model9, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
+      const { model: model28, _fields, _userProvidedFields, options } = ctx.query;
+      helpers.createModelAndInit(model28, doc, _fields, _userProvidedFields, options, pop, (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
@@ -57369,15 +57369,15 @@ var require_collection4 = __commonJS({
       "deleteOne",
       "deleteMany"
     ];
-    function Collection2() {
+    function Collection3() {
     }
-    __name(Collection2, "Collection");
+    __name(Collection3, "Collection");
     for (let i = 0, len = methods2.length; i < len; ++i) {
       const method = methods2[i];
-      Collection2.prototype[method] = notImplemented(method);
+      Collection3.prototype[method] = notImplemented(method);
     }
-    module2.exports = exports2 = Collection2;
-    Collection2.methods = methods2;
+    module2.exports = exports2 = Collection3;
+    Collection3.methods = methods2;
     function notImplemented(method) {
       return function() {
         throw new Error("collection." + method + " not implemented");
@@ -57391,8 +57391,8 @@ var require_collection4 = __commonJS({
 var require_node2 = __commonJS({
   "node_modules/mquery/lib/collection/node.js"(exports2, module2) {
     "use strict";
-    var Collection2 = require_collection4();
-    var NodeCollection = class extends Collection2 {
+    var Collection3 = require_collection4();
+    var NodeCollection = class extends Collection3 {
       static {
         __name(this, "NodeCollection");
       }
@@ -58051,9 +58051,9 @@ var require_mquery = __commonJS({
         return this;
       };
     });
-    Query.prototype.maxTime = Query.prototype.maxTimeMS = function(ms) {
+    Query.prototype.maxTime = Query.prototype.maxTimeMS = function(ms2) {
       this._validate("maxTime");
-      this.options.maxTimeMS = ms;
+      this.options.maxTimeMS = ms2;
       return this;
     };
     Query.prototype.hint = function() {
@@ -58111,8 +58111,8 @@ var require_mquery = __commonJS({
       }
       return this;
     }, "writeConcern");
-    Query.prototype.wtimeout = Query.prototype.wTimeout = /* @__PURE__ */ __name(function wtimeout(ms) {
-      this.options.wtimeout = ms;
+    Query.prototype.wtimeout = Query.prototype.wTimeout = /* @__PURE__ */ __name(function wtimeout(ms2) {
+      this.options.wtimeout = ms2;
       return this;
     }, "wtimeout");
     Query.prototype.merge = function(source) {
@@ -58956,7 +58956,7 @@ var require_query = __commonJS({
       ["findOneAndDelete", "_findOneAndDelete"]
     ]);
     var queryUpdateSymbol = /* @__PURE__ */ Symbol("mongoose#Query#update");
-    function Query(conditions, options, model9, collection) {
+    function Query(conditions, options, model28, collection) {
       if (!this._mongooseOptions) {
         this._mongooseOptions = {};
       }
@@ -58971,9 +58971,9 @@ var require_query = __commonJS({
       if (collection) {
         this.mongooseCollection = collection;
       }
-      if (model9) {
-        this.model = model9;
-        this.schema = model9.schema;
+      if (model28) {
+        this.model = model28;
+        this.schema = model28.schema;
       }
       if (this.model?._mapreduce) {
         this.lean();
@@ -59037,16 +59037,16 @@ var require_query = __commonJS({
     });
     Query.use$geoWithin = mquery.use$geoWithin;
     Query.prototype.toConstructor = /* @__PURE__ */ __name(function toConstructor() {
-      const model9 = this.model;
+      const model28 = this.model;
       const coll = this.mongooseCollection;
       const CustomQuery = /* @__PURE__ */ __name(function(criteria, options2) {
         if (!(this instanceof CustomQuery)) {
           return new CustomQuery(criteria, options2);
         }
         this._mongooseOptions = clone2(p._mongooseOptions);
-        Query.call(this, criteria, options2 || null, model9, coll);
+        Query.call(this, criteria, options2 || null, model28, coll);
       }, "CustomQuery");
-      util.inherits(CustomQuery, model9.Query);
+      util.inherits(CustomQuery, model28.Query);
       const p = CustomQuery.prototype;
       p.options = {};
       const options = Object.assign({}, this.options);
@@ -59068,9 +59068,9 @@ var require_query = __commonJS({
       return CustomQuery;
     }, "toConstructor");
     Query.prototype.clone = function() {
-      const model9 = this.model;
+      const model28 = this.model;
       const collection = this.mongooseCollection;
-      const q = new this.model.Query({}, {}, model9, collection);
+      const q = new this.model.Query({}, {}, model28, collection);
       const options = Object.assign({}, this.options);
       if (options.sort != null) {
         q.sort(options.sort);
@@ -59334,14 +59334,14 @@ var require_query = __commonJS({
       }
       return this;
     }, "j");
-    Query.prototype.wtimeout = /* @__PURE__ */ __name(function wtimeout(ms) {
-      if (ms == null) {
+    Query.prototype.wtimeout = /* @__PURE__ */ __name(function wtimeout(ms2) {
+      if (ms2 == null) {
         delete this.options.wtimeout;
       }
       if (this.options.writeConcern != null) {
-        this.options.writeConcern.wtimeout = ms;
+        this.options.writeConcern.wtimeout = ms2;
       } else {
-        this.options.wtimeout = ms;
+        this.options.wtimeout = ms2;
       }
       return this;
     }, "wtimeout");
@@ -59473,8 +59473,8 @@ var require_query = __commonJS({
       }
       return this;
     };
-    Query.prototype.maxTimeMS = function(ms) {
-      this.options.maxTimeMS = ms;
+    Query.prototype.maxTimeMS = function(ms2) {
+      this.options.maxTimeMS = ms2;
       return this;
     };
     Query.prototype.getFilter = function() {
@@ -59536,20 +59536,20 @@ var require_query = __commonJS({
       }
       return ret;
     };
-    Query.prototype._optionsForExec = function(model9) {
+    Query.prototype._optionsForExec = function(model28) {
       const options = clone2(this.options);
       delete options.populate;
-      model9 = model9 || this.model;
-      if (!model9) {
+      model28 = model28 || this.model;
+      if (!model28) {
         return options;
       }
-      applyReadConcern(model9.schema, options);
-      applyWriteConcern(model9.schema, options);
+      applyReadConcern(model28.schema, options);
+      applyWriteConcern(model28.schema, options);
       const asyncLocalStorage = this.model?.db?.base.transactionAsyncLocalStorage?.getStore();
       if (!Object.hasOwn(this.options, "session") && asyncLocalStorage?.session != null) {
         options.session = asyncLocalStorage.session;
       }
-      const readPreference = model9?.schema?.options?.read;
+      const readPreference = model28?.schema?.options?.read;
       if (!("readPreference" in options) && readPreference) {
         options.readPreference = readPreference;
       }
@@ -59840,7 +59840,7 @@ var require_query = __commonJS({
       if (!doc && !this.options.includeResultMetadata) {
         return callback(null, null);
       }
-      const model9 = this.model;
+      const model28 = this.model;
       const userProvidedFields = this._userProvidedFields || {};
       const mongooseOptions = this._mongooseOptions;
       const options = this.options;
@@ -59857,8 +59857,8 @@ var require_query = __commonJS({
             delete doc[versionKey];
           }
         }
-        return mongooseOptions.lean ? _completeOneLean(model9.schema, doc, null, res, options, callback) : completeOne(
-          model9,
+        return mongooseOptions.lean ? _completeOneLean(model28.schema, doc, null, res, options, callback) : completeOne(
+          model28,
           doc,
           res,
           options,
@@ -59870,20 +59870,20 @@ var require_query = __commonJS({
       }
       const pop = helpers.preparePopulationOptionsMQ(this, this._mongooseOptions);
       if (mongooseOptions.lean) {
-        return model9.populate(doc, pop).then(
+        return model28.populate(doc, pop).then(
           (doc2) => {
-            _completeOneLean(model9.schema, doc2, null, res, options, callback);
+            _completeOneLean(model28.schema, doc2, null, res, options, callback);
           },
           (error62) => {
             callback(error62);
           }
         );
       }
-      completeOne(model9, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
+      completeOne(model28, doc, res, options, projection, userProvidedFields, [], (err, doc2) => {
         if (err != null) {
           return callback(err);
         }
-        model9.populate(doc2, pop).then((res2) => {
+        model28.populate(doc2, pop).then((res2) => {
           callback(null, res2);
         }, (err2) => {
           callback(err2);
@@ -59891,10 +59891,10 @@ var require_query = __commonJS({
       });
     };
     Query.prototype._completeMany = /* @__PURE__ */ __name(async function _completeMany(docs, fields, userProvidedFields, opts) {
-      const model9 = this.model;
+      const model28 = this.model;
       return Promise.all(docs.map((doc) => new Promise((resolve2, reject) => {
         const rawDoc = doc;
-        doc = helpers.createModel(model9, doc, fields, userProvidedFields, opts);
+        doc = helpers.createModel(model28, doc, fields, userProvidedFields, opts);
         if (opts.session != null) {
           doc.$session(opts.session);
         }
@@ -60163,12 +60163,12 @@ var require_query = __commonJS({
       const options = this._optionsForExec();
       return this.mongooseCollection.deleteMany(this._conditions, options);
     }, "_deleteMany");
-    function completeOne(model9, doc, res, options, fields, userProvidedFields, pop, callback) {
+    function completeOne(model28, doc, res, options, fields, userProvidedFields, pop, callback) {
       if (options.includeResultMetadata && doc == null) {
         _init(null);
         return null;
       }
-      helpers.createModelAndInit(model9, doc, fields, userProvidedFields, options, pop, _init);
+      helpers.createModelAndInit(model28, doc, fields, userProvidedFields, options, pop, _init);
       function _init(err, casted) {
         if (err) {
           return callback(err);
@@ -61049,12 +61049,12 @@ var require_query = __commonJS({
       }
     }
     __name(_getPopulatedPaths, "_getPopulatedPaths");
-    Query.prototype.cast = function(model9, obj) {
+    Query.prototype.cast = function(model28, obj) {
       obj || (obj = this._conditions);
-      model9 = model9 || this.model;
-      const discriminatorKey = model9.schema.options.discriminatorKey;
+      model28 = model28 || this.model;
+      const discriminatorKey = model28.schema.options.discriminatorKey;
       if (obj != null && Object.hasOwn(obj, discriminatorKey)) {
-        model9 = getDiscriminatorByValue(model9.discriminators, obj[discriminatorKey]) || model9;
+        model28 = getDiscriminatorByValue(model28.discriminators, obj[discriminatorKey]) || model28;
       }
       const opts = { upsert: this.options?.upsert };
       if ("strict" in this._mongooseOptions) {
@@ -61063,12 +61063,12 @@ var require_query = __commonJS({
       if ("strictQuery" in this._mongooseOptions) {
         opts.strictQuery = this._mongooseOptions.strictQuery;
       }
-      opts.sanitizeFilter = model9.db.config?.sanitizeFilter ?? model9.db.options?.sanitizeFilter ?? model9.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
+      opts.sanitizeFilter = model28.db.config?.sanitizeFilter ?? model28.db.options?.sanitizeFilter ?? model28.base.options.sanitizeFilter ?? this._mongooseOptions.sanitizeFilter;
       try {
-        return cast(model9.schema, obj, opts, this);
+        return cast(model28.schema, obj, opts, this);
       } catch (err) {
         if (typeof err.setModel === "function") {
-          err.setModel(model9);
+          err.setModel(model28);
         }
         throw err;
       }
@@ -61264,7 +61264,7 @@ var require_aggregationCursor = __commonJS({
       this.agg = agg;
       this._transforms = [];
       const connection = agg._connection;
-      const model9 = agg._model;
+      const model28 = agg._model;
       delete agg.options.cursor.useMongooseAggCursor;
       this._mongooseOptions = {};
       if (connection) {
@@ -61276,14 +61276,14 @@ var require_aggregationCursor = __commonJS({
         this.cursor = connection.db.aggregate(agg._pipeline, options);
         setImmediate(() => this.emit("cursor", this.cursor));
       } else {
-        _init(model9, this, agg);
+        _init(model28, this, agg);
       }
     }
     __name(AggregationCursor, "AggregationCursor");
     util.inherits(AggregationCursor, Readable4);
-    function _init(model9, c, agg) {
+    function _init(model28, c, agg) {
       const preFilter = buildMiddlewareFilter(agg.options, "pre");
-      model9.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
+      model28.hooks.execPre("aggregate", agg, [], { filter: preFilter }).then(() => onPreComplete(null), (err) => onPreComplete(err));
       function onPreComplete(err) {
         if (err != null) {
           _handlePreHookError(c, err);
@@ -61292,25 +61292,25 @@ var require_aggregationCursor = __commonJS({
         if (typeof agg.options?.cursor?.transform === "function") {
           c._transforms.push(agg.options.cursor.transform);
         }
-        if (model9.collection._shouldBufferCommands() && model9.collection.buffer) {
-          model9.collection.queue.push([
-            () => _getRawCursor(model9, c, agg)
+        if (model28.collection._shouldBufferCommands() && model28.collection.buffer) {
+          model28.collection.queue.push([
+            () => _getRawCursor(model28, c, agg)
           ]);
         } else {
-          _getRawCursor(model9, c, agg);
+          _getRawCursor(model28, c, agg);
         }
       }
       __name(onPreComplete, "onPreComplete");
     }
     __name(_init, "_init");
-    function _getRawCursor(model9, aggregationCursor, agg) {
+    function _getRawCursor(model28, aggregationCursor, agg) {
       try {
         let options = agg.options;
         if (Object.hasOwn(options, "middleware")) {
           const { middleware, ...driverOptions } = options;
           options = driverOptions;
         }
-        const cursor = model9.collection.aggregate(agg._pipeline, options);
+        const cursor = model28.collection.aggregate(agg._pipeline, options);
         aggregationCursor.cursor = cursor;
         aggregationCursor.emit("cursor", cursor);
       } catch (err) {
@@ -61408,7 +61408,7 @@ var require_aggregationCursor = __commonJS({
         throw new MongooseError("AggregationCursor.prototype.next() no longer accepts a callback");
       }
       const _this = this;
-      const model9 = this.agg._model;
+      const model28 = this.agg._model;
       return cursorNextChannel.trace(/* @__PURE__ */ __name(function maybeTracedAggCursorNext() {
         return new Promise((resolve2, reject) => {
           _next(_this, (err, res) => {
@@ -61420,10 +61420,10 @@ var require_aggregationCursor = __commonJS({
         });
       }, "maybeTracedAggCursorNext"), () => ({
         operation: "aggregate",
-        collection: model9?.collection?.name,
-        database: model9?.db?.name,
-        serverAddress: model9?.db?.host,
-        serverPort: model9?.db?.port,
+        collection: model28?.collection?.name,
+        database: model28?.db?.name,
+        serverAddress: model28?.db?.host,
+        serverPort: model28?.db?.port,
         batchSize: _this.agg.options?.cursor?.batchSize,
         tailable: false,
         args: {
@@ -61646,20 +61646,20 @@ var require_aggregate2 = __commonJS({
       }
       return options;
     };
-    Aggregate.prototype.model = function(model9) {
+    Aggregate.prototype.model = function(model28) {
       if (arguments.length === 0) {
         return this._model;
       }
-      this._model = model9;
-      if (model9.schema != null) {
-        if (this.options.readPreference == null && model9.schema.options.read != null) {
-          this.options.readPreference = model9.schema.options.read;
+      this._model = model28;
+      if (model28.schema != null) {
+        if (this.options.readPreference == null && model28.schema.options.read != null) {
+          this.options.readPreference = model28.schema.options.read;
         }
-        if (this.options.collation == null && model9.schema.options.collation != null) {
-          this.options.collation = model9.schema.options.collation;
+        if (this.options.collation == null && model28.schema.options.collation != null) {
+          this.options.collation = model28.schema.options.collation;
         }
       }
-      return model9;
+      return model28;
     };
     Aggregate.prototype.append = function() {
       const args = arguments.length === 1 && Array.isArray(arguments[0]) ? arguments[0] : [...arguments];
@@ -61841,7 +61841,7 @@ var require_aggregate2 = __commonJS({
       if (typeof verbosity === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Aggregate.prototype.explain() no longer accepts a callback");
       }
-      const model9 = this._model;
+      const model28 = this._model;
       if (!this._pipeline.length) {
         throw new MongooseError("Aggregate has empty pipeline");
       }
@@ -61850,11 +61850,11 @@ var require_aggregate2 = __commonJS({
       const postFilter = buildMiddlewareFilter(this.options, "post");
       const { middleware, ...options } = this.options ?? {};
       try {
-        await model9.hooks.execPre("aggregate", this, [], { filter: preFilter });
+        await model28.hooks.execPre("aggregate", this, [], { filter: preFilter });
       } catch (error62) {
-        return await model9.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model28.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      const cursor = await model9.collection.aggregate(this._pipeline, options);
+      const cursor = await model28.collection.aggregate(this._pipeline, options);
       if (verbosity == null) {
         verbosity = true;
       }
@@ -61862,9 +61862,9 @@ var require_aggregate2 = __commonJS({
       try {
         result = await cursor.explain(verbosity);
       } catch (error62) {
-        return await model9.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
+        return await model28.hooks.execPost("aggregate", this, [null], { error: error62, filter: postFilter });
       }
-      await model9.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
+      await model28.hooks.execPost("aggregate", this, [result], { error: null, filter: postFilter });
       return result;
     }, "explain");
     Aggregate.prototype.allowDiskUse = function(value) {
@@ -61947,10 +61947,10 @@ var require_aggregate2 = __commonJS({
           }
         }));
       }
-      const model9 = this._model;
+      const model28 = this._model;
       const collection = this._model.collection;
-      applyGlobalMaxTimeMS(this.options, model9.db.options, model9.base.options);
-      applyGlobalDiskUse(this.options, model9.db.options, model9.base.options);
+      applyGlobalMaxTimeMS(this.options, model28.db.options, model28.base.options);
+      applyGlobalDiskUse(this.options, model28.db.options, model28.base.options);
       this._optionsForExec();
       if (this.options?.cursor) {
         return new AggregationCursor(this);
@@ -61962,9 +61962,9 @@ var require_aggregate2 = __commonJS({
         const preFilter = buildMiddlewareFilter(_this.options, "pre");
         const postFilter = buildMiddlewareFilter(_this.options, "post");
         try {
-          await model9.hooks.execPre("aggregate", _this, [], { filter: preFilter });
+          await model28.hooks.execPre("aggregate", _this, [], { filter: preFilter });
         } catch (error62) {
-          return await model9.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model28.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
         if (!_this._pipeline.length) {
           throw new MongooseError("Aggregate has empty pipeline");
@@ -61975,16 +61975,16 @@ var require_aggregate2 = __commonJS({
           const cursor = await collection.aggregate(_this._pipeline, options);
           result = await cursor.toArray();
         } catch (error62) {
-          return await model9.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
+          return await model28.hooks.execPost("aggregate", _this, [null], { error: error62, filter: postFilter });
         }
-        await model9.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
+        await model28.hooks.execPost("aggregate", _this, [result], { error: null, filter: postFilter });
         return result;
       }, "maybeTracedAggregateExec"), () => ({
         operation: "aggregate",
         collection: collection.name,
-        database: model9.db?.name,
-        serverAddress: model9.db?.host,
-        serverPort: model9.db?.port,
+        database: model28.db?.name,
+        serverAddress: model28.db?.host,
+        serverPort: model28.db?.port,
         args: {
           pipeline: _this._pipeline,
           options: _this.options
@@ -62143,7 +62143,7 @@ var require_applyHooks = __commonJS({
       "init"
     ];
     var alreadyHookedFunctions = new Set(applyHooks.middlewareFunctions.flatMap((fn) => [fn, `$__${fn}`]));
-    function applyHooks(model9, schema, options) {
+    function applyHooks(model28, schema, options) {
       options = options || {};
       const kareemOptions = {
         useErrorHandlers: true,
@@ -62151,8 +62151,8 @@ var require_applyHooks = __commonJS({
         nullResultByDefault: true,
         contextParameter: true
       };
-      const objToDecorate = options.decorateDoc ? model9 : model9.prototype;
-      model9.$appliedHooks = true;
+      const objToDecorate = options.decorateDoc ? model28 : model28.prototype;
+      model28.$appliedHooks = true;
       for (const key of Object.keys(schema.paths)) {
         let type = schema.paths[key];
         let childModel = null;
@@ -62182,8 +62182,8 @@ var require_applyHooks = __commonJS({
           }
         }
       }
-      const middleware = schema._getDocumentMiddleware(model9.prototype.$isSubdocument);
-      model9._middleware = middleware;
+      const middleware = schema._getDocumentMiddleware(model28.prototype.$isSubdocument);
+      model28._middleware = middleware;
       const $__init = objToDecorate.$__init;
       if (middleware.hasHooks("init")) {
         objToDecorate.$__init = middleware.createWrapperSync("init", $__init, null, {
@@ -62249,10 +62249,10 @@ var require_applyMethods = __commonJS({
     "use strict";
     var get = require_get();
     var utils = require_utils3();
-    module2.exports = /* @__PURE__ */ __name(function applyMethods(model9, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyMethods(model28, schema) {
       const Model = require_model();
       function apply(method, schema2) {
-        Object.defineProperty(model9.prototype, method, {
+        Object.defineProperty(model28.prototype, method, {
           get: /* @__PURE__ */ __name(function() {
             const h = {};
             for (const k in schema2.methods[method]) {
@@ -62277,12 +62277,12 @@ var require_applyMethods = __commonJS({
           utils.warn(`mongoose: the method name "${method}" is used by mongoose internally, overwriting it may cause bugs. If you're sure you know what you're doing, you can suppress this error by using \`schema.method('${method}', fn, { suppressWarning: true })\`.`);
         }
         if (typeof fn === "function") {
-          model9.prototype[method] = fn;
+          model28.prototype[method] = fn;
         } else {
           apply(method, schema);
         }
       }
-      model9.$appliedMethods = true;
+      model28.$appliedMethods = true;
       for (const key of Object.keys(schema.paths)) {
         const type = schema.paths[key];
         if (type.$isSingleNested && !type.Constructor.$appliedMethods) {
@@ -62425,7 +62425,7 @@ var require_applyStaticHooks = __commonJS({
         ...documentMiddlewareFunctions
       ])
     );
-    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model9, hooks, statics) {
+    module2.exports = /* @__PURE__ */ __name(function applyStaticHooks(model28, hooks, statics) {
       hooks = hooks.filter((hook) => {
         if (middlewareFunctions.indexOf(hook.name) !== -1) {
           return !!hook.model;
@@ -62434,9 +62434,9 @@ var require_applyStaticHooks = __commonJS({
       });
       for (const key of Object.keys(statics)) {
         if (hooks.hasHooks(key)) {
-          const original = model9[key];
+          const original = model28[key];
           const wrapperOptions = original.supportsMiddlewareOption === true ? { getOptions: middlewareFiltersFromLastArg } : void 0;
-          model9[key] = hooks.createWrapper(key, original, null, wrapperOptions);
+          model28[key] = hooks.createWrapper(key, original, null, wrapperOptions);
         }
       }
     }, "applyStaticHooks");
@@ -62447,9 +62447,9 @@ var require_applyStaticHooks = __commonJS({
 var require_applyStatics = __commonJS({
   "node_modules/mongoose/lib/helpers/model/applyStatics.js"(exports2, module2) {
     "use strict";
-    module2.exports = /* @__PURE__ */ __name(function applyStatics(model9, schema) {
+    module2.exports = /* @__PURE__ */ __name(function applyStatics(model28, schema) {
       for (const i in schema.statics) {
-        model9[i] = schema.statics[i];
+        model28[i] = schema.statics[i];
       }
     }, "applyStatics");
   }
@@ -63987,11 +63987,11 @@ var require_createPopulateQueryFilter = __commonJS({
     var parentPaths = require_parentPaths();
     var { trusted } = require_trusted();
     var hasDollarKeys = require_hasDollarKeys();
-    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model9, skipInvalidIds) {
+    module2.exports = /* @__PURE__ */ __name(function createPopulateQueryFilter(ids, _match, _foreignField, model28, skipInvalidIds) {
       const match = _formatMatch(_match);
       if (_foreignField.size === 1) {
         const foreignField = Array.from(_foreignField)[0];
-        const foreignSchemaType = model9.schema.path(foreignField);
+        const foreignSchemaType = model28.schema.path(foreignField);
         if (foreignField !== "_id" || !match["_id"]) {
           ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
           match[foreignField] = trusted({ $in: ids });
@@ -64024,7 +64024,7 @@ var require_createPopulateQueryFilter = __commonJS({
         }
         for (const foreignField of _foreignField) {
           if (foreignField !== "_id" || !match["_id"]) {
-            const foreignSchemaType = model9.schema.path(foreignField);
+            const foreignSchemaType = model28.schema.path(foreignField);
             ids = _filterInvalidIds(ids, foreignSchemaType, skipInvalidIds);
             $or.push({ [foreignField]: { $in: ids } });
           } else if (foreignField === "_id" && match["_id"]) {
@@ -64101,20 +64101,20 @@ var require_getSchemaTypes = __commonJS({
     var leanPopulateMap = require_leanPopulateMap();
     var mpath = require_mpath();
     var populateModelSymbol = require_symbols().populateModelSymbol;
-    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model9, schema, doc, path3, parts) {
+    module2.exports = /* @__PURE__ */ __name(function getSchemaTypes(model28, schema, doc, path3, parts) {
       const pathschema = schema.path(path3);
       const topLevelDoc = doc;
       if (pathschema) {
         return pathschema;
       }
       const discriminatorKey = schema.discriminatorMapping?.key;
-      if (discriminatorKey && model9 != null) {
+      if (discriminatorKey && model28 != null) {
         if (doc?.[discriminatorKey] != null) {
-          const discriminator = getDiscriminatorByValue(model9.discriminators, doc[discriminatorKey]);
+          const discriminator = getDiscriminatorByValue(model28.discriminators, doc[discriminatorKey]);
           schema = discriminator?.schema || schema;
-        } else if (model9.discriminators != null) {
-          return Object.keys(model9.discriminators).reduce((arr, name) => {
-            const disc = model9.discriminators[name];
+        } else if (model28.discriminators != null) {
+          return Object.keys(model28.discriminators).reduce((arr, name) => {
+            const disc = model28.discriminators[name];
             return arr.concat(getSchemaTypes(disc, disc.schema, null, path3));
           }, []);
         }
@@ -64226,11 +64226,11 @@ var require_getSchemaTypes = __commonJS({
           }
           const fullPath = nestedPath.concat([trypath]).join(".");
           if (topLevelDoc?.$__ && topLevelDoc.$populated(fullPath, true) && p < parts2.length) {
-            const model10 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
-            if (model10 != null) {
+            const model29 = topLevelDoc.$populated(fullPath, true).options[populateModelSymbol];
+            if (model29 != null) {
               const ret = search(
                 parts2.slice(p),
-                model10.schema,
+                model29.schema,
                 subdoc ? mpath.get(trypath, subdoc) : null,
                 nestedPath.concat(parts2.slice(0, p))
               );
@@ -64239,8 +64239,8 @@ var require_getSchemaTypes = __commonJS({
           }
           const _val = get(topLevelDoc, trypath);
           if (_val != null) {
-            const model10 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
-            const schema3 = model10?.schema ?? null;
+            const model29 = Array.isArray(_val) && _val.length > 0 ? leanPopulateMap.get(_val[0]) : leanPopulateMap.get(_val);
+            const schema3 = model29?.schema ?? null;
             if (schema3 != null) {
               const ret = search(
                 parts2.slice(p),
@@ -64293,7 +64293,7 @@ var require_getModelsMapForPopulate = __commonJS({
     var numericPathSegmentPattern = "\\.\\d+(?=\\.|$)";
     var hasNumericPathSegmentRE = new RegExp(numericPathSegmentPattern);
     var numericPathSegmentRE = new RegExp(numericPathSegmentPattern, "g");
-    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model9, docs, options) {
+    module2.exports = /* @__PURE__ */ __name(function getModelsMapForPopulate(model28, docs, options) {
       let doc;
       const len = docs.length;
       const map2 = [];
@@ -64303,17 +64303,17 @@ var require_getModelsMapForPopulate = __commonJS({
       let modelNames;
       let modelNamesSet;
       const available = {};
-      const modelSchema = model9.schema;
+      const modelSchema = model28.schema;
       if (options._localModel != null && options._localModel.schema.nested[options.path]) {
         return [];
       }
-      const _virtualRes = getVirtual(model9.schema, options.path);
+      const _virtualRes = getVirtual(model28.schema, options.path);
       const virtual = _virtualRes == null ? null : _virtualRes.virtual;
       if (virtual != null) {
-        return _virtualPopulate(model9, docs, options, _virtualRes);
+        return _virtualPopulate(model28, docs, options, _virtualRes);
       }
       const parts = modelSchema.paths[options.path]?.splitPath() ?? options.path.split(".");
-      let allSchemaTypes = getSchemaTypes(model9, modelSchema, null, options.path, parts);
+      let allSchemaTypes = getSchemaTypes(model28, modelSchema, null, options.path, parts);
       allSchemaTypes = Array.isArray(allSchemaTypes) ? allSchemaTypes : [allSchemaTypes].filter((v) => v != null);
       const isStrictPopulateDisabled = options.strictPopulate === false || options.options?.strictPopulate === false;
       if (!isStrictPopulateDisabled && allSchemaTypes.length === 0 && options._localModel != null) {
@@ -64329,7 +64329,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         }
         const docSchema = doc?.$__ != null ? doc.$__schema : modelSchema;
-        schema = getSchemaTypes(model9, docSchema, doc, options.path, parts);
+        schema = getSchemaTypes(model28, docSchema, doc, options.path, parts);
         if (schema != null && schema.$isMongooseDocumentArray && schema.options.ref == null && schema.options.refPath == null) {
           continue;
         }
@@ -64349,10 +64349,10 @@ var require_getModelsMapForPopulate = __commonJS({
               foreignField: "_id",
               justOne: true
             };
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model9);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model28);
             const unpopulatedValue = mpath.get(options.path, doc);
             const id2 = mpath.get("_id", unpopulatedValue);
-            addModelNamesToMap(model9, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
+            addModelNamesToMap(model28, map2, available, res.modelNames, options, data2, id2, doc, schemaOptions, unpopulatedValue);
           }
           continue;
         }
@@ -64362,7 +64362,7 @@ var require_getModelsMapForPopulate = __commonJS({
             let _modelNames;
             let res;
             try {
-              res = _getModelNames(doc, _schema, modelNameFromQuery, model9);
+              res = _getModelNames(doc, _schema, modelNameFromQuery, model28);
               _modelNames = res.modelNames;
               isRefPath = isRefPath || res.isRefPath;
               normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64387,7 +64387,7 @@ var require_getModelsMapForPopulate = __commonJS({
           }
         } else {
           try {
-            const res = _getModelNames(doc, schema, modelNameFromQuery, model9);
+            const res = _getModelNames(doc, schema, modelNameFromQuery, model28);
             modelNames = res.modelNames;
             isRefPath = res.isRefPath;
             normalizedRefPath = normalizedRefPath || res.refPath;
@@ -64421,7 +64421,7 @@ var require_getModelsMapForPopulate = __commonJS({
         data.justOne = justOne;
         data.localField = localField;
         data.foreignField = foreignField;
-        const ret = _getLocalFieldValues(doc, localField, model9, options, null, schema);
+        const ret = _getLocalFieldValues(doc, localField, model28, options, null, schema);
         const id = String(utils.getValue(foreignField, doc));
         options._docs[id] = Array.isArray(ret) ? ret.slice() : ret;
         let match = get(options, "match", null);
@@ -64447,13 +64447,13 @@ var require_getModelsMapForPopulate = __commonJS({
           modelNames = embeddedDiscriminatorModelNames || modelNames;
         }
         try {
-          addModelNamesToMap(model9, map2, available, modelNames, options, data, ret, doc, schemaOptions);
+          addModelNamesToMap(model28, map2, available, modelNames, options, data, ret, doc, schemaOptions);
         } catch (err) {
           return err;
         }
       }
       return map2;
-      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model10) {
+      function _getModelNames(doc2, schemaType, modelNameFromQuery2, model29) {
         let modelNames2;
         let isRefPath = false;
         let justOne = null;
@@ -64485,15 +64485,15 @@ var require_getModelsMapForPopulate = __commonJS({
           let refPath2;
           let schemaForCurrentDoc;
           let discriminatorValue;
-          let modelForCurrentDoc = model10;
-          const discriminatorKey = model10.schema.options.discriminatorKey;
+          let modelForCurrentDoc = model29;
+          const discriminatorKey = model29.schema.options.discriminatorKey;
           if (!schemaType && discriminatorKey && (discriminatorValue = utils.getValue(discriminatorKey, doc2))) {
-            const discriminatorModel = getDiscriminatorByValue(model10.discriminators, discriminatorValue) || model10;
+            const discriminatorModel = getDiscriminatorByValue(model29.discriminators, discriminatorValue) || model29;
             if (discriminatorModel != null) {
               modelForCurrentDoc = discriminatorModel;
             } else {
               try {
-                modelForCurrentDoc = _getModelFromConn(model10.db, discriminatorValue);
+                modelForCurrentDoc = _getModelFromConn(model29.db, discriminatorValue);
               } catch (error62) {
                 return error62;
               }
@@ -64541,7 +64541,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         if (!modelNames2) {
           if (options._localModel == null) {
-            modelNames2 = [model10.modelName];
+            modelNames2 = [model29.modelName];
           } else {
             return { modelNames: modelNames2, justOne, isRefPath, refPath };
           }
@@ -64632,7 +64632,7 @@ var require_getModelsMapForPopulate = __commonJS({
       }
     }
     __name(_getModelNamesFromRefPath, "_getModelNamesFromRefPath");
-    function _virtualPopulate(model9, docs, options, _virtualRes) {
+    function _virtualPopulate(model28, docs, options, _virtualRes) {
       const map2 = [];
       const available = {};
       const virtual = _virtualRes.virtual;
@@ -64662,7 +64662,7 @@ var require_getModelsMapForPopulate = __commonJS({
         }
         let foreignField = virtual.options.foreignField;
         if (!localField || !foreignField) {
-          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model9.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
+          return new MongooseError(`Cannot populate virtual \`${options.path}\` on model \`${model28.modelName}\`, because options \`localField\` and / or \`foreignField\` are missing`);
         }
         if (typeof localField === "function") {
           localField = localField.call(doc, doc);
@@ -64699,7 +64699,7 @@ var require_getModelsMapForPopulate = __commonJS({
         if (Array.isArray(localField) && Array.isArray(foreignField) && localField.length === foreignField.length) {
           match = Object.assign({}, match);
           for (let i = 1; i < localField.length; ++i) {
-            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model9.schema);
+            match[foreignField[i]] = convertTo_id(mpath.get(localField[i], doc, lookupLocalFields), model28.schema);
             hasMatchFunction = true;
           }
           localField = localField[0];
@@ -64710,9 +64710,9 @@ var require_getModelsMapForPopulate = __commonJS({
         data.match = match;
         data.hasMatchFunction = hasMatchFunction;
         throwOn$where(match);
-        const ret = _getLocalFieldValues(doc, localField, model9, options, virtual);
+        const ret = _getLocalFieldValues(doc, localField, model28, options, virtual);
         try {
-          addModelNamesToMap(model9, map2, available, modelNames, options, data, ret, doc);
+          addModelNamesToMap(model28, map2, available, modelNames, options, data, ret, doc);
         } catch (err) {
           return err;
         }
@@ -64720,8 +64720,8 @@ var require_getModelsMapForPopulate = __commonJS({
       return map2;
     }
     __name(_virtualPopulate, "_virtualPopulate");
-    function addModelNamesToMap(model9, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
-      const connection = options.connection ?? model9.db;
+    function addModelNamesToMap(model28, map2, available, modelNames, options, data, ret, doc, schemaOptions, unpopulatedValue) {
+      const connection = options.connection ?? model28.db;
       unpopulatedValue = unpopulatedValue === void 0 ? ret : unpopulatedValue;
       if (Array.isArray(unpopulatedValue)) {
         unpopulatedValue = utils.cloneArrays(unpopulatedValue);
@@ -64826,15 +64826,15 @@ var require_getModelsMapForPopulate = __commonJS({
       return ref;
     }
     __name(handleRefFunction, "handleRefFunction");
-    function _getLocalFieldValues(doc, localField, model9, options, virtual, schema) {
-      const localFieldPathType = model9.schema._getPathType(localField);
-      const localFieldPath = localFieldPathType === "real" ? model9.schema.path(localField) : localFieldPathType.schema;
+    function _getLocalFieldValues(doc, localField, model28, options, virtual, schema) {
+      const localFieldPathType = model28.schema._getPathType(localField);
+      const localFieldPath = localFieldPathType === "real" ? model28.schema.path(localField) : localFieldPathType.schema;
       const localFieldGetters = localFieldPath?.getters || [];
       localField = localFieldPath?.instance === "Embedded" ? localField + "._id" : localField;
       const _populateOptions = get(options, "options", {});
       const getters = "getters" in _populateOptions ? _populateOptions.getters : get(virtual, "options.getters", false);
       if (localFieldGetters.length !== 0 && getters) {
-        const hydratedDoc = doc.$__ != null ? doc : model9.hydrate(doc);
+        const hydratedDoc = doc.$__ != null ? doc : model28.hydrate(doc);
         const localFieldValue = utils.getValue(localField, doc);
         if (Array.isArray(localFieldValue)) {
           const localFieldHydratedValue = utils.getValue(localField.split(".").slice(0, -1), hydratedDoc);
@@ -65053,19 +65053,19 @@ var require_getRelatedIndexes = __commonJS({
   "node_modules/mongoose/lib/helpers/indexes/getRelatedIndexes.js"(exports2, module2) {
     "use strict";
     var hasDollarKeys = require_hasDollarKeys();
-    function getRelatedSchemaIndexes(model9, schemaIndexes) {
+    function getRelatedSchemaIndexes(model28, schemaIndexes) {
       return getRelatedIndexes({
-        baseModelName: model9.baseModelName,
-        discriminatorMapping: model9.schema.discriminatorMapping,
+        baseModelName: model28.baseModelName,
+        discriminatorMapping: model28.schema.discriminatorMapping,
         indexes: schemaIndexes,
         indexesType: "schema"
       });
     }
     __name(getRelatedSchemaIndexes, "getRelatedSchemaIndexes");
-    function getRelatedDBIndexes(model9, dbIndexes) {
+    function getRelatedDBIndexes(model28, dbIndexes) {
       return getRelatedIndexes({
-        baseModelName: model9.baseModelName,
-        discriminatorMapping: model9.schema.discriminatorMapping,
+        baseModelName: model28.baseModelName,
+        discriminatorMapping: model28.schema.discriminatorMapping,
         indexes: dbIndexes,
         indexesType: "db"
       });
@@ -65259,7 +65259,7 @@ var require_model = __commonJS({
     "use strict";
     var Aggregate = require_aggregate2();
     var ChangeStream = require_changeStream();
-    var Document5 = require_document2();
+    var Document24 = require_document2();
     var { createTracedChannel } = require_tracing();
     var { trace: traceSave } = createTracedChannel("mongoose:model:save");
     var { trace: traceInsertMany } = createTracedChannel("mongoose:model:insertMany");
@@ -65273,7 +65273,7 @@ var require_model = __commonJS({
     var OverwriteModelError = require_overwriteModel();
     var Query = require_query();
     var SaveOptions = require_saveOptions();
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var ValidationError = require_validation();
     var VersionError = require_version();
     var ParallelSaveError = require_parallelSave();
@@ -65341,21 +65341,21 @@ var require_model = __commonJS({
       modelSymbol
     } = require_symbols();
     var subclassedSymbol = /* @__PURE__ */ Symbol("mongoose#Model#subclassed");
-    var { VERSION_INC, VERSION_WHERE, VERSION_ALL } = Document5;
+    var { VERSION_INC, VERSION_WHERE, VERSION_ALL } = Document24;
     var saveToObjectOptions = Object.assign({}, internalToObjectOptions, {
       bson: true
     });
     function Model(doc, fields, options) {
-      if (fields instanceof Schema9) {
+      if (fields instanceof Schema28) {
         throw new TypeError("2nd argument to `Model` constructor must be a POJO or string, **not** a schema. Make sure you're calling `mongoose.model()`, not `mongoose.Model()`.");
       }
       if (typeof doc === "string") {
         throw new TypeError("First argument to `Model` constructor must be an object, **not** a string. Make sure you're calling `mongoose.model()`, not `mongoose.Model()`.");
       }
-      Document5.call(this, doc, fields, options);
+      Document24.call(this, doc, fields, options);
     }
     __name(Model, "Model");
-    Object.setPrototypeOf(Model.prototype, Document5.prototype);
+    Object.setPrototypeOf(Model.prototype, Document24.prototype);
     Model.prototype.$isMongooseModelPrototype = true;
     Model.prototype.db;
     Model.useConnection = /* @__PURE__ */ __name(function useConnection(connection) {
@@ -65758,11 +65758,11 @@ var require_model = __commonJS({
       return query;
     }, "exists");
     Model.discriminator = function(name, schema, options) {
-      let model9;
+      let model28;
       if (typeof name === "function") {
-        model9 = name;
-        name = utils.getFunctionName(model9);
-        if (!(model9.prototype instanceof Model)) {
+        model28 = name;
+        name = utils.getFunctionName(model28);
+        if (!(model28.prototype instanceof Model)) {
           throw new MongooseError("The provided class " + name + " must extend Model");
         }
       }
@@ -65773,9 +65773,9 @@ var require_model = __commonJS({
       const overwriteModels = typeof options.overwriteModels === "boolean" ? options.overwriteModels : false;
       _checkContext(this, "discriminator");
       if (utils.isObject(schema) && !schema.instanceOfSchema) {
-        schema = new Schema9(schema);
+        schema = new Schema28(schema);
       }
-      if (schema instanceof Schema9 && clone3) {
+      if (schema instanceof Schema28 && clone3) {
         schema = schema.clone();
       }
       schema = discriminator(this, name, schema, value, mergePlugins, options.mergeHooks, overwriteModels);
@@ -65784,8 +65784,8 @@ var require_model = __commonJS({
       }
       schema.$isRootDiscriminator = true;
       schema.$globalPluginsApplied = true;
-      model9 = this.db.model(model9 || name, schema, this.$__collection.name);
-      this.discriminators[name] = model9;
+      model28 = this.db.model(model28 || name, schema, this.$__collection.name);
+      this.discriminators[name] = model28;
       const d = this.discriminators[name];
       Object.setPrototypeOf(d.prototype, this.prototype);
       Object.defineProperty(d, "baseModelName", {
@@ -65798,7 +65798,7 @@ var require_model = __commonJS({
       if (this[subclassedSymbol] != null) {
         for (const submodel of this[subclassedSymbol]) {
           submodel.discriminators = submodel.discriminators || {};
-          submodel.discriminators[name] = model9.__subclass(model9.db, schema, submodel.collection.name);
+          submodel.discriminators[name] = model28.__subclass(model28.db, schema, submodel.collection.name);
         }
       }
       return d;
@@ -65982,8 +65982,8 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.syncIndexes() no longer accepts a callback");
       }
-      const model9 = this;
-      let dbIndexes = await model9.listIndexes().catch((err) => {
+      const model28 = this;
+      let dbIndexes = await model28.listIndexes().catch((err) => {
         if (err.codeName == "NamespaceNotFound") {
           return void 0;
         }
@@ -65992,9 +65992,9 @@ var require_model = __commonJS({
       if (dbIndexes === void 0) {
         dbIndexes = [];
       }
-      dbIndexes = getRelatedDBIndexes(model9, dbIndexes);
-      const schema = model9.schema;
-      const schemaIndexes = getRelatedSchemaIndexes(model9, schema.indexes());
+      dbIndexes = getRelatedDBIndexes(model28, dbIndexes);
+      const schema = model28.schema;
+      const schemaIndexes = getRelatedSchemaIndexes(model28, schema.indexes());
       const toDrop = getIndexesToDrop(schema, schemaIndexes, dbIndexes);
       const toCreate = getIndexesToCreate(schema, schemaIndexes, dbIndexes, toDrop, options);
       return { toDrop, toCreate };
@@ -66056,22 +66056,22 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function") {
         throw new MongooseError("Model.cleanIndexes() no longer accepts a callback");
       }
-      const model9 = this;
+      const model28 = this;
       if (Array.isArray(options?.toDrop)) {
-        const res2 = await _dropIndexes(options.toDrop, model9, options);
+        const res2 = await _dropIndexes(options.toDrop, model28, options);
         return res2;
       }
-      const res = await model9.diffIndexes();
-      return await _dropIndexes(res.toDrop, model9, options);
+      const res = await model28.diffIndexes();
+      return await _dropIndexes(res.toDrop, model28, options);
     }, "cleanIndexes");
-    async function _dropIndexes(toDrop, model9, options) {
+    async function _dropIndexes(toDrop, model28, options) {
       if (toDrop.length === 0) {
         return [];
       }
-      const collection = model9.$__collection;
+      const collection = model28.$__collection;
       if (options?.hideIndexes) {
         await Promise.all(toDrop.map((indexName) => {
-          return model9.db.db.command({
+          return model28.db.db.command({
             collMod: collection.collectionName,
             index: { name: indexName, hidden: true }
           });
@@ -66115,20 +66115,20 @@ var require_model = __commonJS({
       }
       return this.ensureIndexes(options);
     }, "createIndexes");
-    function _ensureIndexes(model9, options, callback) {
-      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model9.schema.indexes();
+    function _ensureIndexes(model28, options, callback) {
+      const indexes = Array.isArray(options?.toCreate) ? options.toCreate : model28.schema.indexes();
       let indexError;
       options = options || {};
       const done = /* @__PURE__ */ __name(function(err) {
-        if (err && !model9.$caught) {
-          model9.emit("error", err);
+        if (err && !model28.$caught) {
+          model28.emit("error", err);
         }
-        model9.emit("index", err || indexError);
+        model28.emit("index", err || indexError);
         callback && callback(err || indexError);
       }, "done");
       for (const index of indexes) {
         if (isDefaultIdIndex(index)) {
-          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model9.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
+          utils.warn('mongoose: Cannot specify a custom index on `_id` for model name "' + model28.modelName + '", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index');
         }
       }
       const seenIndexes = [];
@@ -66138,7 +66138,7 @@ var require_model = __commonJS({
         if (indexOptions.name == null) {
           for (const existingIndex of seenIndexes) {
             if (existingIndex[1].name == null && isIndexSpecEqual(existingIndex[0], fields)) {
-              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model9.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
+              utils.warn("mongoose: Duplicate schema index on " + JSON.stringify(fields) + ' for model "' + model28.modelName + '". This is often due to declaring an index using both "index: true" and "schema.index()". MongoDB will not create the duplicate index and options on the duplicate definition (such as expireAfterSeconds or unique) will not be applied. Please remove the duplicate index definition.');
               break;
             }
           }
@@ -66152,23 +66152,23 @@ var require_model = __commonJS({
         return;
       }
       const indexSingleDone = /* @__PURE__ */ __name(function(err, fields, options2, name) {
-        model9.emit("index-single-done", err, fields, options2, name);
+        model28.emit("index-single-done", err, fields, options2, name);
       }, "indexSingleDone");
       const indexSingleStart = /* @__PURE__ */ __name(function(fields, options2) {
-        model9.emit("index-single-start", fields, options2);
+        model28.emit("index-single-start", fields, options2);
       }, "indexSingleStart");
-      const baseSchema = model9.schema._baseSchema;
+      const baseSchema = model28.schema._baseSchema;
       const baseSchemaIndexes = baseSchema ? baseSchema.indexes() : [];
       immediate(function() {
-        if (options._automatic && !model9.collection.collection) {
-          model9.collection.addQueue(create, []);
+        if (options._automatic && !model28.collection.collection) {
+          model28.collection.addQueue(create, []);
         } else {
           create();
         }
       });
       function create() {
         if (options._automatic) {
-          if (model9.schema.options.autoIndex === false || model9.schema.options.autoIndex == null && model9.db.config.autoIndex === false) {
+          if (model28.schema.options.autoIndex === false || model28.schema.options.autoIndex == null && model28.db.config.autoIndex === false) {
             return done();
           }
         }
@@ -66185,19 +66185,19 @@ var require_model = __commonJS({
         const indexFields = clone2(index[0]);
         const indexOptions = clone2(index[1]);
         delete indexOptions._autoIndex;
-        decorateDiscriminatorIndexOptions(model9.schema, indexOptions);
-        applyWriteConcern(model9.schema, indexOptions);
-        applySchemaCollation(indexFields, indexOptions, model9.schema.options);
+        decorateDiscriminatorIndexOptions(model28.schema, indexOptions);
+        applyWriteConcern(model28.schema, indexOptions);
+        applySchemaCollation(indexFields, indexOptions, model28.schema.options);
         indexSingleStart(indexFields, options);
         let promise2 = null;
         try {
-          promise2 = model9.collection.createIndex(indexFields, indexOptions);
+          promise2 = model28.collection.createIndex(indexFields, indexOptions);
         } catch (err) {
           if (!indexError) {
             indexError = err;
           }
-          if (!model9.$caught) {
-            model9.emit("error", err);
+          if (!model28.$caught) {
+            model28.emit("error", err);
           }
           indexSingleDone(err, indexFields, indexOptions);
           create();
@@ -66212,8 +66212,8 @@ var require_model = __commonJS({
             if (!indexError) {
               indexError = err;
             }
-            if (!model9.$caught) {
-              model9.emit("error", err);
+            if (!model28.$caught) {
+              model28.emit("error", err);
             }
             indexSingleDone(err, indexFields, indexOptions);
             create();
@@ -66415,7 +66415,7 @@ var require_model = __commonJS({
       if (typeof arguments[0] === "function" || typeof arguments[1] === "function" || typeof arguments[2] === "function" || typeof arguments[3] === "function") {
         throw new MongooseError("Model.findByIdAndUpdate() no longer accepts a callback");
       }
-      if (id instanceof Document5) {
+      if (id instanceof Document24) {
         id = id._doc._id;
       }
       return this.findOneAndUpdate.call(this, { _id: id }, update, options);
@@ -67182,7 +67182,7 @@ var require_model = __commonJS({
       setDefaultOptions();
       const writeOperations = documents.map((document, i) => {
         if (!options.skipValidation) {
-          if (!(document instanceof Document5)) {
+          if (!(document instanceof Document24)) {
             throw new MongooseError(`documents.${i} was not a mongoose document, documents must be an array of mongoose documents (instanceof mongoose.Document).`);
           }
           if (options.validateBeforeSave == null || options.validateBeforeSave) {
@@ -67269,15 +67269,15 @@ var require_model = __commonJS({
       }
       return _update(this, "replaceOne", conditions, doc, options);
     }, "replaceOne");
-    function _update(model9, op, conditions, doc, options) {
-      const mq = new model9.Query({}, {}, model9, model9.collection);
-      if (conditions instanceof Document5) {
+    function _update(model28, op, conditions, doc, options) {
+      const mq = new model28.Query({}, {}, model28, model28.collection);
+      if (conditions instanceof Document24) {
         conditions = conditions.toObject();
       } else {
         conditions = clone2(conditions);
       }
       options = typeof options === "function" ? options : clone2(options);
-      const versionKey = model9?.schema?.options?.versionKey ?? null;
+      const versionKey = model28?.schema?.options?.versionKey ?? null;
       decorateUpdateWithVersionKey(doc, options, versionKey);
       return mq[op](conditions, doc, options);
     }
@@ -67409,14 +67409,14 @@ var require_model = __commonJS({
     }, "populate");
     var excludeIdReg = /\s?-_id\s?/;
     var excludeIdRegGlobal = /\s?-_id\s?/g;
-    async function _populatePath(model9, docs, populateOptions) {
+    async function _populatePath(model28, docs, populateOptions) {
       if (populateOptions.strictPopulate == null) {
         if (populateOptions._localModel?.schema._userProvidedOptions.strictPopulate != null) {
           populateOptions.strictPopulate = populateOptions._localModel.schema._userProvidedOptions.strictPopulate;
-        } else if (populateOptions._localModel != null && model9.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model9.base.options.strictPopulate;
-        } else if (model9.base.options.strictPopulate != null) {
-          populateOptions.strictPopulate = model9.base.options.strictPopulate;
+        } else if (populateOptions._localModel != null && model28.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model28.base.options.strictPopulate;
+        } else if (model28.base.options.strictPopulate != null) {
+          populateOptions.strictPopulate = model28.base.options.strictPopulate;
         }
       }
       if (!Array.isArray(docs)) {
@@ -67425,7 +67425,7 @@ var require_model = __commonJS({
       if (docs.length === 0 || docs.every(utils.isNullOrUndefined)) {
         return;
       }
-      const modelsMap = getModelsMapForPopulate(model9, docs, populateOptions);
+      const modelsMap = getModelsMapForPopulate(model28, docs, populateOptions);
       if (modelsMap instanceof MongooseError) {
         throw modelsMap;
       }
@@ -67450,7 +67450,7 @@ var require_model = __commonJS({
           mod3.options.options.lean = true;
         }
         if (ids.length === 0 || ids.every(utils.isNullOrUndefined)) {
-          _assign(model9, [], mod3, assignmentOpts);
+          _assign(model28, [], mod3, assignmentOpts);
           continue;
         }
         hasOne = true;
@@ -67489,7 +67489,7 @@ var require_model = __commonJS({
           const opts = utils.populate(populateOptions.populate).map((pop) => Object.assign({}, pop, {
             path: populateOptions.path + "." + pop.path
           }));
-          return model9.populate(docs, opts);
+          return model28.populate(docs, opts);
         }
         return;
       }
@@ -67532,7 +67532,7 @@ var require_model = __commonJS({
         for (const val of valsForMod) {
           mod3.options._childDocs.push(val);
         }
-        _assign(model9, valsForMod, mod3, assignmentOpts);
+        _assign(model28, valsForMod, mod3, assignmentOpts);
       }
       if (deferredPopulatesPerParam.size > 0) {
         for (let i = 0; i < params.length; i++) {
@@ -67664,7 +67664,7 @@ var require_model = __commonJS({
       );
     }
     __name(_execPopulateQuery, "_execPopulateQuery");
-    function _assign(model9, vals, mod3, assignmentOpts) {
+    function _assign(model28, vals, mod3, assignmentOpts) {
       const options = mod3.options;
       const isVirtual = mod3.isVirtual;
       const justOne = mod3.justOne;
@@ -67686,7 +67686,7 @@ var require_model = __commonJS({
           if (Array.isArray(_val)) {
             _val = utils.array.unique(utils.array.flatten(_val));
             for (let __val of _val) {
-              if (__val instanceof Document5) {
+              if (__val instanceof Document24) {
                 __val = __val._doc._id;
               }
               key = String(__val);
@@ -67709,7 +67709,7 @@ var require_model = __commonJS({
               }
             }
           } else {
-            if (_val instanceof Document5) {
+            if (_val instanceof Document24) {
               _val = _val._doc._id;
             }
             key = String(_val);
@@ -67717,7 +67717,7 @@ var require_model = __commonJS({
               if (Array.isArray(rawDocs[key])) {
                 rawDocs[key].push(val);
                 rawOrder[key].push(i);
-              } else if (isVirtual || rawDocs[key].constructor !== val.constructor || (rawDocs[key] instanceof Document5 ? String(rawDocs[key]._doc._id) : String(rawDocs[key]._id)) !== (val instanceof Document5 ? String(val._doc._id) : String(val._id))) {
+              } else if (isVirtual || rawDocs[key].constructor !== val.constructor || (rawDocs[key] instanceof Document24 ? String(rawDocs[key]._doc._id) : String(rawDocs[key]._id)) !== (val instanceof Document24 ? String(val._doc._id) : String(val._id))) {
                 rawDocs[key] = [rawDocs[key], val];
                 rawOrder[key] = [rawOrder[key], i];
               }
@@ -67732,7 +67732,7 @@ var require_model = __commonJS({
         }
       }
       assignVals({
-        originalModel: model9,
+        originalModel: model28,
         // If virtual, make sure to not mutate original field
         rawIds: mod3.isVirtual ? allIds : mod3.allIds,
         allIds,
@@ -67761,52 +67761,52 @@ var require_model = __commonJS({
         o[schema.options.versionKey] = Number;
         schema.add(o);
       }
-      let model9;
+      let model28;
       if (typeof name === "function" && name.prototype instanceof Model) {
-        model9 = name;
-        name = model9.name;
-        schema.loadClass(model9, false);
-        model9.prototype.$isMongooseModelPrototype = true;
+        model28 = name;
+        name = model28.name;
+        schema.loadClass(model28, false);
+        model28.prototype.$isMongooseModelPrototype = true;
       } else {
-        model9 = /* @__PURE__ */ __name(function model10(doc, fields, skipId) {
-          model10.hooks.execPreSync("createModel", doc);
-          if (!(this instanceof model10)) {
-            return new model10(doc, fields, skipId);
+        model28 = /* @__PURE__ */ __name(function model29(doc, fields, skipId) {
+          model29.hooks.execPreSync("createModel", doc);
+          if (!(this instanceof model29)) {
+            return new model29(doc, fields, skipId);
           }
-          const discriminatorKey = model10.schema.options.discriminatorKey;
-          if (model10.discriminators == null || doc == null || doc[discriminatorKey] == null) {
+          const discriminatorKey = model29.schema.options.discriminatorKey;
+          if (model29.discriminators == null || doc == null || doc[discriminatorKey] == null) {
             Model.call(this, doc, fields, skipId);
             return;
           }
-          const Discriminator = getDiscriminatorByKey(model10.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model10.discriminators, doc[discriminatorKey]);
+          const Discriminator = getDiscriminatorByKey(model29.discriminators, doc[discriminatorKey]) || getDiscriminatorByValue(model29.discriminators, doc[discriminatorKey]);
           if (Discriminator != null) {
             return new Discriminator(doc, fields, skipId);
           }
           Model.call(this, doc, fields, skipId);
         }, "model");
       }
-      model9.hooks = schema.s.hooks.clone();
-      model9.base = base;
-      model9.modelName = name;
-      if (!(model9.prototype instanceof Model)) {
-        Object.setPrototypeOf(model9, Model);
-        Object.setPrototypeOf(model9.prototype, Model.prototype);
+      model28.hooks = schema.s.hooks.clone();
+      model28.base = base;
+      model28.modelName = name;
+      if (!(model28.prototype instanceof Model)) {
+        Object.setPrototypeOf(model28, Model);
+        Object.setPrototypeOf(model28.prototype, Model.prototype);
       }
-      model9.model = /* @__PURE__ */ __name(function model10(name2) {
+      model28.model = /* @__PURE__ */ __name(function model29(name2) {
         return this.db.model(name2);
       }, "model");
-      model9.db = connection;
-      model9.prototype.db = connection;
-      model9.prototype[modelDbSymbol] = connection;
-      model9.discriminators = model9.prototype.discriminators = void 0;
-      model9[modelSymbol] = true;
-      model9.events = new EventEmitter9();
+      model28.db = connection;
+      model28.prototype.db = connection;
+      model28.prototype[modelDbSymbol] = connection;
+      model28.discriminators = model28.prototype.discriminators = void 0;
+      model28[modelSymbol] = true;
+      model28.events = new EventEmitter9();
       schema._preCompile();
       const _userProvidedOptions = schema._userProvidedOptions || {};
       const collectionOptions = {
         schemaUserProvidedOptions: _userProvidedOptions,
         capped: schema.options.capped,
-        Promise: model9.base.Promise,
+        Promise: model28.base.Promise,
         modelName: name
       };
       if (schema.options.autoCreate !== void 0) {
@@ -67816,26 +67816,26 @@ var require_model = __commonJS({
         collectionName,
         collectionOptions
       );
-      model9.prototype.collection = collection;
-      model9.prototype.$collection = collection;
-      model9.prototype[modelCollectionSymbol] = collection;
-      model9.prototype.$__setSchema(schema);
-      applyMethods(model9, schema);
-      applyStatics(model9, schema);
-      applyHooks(model9, schema);
-      applyStaticHooks(model9, schema.s.hooks, schema.statics);
-      model9.schema = model9.prototype.$__schema;
-      model9.collection = collection;
-      model9.$__collection = collection;
-      model9.Query = function() {
+      model28.prototype.collection = collection;
+      model28.prototype.$collection = collection;
+      model28.prototype[modelCollectionSymbol] = collection;
+      model28.prototype.$__setSchema(schema);
+      applyMethods(model28, schema);
+      applyStatics(model28, schema);
+      applyHooks(model28, schema);
+      applyStaticHooks(model28, schema.s.hooks, schema.statics);
+      model28.schema = model28.prototype.$__schema;
+      model28.collection = collection;
+      model28.$__collection = collection;
+      model28.Query = function() {
         Query.apply(this, arguments);
       };
-      Object.setPrototypeOf(model9.Query.prototype, Query.prototype);
-      model9.Query.base = Query.base;
-      model9.Query.prototype.constructor = Query;
-      model9._applyQueryMiddleware();
-      applyQueryMethods(model9, schema.query);
-      return model9;
+      Object.setPrototypeOf(model28.Query.prototype, Query.prototype);
+      model28.Query.base = Query.base;
+      model28.Query.prototype.constructor = Query;
+      model28._applyQueryMiddleware();
+      applyQueryMethods(model28, schema.query);
+      return model28;
     }, "compile");
     Model.clientEncryption = /* @__PURE__ */ __name(function clientEncryption() {
       const ClientEncryption = this.base.driver.get().ClientEncryption;
@@ -67873,9 +67873,9 @@ var require_model = __commonJS({
       this.collection = collection;
       this.$__collection = collection;
     }, "$__updateConnection");
-    function applyQueryMethods(model9, methods2) {
+    function applyQueryMethods(model28, methods2) {
       for (const i in methods2) {
-        model9.Query.prototype[i] = methods2[i];
+        model28.Query.prototype[i] = methods2[i];
       }
     }
     __name(applyQueryMethods, "applyQueryMethods");
@@ -68146,10 +68146,10 @@ var require_printJestWarning = __commonJS({
 var require_mongoose = __commonJS({
   "node_modules/mongoose/lib/mongoose.js"(exports2, module2) {
     "use strict";
-    var Document5 = require_document2();
+    var Document24 = require_document2();
     var EventEmitter9 = require("events").EventEmitter;
     var Kareem = require_kareem();
-    var Schema9 = require_schema2();
+    var Schema28 = require_schema2();
     var SchemaType = require_schemaType();
     var SchemaTypes = require_schema();
     var VirtualType = require_virtualType();
@@ -68200,12 +68200,12 @@ var require_mongoose = __commonJS({
         const _this = this;
         this.Schema = function() {
           this.base = _this;
-          return Schema9.apply(this, arguments);
+          return Schema28.apply(this, arguments);
         };
-        this.Schema.prototype = Object.create(Schema9.prototype);
-        Object.assign(this.Schema, Schema9);
+        this.Schema.prototype = Object.create(Schema28.prototype);
+        Object.assign(this.Schema, Schema28);
         this.Schema.base = this;
-        this.Schema.Types = Object.assign({}, Schema9.Types);
+        this.Schema.Types = Object.assign({}, Schema28.Types);
       } else {
         for (const key of ["Schema", "model"]) {
           this[key] = Mongoose.prototype[key];
@@ -68255,11 +68255,11 @@ var require_mongoose = __commonJS({
       if (oldDefaultConnection == null) {
         return _mongoose;
       }
-      for (const model9 of Object.values(_mongoose.models)) {
-        if (model9.db !== oldDefaultConnection) {
+      for (const model28 of Object.values(_mongoose.models)) {
+        if (model28.db !== oldDefaultConnection) {
           continue;
         }
-        model9.$__updateConnection(_mongoose.connections[0]);
+        model28.$__updateConnection(_mongoose.connections[0]);
       }
       return _mongoose;
     }, "setDriver");
@@ -68390,23 +68390,23 @@ var require_mongoose = __commonJS({
       }
       return _mongoose._pluralize;
     }, "pluralize");
-    Mongoose.prototype.model = /* @__PURE__ */ __name(function model9(name, schema, collection, options) {
+    Mongoose.prototype.model = /* @__PURE__ */ __name(function model28(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
       if (typeof schema === "string") {
         collection = schema;
         schema = false;
       }
       if (arguments.length === 1) {
-        const model11 = _mongoose.models[name];
-        if (!model11) {
+        const model30 = _mongoose.models[name];
+        if (!model30) {
           throw new _mongoose.Error.MissingSchemaError(name);
         }
-        return model11;
+        return model30;
       }
-      if (utils.isObject(schema) && !(schema instanceof Schema9)) {
-        schema = new Schema9(schema);
+      if (utils.isObject(schema) && !(schema instanceof Schema28)) {
+        schema = new Schema28(schema);
       }
-      if (schema && !(schema instanceof Schema9)) {
+      if (schema && !(schema instanceof Schema28)) {
         throw new _mongoose.Error("The 2nd parameter to `mongoose.model()` should be a schema or a POJO");
       }
       options = options || {};
@@ -68423,9 +68423,9 @@ var require_mongoose = __commonJS({
           throw new _mongoose.Error.OverwriteModelError(name);
         }
         if (collection && collection !== _mongoose.models[name].collection.name) {
-          const model11 = _mongoose.models[name];
-          schema = model11.prototype.schema;
-          const sub = model11.__subclass(_mongoose.connection, schema, collection);
+          const model30 = _mongoose.models[name];
+          schema = model30.prototype.schema;
+          const sub = model30.__subclass(_mongoose.connection, schema, collection);
           return sub;
         }
         return _mongoose.models[name];
@@ -68433,18 +68433,18 @@ var require_mongoose = __commonJS({
       if (schema == null) {
         throw new _mongoose.Error.MissingSchemaError(name);
       }
-      const model10 = _mongoose._model(name, schema, collection, options);
-      _mongoose.connection.models[name] = model10;
-      _mongoose.models[name] = model10;
-      return model10;
+      const model29 = _mongoose._model(name, schema, collection, options);
+      _mongoose.connection.models[name] = model29;
+      _mongoose.models[name] = model29;
+      return model29;
     }, "model");
     Mongoose.prototype._model = /* @__PURE__ */ __name(function _model(name, schema, collection, options) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
-      let model9;
+      let model28;
       if (typeof name === "function") {
-        model9 = name;
-        name = model9.name;
-        if (!(model9.prototype instanceof Model)) {
+        model28 = name;
+        name = model28.name;
+        if (!(model28.prototype instanceof Model)) {
           throw new _mongoose.Error("The provided class " + name + " must extend Model");
         }
       }
@@ -68462,20 +68462,20 @@ var require_mongoose = __commonJS({
       }
       applyEmbeddedDiscriminators(schema);
       const connection = options.connection || _mongoose.connection;
-      model9 = _mongoose.Model.compile(model9 || name, schema, collection, connection, _mongoose);
-      model9.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
+      model28 = _mongoose.Model.compile(model28 || name, schema, collection, connection, _mongoose);
+      model28.init().catch(/* @__PURE__ */ __name(function $modelInitNoop() {
       }, "$modelInitNoop"));
-      connection.emit("model", model9);
+      connection.emit("model", model28);
       if (schema._applyDiscriminators != null) {
         for (const disc of schema._applyDiscriminators.keys()) {
           const {
             schema: discriminatorSchema,
             options: options2
           } = schema._applyDiscriminators.get(disc);
-          model9.discriminator(disc, discriminatorSchema, options2);
+          model28.discriminator(disc, discriminatorSchema, options2);
         }
       }
-      return model9;
+      return model28;
     }, "_model");
     Mongoose.prototype.deleteModel = /* @__PURE__ */ __name(function deleteModel(name) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
@@ -68517,8 +68517,8 @@ var require_mongoose = __commonJS({
       get: /* @__PURE__ */ __name(function() {
         return this.__driver.Collection;
       }, "get"),
-      set: /* @__PURE__ */ __name(function(Collection2) {
-        this.__driver.Collection = Collection2;
+      set: /* @__PURE__ */ __name(function(Collection3) {
+        this.__driver.Collection = Collection3;
       }, "set")
     });
     Object.defineProperty(Mongoose.prototype, "Connection", {
@@ -68535,14 +68535,14 @@ var require_mongoose = __commonJS({
     Mongoose.prototype.BaseConnection = require_connection2();
     Mongoose.prototype.version = pkg.version;
     Mongoose.prototype.Mongoose = Mongoose;
-    Mongoose.prototype.Schema = Schema9;
+    Mongoose.prototype.Schema = Schema28;
     Mongoose.prototype.SchemaType = SchemaType;
-    Mongoose.prototype.SchemaTypes = Schema9.Types;
+    Mongoose.prototype.SchemaTypes = Schema28.Types;
     Mongoose.prototype.VirtualType = VirtualType;
     Mongoose.prototype.Types = Types;
     Mongoose.prototype.Query = Query;
     Mongoose.prototype.Model = Model;
-    Mongoose.prototype.Document = Document5;
+    Mongoose.prototype.Document = Document24;
     Mongoose.prototype.ObjectId = SchemaTypes.ObjectId;
     Mongoose.prototype.isValidObjectId = /* @__PURE__ */ __name(function isValidObjectId(v) {
       const _mongoose = this instanceof Mongoose ? this : mongoose2;
@@ -68654,6 +68654,58 @@ var require_mongoose2 = __commonJS({
     module2.exports.trusted = mongoose2.trusted;
     module2.exports.skipMiddlewareFunction = mongoose2.skipMiddlewareFunction;
     module2.exports.overwriteMiddlewareResult = mongoose2.overwriteMiddlewareResult;
+  }
+});
+
+// src/db/models/CustomCommand.ts
+var CustomCommand_exports = {};
+__export(CustomCommand_exports, {
+  CustomCommand: () => CustomCommand
+});
+var import_mongoose7, customCommandSchema, CustomCommand;
+var init_CustomCommand = __esm({
+  "src/db/models/CustomCommand.ts"() {
+    "use strict";
+    import_mongoose7 = __toESM(require_mongoose2());
+    customCommandSchema = new import_mongoose7.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        name: { type: String, required: true, lowercase: true, maxlength: 100 },
+        aliases: { type: [String], default: [] },
+        content: { type: String, required: true, maxlength: 4e3 },
+        embed: {
+          type: {
+            title: { type: String, maxlength: 256 },
+            description: { type: String, maxlength: 4e3 },
+            color: { type: Number },
+            fields: [{
+              name: { type: String, maxlength: 256 },
+              value: { type: String, maxlength: 1024 },
+              inline: { type: Boolean }
+            }],
+            thumbnail: { type: String },
+            image: { type: String },
+            footer: { type: String, maxlength: 2048 },
+            author: {
+              name: { type: String, maxlength: 256 },
+              icon: { type: String }
+            }
+          },
+          default: void 0
+        },
+        requiredPermissions: { type: [String], default: [] },
+        requiredRoles: { type: [String], default: [] },
+        cooldown: { type: Number, default: 0, min: 0, max: 86400 },
+        enabled: { type: Boolean, default: true },
+        nsfw: { type: Boolean, default: false },
+        creatorId: { type: String, required: true },
+        uses: { type: Number, default: 0 }
+      },
+      { timestamps: true }
+    );
+    customCommandSchema.index({ guildId: 1, name: 1 }, { unique: true });
+    customCommandSchema.index({ guildId: 1, enabled: 1 });
+    CustomCommand = (0, import_mongoose7.model)("CustomCommand", customCommandSchema);
   }
 });
 
@@ -88010,9 +88062,9 @@ var require_util8 = __commonJS({
       return true;
     }
     __name(isASCIINumber, "isASCIINumber");
-    function delay(ms) {
+    function delay(ms2) {
       return new Promise((resolve2) => {
-        setTimeout(resolve2, ms).unref();
+        setTimeout(resolve2, ms2).unref();
       });
     }
     __name(delay, "delay");
@@ -89667,26 +89719,26 @@ var require_channel = __commonJS({
       ForumLayoutType3[ForumLayoutType3["ListView"] = 1] = "ListView";
       ForumLayoutType3[ForumLayoutType3["GalleryView"] = 2] = "GalleryView";
     })(ForumLayoutType2 || (exports2.ForumLayoutType = ForumLayoutType2 = {}));
-    var ChannelType8;
-    (function(ChannelType9) {
-      ChannelType9[ChannelType9["GuildText"] = 0] = "GuildText";
-      ChannelType9[ChannelType9["DM"] = 1] = "DM";
-      ChannelType9[ChannelType9["GuildVoice"] = 2] = "GuildVoice";
-      ChannelType9[ChannelType9["GroupDM"] = 3] = "GroupDM";
-      ChannelType9[ChannelType9["GuildCategory"] = 4] = "GuildCategory";
-      ChannelType9[ChannelType9["GuildAnnouncement"] = 5] = "GuildAnnouncement";
-      ChannelType9[ChannelType9["AnnouncementThread"] = 10] = "AnnouncementThread";
-      ChannelType9[ChannelType9["PublicThread"] = 11] = "PublicThread";
-      ChannelType9[ChannelType9["PrivateThread"] = 12] = "PrivateThread";
-      ChannelType9[ChannelType9["GuildStageVoice"] = 13] = "GuildStageVoice";
-      ChannelType9[ChannelType9["GuildDirectory"] = 14] = "GuildDirectory";
-      ChannelType9[ChannelType9["GuildForum"] = 15] = "GuildForum";
-      ChannelType9[ChannelType9["GuildMedia"] = 16] = "GuildMedia";
-      ChannelType9[ChannelType9["GuildNews"] = 5] = "GuildNews";
-      ChannelType9[ChannelType9["GuildNewsThread"] = 10] = "GuildNewsThread";
-      ChannelType9[ChannelType9["GuildPublicThread"] = 11] = "GuildPublicThread";
-      ChannelType9[ChannelType9["GuildPrivateThread"] = 12] = "GuildPrivateThread";
-    })(ChannelType8 || (exports2.ChannelType = ChannelType8 = {}));
+    var ChannelType9;
+    (function(ChannelType10) {
+      ChannelType10[ChannelType10["GuildText"] = 0] = "GuildText";
+      ChannelType10[ChannelType10["DM"] = 1] = "DM";
+      ChannelType10[ChannelType10["GuildVoice"] = 2] = "GuildVoice";
+      ChannelType10[ChannelType10["GroupDM"] = 3] = "GroupDM";
+      ChannelType10[ChannelType10["GuildCategory"] = 4] = "GuildCategory";
+      ChannelType10[ChannelType10["GuildAnnouncement"] = 5] = "GuildAnnouncement";
+      ChannelType10[ChannelType10["AnnouncementThread"] = 10] = "AnnouncementThread";
+      ChannelType10[ChannelType10["PublicThread"] = 11] = "PublicThread";
+      ChannelType10[ChannelType10["PrivateThread"] = 12] = "PrivateThread";
+      ChannelType10[ChannelType10["GuildStageVoice"] = 13] = "GuildStageVoice";
+      ChannelType10[ChannelType10["GuildDirectory"] = 14] = "GuildDirectory";
+      ChannelType10[ChannelType10["GuildForum"] = 15] = "GuildForum";
+      ChannelType10[ChannelType10["GuildMedia"] = 16] = "GuildMedia";
+      ChannelType10[ChannelType10["GuildNews"] = 5] = "GuildNews";
+      ChannelType10[ChannelType10["GuildNewsThread"] = 10] = "GuildNewsThread";
+      ChannelType10[ChannelType10["GuildPublicThread"] = 11] = "GuildPublicThread";
+      ChannelType10[ChannelType10["GuildPrivateThread"] = 12] = "GuildPrivateThread";
+    })(ChannelType9 || (exports2.ChannelType = ChannelType9 = {}));
     var VideoQualityMode2;
     (function(VideoQualityMode3) {
       VideoQualityMode3[VideoQualityMode3["Auto"] = 1] = "Auto";
@@ -90302,45 +90354,45 @@ var require_message = __commonJS({
       AllowedMentionsTypes3["Role"] = "roles";
       AllowedMentionsTypes3["User"] = "users";
     })(AllowedMentionsTypes2 || (exports2.AllowedMentionsTypes = AllowedMentionsTypes2 = {}));
-    var ComponentType2;
-    (function(ComponentType3) {
-      ComponentType3[ComponentType3["ActionRow"] = 1] = "ActionRow";
-      ComponentType3[ComponentType3["Button"] = 2] = "Button";
-      ComponentType3[ComponentType3["StringSelect"] = 3] = "StringSelect";
-      ComponentType3[ComponentType3["TextInput"] = 4] = "TextInput";
-      ComponentType3[ComponentType3["UserSelect"] = 5] = "UserSelect";
-      ComponentType3[ComponentType3["RoleSelect"] = 6] = "RoleSelect";
-      ComponentType3[ComponentType3["MentionableSelect"] = 7] = "MentionableSelect";
-      ComponentType3[ComponentType3["ChannelSelect"] = 8] = "ChannelSelect";
-      ComponentType3[ComponentType3["Section"] = 9] = "Section";
-      ComponentType3[ComponentType3["TextDisplay"] = 10] = "TextDisplay";
-      ComponentType3[ComponentType3["Thumbnail"] = 11] = "Thumbnail";
-      ComponentType3[ComponentType3["MediaGallery"] = 12] = "MediaGallery";
-      ComponentType3[ComponentType3["File"] = 13] = "File";
-      ComponentType3[ComponentType3["Separator"] = 14] = "Separator";
-      ComponentType3[ComponentType3["ContentInventoryEntry"] = 16] = "ContentInventoryEntry";
-      ComponentType3[ComponentType3["Container"] = 17] = "Container";
-      ComponentType3[ComponentType3["Label"] = 18] = "Label";
-      ComponentType3[ComponentType3["FileUpload"] = 19] = "FileUpload";
-      ComponentType3[ComponentType3["RadioGroup"] = 21] = "RadioGroup";
-      ComponentType3[ComponentType3["CheckboxGroup"] = 22] = "CheckboxGroup";
-      ComponentType3[ComponentType3["Checkbox"] = 23] = "Checkbox";
-      ComponentType3[ComponentType3["SelectMenu"] = 3] = "SelectMenu";
-    })(ComponentType2 || (exports2.ComponentType = ComponentType2 = {}));
-    var ButtonStyle6;
-    (function(ButtonStyle7) {
-      ButtonStyle7[ButtonStyle7["Primary"] = 1] = "Primary";
-      ButtonStyle7[ButtonStyle7["Secondary"] = 2] = "Secondary";
-      ButtonStyle7[ButtonStyle7["Success"] = 3] = "Success";
-      ButtonStyle7[ButtonStyle7["Danger"] = 4] = "Danger";
-      ButtonStyle7[ButtonStyle7["Link"] = 5] = "Link";
-      ButtonStyle7[ButtonStyle7["Premium"] = 6] = "Premium";
-    })(ButtonStyle6 || (exports2.ButtonStyle = ButtonStyle6 = {}));
-    var TextInputStyle2;
-    (function(TextInputStyle3) {
-      TextInputStyle3[TextInputStyle3["Short"] = 1] = "Short";
-      TextInputStyle3[TextInputStyle3["Paragraph"] = 2] = "Paragraph";
-    })(TextInputStyle2 || (exports2.TextInputStyle = TextInputStyle2 = {}));
+    var ComponentType7;
+    (function(ComponentType8) {
+      ComponentType8[ComponentType8["ActionRow"] = 1] = "ActionRow";
+      ComponentType8[ComponentType8["Button"] = 2] = "Button";
+      ComponentType8[ComponentType8["StringSelect"] = 3] = "StringSelect";
+      ComponentType8[ComponentType8["TextInput"] = 4] = "TextInput";
+      ComponentType8[ComponentType8["UserSelect"] = 5] = "UserSelect";
+      ComponentType8[ComponentType8["RoleSelect"] = 6] = "RoleSelect";
+      ComponentType8[ComponentType8["MentionableSelect"] = 7] = "MentionableSelect";
+      ComponentType8[ComponentType8["ChannelSelect"] = 8] = "ChannelSelect";
+      ComponentType8[ComponentType8["Section"] = 9] = "Section";
+      ComponentType8[ComponentType8["TextDisplay"] = 10] = "TextDisplay";
+      ComponentType8[ComponentType8["Thumbnail"] = 11] = "Thumbnail";
+      ComponentType8[ComponentType8["MediaGallery"] = 12] = "MediaGallery";
+      ComponentType8[ComponentType8["File"] = 13] = "File";
+      ComponentType8[ComponentType8["Separator"] = 14] = "Separator";
+      ComponentType8[ComponentType8["ContentInventoryEntry"] = 16] = "ContentInventoryEntry";
+      ComponentType8[ComponentType8["Container"] = 17] = "Container";
+      ComponentType8[ComponentType8["Label"] = 18] = "Label";
+      ComponentType8[ComponentType8["FileUpload"] = 19] = "FileUpload";
+      ComponentType8[ComponentType8["RadioGroup"] = 21] = "RadioGroup";
+      ComponentType8[ComponentType8["CheckboxGroup"] = 22] = "CheckboxGroup";
+      ComponentType8[ComponentType8["Checkbox"] = 23] = "Checkbox";
+      ComponentType8[ComponentType8["SelectMenu"] = 3] = "SelectMenu";
+    })(ComponentType7 || (exports2.ComponentType = ComponentType7 = {}));
+    var ButtonStyle13;
+    (function(ButtonStyle14) {
+      ButtonStyle14[ButtonStyle14["Primary"] = 1] = "Primary";
+      ButtonStyle14[ButtonStyle14["Secondary"] = 2] = "Secondary";
+      ButtonStyle14[ButtonStyle14["Success"] = 3] = "Success";
+      ButtonStyle14[ButtonStyle14["Danger"] = 4] = "Danger";
+      ButtonStyle14[ButtonStyle14["Link"] = 5] = "Link";
+      ButtonStyle14[ButtonStyle14["Premium"] = 6] = "Premium";
+    })(ButtonStyle13 || (exports2.ButtonStyle = ButtonStyle13 = {}));
+    var TextInputStyle9;
+    (function(TextInputStyle10) {
+      TextInputStyle10[TextInputStyle10["Short"] = 1] = "Short";
+      TextInputStyle10[TextInputStyle10["Paragraph"] = 2] = "Paragraph";
+    })(TextInputStyle9 || (exports2.TextInputStyle = TextInputStyle9 = {}));
     var SelectMenuDefaultValueType2;
     (function(SelectMenuDefaultValueType3) {
       SelectMenuDefaultValueType3["Channel"] = "channel";
@@ -92809,11 +92861,11 @@ var require_dist3 = __commonJS({
     var __toCommonJS2 = /* @__PURE__ */ __name((mod3) => __copyProps2(__defProp3({}, "__esModule", { value: true }), mod3), "__toCommonJS");
     var src_exports = {};
     __export2(src_exports, {
-      Collection: /* @__PURE__ */ __name(() => Collection2, "Collection"),
+      Collection: /* @__PURE__ */ __name(() => Collection3, "Collection"),
       version: /* @__PURE__ */ __name(() => version3, "version")
     });
     module2.exports = __toCommonJS2(src_exports);
-    var Collection2 = class _Collection extends Map {
+    var Collection3 = class _Collection extends Map {
       static {
         __name(this, "_Collection");
       }
@@ -98284,9 +98336,9 @@ var require_dist6 = __commonJS({
     }
     __name(calculateUserDefaultAvatarIndex, "calculateUserDefaultAvatarIndex");
     __name3(calculateUserDefaultAvatarIndex, "calculateUserDefaultAvatarIndex");
-    async function sleep(ms) {
+    async function sleep(ms2) {
       return new Promise((resolve2) => {
-        setTimeout(() => resolve2(), ms);
+        setTimeout(() => resolve2(), ms2);
       });
     }
     __name(sleep, "sleep");
@@ -100183,11 +100235,11 @@ var require_dist7 = __commonJS({
     var __toCommonJS2 = /* @__PURE__ */ __name((mod3) => __copyProps2(__defProp3({}, "__esModule", { value: true }), mod3), "__toCommonJS");
     var src_exports = {};
     __export2(src_exports, {
-      Collection: /* @__PURE__ */ __name(() => Collection2, "Collection"),
+      Collection: /* @__PURE__ */ __name(() => Collection3, "Collection"),
       version: /* @__PURE__ */ __name(() => version3, "version")
     });
     module2.exports = __toCommonJS2(src_exports);
-    var Collection2 = class _Collection extends Map {
+    var Collection3 = class _Collection extends Map {
       static {
         __name(this, "_Collection");
       }
@@ -101573,7 +101625,7 @@ var require_ChannelFlagsBitField = __commonJS({
 var require_Constants = __commonJS({
   "node_modules/discord.js/src/util/Constants.js"(exports2) {
     "use strict";
-    var { ChannelType: ChannelType8, MessageType: MessageType2, ComponentType: ComponentType2, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
+    var { ChannelType: ChannelType9, MessageType: MessageType2, ComponentType: ComponentType7, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
     exports2.MaxBulkDeletableMessageAge = 12096e5;
     exports2.SweeperKeys = [
       "autoModerationRules",
@@ -101600,24 +101652,24 @@ var require_Constants = __commonJS({
       MessageType2.ContextMenuCommand
     ];
     exports2.GuildTextBasedChannelTypes = [
-      ChannelType8.GuildText,
-      ChannelType8.GuildAnnouncement,
-      ChannelType8.AnnouncementThread,
-      ChannelType8.PublicThread,
-      ChannelType8.PrivateThread,
-      ChannelType8.GuildVoice,
-      ChannelType8.GuildStageVoice
+      ChannelType9.GuildText,
+      ChannelType9.GuildAnnouncement,
+      ChannelType9.AnnouncementThread,
+      ChannelType9.PublicThread,
+      ChannelType9.PrivateThread,
+      ChannelType9.GuildVoice,
+      ChannelType9.GuildStageVoice
     ];
-    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType8.DM, ChannelType8.GroupDM];
-    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType8.DM];
-    exports2.ThreadChannelTypes = [ChannelType8.AnnouncementThread, ChannelType8.PublicThread, ChannelType8.PrivateThread];
-    exports2.VoiceBasedChannelTypes = [ChannelType8.GuildVoice, ChannelType8.GuildStageVoice];
+    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType9.DM, ChannelType9.GroupDM];
+    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType9.DM];
+    exports2.ThreadChannelTypes = [ChannelType9.AnnouncementThread, ChannelType9.PublicThread, ChannelType9.PrivateThread];
+    exports2.VoiceBasedChannelTypes = [ChannelType9.GuildVoice, ChannelType9.GuildStageVoice];
     exports2.SelectMenuTypes = [
-      ComponentType2.StringSelect,
-      ComponentType2.UserSelect,
-      ComponentType2.RoleSelect,
-      ComponentType2.MentionableSelect,
-      ComponentType2.ChannelSelect
+      ComponentType7.StringSelect,
+      ComponentType7.UserSelect,
+      ComponentType7.RoleSelect,
+      ComponentType7.MentionableSelect,
+      ComponentType7.ChannelSelect
     ];
     exports2.UndeletableMessageTypes = [
       MessageType2.RecipientAdd,
@@ -101763,7 +101815,7 @@ var require_BaseChannel = __commonJS({
     "use strict";
     var { channelLink, channelMention } = require_dist8();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType8, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType9, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var ChannelFlagsBitField = require_ChannelFlagsBitField();
     var { ThreadChannelTypes } = require_Constants();
@@ -101878,7 +101930,7 @@ var require_BaseChannel = __commonJS({
        * @returns {boolean}
        */
       isDMBased() {
-        return [ChannelType8.DM, ChannelType8.GroupDM].includes(this.type);
+        return [ChannelType9.DM, ChannelType9.GroupDM].includes(this.type);
       }
       /**
        * Indicates whether this channel is {@link BaseGuildVoiceChannel voice-based}.
@@ -102159,7 +102211,7 @@ var require_Role = __commonJS({
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
     var RoleFlagsBitField = require_RoleFlagsBitField();
-    var Role = class extends BaseRole {
+    var Role3 = class extends BaseRole {
       static {
         __name(this, "Role");
       }
@@ -102475,7 +102527,7 @@ var require_Role = __commonJS({
         };
       }
     };
-    exports2.Role = Role;
+    exports2.Role = Role3;
   }
 });
 
@@ -102485,7 +102537,7 @@ var require_PermissionOverwrites = __commonJS({
     "use strict";
     var { OverwriteType: OverwriteType2 } = require_v106();
     var Base = require_Base();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
     var PermissionOverwrites = class extends Base {
@@ -102624,7 +102676,7 @@ var require_PermissionOverwrites = __commonJS({
         if (!userOrRole) {
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "parameter", "cached User or Role");
         }
-        const type = userOrRole instanceof Role ? OverwriteType2.Role : OverwriteType2.Member;
+        const type = userOrRole instanceof Role3 ? OverwriteType2.Role : OverwriteType2.Member;
         return {
           id: userOrRole.id,
           type,
@@ -102642,12 +102694,12 @@ var require_PermissionOverwriteManager = __commonJS({
   "node_modules/discord.js/src/managers/PermissionOverwriteManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { OverwriteType: OverwriteType2, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwrites = require_PermissionOverwrites();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var cacheWarningEmitted = false;
     var PermissionOverwriteManager = class extends CachedManager {
       static {
@@ -102692,7 +102744,7 @@ var require_PermissionOverwriteManager = __commonJS({
        * ], 'Needed to change permissions');
        */
       async set(overwrites, reason) {
-        if (!Array.isArray(overwrites) && !(overwrites instanceof Collection2)) {
+        if (!Array.isArray(overwrites) && !(overwrites instanceof Collection3)) {
           throw new DiscordjsTypeError2(
             ErrorCodes2.InvalidType,
             "overwrites",
@@ -102724,7 +102776,7 @@ var require_PermissionOverwriteManager = __commonJS({
         if (typeof type !== "number") {
           userOrRole = this.channel.guild.roles.resolve(userOrRole) ?? this.client.users.resolve(userOrRole);
           if (!userOrRole) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "parameter", "User nor a Role");
-          type = userOrRole instanceof Role ? OverwriteType2.Role : OverwriteType2.Member;
+          type = userOrRole instanceof Role3 ? OverwriteType2.Role : OverwriteType2.Member;
         }
         const { allow, deny } = PermissionOverwrites.resolveOverwriteOptions(options, existing);
         await this.client.rest.put(Routes3.channelPermission(this.channel.id, userOrRoleId), {
@@ -102792,7 +102844,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits31, ChannelType: ChannelType8 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits31, ChannelType: ChannelType9 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102873,7 +102925,7 @@ var require_GuildChannel = __commonJS({
        * @readonly
        */
       get position() {
-        const selfIsCategory = this.type === ChannelType8.GuildCategory;
+        const selfIsCategory = this.type === ChannelType9.GuildCategory;
         const types = getSortableGroupTypes(this.type);
         let count = 0;
         for (const channel of this.guild.channels.cache.values()) {
@@ -103198,10 +103250,10 @@ var require_Util = __commonJS({
     "use strict";
     var { parse: parse3 } = require("node:path");
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
-    var { ChannelType: ChannelType8, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
+    var { Collection: Collection3 } = require_dist7();
+    var { ChannelType: ChannelType9, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
     var { fetch: fetch2 } = require_undici();
-    var Colors = require_Colors();
+    var Colors20 = require_Colors();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var isObject2 = /* @__PURE__ */ __name((d) => typeof d === "object" && d !== null, "isObject");
     var deprecationEmittedForUserFetchFlags = false;
@@ -103218,8 +103270,8 @@ var require_Util = __commonJS({
         const elemIsObj = isObject2(element);
         const valueOf = elemIsObj && typeof element.valueOf === "function" ? element.valueOf() : null;
         const hasToJSON = elemIsObj && typeof element.toJSON === "function";
-        if (element instanceof Collection2) out[newProp] = Array.from(element.keys());
-        else if (valueOf instanceof Collection2) out[newProp] = Array.from(valueOf.keys());
+        if (element instanceof Collection3) out[newProp] = Array.from(element.keys());
+        else if (valueOf instanceof Collection3) out[newProp] = Array.from(valueOf.keys());
         else if (Array.isArray(element)) out[newProp] = element.map((elm) => elm.toJSON?.() ?? flatten(elm));
         else if (typeof valueOf !== "object") out[newProp] = valueOf;
         else if (hasToJSON) out[newProp] = element.toJSON();
@@ -103274,24 +103326,24 @@ var require_Util = __commonJS({
     }
     __name(makePlainError, "makePlainError");
     var TextSortableGroupTypes = [
-      ChannelType8.GuildText,
-      ChannelType8.GuildAnnouncement,
-      ChannelType8.GuildForum,
-      ChannelType8.GuildMedia
+      ChannelType9.GuildText,
+      ChannelType9.GuildAnnouncement,
+      ChannelType9.GuildForum,
+      ChannelType9.GuildMedia
     ];
-    var VoiceSortableGroupTypes = [ChannelType8.GuildVoice, ChannelType8.GuildStageVoice];
-    var CategorySortableGroupTypes = [ChannelType8.GuildCategory];
+    var VoiceSortableGroupTypes = [ChannelType9.GuildVoice, ChannelType9.GuildStageVoice];
+    var CategorySortableGroupTypes = [ChannelType9.GuildCategory];
     function getSortableGroupTypes(type) {
       switch (type) {
-        case ChannelType8.GuildText:
-        case ChannelType8.GuildAnnouncement:
-        case ChannelType8.GuildForum:
-        case ChannelType8.GuildMedia:
+        case ChannelType9.GuildText:
+        case ChannelType9.GuildAnnouncement:
+        case ChannelType9.GuildForum:
+        case ChannelType9.GuildMedia:
           return TextSortableGroupTypes;
-        case ChannelType8.GuildVoice:
-        case ChannelType8.GuildStageVoice:
+        case ChannelType9.GuildVoice:
+        case ChannelType9.GuildStageVoice:
           return VoiceSortableGroupTypes;
-        case ChannelType8.GuildCategory:
+        case ChannelType9.GuildCategory:
           return CategorySortableGroupTypes;
         default:
           return [type];
@@ -103320,7 +103372,7 @@ var require_Util = __commonJS({
         if (color === "Random") return Math.floor(Math.random() * (16777215 + 1));
         if (color === "Default") return 0;
         if (/^#?[\da-f]{6}$/i.test(color)) return parseInt(color.replace("#", ""), 16);
-        resolvedColor = Colors[color];
+        resolvedColor = Colors20[color];
       } else if (Array.isArray(color)) {
         resolvedColor = (color[0] << 16) + (color[1] << 8) + color[2];
       } else {
@@ -103373,7 +103425,7 @@ var require_Util = __commonJS({
               return user ? `@${user.displayName}` : match;
             }
             case "@&": {
-              if (channel.type === ChannelType8.DM) return match;
+              if (channel.type === ChannelType9.DM) return match;
               const role = channel.guild.roles.cache.get(id);
               return role ? `@${role.name}` : match;
             }
@@ -103408,38 +103460,38 @@ var require_Util = __commonJS({
     function transformResolved({ client, guild, channel }, { members: members2, users, channels, roles, messages, attachments } = {}) {
       const result = {};
       if (members2) {
-        result.members = new Collection2();
+        result.members = new Collection3();
         for (const [id, member] of Object.entries(members2)) {
           const user = users[id];
           result.members.set(id, guild?.members._add({ user, ...member }) ?? member);
         }
       }
       if (users) {
-        result.users = new Collection2();
+        result.users = new Collection3();
         for (const user of Object.values(users)) {
           result.users.set(user.id, client.users._add(user));
         }
       }
       if (roles) {
-        result.roles = new Collection2();
+        result.roles = new Collection3();
         for (const role of Object.values(roles)) {
           result.roles.set(role.id, guild?.roles._add(role) ?? role);
         }
       }
       if (channels) {
-        result.channels = new Collection2();
+        result.channels = new Collection3();
         for (const apiChannel of Object.values(channels)) {
           result.channels.set(apiChannel.id, client.channels._add(apiChannel, guild) ?? apiChannel);
         }
       }
       if (messages) {
-        result.messages = new Collection2();
+        result.messages = new Collection3();
         for (const message of Object.values(messages)) {
           result.messages.set(message.id, channel?.messages?._add(message) ?? message);
         }
       }
       if (attachments) {
-        result.attachments = new Collection2();
+        result.attachments = new Collection3();
         for (const attachment of Object.values(attachments)) {
           const patched = new Attachment(attachment);
           result.attachments.set(attachment.id, patched);
@@ -103764,9 +103816,9 @@ var require_package3 = __commonJS({
 var require_LimitedCollection = __commonJS({
   "node_modules/discord.js/src/util/LimitedCollection.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var LimitedCollection = class extends Collection2 {
+    var LimitedCollection = class extends Collection3 {
       static {
         __name(this, "LimitedCollection");
       }
@@ -103799,7 +103851,7 @@ var require_LimitedCollection = __commonJS({
         return super.set(key, value);
       }
       static get [Symbol.species]() {
-        return Collection2;
+        return Collection3;
       }
     };
     module2.exports = LimitedCollection;
@@ -103868,22 +103920,22 @@ var require_Options = __commonJS({
        *  });
        */
       static cacheWithLimits(settings = {}) {
-        const { Collection: Collection2 } = require_dist7();
+        const { Collection: Collection3 } = require_dist7();
         const LimitedCollection = require_LimitedCollection();
         return (managerType, _, manager) => {
           const setting = settings[manager.name] ?? settings[managerType.name];
           if (setting == null) {
-            return new Collection2();
+            return new Collection3();
           }
           if (typeof setting === "number") {
             if (setting === Infinity) {
-              return new Collection2();
+              return new Collection3();
             }
             return new LimitedCollection({ maxSize: setting });
           }
           const noLimit = setting.maxSize == null || setting.maxSize === Infinity;
           if (noLimit) {
-            return new Collection2();
+            return new Collection3();
           }
           return new LimitedCollection(setting);
         };
@@ -103893,8 +103945,8 @@ var require_Options = __commonJS({
        * @returns {CacheFactory}
        */
       static cacheEverything() {
-        const { Collection: Collection2 } = require_dist7();
-        return () => new Collection2();
+        const { Collection: Collection3 } = require_dist7();
+        return () => new Collection3();
       }
       /**
        * The default settings passed to {@link ClientOptions.makeCache}.
@@ -104127,7 +104179,7 @@ var require_Collector = __commonJS({
     "use strict";
     var EventEmitter9 = require("node:events");
     var { setTimeout: setTimeout2, clearTimeout: clearTimeout2 } = require("node:timers");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { flatten } = require_Util();
     var Collector = class extends EventEmitter9 {
@@ -104139,7 +104191,7 @@ var require_Collector = __commonJS({
         Object.defineProperty(this, "client", { value: client });
         this.filter = options.filter ?? (() => true);
         this.options = options;
-        this.collected = new Collection2();
+        this.collected = new Collection3();
         this.ended = false;
         this._timeout = null;
         this._idletimeout = null;
@@ -104442,9 +104494,9 @@ var require_Events = __commonJS({
 var require_InteractionCollector = __commonJS({
   "node_modules/discord.js/src/structures/InteractionCollector.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Collector = require_Collector();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var InteractionCollector = class extends Collector {
       static {
         __name(this, "InteractionCollector");
@@ -104461,7 +104513,7 @@ var require_InteractionCollector = __commonJS({
         this.guildId = options.interactionResponse?.interaction.guildId ?? options.message?.guildId ?? options.message?.guild_id ?? this.client.guilds.resolveId(options.channel?.guild) ?? this.client.guilds.resolveId(options.guild);
         this.interactionType = options.interactionType ?? null;
         this.componentType = options.componentType ?? null;
-        this.users = new Collection2();
+        this.users = new Collection3();
         this.total = 0;
         this.client.incrementMaxListeners();
         const bulkDeleteListener = /* @__PURE__ */ __name((messages) => {
@@ -104469,27 +104521,27 @@ var require_InteractionCollector = __commonJS({
         }, "bulkDeleteListener");
         if (this.messageId || this.messageInteractionId) {
           this._handleMessageDeletion = this._handleMessageDeletion.bind(this);
-          this.client.on(Events7.MessageDelete, this._handleMessageDeletion);
-          this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
+          this.client.on(Events8.MessageDelete, this._handleMessageDeletion);
+          this.client.on(Events8.MessageBulkDelete, bulkDeleteListener);
         }
         if (this.channelId) {
           this._handleChannelDeletion = this._handleChannelDeletion.bind(this);
           this._handleThreadDeletion = this._handleThreadDeletion.bind(this);
-          this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
-          this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
+          this.client.on(Events8.ChannelDelete, this._handleChannelDeletion);
+          this.client.on(Events8.ThreadDelete, this._handleThreadDeletion);
         }
         if (this.guildId) {
           this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
-          this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
+          this.client.on(Events8.GuildDelete, this._handleGuildDeletion);
         }
-        this.client.on(Events7.InteractionCreate, this.handleCollect);
+        this.client.on(Events8.InteractionCreate, this.handleCollect);
         this.once("end", () => {
-          this.client.removeListener(Events7.InteractionCreate, this.handleCollect);
-          this.client.removeListener(Events7.MessageDelete, this._handleMessageDeletion);
-          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events8.InteractionCreate, this.handleCollect);
+          this.client.removeListener(Events8.MessageDelete, this._handleMessageDeletion);
+          this.client.removeListener(Events8.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events8.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events8.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events8.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
         this.on("collect", (interaction) => {
@@ -104607,7 +104659,7 @@ var require_MessageCollector = __commonJS({
   "node_modules/discord.js/src/structures/MessageCollector.js"(exports2, module2) {
     "use strict";
     var Collector = require_Collector();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageCollector = class extends Collector {
       static {
         __name(this, "MessageCollector");
@@ -104628,19 +104680,19 @@ var require_MessageCollector = __commonJS({
         this._handleThreadDeletion = this._handleThreadDeletion.bind(this);
         this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
         this.client.incrementMaxListeners();
-        this.client.on(Events7.MessageCreate, this.handleCollect);
-        this.client.on(Events7.MessageDelete, this.handleDispose);
-        this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
-        this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
-        this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
-        this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
+        this.client.on(Events8.MessageCreate, this.handleCollect);
+        this.client.on(Events8.MessageDelete, this.handleDispose);
+        this.client.on(Events8.MessageBulkDelete, bulkDeleteListener);
+        this.client.on(Events8.ChannelDelete, this._handleChannelDeletion);
+        this.client.on(Events8.ThreadDelete, this._handleThreadDeletion);
+        this.client.on(Events8.GuildDelete, this._handleGuildDeletion);
         this.once("end", () => {
-          this.client.removeListener(Events7.MessageCreate, this.handleCollect);
-          this.client.removeListener(Events7.MessageDelete, this.handleDispose);
-          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events8.MessageCreate, this.handleCollect);
+          this.client.removeListener(Events8.MessageDelete, this.handleDispose);
+          this.client.removeListener(Events8.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events8.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events8.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events8.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
       }
@@ -104719,7 +104771,7 @@ var require_GuildTemplate = __commonJS({
     var { RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var { resolveImage } = require_DataResolver();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildTemplate2 = class extends Base {
       static {
         __name(this, "GuildTemplate");
@@ -104788,7 +104840,7 @@ var require_GuildTemplate = __commonJS({
         if (client.guilds.cache.has(data.id)) return client.guilds.cache.get(data.id);
         return new Promise((resolve2) => {
           const resolveGuild2 = /* @__PURE__ */ __name((guild) => {
-            client.off(Events7.GuildCreate, handleGuild);
+            client.off(Events8.GuildCreate, handleGuild);
             client.decrementMaxListeners();
             resolve2(guild);
           }, "resolveGuild");
@@ -104799,7 +104851,7 @@ var require_GuildTemplate = __commonJS({
             }
           }, "handleGuild");
           client.incrementMaxListeners();
-          client.on(Events7.GuildCreate, handleGuild);
+          client.on(Events8.GuildCreate, handleGuild);
           const timeout = setTimeout2(() => resolveGuild2(client.guilds._add(data)), 1e4).unref();
         });
       }
@@ -105433,7 +105485,7 @@ var require_IntegrationApplication = __commonJS({
 var require_InviteStageInstance = __commonJS({
   "node_modules/discord.js/src/structures/InviteStageInstance.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var InviteStageInstance = class extends Base {
       static {
@@ -105443,7 +105495,7 @@ var require_InviteStageInstance = __commonJS({
         super(client);
         this.channelId = channelId;
         this.guildId = guildId;
-        this.members = new Collection2();
+        this.members = new Collection3();
         this._patch(data);
       }
       _patch(data) {
@@ -105711,7 +105763,7 @@ var require_WelcomeChannel = __commonJS({
 var require_WelcomeScreen = __commonJS({
   "node_modules/discord.js/src/structures/WelcomeScreen.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { GuildFeature: GuildFeature2 } = require_v106();
     var Base = require_Base();
     var WelcomeChannel = require_WelcomeChannel();
@@ -105723,7 +105775,7 @@ var require_WelcomeScreen = __commonJS({
         super(guild.client);
         this.guild = guild;
         this.description = data.description ?? null;
-        this.welcomeChannels = new Collection2();
+        this.welcomeChannels = new Collection3();
         for (const channel of data.welcome_channels) {
           const welcomeChannel = new WelcomeChannel(this.guild, channel);
           this.welcomeChannels.set(welcomeChannel.channelId, welcomeChannel);
@@ -105765,7 +105817,7 @@ var require_Invite = __commonJS({
   "node_modules/discord.js/src/structures/Invite.js"(exports2, module2) {
     "use strict";
     var { Buffer: Buffer10 } = require("node:buffer");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
     var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits31 } = require_v106();
     var Base = require_Base();
@@ -105889,7 +105941,7 @@ var require_Invite = __commonJS({
           this.flags ??= new InviteFlagsBitField().freeze();
         }
         if ("roles" in data || "role_ids" in data) {
-          this.roles = new Collection2(
+          this.roles = new Collection3(
             data.roles?.map((role) => [
               role.id,
               this.guild?.roles?._add(role, false) ?? new (getInviteRole())(this.client, role)
@@ -106135,9 +106187,9 @@ var require_BaseInteraction = __commonJS({
   "node_modules/discord.js/src/structures/BaseInteraction.js"(exports2, module2) {
     "use strict";
     var { deprecate } = require("node:util");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordSnowflake } = require_cjs();
-    var { InteractionType: InteractionType2, ApplicationCommandType: ApplicationCommandType2, ComponentType: ComponentType2 } = require_v106();
+    var { InteractionType: InteractionType2, ApplicationCommandType: ApplicationCommandType2, ComponentType: ComponentType7 } = require_v106();
     var AuthorizingIntegrationOwners = require_AuthorizingIntegrationOwners();
     var Base = require_Base();
     var { SelectMenuTypes } = require_Constants();
@@ -106163,7 +106215,7 @@ var require_BaseInteraction = __commonJS({
         this.guildLocale = data.guild_locale ?? null;
         this.entitlements = data.entitlements.reduce(
           (coll, entitlement) => coll.set(entitlement.id, this.client.application.entitlements._add(entitlement)),
-          new Collection2()
+          new Collection3()
         );
         this.authorizingIntegrationOwners = new AuthorizingIntegrationOwners(
           this.client,
@@ -106293,7 +106345,7 @@ var require_BaseInteraction = __commonJS({
        * @returns {boolean}
        */
       isButton() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.Button;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.Button;
       }
       /**
        * Indicates whether this interaction is a {@link StringSelectMenuInteraction}.
@@ -106315,35 +106367,35 @@ var require_BaseInteraction = __commonJS({
        * @returns {boolean}
        */
       isStringSelectMenu() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.StringSelect;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.StringSelect;
       }
       /**
        * Indicates whether this interaction is a {@link UserSelectMenuInteraction}
        * @returns {boolean}
        */
       isUserSelectMenu() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.UserSelect;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.UserSelect;
       }
       /**
        * Indicates whether this interaction is a {@link RoleSelectMenuInteraction}
        * @returns {boolean}
        */
       isRoleSelectMenu() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.RoleSelect;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.RoleSelect;
       }
       /**
        * Indicates whether this interaction is a {@link ChannelSelectMenuInteraction}
        * @returns {boolean}
        */
       isChannelSelectMenu() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.ChannelSelect;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.ChannelSelect;
       }
       /**
        * Indicates whether this interaction is a {@link MentionableSelectMenuInteraction}
        * @returns {boolean}
        */
       isMentionableSelectMenu() {
-        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType2.MentionableSelect;
+        return this.type === InteractionType2.MessageComponent && this.componentType === ComponentType7.MentionableSelect;
       }
       /**
        * Indicates whether this interaction can be replied to.
@@ -106503,7 +106555,7 @@ var require_TeamMember = __commonJS({
 var require_Team = __commonJS({
   "node_modules/discord.js/src/structures/Team.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordSnowflake } = require_cjs();
     var Base = require_Base();
     var TeamMember = require_TeamMember();
@@ -106530,7 +106582,7 @@ var require_Team = __commonJS({
         } else {
           this.ownerId ??= null;
         }
-        this.members = new Collection2();
+        this.members = new Collection3();
         for (const memberData of data.members) {
           const member = new TeamMember(this, memberData);
           this.members.set(member.id, member);
@@ -106591,7 +106643,7 @@ var require_Team = __commonJS({
 var require_ApplicationCommandPermissionsManager = __commonJS({
   "node_modules/discord.js/src/managers/ApplicationCommandPermissionsManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { ApplicationCommandPermissionType: ApplicationCommandPermissionType2, RESTJSONErrorCodes: RESTJSONErrorCodes2, Routes: Routes3 } = require_v106();
     var BaseManager = require_BaseManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -106667,7 +106719,7 @@ var require_ApplicationCommandPermissionsManager = __commonJS({
           return data2.permissions;
         }
         const data = await this.client.rest.get(this.permissionsPath(guildId));
-        return data.reduce((coll, perm) => coll.set(perm.id, perm.permissions), new Collection2());
+        return data.reduce((coll, perm) => coll.set(perm.id, perm.permissions), new Collection3());
       }
       /**
        * Options used to set permissions for one or more Application Commands in a guild
@@ -107457,7 +107509,7 @@ var require_ApplicationCommand = __commonJS({
 var require_ApplicationCommandManager = __commonJS({
   "node_modules/discord.js/src/managers/ApplicationCommandManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { isJSONEncodable } = require_dist2();
     var { Routes: Routes3 } = require_v106();
@@ -107558,7 +107610,7 @@ var require_ApplicationCommandManager = __commonJS({
           },
           query: makeURLSearchParams2({ with_localizations: withLocalizations })
         });
-        return data.reduce((coll, command) => coll.set(command.id, this._add(command, cache, guildId)), new Collection2());
+        return data.reduce((coll, command) => coll.set(command.id, this._add(command, cache, guildId)), new Collection3());
       }
       /**
        * Creates an application command.
@@ -107609,7 +107661,7 @@ var require_ApplicationCommandManager = __commonJS({
         });
         return data.reduce(
           (collection, command) => collection.set(command.id, this._add(command, true, guildId)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -107780,7 +107832,7 @@ var require_ApplicationEmoji = __commonJS({
 var require_ApplicationEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/ApplicationEmojiManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -107851,7 +107903,7 @@ var require_ApplicationEmojiManager = __commonJS({
           return this._add(emoji3, cache);
         }
         const { items: data } = await this.client.rest.get(Routes3.applicationEmojis(this.application.id));
-        const emojis = new Collection2();
+        const emojis = new Collection3();
         for (const emoji3 of data) emojis.set(emoji3.id, this._add(emoji3, cache));
         return emojis;
       }
@@ -108027,7 +108079,7 @@ var require_Entitlement = __commonJS({
 var require_EntitlementManager = __commonJS({
   "node_modules/discord.js/src/managers/EntitlementManager.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3, EntitlementOwnerType: EntitlementOwnerType2 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -108116,7 +108168,7 @@ var require_EntitlementManager = __commonJS({
         const entitlements = await this.client.rest.get(Routes3.entitlements(this.client.application.id), { query });
         return entitlements.reduce(
           (coll, entitlement) => coll.set(entitlement.id, this._add(entitlement, cache)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -108245,7 +108297,7 @@ var require_Subscription = __commonJS({
 var require_SubscriptionManager = __commonJS({
   "node_modules/discord.js/src/managers/SubscriptionManager.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -108304,7 +108356,7 @@ var require_SubscriptionManager = __commonJS({
         const subscriptions = await this.client.rest.get(Routes3.skuSubscriptions(skuId), { query });
         return subscriptions.reduce(
           (coll, subscription) => coll.set(subscription.id, this._add(subscription, cache)),
-          new Collection2()
+          new Collection3()
         );
       }
     };
@@ -108337,7 +108389,7 @@ var require_ApplicationFlagsBitField = __commonJS({
 var require_ClientApplication = __commonJS({
   "node_modules/discord.js/src/structures/ClientApplication.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var { ActivityInstance } = require_ActivityInstance();
     var { ApplicationRoleConnectionMetadata } = require_ApplicationRoleConnectionMetadata();
@@ -108585,7 +108637,7 @@ var require_ClientApplication = __commonJS({
        */
       async fetchSKUs() {
         const skus = await this.client.rest.get(Routes3.skus(this.id));
-        return skus.reduce((coll, sku) => coll.set(sku.id, new SKU(this.client, sku)), new Collection2());
+        return skus.reduce((coll, sku) => coll.set(sku.id, new SKU(this.client, sku)), new Collection3());
       }
       /**
        * Fetches an activity instance for this application.
@@ -113567,14 +113619,14 @@ var require_dist9 = __commonJS({
     }, "__decorateClass");
     var index_exports = {};
     __export2(index_exports, {
-      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder5, "ActionRowBuilder"),
+      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder15, "ActionRowBuilder"),
       ApplicationCommandNumericOptionMinMaxValueMixin: /* @__PURE__ */ __name(() => ApplicationCommandNumericOptionMinMaxValueMixin, "ApplicationCommandNumericOptionMinMaxValueMixin"),
       ApplicationCommandOptionBase: /* @__PURE__ */ __name(() => ApplicationCommandOptionBase, "ApplicationCommandOptionBase"),
       ApplicationCommandOptionChannelTypesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionChannelTypesMixin, "ApplicationCommandOptionChannelTypesMixin"),
       ApplicationCommandOptionWithAutocompleteMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithAutocompleteMixin, "ApplicationCommandOptionWithAutocompleteMixin"),
       ApplicationCommandOptionWithChoicesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithChoicesMixin, "ApplicationCommandOptionWithChoicesMixin"),
       BaseSelectMenuBuilder: /* @__PURE__ */ __name(() => BaseSelectMenuBuilder, "BaseSelectMenuBuilder"),
-      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder5, "ButtonBuilder"),
+      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder12, "ButtonBuilder"),
       ChannelSelectMenuBuilder: /* @__PURE__ */ __name(() => ChannelSelectMenuBuilder, "ChannelSelectMenuBuilder"),
       CheckboxAssertions: /* @__PURE__ */ __name(() => Assertions_exports3, "CheckboxAssertions"),
       CheckboxBuilder: /* @__PURE__ */ __name(() => CheckboxBuilder, "CheckboxBuilder"),
@@ -113587,7 +113639,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder34, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder52, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113597,14 +113649,14 @@ var require_dist9 = __commonJS({
       MediaGalleryItemBuilder: /* @__PURE__ */ __name(() => MediaGalleryItemBuilder, "MediaGalleryItemBuilder"),
       MentionableSelectMenuBuilder: /* @__PURE__ */ __name(() => MentionableSelectMenuBuilder, "MentionableSelectMenuBuilder"),
       ModalAssertions: /* @__PURE__ */ __name(() => Assertions_exports9, "ModalAssertions"),
-      ModalBuilder: /* @__PURE__ */ __name(() => ModalBuilder, "ModalBuilder"),
+      ModalBuilder: /* @__PURE__ */ __name(() => ModalBuilder8, "ModalBuilder"),
       RadioGroupBuilder: /* @__PURE__ */ __name(() => RadioGroupBuilder, "RadioGroupBuilder"),
       RadioGroupOptionBuilder: /* @__PURE__ */ __name(() => RadioGroupOptionBuilder, "RadioGroupOptionBuilder"),
       RoleSelectMenuBuilder: /* @__PURE__ */ __name(() => RoleSelectMenuBuilder, "RoleSelectMenuBuilder"),
       SectionBuilder: /* @__PURE__ */ __name(() => SectionBuilder, "SectionBuilder"),
       SelectMenuAssertions: /* @__PURE__ */ __name(() => Assertions_exports6, "SelectMenuAssertions"),
-      SelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder, "SelectMenuBuilder"),
-      SelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder, "SelectMenuOptionBuilder"),
+      SelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder4, "SelectMenuBuilder"),
+      SelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder4, "SelectMenuOptionBuilder"),
       SeparatorBuilder: /* @__PURE__ */ __name(() => SeparatorBuilder, "SeparatorBuilder"),
       SharedNameAndDescription: /* @__PURE__ */ __name(() => SharedNameAndDescription, "SharedNameAndDescription"),
       SharedSlashCommand: /* @__PURE__ */ __name(() => SharedSlashCommand, "SharedSlashCommand"),
@@ -113613,7 +113665,7 @@ var require_dist9 = __commonJS({
       SlashCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports10, "SlashCommandAssertions"),
       SlashCommandAttachmentOption: /* @__PURE__ */ __name(() => SlashCommandAttachmentOption, "SlashCommandAttachmentOption"),
       SlashCommandBooleanOption: /* @__PURE__ */ __name(() => SlashCommandBooleanOption, "SlashCommandBooleanOption"),
-      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder46, "SlashCommandBuilder"),
+      SlashCommandBuilder: /* @__PURE__ */ __name(() => SlashCommandBuilder62, "SlashCommandBuilder"),
       SlashCommandChannelOption: /* @__PURE__ */ __name(() => SlashCommandChannelOption, "SlashCommandChannelOption"),
       SlashCommandIntegerOption: /* @__PURE__ */ __name(() => SlashCommandIntegerOption, "SlashCommandIntegerOption"),
       SlashCommandMentionableOption: /* @__PURE__ */ __name(() => SlashCommandMentionableOption, "SlashCommandMentionableOption"),
@@ -113623,11 +113675,11 @@ var require_dist9 = __commonJS({
       SlashCommandSubcommandBuilder: /* @__PURE__ */ __name(() => SlashCommandSubcommandBuilder, "SlashCommandSubcommandBuilder"),
       SlashCommandSubcommandGroupBuilder: /* @__PURE__ */ __name(() => SlashCommandSubcommandGroupBuilder, "SlashCommandSubcommandGroupBuilder"),
       SlashCommandUserOption: /* @__PURE__ */ __name(() => SlashCommandUserOption, "SlashCommandUserOption"),
-      StringSelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder, "StringSelectMenuBuilder"),
-      StringSelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder, "StringSelectMenuOptionBuilder"),
+      StringSelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder4, "StringSelectMenuBuilder"),
+      StringSelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder4, "StringSelectMenuOptionBuilder"),
       TextDisplayBuilder: /* @__PURE__ */ __name(() => TextDisplayBuilder, "TextDisplayBuilder"),
       TextInputAssertions: /* @__PURE__ */ __name(() => Assertions_exports5, "TextInputAssertions"),
-      TextInputBuilder: /* @__PURE__ */ __name(() => TextInputBuilder, "TextInputBuilder"),
+      TextInputBuilder: /* @__PURE__ */ __name(() => TextInputBuilder8, "TextInputBuilder"),
       ThumbnailBuilder: /* @__PURE__ */ __name(() => ThumbnailBuilder, "ThumbnailBuilder"),
       UserSelectMenuBuilder: /* @__PURE__ */ __name(() => UserSelectMenuBuilder, "UserSelectMenuBuilder"),
       createComponentBuilder: /* @__PURE__ */ __name(() => createComponentBuilder, "createComponentBuilder"),
@@ -113721,7 +113773,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder34 = class {
+    var EmbedBuilder52 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -113962,7 +114014,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift2 = require_cjs3();
     var import_v103 = require_v106();
-    var StringSelectMenuOptionBuilder = class {
+    var StringSelectMenuOptionBuilder4 = class {
       static {
         __name(this, "StringSelectMenuOptionBuilder");
       }
@@ -114070,7 +114122,7 @@ var require_dist9 = __commonJS({
       emoji: emojiValidator.optional(),
       default: import_shapeshift2.s.boolean().optional()
     }).setValidationEnabled(isValidationEnabled);
-    var optionValidator = import_shapeshift2.s.instance(StringSelectMenuOptionBuilder).setValidationEnabled(isValidationEnabled);
+    var optionValidator = import_shapeshift2.s.instance(StringSelectMenuOptionBuilder4).setValidationEnabled(isValidationEnabled);
     var optionsValidator = optionValidator.array().lengthGreaterThanOrEqual(0).setValidationEnabled(isValidationEnabled);
     var optionsLengthValidator = import_shapeshift2.s.number().int().greaterThanOrEqual(0).lessThanOrEqual(25).setValidationEnabled(isValidationEnabled);
     function validateRequiredSelectMenuParameters(options, customId) {
@@ -114158,7 +114210,7 @@ var require_dist9 = __commonJS({
     };
     var import_v1027 = require_v106();
     var import_v1022 = require_v106();
-    var ButtonBuilder5 = class extends ComponentBuilder {
+    var ButtonBuilder12 = class extends ComponentBuilder {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -115414,7 +115466,7 @@ var require_dist9 = __commonJS({
       }
       return import_shapeshift7.Result.ok(value);
     }).setValidationEnabled(isValidationEnabled);
-    var StringSelectMenuBuilder = class extends BaseSelectMenuBuilder {
+    var StringSelectMenuBuilder4 = class extends BaseSelectMenuBuilder {
       static {
         __name(this, "StringSelectMenuBuilder");
       }
@@ -115459,7 +115511,7 @@ var require_dist9 = __commonJS({
       constructor(data) {
         const { options, ...initData } = data ?? {};
         super({ ...initData, type: import_v1014.ComponentType.StringSelect });
-        this.options = options?.map((option) => new StringSelectMenuOptionBuilder(option)) ?? [];
+        this.options = options?.map((option) => new StringSelectMenuOptionBuilder4(option)) ?? [];
       }
       /**
        * Adds options to this select menu.
@@ -115471,7 +115523,7 @@ var require_dist9 = __commonJS({
         optionsLengthValidator.parse(this.options.length + normalizedOptions.length);
         this.options.push(
           ...normalizedOptions.map(
-            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder ? normalizedOption : new StringSelectMenuOptionBuilder(selectMenuStringOptionPredicate.parse(normalizedOption))
+            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder4 ? normalizedOption : new StringSelectMenuOptionBuilder4(selectMenuStringOptionPredicate.parse(normalizedOption))
           )
         );
         return this;
@@ -115518,7 +115570,7 @@ var require_dist9 = __commonJS({
           index,
           deleteCount,
           ...normalizedOptions.map(
-            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder ? normalizedOption : new StringSelectMenuOptionBuilder(selectMenuStringOptionPredicate.parse(normalizedOption))
+            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder4 ? normalizedOption : new StringSelectMenuOptionBuilder4(selectMenuStringOptionPredicate.parse(normalizedOption))
           )
         );
         optionsLengthValidator.parse(clone2.length);
@@ -115604,7 +115656,7 @@ var require_dist9 = __commonJS({
     var import_util9 = require_dist2();
     var import_v1016 = require_v106();
     var import_fast_deep_equal = __toESM2(require_fast_deep_equal());
-    var TextInputBuilder = class extends ComponentBuilder {
+    var TextInputBuilder8 = class extends ComponentBuilder {
       static {
         __name(this, "TextInputBuilder");
       }
@@ -115825,7 +115877,7 @@ var require_dist9 = __commonJS({
        * @param input - A function that returns a component builder or an already built builder
        */
       setStringSelectMenuComponent(input2) {
-        this.data.component = resolveBuilder(input2, StringSelectMenuBuilder);
+        this.data.component = resolveBuilder(input2, StringSelectMenuBuilder4);
         return this;
       }
       /**
@@ -115870,7 +115922,7 @@ var require_dist9 = __commonJS({
        * @param input - A function that returns a component builder or an already built builder
        */
       setTextInputComponent(input2) {
-        this.data.component = resolveBuilder(input2, TextInputBuilder);
+        this.data.component = resolveBuilder(input2, TextInputBuilder8);
         return this;
       }
       /**
@@ -116036,7 +116088,7 @@ var require_dist9 = __commonJS({
     var dividerPredicate = import_shapeshift9.s.boolean();
     var spacingPredicate = import_shapeshift9.s.nativeEnum(import_v1020.SeparatorSpacingSize);
     var textDisplayContentPredicate = import_shapeshift9.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(4e3).setValidationEnabled(isValidationEnabled);
-    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder5).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
+    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder12).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
     var containerColorPredicate = colorPredicate.nullish();
     function assertReturnOfBuilder(input2, ExpectedInstanceOf) {
       import_shapeshift9.s.instance(ExpectedInstanceOf).setValidationEnabled(isValidationEnabled).parse(input2);
@@ -116303,7 +116355,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         this.components.push(
-          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder5))
+          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder15))
         );
         return this;
       }
@@ -116634,7 +116686,7 @@ var require_dist9 = __commonJS({
        * @param accessory - The accessory to use
        */
       setButtonAccessory(accessory) {
-        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder5)));
+        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder12)));
         return this;
       }
       /**
@@ -116698,13 +116750,13 @@ var require_dist9 = __commonJS({
       }
       switch (data.type) {
         case import_v1027.ComponentType.ActionRow:
-          return new ActionRowBuilder5(data);
+          return new ActionRowBuilder15(data);
         case import_v1027.ComponentType.Button:
-          return new ButtonBuilder5(data);
+          return new ButtonBuilder12(data);
         case import_v1027.ComponentType.StringSelect:
-          return new StringSelectMenuBuilder(data);
+          return new StringSelectMenuBuilder4(data);
         case import_v1027.ComponentType.TextInput:
-          return new TextInputBuilder(data);
+          return new TextInputBuilder8(data);
         case import_v1027.ComponentType.UserSelect:
           return new UserSelectMenuBuilder(data);
         case import_v1027.ComponentType.RoleSelect:
@@ -116759,7 +116811,7 @@ var require_dist9 = __commonJS({
     }
     __name(resolveBuilder, "resolveBuilder");
     __name3(resolveBuilder, "resolveBuilder");
-    var ActionRowBuilder5 = class extends ComponentBuilder {
+    var ActionRowBuilder15 = class extends ComponentBuilder {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -116845,7 +116897,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift10 = require_cjs3();
     var titleValidator = import_shapeshift10.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(45).setValidationEnabled(isValidationEnabled);
-    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder5), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
+    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder15), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
     function validateRequiredParameters2(customId, title, components) {
       customIdValidator.parse(customId);
       titleValidator.parse(title);
@@ -116853,7 +116905,7 @@ var require_dist9 = __commonJS({
     }
     __name(validateRequiredParameters2, "validateRequiredParameters2");
     __name3(validateRequiredParameters2, "validateRequiredParameters");
-    var ModalBuilder = class {
+    var ModalBuilder8 = class {
       static {
         __name(this, "ModalBuilder");
       }
@@ -116904,15 +116956,15 @@ var require_dist9 = __commonJS({
       addComponents(...components) {
         this.components.push(
           ...normalizeArray(components).map((component, idx) => {
-            if (component instanceof ActionRowBuilder5 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
+            if (component instanceof ActionRowBuilder15 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
               return component;
             }
-            if (component instanceof TextInputBuilder) {
-              return new ActionRowBuilder5().addComponents(component);
+            if (component instanceof TextInputBuilder8) {
+              return new ActionRowBuilder15().addComponents(component);
             }
             if ("type" in component) {
               if (component.type === import_v1029.ComponentType.ActionRow) {
-                return new ActionRowBuilder5(component);
+                return new ActionRowBuilder15(component);
               }
               if (component.type === import_v1029.ComponentType.Label) {
                 return new LabelBuilder(component);
@@ -116921,8 +116973,8 @@ var require_dist9 = __commonJS({
                 return new TextDisplayBuilder(component);
               }
               if (component.type === import_v1029.ComponentType.TextInput) {
-                return new ActionRowBuilder5().addComponents(
-                  new TextInputBuilder(component)
+                return new ActionRowBuilder15().addComponents(
+                  new TextInputBuilder8(component)
                 );
               }
             }
@@ -116961,7 +117013,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         const normalized = normalizeArray(components);
-        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder5));
+        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder15));
         this.components.push(...resolved);
         return this;
       }
@@ -118091,7 +118143,7 @@ var require_dist9 = __commonJS({
         return this;
       }
     };
-    var SlashCommandBuilder46 = class {
+    var SlashCommandBuilder62 = class {
       static {
         __name(this, "SlashCommandBuilder");
       }
@@ -118147,10 +118199,10 @@ var require_dist9 = __commonJS({
        */
       nsfw = void 0;
     };
-    __name3(SlashCommandBuilder46, "SlashCommandBuilder");
-    SlashCommandBuilder46 = __decorateClass([
+    __name3(SlashCommandBuilder62, "SlashCommandBuilder");
+    SlashCommandBuilder62 = __decorateClass([
       (0, import_ts_mixer6.mix)(SharedSlashCommandOptions, SharedNameAndDescription, SharedSlashCommandSubcommands, SharedSlashCommand)
-    ], SlashCommandBuilder46);
+    ], SlashCommandBuilder62);
     var Assertions_exports11 = {};
     __export2(Assertions_exports11, {
       contextsPredicate: /* @__PURE__ */ __name(() => contextsPredicate2, "contextsPredicate"),
@@ -118592,7 +118644,7 @@ var require_Embed = __commonJS({
 var require_MessageMentions = __commonJS({
   "node_modules/discord.js/src/structures/MessageMentions.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { FormattingPatterns: FormattingPatterns2 } = require_v106();
     var { flatten } = require_Util();
     var MessageMentions = class {
@@ -118647,10 +118699,10 @@ var require_MessageMentions = __commonJS({
         Object.defineProperty(this, "_content", { value: message.content });
         this.everyone = Boolean(everyone);
         if (users) {
-          if (users instanceof Collection2) {
-            this.users = new Collection2(users);
+          if (users instanceof Collection3) {
+            this.users = new Collection3(users);
           } else {
-            this.users = new Collection2();
+            this.users = new Collection3();
             for (const mention of users) {
               if (mention.member && message.guild) {
                 message.guild.members._add(Object.assign(mention.member, { user: mention }));
@@ -118660,12 +118712,12 @@ var require_MessageMentions = __commonJS({
             }
           }
         } else {
-          this.users = new Collection2();
+          this.users = new Collection3();
         }
-        if (roles instanceof Collection2) {
-          this.roles = new Collection2(roles);
+        if (roles instanceof Collection3) {
+          this.roles = new Collection3(roles);
         } else if (roles) {
-          this.roles = new Collection2();
+          this.roles = new Collection3();
           const guild = message.guild;
           if (guild) {
             for (const mention of roles) {
@@ -118674,16 +118726,16 @@ var require_MessageMentions = __commonJS({
             }
           }
         } else {
-          this.roles = new Collection2();
+          this.roles = new Collection3();
         }
         this._members = null;
         this._channels = null;
         this._parsedUsers = null;
         if (crosspostedChannels) {
-          if (crosspostedChannels instanceof Collection2) {
-            this.crosspostedChannels = new Collection2(crosspostedChannels);
+          if (crosspostedChannels instanceof Collection3) {
+            this.crosspostedChannels = new Collection3(crosspostedChannels);
           } else {
-            this.crosspostedChannels = new Collection2();
+            this.crosspostedChannels = new Collection3();
             for (const crosspostedChannel of crosspostedChannels) {
               this.crosspostedChannels.set(crosspostedChannel.id, {
                 channelId: crosspostedChannel.id,
@@ -118694,7 +118746,7 @@ var require_MessageMentions = __commonJS({
             }
           }
         } else {
-          this.crosspostedChannels = new Collection2();
+          this.crosspostedChannels = new Collection3();
         }
         this.repliedUser = repliedUser ? this.client.users._add(repliedUser) : null;
       }
@@ -118707,7 +118759,7 @@ var require_MessageMentions = __commonJS({
       get members() {
         if (this._members) return this._members;
         if (!this.guild) return null;
-        this._members = new Collection2();
+        this._members = new Collection3();
         this.users.forEach((user) => {
           const member = this.guild.members.resolve(user);
           if (member) this._members.set(member.user.id, member);
@@ -118722,7 +118774,7 @@ var require_MessageMentions = __commonJS({
        */
       get channels() {
         if (this._channels) return this._channels;
-        this._channels = new Collection2();
+        this._channels = new Collection3();
         let matches;
         while ((matches = this.constructor.GlobalChannelsPattern.exec(this._content)) !== null) {
           const channel = this.client.channels.cache.get(matches.groups.id);
@@ -118738,7 +118790,7 @@ var require_MessageMentions = __commonJS({
        */
       get parsedUsers() {
         if (this._parsedUsers) return this._parsedUsers;
-        this._parsedUsers = new Collection2();
+        this._parsedUsers = new Collection3();
         let matches;
         while ((matches = this.constructor.GlobalUsersPattern.exec(this._content)) !== null) {
           const user = this.client.users.cache.get(matches[1]);
@@ -118797,9 +118849,9 @@ var require_MessageMentions = __commonJS({
 var require_ReactionCollector = __commonJS({
   "node_modules/discord.js/src/structures/ReactionCollector.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Collector = require_Collector();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ReactionCollector = class _ReactionCollector extends Collector {
       static {
         __name(this, "ReactionCollector");
@@ -118811,7 +118863,7 @@ var require_ReactionCollector = __commonJS({
       constructor(message, options = {}) {
         super(message.client, options);
         this.message = message;
-        this.users = new Collection2();
+        this.users = new Collection3();
         this.total = 0;
         this.empty = this.empty.bind(this);
         this._handleChannelDeletion = this._handleChannelDeletion.bind(this);
@@ -118822,23 +118874,23 @@ var require_ReactionCollector = __commonJS({
           if (messages.has(this.message.id)) this.stop("messageDelete");
         }, "bulkDeleteListener");
         this.client.incrementMaxListeners();
-        this.client.on(Events7.MessageReactionAdd, this.handleCollect);
-        this.client.on(Events7.MessageReactionRemove, this.handleDispose);
-        this.client.on(Events7.MessageReactionRemoveAll, this.empty);
-        this.client.on(Events7.MessageDelete, this._handleMessageDeletion);
-        this.client.on(Events7.MessageBulkDelete, bulkDeleteListener);
-        this.client.on(Events7.ChannelDelete, this._handleChannelDeletion);
-        this.client.on(Events7.ThreadDelete, this._handleThreadDeletion);
-        this.client.on(Events7.GuildDelete, this._handleGuildDeletion);
+        this.client.on(Events8.MessageReactionAdd, this.handleCollect);
+        this.client.on(Events8.MessageReactionRemove, this.handleDispose);
+        this.client.on(Events8.MessageReactionRemoveAll, this.empty);
+        this.client.on(Events8.MessageDelete, this._handleMessageDeletion);
+        this.client.on(Events8.MessageBulkDelete, bulkDeleteListener);
+        this.client.on(Events8.ChannelDelete, this._handleChannelDeletion);
+        this.client.on(Events8.ThreadDelete, this._handleThreadDeletion);
+        this.client.on(Events8.GuildDelete, this._handleGuildDeletion);
         this.once("end", () => {
-          this.client.removeListener(Events7.MessageReactionAdd, this.handleCollect);
-          this.client.removeListener(Events7.MessageReactionRemove, this.handleDispose);
-          this.client.removeListener(Events7.MessageReactionRemoveAll, this.empty);
-          this.client.removeListener(Events7.MessageDelete, this._handleMessageDeletion);
-          this.client.removeListener(Events7.MessageBulkDelete, bulkDeleteListener);
-          this.client.removeListener(Events7.ChannelDelete, this._handleChannelDeletion);
-          this.client.removeListener(Events7.ThreadDelete, this._handleThreadDeletion);
-          this.client.removeListener(Events7.GuildDelete, this._handleGuildDeletion);
+          this.client.removeListener(Events8.MessageReactionAdd, this.handleCollect);
+          this.client.removeListener(Events8.MessageReactionRemove, this.handleDispose);
+          this.client.removeListener(Events8.MessageReactionRemoveAll, this.empty);
+          this.client.removeListener(Events8.MessageDelete, this._handleMessageDeletion);
+          this.client.removeListener(Events8.MessageBulkDelete, bulkDeleteListener);
+          this.client.removeListener(Events8.ChannelDelete, this._handleChannelDeletion);
+          this.client.removeListener(Events8.ThreadDelete, this._handleThreadDeletion);
+          this.client.removeListener(Events8.GuildDelete, this._handleGuildDeletion);
           this.client.decrementMaxListeners();
         });
         this.on("collect", (reaction, user) => {
@@ -119178,16 +119230,16 @@ var require_BaseGuildEmoji = __commonJS({
 var require_GuildEmojiRoleManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiRoleManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var DataManager = require_DataManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var GuildEmojiRoleManager = class extends DataManager {
       static {
         __name(this, "GuildEmojiRoleManager");
       }
       constructor(emoji3) {
-        super(emoji3.client, Role);
+        super(emoji3.client, Role3);
         this.emoji = emoji3;
         this.guild = emoji3.guild;
       }
@@ -119197,7 +119249,7 @@ var require_GuildEmojiRoleManager = __commonJS({
        * @readonly
        */
       get cache() {
-        const cache = new Collection2();
+        const cache = new Collection3();
         for (const roleId of this.emoji._roles) {
           const role = this.guild.roles.cache.get(roleId);
           if (role !== void 0) {
@@ -119212,7 +119264,7 @@ var require_GuildEmojiRoleManager = __commonJS({
        * @returns {Promise<GuildEmoji>}
        */
       async add(roleOrRoles) {
-        if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection2)) roleOrRoles = [roleOrRoles];
+        if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection3)) roleOrRoles = [roleOrRoles];
         const resolvedRoles = [];
         for (const role of roleOrRoles.values()) {
           const resolvedRole = this.guild.roles.resolveId(role);
@@ -119230,7 +119282,7 @@ var require_GuildEmojiRoleManager = __commonJS({
        * @returns {Promise<GuildEmoji>}
        */
       async remove(roleOrRoles) {
-        if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection2)) roleOrRoles = [roleOrRoles];
+        if (!Array.isArray(roleOrRoles) && !(roleOrRoles instanceof Collection3)) roleOrRoles = [roleOrRoles];
         const resolvedRoleIds = [];
         for (const role of roleOrRoles.values()) {
           const roleId = this.guild.roles.resolveId(role);
@@ -119422,18 +119474,18 @@ var require_ReactionEmoji = __commonJS({
 var require_ReactionUserManager = __commonJS({
   "node_modules/discord.js/src/managers/ReactionUserManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { ReactionType: ReactionType2, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var User2 = require_User();
+    var User5 = require_User();
     var ReactionUserManager = class extends CachedManager {
       static {
         __name(this, "ReactionUserManager");
       }
       constructor(reaction, iterable) {
-        super(reaction.client, User2, iterable);
+        super(reaction.client, User5, iterable);
         this.reaction = reaction;
       }
       /**
@@ -119460,7 +119512,7 @@ var require_ReactionUserManager = __commonJS({
           Routes3.channelMessageReaction(message.channelId, message.id, this.reaction.emoji.identifier),
           { query }
         );
-        const users = new Collection2();
+        const users = new Collection3();
         for (const rawUser of data) {
           const user = this.client.users._add(rawUser);
           this.cache.set(user.id, user);
@@ -119496,7 +119548,7 @@ var require_MessageReaction = __commonJS({
     var ReactionEmoji = require_ReactionEmoji();
     var ReactionUserManager = require_ReactionUserManager();
     var { flatten } = require_Util();
-    var MessageReaction = class {
+    var MessageReaction2 = class {
       static {
         __name(this, "MessageReaction");
       }
@@ -119624,7 +119676,7 @@ var require_MessageReaction = __commonJS({
         }
       }
     };
-    module2.exports = MessageReaction;
+    module2.exports = MessageReaction2;
   }
 });
 
@@ -119634,13 +119686,13 @@ var require_ReactionManager = __commonJS({
     "use strict";
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
-    var MessageReaction = require_MessageReaction();
+    var MessageReaction2 = require_MessageReaction();
     var ReactionManager = class extends CachedManager {
       static {
         __name(this, "ReactionManager");
       }
       constructor(message, iterable) {
-        super(message.client, MessageReaction, iterable);
+        super(message.client, MessageReaction2, iterable);
         this.message = message;
       }
       _add(data, cache) {
@@ -119786,7 +119838,7 @@ var require_ActionRowBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { createComponentBuilder } = require_Components();
     var { toSnakeCase } = require_Transformers();
-    var ActionRowBuilder5 = class extends BuildersActionRow {
+    var ActionRowBuilder15 = class extends BuildersActionRow {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -119805,7 +119857,7 @@ var require_ActionRowBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ActionRowBuilder5;
+    module2.exports = ActionRowBuilder15;
   }
 });
 
@@ -119817,7 +119869,7 @@ var require_ButtonBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var ButtonBuilder5 = class extends BuildersButton {
+    var ButtonBuilder12 = class extends BuildersButton {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -119844,7 +119896,7 @@ var require_ButtonBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ButtonBuilder5;
+    module2.exports = ButtonBuilder12;
   }
 });
 
@@ -120393,7 +120445,7 @@ var require_StringSelectMenuBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var StringSelectMenuBuilder = class _StringSelectMenuBuilder extends BuildersSelectMenu {
+    var StringSelectMenuBuilder4 = class _StringSelectMenuBuilder extends BuildersSelectMenu {
       static {
         __name(this, "StringSelectMenuBuilder");
       }
@@ -120452,7 +120504,7 @@ var require_StringSelectMenuBuilder = __commonJS({
         return new this(other);
       }
     };
-    module2.exports = StringSelectMenuBuilder;
+    module2.exports = StringSelectMenuBuilder4;
   }
 });
 
@@ -120507,7 +120559,7 @@ var require_TextInputBuilder = __commonJS({
     var { TextInputBuilder: BuildersTextInput } = require_dist9();
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
-    var TextInputBuilder = class extends BuildersTextInput {
+    var TextInputBuilder8 = class extends BuildersTextInput {
       static {
         __name(this, "TextInputBuilder");
       }
@@ -120523,7 +120575,7 @@ var require_TextInputBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = TextInputBuilder;
+    module2.exports = TextInputBuilder8;
   }
 });
 
@@ -120645,7 +120697,7 @@ var require_Components = __commonJS({
   "node_modules/discord.js/src/util/Components.js"(exports2, module2) {
     "use strict";
     var { ComponentBuilder } = require_dist9();
-    var { ComponentType: ComponentType2 } = require_v106();
+    var { ComponentType: ComponentType7 } = require_v106();
     function createComponent(data) {
       return data instanceof Component ? data : new (ComponentTypeToComponent[data.type] ?? Component)(data);
     }
@@ -120656,11 +120708,11 @@ var require_Components = __commonJS({
     __name(createComponentBuilder, "createComponentBuilder");
     function extractInteractiveComponents(component) {
       switch (component.type) {
-        case ComponentType2.ActionRow:
+        case ComponentType7.ActionRow:
           return component.components;
-        case ComponentType2.Section:
+        case ComponentType7.Section:
           return [...component.components, component.accessory];
-        case ComponentType2.Container:
+        case ComponentType7.Container:
           return component.components.flatMap(extractInteractiveComponents);
         default:
           return [component];
@@ -120673,8 +120725,8 @@ var require_Components = __commonJS({
     __name(findComponentByCustomId, "findComponentByCustomId");
     module2.exports = { createComponent, createComponentBuilder, findComponentByCustomId };
     var ActionRow = require_ActionRow();
-    var ActionRowBuilder5 = require_ActionRowBuilder();
-    var ButtonBuilder5 = require_ButtonBuilder();
+    var ActionRowBuilder15 = require_ActionRowBuilder();
+    var ButtonBuilder12 = require_ButtonBuilder();
     var ButtonComponent = require_ButtonComponent();
     var ChannelSelectMenuBuilder = require_ChannelSelectMenuBuilder();
     var ChannelSelectMenuComponent = require_ChannelSelectMenuComponent();
@@ -120689,41 +120741,41 @@ var require_Components = __commonJS({
     var RoleSelectMenuComponent = require_RoleSelectMenuComponent();
     var SectionComponent = require_SectionComponent();
     var SeparatorComponent = require_SeparatorComponent();
-    var StringSelectMenuBuilder = require_StringSelectMenuBuilder();
+    var StringSelectMenuBuilder4 = require_StringSelectMenuBuilder();
     var StringSelectMenuComponent = require_StringSelectMenuComponent();
     var TextDisplayComponent = require_TextDisplayComponent();
-    var TextInputBuilder = require_TextInputBuilder();
+    var TextInputBuilder8 = require_TextInputBuilder();
     var TextInputComponent = require_TextInputComponent();
     var ThumbnailComponent = require_ThumbnailComponent();
     var UserSelectMenuBuilder = require_UserSelectMenuBuilder();
     var UserSelectMenuComponent = require_UserSelectMenuComponent();
     var ComponentTypeToComponent = {
-      [ComponentType2.ActionRow]: ActionRow,
-      [ComponentType2.Button]: ButtonComponent,
-      [ComponentType2.StringSelect]: StringSelectMenuComponent,
-      [ComponentType2.TextInput]: TextInputComponent,
-      [ComponentType2.UserSelect]: UserSelectMenuComponent,
-      [ComponentType2.RoleSelect]: RoleSelectMenuComponent,
-      [ComponentType2.MentionableSelect]: MentionableSelectMenuComponent,
-      [ComponentType2.ChannelSelect]: ChannelSelectMenuComponent,
-      [ComponentType2.Container]: ContainerComponent,
-      [ComponentType2.TextDisplay]: TextDisplayComponent,
-      [ComponentType2.File]: FileComponent,
-      [ComponentType2.MediaGallery]: MediaGalleryComponent,
-      [ComponentType2.Section]: SectionComponent,
-      [ComponentType2.Separator]: SeparatorComponent,
-      [ComponentType2.Thumbnail]: ThumbnailComponent,
-      [ComponentType2.Label]: LabelComponent
+      [ComponentType7.ActionRow]: ActionRow,
+      [ComponentType7.Button]: ButtonComponent,
+      [ComponentType7.StringSelect]: StringSelectMenuComponent,
+      [ComponentType7.TextInput]: TextInputComponent,
+      [ComponentType7.UserSelect]: UserSelectMenuComponent,
+      [ComponentType7.RoleSelect]: RoleSelectMenuComponent,
+      [ComponentType7.MentionableSelect]: MentionableSelectMenuComponent,
+      [ComponentType7.ChannelSelect]: ChannelSelectMenuComponent,
+      [ComponentType7.Container]: ContainerComponent,
+      [ComponentType7.TextDisplay]: TextDisplayComponent,
+      [ComponentType7.File]: FileComponent,
+      [ComponentType7.MediaGallery]: MediaGalleryComponent,
+      [ComponentType7.Section]: SectionComponent,
+      [ComponentType7.Separator]: SeparatorComponent,
+      [ComponentType7.Thumbnail]: ThumbnailComponent,
+      [ComponentType7.Label]: LabelComponent
     };
     var ComponentTypeToBuilder = {
-      [ComponentType2.ActionRow]: ActionRowBuilder5,
-      [ComponentType2.Button]: ButtonBuilder5,
-      [ComponentType2.StringSelect]: StringSelectMenuBuilder,
-      [ComponentType2.TextInput]: TextInputBuilder,
-      [ComponentType2.UserSelect]: UserSelectMenuBuilder,
-      [ComponentType2.RoleSelect]: RoleSelectMenuBuilder,
-      [ComponentType2.MentionableSelect]: MentionableSelectMenuBuilder,
-      [ComponentType2.ChannelSelect]: ChannelSelectMenuBuilder
+      [ComponentType7.ActionRow]: ActionRowBuilder15,
+      [ComponentType7.Button]: ButtonBuilder12,
+      [ComponentType7.StringSelect]: StringSelectMenuBuilder4,
+      [ComponentType7.TextInput]: TextInputBuilder8,
+      [ComponentType7.UserSelect]: UserSelectMenuBuilder,
+      [ComponentType7.RoleSelect]: RoleSelectMenuBuilder,
+      [ComponentType7.MentionableSelect]: MentionableSelectMenuBuilder,
+      [ComponentType7.ChannelSelect]: ChannelSelectMenuBuilder
     };
   }
 });
@@ -120732,12 +120784,12 @@ var require_Components = __commonJS({
 var require_Message = __commonJS({
   "node_modules/discord.js/src/structures/Message.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { messageLink } = require_dist8();
     var { DiscordSnowflake } = require_cjs();
     var {
       InteractionType: InteractionType2,
-      ChannelType: ChannelType8,
+      ChannelType: ChannelType9,
       MessageType: MessageType2,
       MessageFlags: MessageFlags33,
       PermissionFlagsBits: PermissionFlagsBits31,
@@ -120761,7 +120813,7 @@ var require_Message = __commonJS({
     var PermissionsBitField2 = require_PermissionsBitField();
     var { _transformAPIMessageInteractionMetadata } = require_Transformers();
     var { cleanContent, resolvePartialEmoji, transformResolved } = require_Util();
-    var Message = class extends Base {
+    var Message8 = class extends Base {
       static {
         __name(this, "Message");
       }
@@ -120817,21 +120869,21 @@ var require_Message = __commonJS({
           this.components = this.components?.slice() ?? [];
         }
         if ("attachments" in data) {
-          this.attachments = new Collection2();
+          this.attachments = new Collection3();
           if (data.attachments) {
             for (const attachment of data.attachments) {
               this.attachments.set(attachment.id, new Attachment(attachment));
             }
           }
         } else {
-          this.attachments = new Collection2(this.attachments);
+          this.attachments = new Collection3(this.attachments);
         }
         if ("sticker_items" in data || "stickers" in data) {
-          this.stickers = new Collection2(
+          this.stickers = new Collection3(
             (data.sticker_items ?? data.stickers)?.map((sticker) => [sticker.id, new Sticker2(this.client, sticker)])
           );
         } else {
-          this.stickers = new Collection2(this.stickers);
+          this.stickers = new Collection3(this.stickers);
         }
         if ("position" in data) {
           this.position = data.position;
@@ -120976,9 +121028,9 @@ var require_Message = __commonJS({
               this.reference.messageId,
               channel ? channel.messages._add(snapshotData) : new this.constructor(this.client, snapshotData)
             );
-          }, new Collection2());
+          }, new Collection3());
         } else {
-          this.messageSnapshots ??= new Collection2();
+          this.messageSnapshots ??= new Collection3();
         }
         if (data.call) {
           this.call = {
@@ -121269,7 +121321,7 @@ var require_Message = __commonJS({
         const bitfield = PermissionFlagsBits31.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits31.ManageMessages);
         const { channel } = this;
         return Boolean(
-          channel?.type === ChannelType8.GuildAnnouncement && !this.flags.has(MessageFlags33.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
+          channel?.type === ChannelType9.GuildAnnouncement && !this.flags.has(MessageFlags33.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
         );
       }
       /**
@@ -121438,7 +121490,7 @@ var require_Message = __commonJS({
        */
       async startThread(options = {}) {
         if (!this.channel) throw new DiscordjsError2(ErrorCodes2.ChannelNotCached);
-        if (![ChannelType8.GuildText, ChannelType8.GuildAnnouncement].includes(this.channel.type)) {
+        if (![ChannelType9.GuildText, ChannelType9.GuildAnnouncement].includes(this.channel.type)) {
           throw new DiscordjsError2(ErrorCodes2.MessageThreadParent);
         }
         if (this.hasThread) throw new DiscordjsError2(ErrorCodes2.MessageExistingThread);
@@ -121538,7 +121590,7 @@ var require_Message = __commonJS({
         });
       }
     };
-    exports2.Message = Message;
+    exports2.Message = Message8;
   }
 });
 
@@ -121935,7 +121987,7 @@ var require_WebhookClient = __commonJS({
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var Webhook2 = require_Webhook();
     var { parseWebhookURL } = require_Util();
-    var WebhookClient = class extends BaseClient2 {
+    var WebhookClient3 = class extends BaseClient2 {
       static {
         __name(this, "WebhookClient");
       }
@@ -122023,8 +122075,8 @@ var require_WebhookClient = __commonJS({
       get url() {
       }
     };
-    Webhook2.applyToClass(WebhookClient);
-    module2.exports = WebhookClient;
+    Webhook2.applyToClass(WebhookClient3);
+    module2.exports = WebhookClient3;
   }
 });
 
@@ -122032,7 +122084,7 @@ var require_WebhookClient = __commonJS({
 var require_VoiceState = __commonJS({
   "node_modules/discord.js/src/structures/VoiceState.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType8, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType9, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var VoiceState = class extends Base {
@@ -122179,7 +122231,7 @@ var require_VoiceState = __commonJS({
        * @returns {Promise<VoiceState>}
        */
       async edit(options) {
-        if (this.channel?.type !== ChannelType8.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
+        if (this.channel?.type !== ChannelType9.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
         const target = this.client.user.id === this.id ? "@me" : this.id;
         if (target !== "@me" && options.requestToSpeak !== void 0) {
           throw new DiscordjsError2(ErrorCodes2.VoiceStateNotOwn);
@@ -122262,17 +122314,17 @@ var require_VoiceState = __commonJS({
 var require_GuildMemberRoleManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildMemberRoleManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var DataManager = require_DataManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var GuildMemberRoleManager = class extends DataManager {
       static {
         __name(this, "GuildMemberRoleManager");
       }
       constructor(member) {
-        super(member.client, Role);
+        super(member.client, Role3);
         this.member = member;
         this.guild = member.guild;
       }
@@ -122282,7 +122334,7 @@ var require_GuildMemberRoleManager = __commonJS({
        * @readonly
        */
       get cache() {
-        const cache = new Collection2();
+        const cache = new Collection3();
         cache.set(this.guild.id, this.guild.roles.everyone);
         for (const roleId of this.member._roles) {
           const role = this.guild.roles.cache.get(roleId);
@@ -122357,7 +122409,7 @@ var require_GuildMemberRoleManager = __commonJS({
        * @returns {Promise<GuildMember>}
        */
       async add(roleOrRoles, reason) {
-        if (roleOrRoles instanceof Collection2 || Array.isArray(roleOrRoles)) {
+        if (roleOrRoles instanceof Collection3 || Array.isArray(roleOrRoles)) {
           const resolvedRoles = [];
           for (const role of roleOrRoles.values()) {
             const resolvedRole = this.guild.roles.resolveId(role);
@@ -122392,7 +122444,7 @@ var require_GuildMemberRoleManager = __commonJS({
        * @returns {Promise<GuildMember>}
        */
       async remove(roleOrRoles, reason) {
-        if (roleOrRoles instanceof Collection2 || Array.isArray(roleOrRoles)) {
+        if (roleOrRoles instanceof Collection3 || Array.isArray(roleOrRoles)) {
           const resolvedRoles = [];
           for (const role of roleOrRoles.values()) {
             const resolvedRole = this.guild.roles.resolveId(role);
@@ -122483,7 +122535,7 @@ var require_GuildMember = __commonJS({
     var { GuildMemberFlagsBitField } = require_GuildMemberFlagsBitField();
     var PermissionsBitField2 = require_PermissionsBitField();
     var { _transformCollectibles } = require_Transformers();
-    var GuildMember = class extends Base {
+    var GuildMember3 = class extends Base {
       static {
         __name(this, "GuildMember");
       }
@@ -122916,8 +122968,8 @@ var require_GuildMember = __commonJS({
         return json2;
       }
     };
-    TextBasedChannel.applyToClass(GuildMember);
-    exports2.GuildMember = GuildMember;
+    TextBasedChannel.applyToClass(GuildMember3);
+    exports2.GuildMember = GuildMember3;
   }
 });
 
@@ -122926,12 +122978,12 @@ var require_MessageManager = __commonJS({
   "node_modules/discord.js/src/managers/MessageManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var { Message } = require_Message();
+    var { Message: Message8 } = require_Message();
     var MessagePayload = require_MessagePayload();
     var { MakeCacheOverrideSymbol } = require_Symbols();
     var { resolvePartialEmoji } = require_Util();
@@ -122942,7 +122994,7 @@ var require_MessageManager = __commonJS({
       }
       static [MakeCacheOverrideSymbol] = _MessageManager;
       constructor(channel, iterable) {
-        super(channel.client, Message, iterable);
+        super(channel.client, Message8, iterable);
         this.channel = channel;
       }
       /**
@@ -123021,7 +123073,7 @@ var require_MessageManager = __commonJS({
         const data = await this.client.rest.get(Routes3.channelMessages(this.channel.id), {
           query: makeURLSearchParams2(apiOptions)
         });
-        return data.reduce((_data, message) => _data.set(message.id, this._add(message, cache)), new Collection2());
+        return data.reduce((_data, message) => _data.set(message.id, this._add(message, cache)), new Collection3());
       }
       /**
        * Options used to fetch pinned messages.
@@ -123094,7 +123146,7 @@ var require_MessageManager = __commonJS({
           deprecationEmittedForFetchPinned = true;
         }
         const data = await this.client.rest.get(Routes3.channelPins(this.channel.id));
-        const messages = new Collection2();
+        const messages = new Collection3();
         for (const message of data) messages.set(message.id, this._add(message, cache));
         return messages;
       }
@@ -123136,7 +123188,7 @@ var require_MessageManager = __commonJS({
       async edit(message, options) {
         const messageId = this.resolveId(message);
         if (!messageId) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "message", "MessageResolvable");
-        const { body, files } = await (options instanceof MessagePayload ? options : MessagePayload.create(message instanceof Message ? message : this, options)).resolveBody().resolveFiles();
+        const { body, files } = await (options instanceof MessagePayload ? options : MessagePayload.create(message instanceof Message8 ? message : this, options)).resolveBody().resolveFiles();
         const d = await this.client.rest.patch(Routes3.channelMessage(this.channel.id, messageId), { body, files });
         const existing = this.cache.get(messageId);
         if (existing) {
@@ -123227,7 +123279,7 @@ var require_MessageManager = __commonJS({
         const voters = await this.client.rest.get(Routes3.pollAnswerVoters(this.channel.id, messageId, answerId), {
           query: makeURLSearchParams2({ limit, after })
         });
-        return voters.users.reduce((acc, user) => acc.set(user.id, this.client.users._add(user, false)), new Collection2());
+        return voters.users.reduce((acc, user) => acc.set(user.id, this.client.users._add(user, false)), new Collection3());
       }
     };
     module2.exports = MessageManager;
@@ -123321,8 +123373,8 @@ var require_MessagePayload = __commonJS({
        */
       get isWebhook() {
         const Webhook2 = require_Webhook();
-        const WebhookClient = require_WebhookClient();
-        return this.target instanceof Webhook2 || this.target instanceof WebhookClient;
+        const WebhookClient3 = require_WebhookClient();
+        return this.target instanceof Webhook2 || this.target instanceof WebhookClient3;
       }
       /**
        * Whether or not the target is a {@link User}
@@ -123330,9 +123382,9 @@ var require_MessagePayload = __commonJS({
        * @readonly
        */
       get isUser() {
-        const User2 = require_User();
-        const { GuildMember } = require_GuildMember();
-        return this.target instanceof User2 || this.target instanceof GuildMember;
+        const User5 = require_User();
+        const { GuildMember: GuildMember3 } = require_GuildMember();
+        return this.target instanceof User5 || this.target instanceof GuildMember3;
       }
       /**
        * Whether or not the target is a {@link Message}
@@ -123340,8 +123392,8 @@ var require_MessagePayload = __commonJS({
        * @readonly
        */
       get isMessage() {
-        const { Message } = require_Message();
-        return this.target instanceof Message;
+        const { Message: Message8 } = require_Message();
+        return this.target instanceof Message8;
       }
       /**
        * Whether or not the target is a {@link MessageManager}
@@ -123592,7 +123644,7 @@ var require_GuildMessageManager = __commonJS({
 var require_TextBasedChannel = __commonJS({
   "node_modules/discord.js/src/structures/interfaces/TextBasedChannel.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordSnowflake } = require_cjs();
     var { InteractionType: InteractionType2, Routes: Routes3 } = require_v106();
     var { DiscordjsTypeError: DiscordjsTypeError2, DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -123738,9 +123790,9 @@ var require_TextBasedChannel = __commonJS({
        *   .catch(console.error);
        */
       async send(options) {
-        const User2 = require_User();
-        const { GuildMember } = require_GuildMember();
-        if (this instanceof User2 || this instanceof GuildMember) {
+        const User5 = require_User();
+        const { GuildMember: GuildMember3 } = require_GuildMember();
+        if (this instanceof User5 || this instanceof GuildMember3) {
           const dm = await this.createDM();
           return dm.send(options);
         }
@@ -123862,14 +123914,14 @@ var require_TextBasedChannel = __commonJS({
        *   .catch(console.error);
        */
       async bulkDelete(messages, filterOld = false) {
-        if (Array.isArray(messages) || messages instanceof Collection2) {
-          let messageIds = messages instanceof Collection2 ? [...messages.keys()] : messages.map((message) => message.id ?? message);
+        if (Array.isArray(messages) || messages instanceof Collection3) {
+          let messageIds = messages instanceof Collection3 ? [...messages.keys()] : messages.map((message) => message.id ?? message);
           if (filterOld) {
             messageIds = messageIds.filter(
               (id) => Date.now() - DiscordSnowflake.timestampFrom(id) < MaxBulkDeletableMessageAge
             );
           }
-          if (messageIds.length === 0) return new Collection2();
+          if (messageIds.length === 0) return new Collection3();
           if (messageIds.length === 1) {
             const message = this.client.actions.MessageDelete.getMessage(
               {
@@ -123878,7 +123930,7 @@ var require_TextBasedChannel = __commonJS({
               this
             );
             await this.client.rest.delete(Routes3.channelMessage(this.id, messageIds[0]));
-            return message ? new Collection2([[message.id, message]]) : new Collection2();
+            return message ? new Collection3([[message.id, message]]) : new Collection3();
           }
           await this.client.rest.post(Routes3.channelBulkDelete(this.id), { body: { messages: messageIds } });
           return messageIds.reduce(
@@ -123891,7 +123943,7 @@ var require_TextBasedChannel = __commonJS({
                 this
               )
             ),
-            new Collection2()
+            new Collection3()
           );
         }
         if (!isNaN(messages)) {
@@ -124020,7 +124072,7 @@ var require_User = __commonJS({
     var { _transformCollectibles } = require_Transformers();
     var UserFlagsBitField = require_UserFlagsBitField();
     var { emitDeprecationWarningForUserFetchFlags } = require_Util();
-    var User2 = class extends Base {
+    var User5 = class extends Base {
       static {
         __name(this, "User");
       }
@@ -124307,8 +124359,8 @@ var require_User = __commonJS({
         return json2;
       }
     };
-    TextBasedChannel.applyToClass(User2);
-    module2.exports = User2;
+    TextBasedChannel.applyToClass(User5);
+    module2.exports = User5;
   }
 });
 
@@ -124316,17 +124368,17 @@ var require_User = __commonJS({
 var require_PollAnswerVoterManager = __commonJS({
   "node_modules/discord.js/src/managers/PollAnswerVoterManager.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
-    var User2 = require_User();
+    var User5 = require_User();
     var PollAnswerVoterManager = class extends CachedManager {
       static {
         __name(this, "PollAnswerVoterManager");
       }
       constructor(answer) {
-        super(answer.client, User2);
+        super(answer.client, User5);
         this.answer = answer;
       }
       /**
@@ -124349,7 +124401,7 @@ var require_PollAnswerVoterManager = __commonJS({
           const user = this.client.users._add(rawUser);
           this.cache.set(user.id, user);
           return coll.set(user.id, user);
-        }, new Collection2());
+        }, new Collection3());
       }
     };
     exports2.PollAnswerVoterManager = PollAnswerVoterManager;
@@ -124432,7 +124484,7 @@ var require_PollAnswer = __commonJS({
 var require_Poll = __commonJS({
   "node_modules/discord.js/src/structures/Poll.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var { PollAnswer } = require_PollAnswer();
     var { DiscordjsError: DiscordjsError2 } = require_DJSError();
@@ -124447,7 +124499,7 @@ var require_Poll = __commonJS({
         Object.defineProperty(this, "channel", { value: channel });
         this.messageId = data.message_id ?? message.id;
         Object.defineProperty(this, "message", { value: message });
-        this.answers = new Collection2();
+        this.answers = new Collection3();
         this._patch(data);
       }
       _patch(data) {
@@ -124576,7 +124628,7 @@ var require_Partials = __commonJS({
 var require_Action = __commonJS({
   "node_modules/discord.js/src/client/actions/Action.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType8 } = require_v106();
+    var { ChannelType: ChannelType9 } = require_v106();
     var { Poll } = require_Poll();
     var { PollAnswer } = require_PollAnswer();
     var Partials2 = require_Partials();
@@ -124601,7 +124653,7 @@ var require_Action = __commonJS({
           if (!data.recipients.some((existingRecipient) => recipient.id === existingRecipient.id)) {
             payloadData.recipients = [...data.recipients, recipient];
           }
-        } else if (data.type === ChannelType8.DM || data.type === ChannelType8.GroupDM) {
+        } else if (data.type === ChannelType9.DM || data.type === ChannelType9.GroupDM) {
           const recipient = data.author ?? data.user ?? { id: data.user_id };
           payloadData.recipients = [recipient];
         }
@@ -124694,14 +124746,14 @@ var require_ApplicationCommandPermissionsUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/ApplicationCommandPermissionsUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ApplicationCommandPermissionsUpdateAction = class extends Action {
       static {
         __name(this, "ApplicationCommandPermissionsUpdateAction");
       }
       handle(data) {
         const client = this.client;
-        client.emit(Events7.ApplicationCommandPermissionsUpdate, {
+        client.emit(Events8.ApplicationCommandPermissionsUpdate, {
           permissions: data.permissions,
           id: data.id,
           guildId: data.guild_id,
@@ -124778,7 +124830,7 @@ var require_AutoModerationActionExecution2 = __commonJS({
     "use strict";
     var Action = require_Action();
     var AutoModerationActionExecution = require_AutoModerationActionExecution();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var AutoModerationActionExecutionAction = class extends Action {
       static {
         __name(this, "AutoModerationActionExecutionAction");
@@ -124787,7 +124839,7 @@ var require_AutoModerationActionExecution2 = __commonJS({
         const { client } = this;
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
-          client.emit(Events7.AutoModerationActionExecution, new AutoModerationActionExecution(data, guild));
+          client.emit(Events8.AutoModerationActionExecution, new AutoModerationActionExecution(data, guild));
         }
         return {};
       }
@@ -124801,7 +124853,7 @@ var require_AutoModerationRuleCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var AutoModerationRuleCreateAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleCreateAction");
@@ -124811,7 +124863,7 @@ var require_AutoModerationRuleCreate = __commonJS({
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
           const autoModerationRule = guild.autoModerationRules._add(data);
-          client.emit(Events7.AutoModerationRuleCreate, autoModerationRule);
+          client.emit(Events8.AutoModerationRuleCreate, autoModerationRule);
         }
         return {};
       }
@@ -124825,7 +124877,7 @@ var require_AutoModerationRuleDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var AutoModerationRuleDeleteAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleDeleteAction");
@@ -124837,7 +124889,7 @@ var require_AutoModerationRuleDelete = __commonJS({
           const autoModerationRule = guild.autoModerationRules.cache.get(data.id);
           if (autoModerationRule) {
             guild.autoModerationRules.cache.delete(autoModerationRule.id);
-            client.emit(Events7.AutoModerationRuleDelete, autoModerationRule);
+            client.emit(Events8.AutoModerationRuleDelete, autoModerationRule);
           }
         }
         return {};
@@ -124852,7 +124904,7 @@ var require_AutoModerationRuleUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/AutoModerationRuleUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var AutoModerationRuleUpdateAction = class extends Action {
       static {
         __name(this, "AutoModerationRuleUpdateAction");
@@ -124863,7 +124915,7 @@ var require_AutoModerationRuleUpdate = __commonJS({
         if (guild) {
           const oldAutoModerationRule = guild.autoModerationRules.cache.get(data.id)?._clone() ?? null;
           const newAutoModerationRule = guild.autoModerationRules._add(data);
-          client.emit(Events7.AutoModerationRuleUpdate, oldAutoModerationRule, newAutoModerationRule);
+          client.emit(Events8.AutoModerationRuleUpdate, oldAutoModerationRule, newAutoModerationRule);
         }
         return {};
       }
@@ -124877,7 +124929,7 @@ var require_ChannelCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/ChannelCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ChannelCreateAction = class extends Action {
       static {
         __name(this, "ChannelCreateAction");
@@ -124887,7 +124939,7 @@ var require_ChannelCreate = __commonJS({
         const existing = client.channels.cache.has(data.id);
         const channel = client.channels._add(data);
         if (!existing && channel) {
-          client.emit(Events7.ChannelCreate, channel);
+          client.emit(Events8.ChannelCreate, channel);
         }
         return { channel };
       }
@@ -124901,7 +124953,7 @@ var require_ChannelDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/ChannelDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ChannelDeleteAction = class extends Action {
       static {
         __name(this, "ChannelDeleteAction");
@@ -124911,7 +124963,7 @@ var require_ChannelDelete = __commonJS({
         const channel = client.channels.cache.get(data.id);
         if (channel) {
           client.channels._remove(channel.id);
-          client.emit(Events7.ChannelDelete, channel);
+          client.emit(Events8.ChannelDelete, channel);
         }
       }
     };
@@ -125060,7 +125112,7 @@ var require_DMChannel = __commonJS({
   "node_modules/discord.js/src/structures/DMChannel.js"(exports2, module2) {
     "use strict";
     var { userMention } = require_dist8();
-    var { ChannelType: ChannelType8 } = require_v106();
+    var { ChannelType: ChannelType9 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var DMMessageManager = require_DMMessageManager();
@@ -125071,7 +125123,7 @@ var require_DMChannel = __commonJS({
       }
       constructor(client, data) {
         super(client, data);
-        this.type = ChannelType8.DM;
+        this.type = ChannelType9.DM;
         this.messages = new DMMessageManager(this);
       }
       _patch(data) {
@@ -125530,7 +125582,7 @@ var require_ThreadMemberManager = __commonJS({
   "node_modules/discord.js/src/managers/ThreadMemberManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -125695,7 +125747,7 @@ var require_ThreadMemberManager = __commonJS({
         const data = await this.client.rest.get(Routes3.threadMembers(this.thread.id), {
           query: makeURLSearchParams2({ with_member: withMember, after, limit })
         });
-        return data.reduce((col, member) => col.set(member.user_id, this._add(member, cache)), new Collection2());
+        return data.reduce((col, member) => col.set(member.user_id, this._add(member, cache)), new Collection3());
       }
     };
     module2.exports = ThreadMemberManager;
@@ -125708,7 +125760,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType8, PermissionFlagsBits: PermissionFlagsBits31, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType9, PermissionFlagsBits: PermissionFlagsBits31, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -125745,7 +125797,7 @@ var require_ThreadChannel = __commonJS({
         }
         if ("thread_metadata" in data) {
           this.locked = data.thread_metadata.locked ?? false;
-          this.invitable = this.type === ChannelType8.PrivateThread ? data.thread_metadata.invitable ?? false : null;
+          this.invitable = this.type === ChannelType9.PrivateThread ? data.thread_metadata.invitable ?? false : null;
           this.archived = data.thread_metadata.archived;
           this.autoArchiveDuration = data.thread_metadata.auto_archive_duration;
           this.archiveTimestamp = Date.parse(data.thread_metadata.archive_timestamp);
@@ -125759,7 +125811,7 @@ var require_ThreadChannel = __commonJS({
           this.archiveTimestamp ??= null;
           this.invitable ??= null;
         }
-        this._createdTimestamp ??= this.type === ChannelType8.PrivateThread ? super.createdTimestamp : null;
+        this._createdTimestamp ??= this.type === ChannelType9.PrivateThread ? super.createdTimestamp : null;
         if ("last_message_id" in data) {
           this.lastMessageId = data.last_message_id;
         } else {
@@ -125932,7 +125984,7 @@ var require_ThreadChannel = __commonJS({
             auto_archive_duration: options.autoArchiveDuration,
             rate_limit_per_user: options.rateLimitPerUser,
             locked: options.locked,
-            invitable: this.type === ChannelType8.PrivateThread ? options.invitable : void 0,
+            invitable: this.type === ChannelType9.PrivateThread ? options.invitable : void 0,
             applied_tags: options.appliedTags,
             flags: "flags" in options ? ChannelFlagsBitField.resolve(options.flags) : void 0
           },
@@ -125979,7 +126031,7 @@ var require_ThreadChannel = __commonJS({
        * @returns {Promise<ThreadChannel>}
        */
       async setInvitable(invitable = true, reason) {
-        if (this.type !== ChannelType8.PrivateThread) {
+        if (this.type !== ChannelType9.PrivateThread) {
           throw new DiscordjsRangeError2(ErrorCodes2.ThreadInvitableType, this.type);
         }
         return this.edit({ invitable, reason });
@@ -126062,7 +126114,7 @@ var require_ThreadChannel = __commonJS({
        * @readonly
        */
       get editable() {
-        return this.ownerId === this.client.user.id && (this.type !== ChannelType8.PrivateThread || this.joined) || this.manageable;
+        return this.ownerId === this.client.user.id && (this.type !== ChannelType9.PrivateThread || this.joined) || this.manageable;
       }
       /**
        * Whether the thread is joinable by the client user
@@ -126071,7 +126123,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType8.PrivateThread ? PermissionFlagsBits31.ManageThreads : PermissionFlagsBits31.ViewChannel,
+          this.type === ChannelType9.PrivateThread ? PermissionFlagsBits31.ManageThreads : PermissionFlagsBits31.ViewChannel,
           false
         );
       }
@@ -126106,7 +126158,7 @@ var require_ThreadChannel = __commonJS({
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
         if (permissions.has(PermissionFlagsBits31.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType8.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits31.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType9.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits31.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126162,7 +126214,7 @@ var require_ThreadChannel = __commonJS({
 var require_ThreadManager = __commonJS({
   "node_modules/discord.js/src/managers/ThreadManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -126314,11 +126366,11 @@ var require_ThreadManager = __commonJS({
           const thread = client.channels._add(raw, guild ?? parent?.guild, { cache });
           if (parent && thread.parentId !== parent.id) return coll;
           return coll.set(thread.id, thread);
-        }, new Collection2());
+        }, new Collection3());
         const threadMembers = rawThreads.members.reduce((coll, raw) => {
           const thread = threads.get(raw.id);
           return thread ? coll.set(raw.user_id, thread.members._add(raw)) : coll;
-        }, new Collection2());
+        }, new Collection3());
         const response = { threads, members: threadMembers };
         if ("has_more" in rawThreads) response.hasMore = rawThreads.has_more;
         return response;
@@ -126332,7 +126384,7 @@ var require_ThreadManager = __commonJS({
 var require_GuildTextThreadManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildTextThreadManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType8, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType9, Routes: Routes3 } = require_v106();
     var ThreadManager = require_ThreadManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildTextThreadManager = class extends ThreadManager {
@@ -126391,12 +126443,12 @@ var require_GuildTextThreadManager = __commonJS({
         reason,
         rateLimitPerUser
       } = {}) {
-        let resolvedType = this.channel.type === ChannelType8.GuildAnnouncement ? ChannelType8.AnnouncementThread : ChannelType8.PublicThread;
+        let resolvedType = this.channel.type === ChannelType9.GuildAnnouncement ? ChannelType9.AnnouncementThread : ChannelType9.PublicThread;
         let startMessageId;
         if (startMessage) {
           startMessageId = this.channel.messages.resolveId(startMessage);
           if (!startMessageId) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "startMessage", "MessageResolvable");
-        } else if (this.channel.type !== ChannelType8.GuildAnnouncement) {
+        } else if (this.channel.type !== ChannelType9.GuildAnnouncement) {
           resolvedType = type ?? resolvedType;
         }
         const data = await this.client.rest.post(Routes3.threads(this.channel.id, startMessageId), {
@@ -126404,7 +126456,7 @@ var require_GuildTextThreadManager = __commonJS({
             name,
             auto_archive_duration: autoArchiveDuration,
             type: resolvedType,
-            invitable: resolvedType === ChannelType8.PrivateThread ? invitable : void 0,
+            invitable: resolvedType === ChannelType9.PrivateThread ? invitable : void 0,
             rate_limit_per_user: rateLimitPerUser
           },
           reason
@@ -126614,7 +126666,7 @@ var require_NewsChannel = __commonJS({
 var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { PermissionFlagsBits: PermissionFlagsBits31 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
@@ -126664,7 +126716,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
        * @readonly
        */
       get members() {
-        const coll = new Collection2();
+        const coll = new Collection3();
         for (const state of this.guild.voiceStates.cache.values()) {
           if (state.channelId === this.id && state.member) {
             coll.set(state.id, state.member);
@@ -126852,7 +126904,7 @@ var require_TextChannel = __commonJS({
   "node_modules/discord.js/src/structures/TextChannel.js"(exports2, module2) {
     "use strict";
     var BaseGuildTextChannel = require_BaseGuildTextChannel();
-    var TextChannel2 = class extends BaseGuildTextChannel {
+    var TextChannel8 = class extends BaseGuildTextChannel {
       static {
         __name(this, "TextChannel");
       }
@@ -126872,7 +126924,7 @@ var require_TextChannel = __commonJS({
         return this.edit({ rateLimitPerUser, reason });
       }
     };
-    module2.exports = TextChannel2;
+    module2.exports = TextChannel8;
   }
 });
 
@@ -127104,7 +127156,7 @@ var require_Channels = __commonJS({
   "node_modules/discord.js/src/util/Channels.js"(exports2, module2) {
     "use strict";
     var { lazy: lazy2 } = require_dist2();
-    var { ChannelType: ChannelType8 } = require_v106();
+    var { ChannelType: ChannelType9 } = require_v106();
     var getCategoryChannel = lazy2(() => require_CategoryChannel());
     var getDMChannel = lazy2(() => require_DMChannel());
     var getNewsChannel = lazy2(() => require_NewsChannel());
@@ -127119,49 +127171,49 @@ var require_Channels = __commonJS({
     function createChannel(client, data, guild, { allowUnknownGuild } = {}) {
       let channel;
       if (!data.guild_id && !guild) {
-        if (data.recipients && data.type !== ChannelType8.GroupDM || data.type === ChannelType8.DM) {
+        if (data.recipients && data.type !== ChannelType9.GroupDM || data.type === ChannelType9.DM) {
           channel = new (getDMChannel())(client, data);
-        } else if (data.type === ChannelType8.GroupDM) {
+        } else if (data.type === ChannelType9.GroupDM) {
           channel = new (getPartialGroupDMChannel())(client, data);
         }
       } else {
         guild ??= client.guilds.cache.get(data.guild_id);
         if (guild || allowUnknownGuild) {
           switch (data.type) {
-            case ChannelType8.GuildText: {
+            case ChannelType9.GuildText: {
               channel = new (getTextChannel())(guild, data, client);
               break;
             }
-            case ChannelType8.GuildVoice: {
+            case ChannelType9.GuildVoice: {
               channel = new (getVoiceChannel())(guild, data, client);
               break;
             }
-            case ChannelType8.GuildCategory: {
+            case ChannelType9.GuildCategory: {
               channel = new (getCategoryChannel())(guild, data, client);
               break;
             }
-            case ChannelType8.GuildAnnouncement: {
+            case ChannelType9.GuildAnnouncement: {
               channel = new (getNewsChannel())(guild, data, client);
               break;
             }
-            case ChannelType8.GuildStageVoice: {
+            case ChannelType9.GuildStageVoice: {
               channel = new (getStageChannel())(guild, data, client);
               break;
             }
-            case ChannelType8.AnnouncementThread:
-            case ChannelType8.PublicThread:
-            case ChannelType8.PrivateThread: {
+            case ChannelType9.AnnouncementThread:
+            case ChannelType9.PublicThread:
+            case ChannelType9.PrivateThread: {
               channel = new (getThreadChannel())(guild, data, client);
               if (!allowUnknownGuild) channel.parent?.threads.cache.set(channel.id, channel);
               break;
             }
-            case ChannelType8.GuildDirectory:
+            case ChannelType9.GuildDirectory:
               channel = new (getDirectoryChannel())(guild, data, client);
               break;
-            case ChannelType8.GuildForum:
+            case ChannelType9.GuildForum:
               channel = new (getForumChannel())(guild, data, client);
               break;
-            case ChannelType8.GuildMedia:
+            case ChannelType9.GuildMedia:
               channel = new (getMediaChannel())(guild, data, client);
               break;
           }
@@ -127263,7 +127315,7 @@ var require_EntitlementCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var EntitlementCreateAction = class extends Action {
       static {
         __name(this, "EntitlementCreateAction");
@@ -127271,7 +127323,7 @@ var require_EntitlementCreate = __commonJS({
       handle(data) {
         const client = this.client;
         const entitlement = client.application.entitlements._add(data);
-        client.emit(Events7.EntitlementCreate, entitlement);
+        client.emit(Events8.EntitlementCreate, entitlement);
         return {};
       }
     };
@@ -127284,7 +127336,7 @@ var require_EntitlementDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var EntitlementDeleteAction = class extends Action {
       static {
         __name(this, "EntitlementDeleteAction");
@@ -127293,7 +127345,7 @@ var require_EntitlementDelete = __commonJS({
         const client = this.client;
         const entitlement = client.application.entitlements._add(data, false);
         client.application.entitlements.cache.delete(entitlement.id);
-        client.emit(Events7.EntitlementDelete, entitlement);
+        client.emit(Events8.EntitlementDelete, entitlement);
         return {};
       }
     };
@@ -127306,7 +127358,7 @@ var require_EntitlementUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/EntitlementUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var EntitlementUpdateAction = class extends Action {
       static {
         __name(this, "EntitlementUpdateAction");
@@ -127315,7 +127367,7 @@ var require_EntitlementUpdate = __commonJS({
         const client = this.client;
         const oldEntitlement = client.application.entitlements.cache.get(data.id)?._clone() ?? null;
         const newEntitlement = client.application.entitlements._add(data);
-        client.emit(Events7.EntitlementUpdate, oldEntitlement, newEntitlement);
+        client.emit(Events8.EntitlementUpdate, oldEntitlement, newEntitlement);
         return {};
       }
     };
@@ -127327,7 +127379,7 @@ var require_EntitlementUpdate = __commonJS({
 var require_AutoModerationRule = __commonJS({
   "node_modules/discord.js/src/structures/AutoModerationRule.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var { _transformAPIAutoModerationAction } = require_Transformers();
     var AutoModerationRule = class extends Base {
@@ -127366,12 +127418,12 @@ var require_AutoModerationRule = __commonJS({
           this.enabled = data.enabled;
         }
         if ("exempt_roles" in data) {
-          this.exemptRoles = new Collection2(
+          this.exemptRoles = new Collection3(
             data.exempt_roles.map((exemptRole) => [exemptRole, this.guild.roles.cache.get(exemptRole)])
           );
         }
         if ("exempt_channels" in data) {
-          this.exemptChannels = new Collection2(
+          this.exemptChannels = new Collection3(
             data.exempt_channels.map((exemptChannel) => [exemptChannel, this.guild.channels.cache.get(exemptChannel)])
           );
         }
@@ -127516,7 +127568,7 @@ var require_AutoModerationRule = __commonJS({
 var require_GuildOnboardingPromptOption = __commonJS({
   "node_modules/discord.js/src/structures/GuildOnboardingPromptOption.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var { Emoji } = require_Emoji();
     var GuildOnboardingPromptOption = class extends Base {
@@ -127530,11 +127582,11 @@ var require_GuildOnboardingPromptOption = __commonJS({
         this.id = data.id;
         this.channels = data.channel_ids.reduce(
           (channels, channelId) => channels.set(channelId, guild.channels.cache.get(channelId)),
-          new Collection2()
+          new Collection3()
         );
         this.roles = data.role_ids.reduce(
           (roles, roleId) => roles.set(roleId, guild.roles.cache.get(roleId)),
-          new Collection2()
+          new Collection3()
         );
         this._emoji = data.emoji;
         this.title = data.title;
@@ -127565,7 +127617,7 @@ var require_GuildOnboardingPromptOption = __commonJS({
 var require_GuildOnboardingPrompt = __commonJS({
   "node_modules/discord.js/src/structures/GuildOnboardingPrompt.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var { GuildOnboardingPromptOption } = require_GuildOnboardingPromptOption();
     var GuildOnboardingPrompt = class extends Base {
@@ -127578,7 +127630,7 @@ var require_GuildOnboardingPrompt = __commonJS({
         this.id = data.id;
         this.options = data.options.reduce(
           (options, option) => options.set(option.id, new GuildOnboardingPromptOption(client, option, guildId)),
-          new Collection2()
+          new Collection3()
         );
         this.title = data.title;
         this.singleSelect = data.single_select;
@@ -128189,7 +128241,7 @@ var require_GuildAuditLogEntryCreate = __commonJS({
     "use strict";
     var Action = require_Action();
     var GuildAuditLogsEntry = require_GuildAuditLogsEntry();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildAuditLogEntryCreateAction = class extends Action {
       static {
         __name(this, "GuildAuditLogEntryCreateAction");
@@ -128200,7 +128252,7 @@ var require_GuildAuditLogEntryCreate = __commonJS({
         let auditLogEntry;
         if (guild) {
           auditLogEntry = new GuildAuditLogsEntry(guild, data);
-          client.emit(Events7.GuildAuditLogEntryCreate, auditLogEntry, guild);
+          client.emit(Events8.GuildAuditLogEntryCreate, auditLogEntry, guild);
         }
         return { auditLogEntry };
       }
@@ -128214,7 +128266,7 @@ var require_GuildBanAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildBanAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildBanAdd = class extends Action {
       static {
         __name(this, "GuildBanAdd");
@@ -128222,7 +128274,7 @@ var require_GuildBanAdd = __commonJS({
       handle(data) {
         const client = this.client;
         const guild = client.guilds.cache.get(data.guild_id);
-        if (guild) client.emit(Events7.GuildBanAdd, guild.bans._add(data));
+        if (guild) client.emit(Events8.GuildBanAdd, guild.bans._add(data));
       }
     };
     module2.exports = GuildBanAdd;
@@ -128278,7 +128330,7 @@ var require_GuildBanRemove = __commonJS({
     "use strict";
     var Action = require_Action();
     var GuildBan = require_GuildBan();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildBanRemove = class extends Action {
       static {
         __name(this, "GuildBanRemove");
@@ -128289,7 +128341,7 @@ var require_GuildBanRemove = __commonJS({
         if (guild) {
           const ban = guild.bans.cache.get(data.user.id) ?? new GuildBan(client, data, guild);
           guild.bans.cache.delete(ban.user.id);
-          client.emit(Events7.GuildBanRemove, ban);
+          client.emit(Events8.GuildBanRemove, ban);
         }
       }
     };
@@ -128327,7 +128379,7 @@ var require_GuildDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildDeleteAction = class extends Action {
       static {
         __name(this, "GuildDeleteAction");
@@ -128338,13 +128390,13 @@ var require_GuildDelete = __commonJS({
         if (guild) {
           if (data.unavailable) {
             guild.available = false;
-            client.emit(Events7.GuildUnavailable, guild);
+            client.emit(Events8.GuildUnavailable, guild);
             return;
           }
           for (const channel of guild.channels.cache.values()) this.client.channels._remove(channel.id);
           client.voice.adapters.get(data.id)?.destroy();
           client.guilds.cache.delete(guild.id);
-          client.emit(Events7.GuildDelete, guild);
+          client.emit(Events8.GuildDelete, guild);
         }
       }
     };
@@ -128357,7 +128409,7 @@ var require_GuildEmojiCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildEmojiCreateAction = class extends Action {
       static {
         __name(this, "GuildEmojiCreateAction");
@@ -128365,7 +128417,7 @@ var require_GuildEmojiCreate = __commonJS({
       handle(guild, createdEmoji) {
         const already = guild.emojis.cache.has(createdEmoji.id);
         const emoji3 = guild.emojis._add(createdEmoji);
-        if (!already) this.client.emit(Events7.GuildEmojiCreate, emoji3);
+        if (!already) this.client.emit(Events8.GuildEmojiCreate, emoji3);
         return { emoji: emoji3 };
       }
     };
@@ -128378,14 +128430,14 @@ var require_GuildEmojiDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildEmojiDeleteAction = class extends Action {
       static {
         __name(this, "GuildEmojiDeleteAction");
       }
       handle(emoji3) {
         emoji3.guild.emojis.cache.delete(emoji3.id);
-        this.client.emit(Events7.GuildEmojiDelete, emoji3);
+        this.client.emit(Events8.GuildEmojiDelete, emoji3);
         return { emoji: emoji3 };
       }
     };
@@ -128398,14 +128450,14 @@ var require_GuildEmojiUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildEmojiUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildEmojiUpdateAction = class extends Action {
       static {
         __name(this, "GuildEmojiUpdateAction");
       }
       handle(current, data) {
         const old = current._update(data);
-        this.client.emit(Events7.GuildEmojiUpdate, old, current);
+        this.client.emit(Events8.GuildEmojiUpdate, old, current);
         return { emoji: current };
       }
     };
@@ -128451,7 +128503,7 @@ var require_GuildIntegrationsUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildIntegrationsUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildIntegrationsUpdate = class extends Action {
       static {
         __name(this, "GuildIntegrationsUpdate");
@@ -128459,7 +128511,7 @@ var require_GuildIntegrationsUpdate = __commonJS({
       handle(data) {
         const client = this.client;
         const guild = client.guilds.cache.get(data.guild_id);
-        if (guild) client.emit(Events7.GuildIntegrationsUpdate, guild);
+        if (guild) client.emit(Events8.GuildIntegrationsUpdate, guild);
       }
     };
     module2.exports = GuildIntegrationsUpdate;
@@ -128490,7 +128542,7 @@ var require_GuildMemberRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildMemberRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Status2 = require_Status();
     var GuildMemberRemoveAction = class extends Action {
       static {
@@ -128505,7 +128557,7 @@ var require_GuildMemberRemove = __commonJS({
           guild.memberCount--;
           if (member) {
             guild.members.cache.delete(member.id);
-            if (shard.status === Status2.Ready) client.emit(Events7.GuildMemberRemove, member);
+            if (shard.status === Status2.Ready) client.emit(Events8.GuildMemberRemove, member);
           }
           guild.presences.cache.delete(data.user.id);
           guild.voiceStates.cache.delete(data.user.id);
@@ -128522,7 +128574,7 @@ var require_GuildMemberUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildMemberUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Status2 = require_Status();
     var GuildMemberUpdateAction = class extends Action {
       static {
@@ -128543,10 +128595,10 @@ var require_GuildMemberUpdate = __commonJS({
           const member = this.getMember({ user: data.user }, guild);
           if (member) {
             const old = member._update(data);
-            if (shard.status === Status2.Ready && !member.equals(old)) client.emit(Events7.GuildMemberUpdate, old, member);
+            if (shard.status === Status2.Ready && !member.equals(old)) client.emit(Events8.GuildMemberUpdate, old, member);
           } else {
             const newMember = guild.members._add(data);
-            this.client.emit(Events7.GuildMemberAvailable, newMember);
+            this.client.emit(Events8.GuildMemberAvailable, newMember);
           }
         }
       }
@@ -128560,7 +128612,7 @@ var require_GuildRoleCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildRoleCreate = class extends Action {
       static {
         __name(this, "GuildRoleCreate");
@@ -128572,7 +128624,7 @@ var require_GuildRoleCreate = __commonJS({
         if (guild) {
           const already = guild.roles.cache.has(data.role.id);
           role = guild.roles._add(data.role);
-          if (!already) client.emit(Events7.GuildRoleCreate, role);
+          if (!already) client.emit(Events8.GuildRoleCreate, role);
         }
         return { role };
       }
@@ -128586,7 +128638,7 @@ var require_GuildRoleDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildRoleDeleteAction = class extends Action {
       static {
         __name(this, "GuildRoleDeleteAction");
@@ -128599,7 +128651,7 @@ var require_GuildRoleDelete = __commonJS({
           role = guild.roles.cache.get(data.role_id);
           if (role) {
             guild.roles.cache.delete(data.role_id);
-            client.emit(Events7.GuildRoleDelete, role);
+            client.emit(Events8.GuildRoleDelete, role);
           }
         }
         return { role };
@@ -128614,7 +128666,7 @@ var require_GuildRoleUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildRoleUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildRoleUpdateAction = class extends Action {
       static {
         __name(this, "GuildRoleUpdateAction");
@@ -128627,7 +128679,7 @@ var require_GuildRoleUpdate = __commonJS({
           const role = guild.roles.cache.get(data.role.id);
           if (role) {
             old = role._update(data.role);
-            client.emit(Events7.GuildRoleUpdate, old, role);
+            client.emit(Events8.GuildRoleUpdate, old, role);
           }
           return {
             old,
@@ -128674,7 +128726,7 @@ var require_GuildScheduledEventCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildScheduledEventCreateAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventCreateAction");
@@ -128684,7 +128736,7 @@ var require_GuildScheduledEventCreate = __commonJS({
         const guild = client.guilds.cache.get(data.guild_id);
         if (guild) {
           const guildScheduledEvent = guild.scheduledEvents._add(data);
-          client.emit(Events7.GuildScheduledEventCreate, guildScheduledEvent);
+          client.emit(Events8.GuildScheduledEventCreate, guildScheduledEvent);
           return { guildScheduledEvent };
         }
         return {};
@@ -128699,7 +128751,7 @@ var require_GuildScheduledEventDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildScheduledEventDeleteAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventDeleteAction");
@@ -128711,7 +128763,7 @@ var require_GuildScheduledEventDelete = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           if (guildScheduledEvent) {
             guild.scheduledEvents.cache.delete(guildScheduledEvent.id);
-            client.emit(Events7.GuildScheduledEventDelete, guildScheduledEvent);
+            client.emit(Events8.GuildScheduledEventDelete, guildScheduledEvent);
             return { guildScheduledEvent };
           }
         }
@@ -128727,7 +128779,7 @@ var require_GuildScheduledEventUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildScheduledEventUpdateAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUpdateAction");
@@ -128738,7 +128790,7 @@ var require_GuildScheduledEventUpdate = __commonJS({
         if (guild) {
           const oldGuildScheduledEvent = guild.scheduledEvents.cache.get(data.id)?._clone() ?? null;
           const newGuildScheduledEvent = guild.scheduledEvents._add(data);
-          client.emit(Events7.GuildScheduledEventUpdate, oldGuildScheduledEvent, newGuildScheduledEvent);
+          client.emit(Events8.GuildScheduledEventUpdate, oldGuildScheduledEvent, newGuildScheduledEvent);
           return { oldGuildScheduledEvent, newGuildScheduledEvent };
         }
         return {};
@@ -128753,7 +128805,7 @@ var require_GuildScheduledEventUserAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUserAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildScheduledEventUserAddAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUserAddAction");
@@ -128765,7 +128817,7 @@ var require_GuildScheduledEventUserAdd = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           const user = this.getUser(data);
           if (guildScheduledEvent && user) {
-            client.emit(Events7.GuildScheduledEventUserAdd, guildScheduledEvent, user);
+            client.emit(Events8.GuildScheduledEventUserAdd, guildScheduledEvent, user);
             return { guildScheduledEvent, user };
           }
         }
@@ -128781,7 +128833,7 @@ var require_GuildScheduledEventUserRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildScheduledEventUserRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildScheduledEventUserRemoveAction = class extends Action {
       static {
         __name(this, "GuildScheduledEventUserRemoveAction");
@@ -128793,7 +128845,7 @@ var require_GuildScheduledEventUserRemove = __commonJS({
           const guildScheduledEvent = this.getScheduledEvent(data, guild);
           const user = this.getUser(data);
           if (guildScheduledEvent && user) {
-            client.emit(Events7.GuildScheduledEventUserRemove, guildScheduledEvent, user);
+            client.emit(Events8.GuildScheduledEventUserRemove, guildScheduledEvent, user);
             return { guildScheduledEvent, user };
           }
         }
@@ -128809,7 +128861,7 @@ var require_GuildSoundboardSoundDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildSoundboardSoundDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildSoundboardSoundDeleteAction = class extends Action {
       static {
         __name(this, "GuildSoundboardSoundDeleteAction");
@@ -128820,7 +128872,7 @@ var require_GuildSoundboardSoundDelete = __commonJS({
         const soundboardSound = this.getSoundboardSound(data, guild);
         if (soundboardSound) {
           guild.soundboardSounds.cache.delete(soundboardSound.soundId);
-          this.client.emit(Events7.GuildSoundboardSoundDelete, soundboardSound);
+          this.client.emit(Events8.GuildSoundboardSoundDelete, soundboardSound);
         }
         return { soundboardSound };
       }
@@ -128834,7 +128886,7 @@ var require_GuildStickerCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildStickerCreateAction = class extends Action {
       static {
         __name(this, "GuildStickerCreateAction");
@@ -128842,7 +128894,7 @@ var require_GuildStickerCreate = __commonJS({
       handle(guild, createdSticker) {
         const already = guild.stickers.cache.has(createdSticker.id);
         const sticker = guild.stickers._add(createdSticker);
-        if (!already) this.client.emit(Events7.GuildStickerCreate, sticker);
+        if (!already) this.client.emit(Events8.GuildStickerCreate, sticker);
         return { sticker };
       }
     };
@@ -128855,14 +128907,14 @@ var require_GuildStickerDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildStickerDeleteAction = class extends Action {
       static {
         __name(this, "GuildStickerDeleteAction");
       }
       handle(sticker) {
         sticker.guild.stickers.cache.delete(sticker.id);
-        this.client.emit(Events7.GuildStickerDelete, sticker);
+        this.client.emit(Events8.GuildStickerDelete, sticker);
         return { sticker };
       }
     };
@@ -128875,14 +128927,14 @@ var require_GuildStickerUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildStickerUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildStickerUpdateAction = class extends Action {
       static {
         __name(this, "GuildStickerUpdateAction");
       }
       handle(current, data) {
         const old = current._update(data);
-        this.client.emit(Events7.GuildStickerUpdate, old, current);
+        this.client.emit(Events8.GuildStickerUpdate, old, current);
         return { sticker: current };
       }
     };
@@ -128928,7 +128980,7 @@ var require_GuildUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/GuildUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var GuildUpdateAction = class extends Action {
       static {
         __name(this, "GuildUpdateAction");
@@ -128938,7 +128990,7 @@ var require_GuildUpdate = __commonJS({
         const guild = client.guilds.cache.get(data.id);
         if (guild) {
           const old = guild._update(data);
-          client.emit(Events7.GuildUpdate, old, guild);
+          client.emit(Events8.GuildUpdate, old, guild);
           return {
             old,
             updated: guild
@@ -129213,7 +129265,7 @@ var require_AutocompleteInteraction = __commonJS({
     var BaseInteraction = require_BaseInteraction();
     var CommandInteractionOptionResolver = require_CommandInteractionOptionResolver();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var AutocompleteInteraction = class extends BaseInteraction {
+    var AutocompleteInteraction8 = class extends BaseInteraction {
       static {
         __name(this, "AutocompleteInteraction");
       }
@@ -129266,7 +129318,7 @@ var require_AutocompleteInteraction = __commonJS({
         this.responded = true;
       }
     };
-    module2.exports = AutocompleteInteraction;
+    module2.exports = AutocompleteInteraction8;
   }
 });
 
@@ -129949,12 +130001,12 @@ var require_ButtonInteraction = __commonJS({
   "node_modules/discord.js/src/structures/ButtonInteraction.js"(exports2, module2) {
     "use strict";
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var ButtonInteraction = class extends MessageComponentInteraction {
+    var ButtonInteraction2 = class extends MessageComponentInteraction {
       static {
         __name(this, "ButtonInteraction");
       }
     };
-    module2.exports = ButtonInteraction;
+    module2.exports = ButtonInteraction2;
   }
 });
 
@@ -129962,7 +130014,7 @@ var require_ButtonInteraction = __commonJS({
 var require_ChannelSelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/ChannelSelectMenuInteraction.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
     var ChannelSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
@@ -129972,7 +130024,7 @@ var require_ChannelSelectMenuInteraction = __commonJS({
         super(client, data);
         const { resolved, values } = data.data;
         this.values = values ?? [];
-        this.channels = new Collection2();
+        this.channels = new Collection3();
         for (const channel of Object.values(resolved?.channels ?? {})) {
           this.channels.set(channel.id, this.client.channels._add(channel, this.guild) ?? channel);
         }
@@ -130107,7 +130159,7 @@ var require_ChatInputCommandInteraction = __commonJS({
     var CommandInteraction = require_CommandInteraction();
     var CommandInteractionOptionResolver = require_CommandInteractionOptionResolver();
     var { transformResolved } = require_Util();
-    var ChatInputCommandInteraction = class extends CommandInteraction {
+    var ChatInputCommandInteraction18 = class extends CommandInteraction {
       static {
         __name(this, "ChatInputCommandInteraction");
       }
@@ -130134,7 +130186,7 @@ var require_ChatInputCommandInteraction = __commonJS({
         return `/${properties.filter(Boolean).join(" ")}`;
       }
     };
-    module2.exports = ChatInputCommandInteraction;
+    module2.exports = ChatInputCommandInteraction18;
   }
 });
 
@@ -130142,9 +130194,9 @@ var require_ChatInputCommandInteraction = __commonJS({
 var require_MentionableSelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/MentionableSelectMenuInteraction.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MentionableSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
         __name(this, "MentionableSelectMenuInteraction");
@@ -130154,15 +130206,15 @@ var require_MentionableSelectMenuInteraction = __commonJS({
         const { resolved, values } = data.data;
         const { members: members2, users, roles } = resolved ?? {};
         this.values = values ?? [];
-        this.users = new Collection2();
-        this.members = new Collection2();
-        this.roles = new Collection2();
+        this.users = new Collection3();
+        this.members = new Collection3();
+        this.roles = new Collection3();
         if (members2) {
           for (const [id, member] of Object.entries(members2)) {
             const user = users[id];
             if (!user) {
               this.client.emit(
-                Events7.Debug,
+                Events8.Debug,
                 `[MentionableSelectMenuInteraction] Received a member without a user, skipping ${id}`
               );
               continue;
@@ -130263,8 +130315,8 @@ var require_MessageContextMenuCommandInteraction = __commonJS({
 var require_ModalSubmitFields = __commonJS({
   "node_modules/discord.js/src/structures/ModalSubmitFields.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
-    var { ComponentType: ComponentType2 } = require_v106();
+    var { Collection: Collection3 } = require_dist7();
+    var { ComponentType: ComponentType7 } = require_v106();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var ModalSubmitFields = class {
       static {
@@ -130281,7 +130333,7 @@ var require_ModalSubmitFields = __commonJS({
             accumulator.set(next.component.customId, next.component);
           }
           return accumulator;
-        }, new Collection2());
+        }, new Collection3());
       }
       /**
        * Gets a field given a custom id from a component
@@ -130327,7 +130379,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {string}
        */
       getTextInputValue(customId) {
-        return this._getTypedComponent(customId, [ComponentType2.TextInput]).value;
+        return this._getTypedComponent(customId, [ComponentType7.TextInput]).value;
       }
       /**
        * Gets the values of a string select component given a custom id
@@ -130336,7 +130388,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {string[]}
        */
       getStringSelectValues(customId) {
-        return this._getTypedComponent(customId, [ComponentType2.StringSelect]).values;
+        return this._getTypedComponent(customId, [ComponentType7.StringSelect]).values;
       }
       /**
        * Gets users component
@@ -130348,7 +130400,7 @@ var require_ModalSubmitFields = __commonJS({
       getSelectedUsers(customId, required2 = false) {
         const component = this._getTypedComponent(
           customId,
-          [ComponentType2.UserSelect, ComponentType2.MentionableSelect],
+          [ComponentType7.UserSelect, ComponentType7.MentionableSelect],
           ["users"],
           required2
         );
@@ -130364,7 +130416,7 @@ var require_ModalSubmitFields = __commonJS({
       getSelectedRoles(customId, required2 = false) {
         const component = this._getTypedComponent(
           customId,
-          [ComponentType2.RoleSelect, ComponentType2.MentionableSelect],
+          [ComponentType7.RoleSelect, ComponentType7.MentionableSelect],
           ["roles"],
           required2
         );
@@ -130380,7 +130432,7 @@ var require_ModalSubmitFields = __commonJS({
        * or null if none were selected and not required
        */
       getSelectedChannels(customId, required2 = false, channelTypes = []) {
-        const component = this._getTypedComponent(customId, [ComponentType2.ChannelSelect], ["channels"], required2);
+        const component = this._getTypedComponent(customId, [ComponentType7.ChannelSelect], ["channels"], required2);
         const channels = component.channels;
         if (channels && channelTypes.length > 0) {
           for (const channel of channels.values()) {
@@ -130406,7 +130458,7 @@ var require_ModalSubmitFields = __commonJS({
       getSelectedMembers(customId) {
         const component = this._getTypedComponent(
           customId,
-          [ComponentType2.UserSelect, ComponentType2.MentionableSelect],
+          [ComponentType7.UserSelect, ComponentType7.MentionableSelect],
           ["members"],
           false
         );
@@ -130422,15 +130474,15 @@ var require_ModalSubmitFields = __commonJS({
       getSelectedMentionables(customId, required2 = false) {
         const component = this._getTypedComponent(
           customId,
-          [ComponentType2.MentionableSelect],
+          [ComponentType7.MentionableSelect],
           ["users", "members", "roles"],
           required2
         );
         if (component.users || component.members || component.roles) {
           return {
-            users: component.users ?? new Collection2(),
-            members: component.members ?? new Collection2(),
-            roles: component.roles ?? new Collection2()
+            users: component.users ?? new Collection3(),
+            members: component.members ?? new Collection3(),
+            roles: component.roles ?? new Collection3()
           };
         }
         return null;
@@ -130443,7 +130495,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {?Collection<Snowflake, Attachment>} The uploaded files, or null if none were uploaded and not required
        */
       getUploadedFiles(customId, required2 = false) {
-        return this._getTypedComponent(customId, [ComponentType2.FileUpload], ["attachments"], required2).attachments ?? null;
+        return this._getTypedComponent(customId, [ComponentType7.FileUpload], ["attachments"], required2).attachments ?? null;
       }
       /**
        * Get radio group component
@@ -130453,7 +130505,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {?string} The selected radio group option value, or null if none were selected and not required
        */
       getRadioGroup(customId, required2 = false) {
-        return this._getTypedComponent(customId, [ComponentType2.RadioGroup], ["value"], required2).value;
+        return this._getTypedComponent(customId, [ComponentType7.RadioGroup], ["value"], required2).value;
       }
       /**
        * Get checkbox group component
@@ -130462,7 +130514,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {string[]} The selected checkbox group option values
        */
       getCheckboxGroup(customId) {
-        return this._getTypedComponent(customId, [ComponentType2.CheckboxGroup]).values;
+        return this._getTypedComponent(customId, [ComponentType7.CheckboxGroup]).values;
       }
       /**
        * Get checkbox component
@@ -130471,7 +130523,7 @@ var require_ModalSubmitFields = __commonJS({
        * @returns {boolean} Whether this checkbox was selected
        */
       getCheckbox(customId) {
-        return this._getTypedComponent(customId, [ComponentType2.Checkbox]).value;
+        return this._getTypedComponent(customId, [ComponentType7.Checkbox]).value;
       }
     };
     module2.exports = ModalSubmitFields;
@@ -130482,7 +130534,7 @@ var require_ModalSubmitFields = __commonJS({
 var require_ModalSubmitInteraction = __commonJS({
   "node_modules/discord.js/src/structures/ModalSubmitInteraction.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
     var BaseInteraction = require_BaseInteraction();
     var InteractionWebhook = require_InteractionWebhook();
@@ -130554,7 +130606,7 @@ var require_ModalSubmitInteraction = __commonJS({
             const { members: members2, users, channels, roles, attachments } = resolved;
             const valueSet = new Set(rawComponent.values);
             if (users) {
-              data.users = new Collection2();
+              data.users = new Collection3();
               for (const [id, user] of Object.entries(users)) {
                 if (valueSet.has(id)) {
                   data.users.set(id, client.users._add(user));
@@ -130562,7 +130614,7 @@ var require_ModalSubmitInteraction = __commonJS({
               }
             }
             if (channels) {
-              data.channels = new Collection2();
+              data.channels = new Collection3();
               for (const [id, apiChannel] of Object.entries(channels)) {
                 if (valueSet.has(id)) {
                   data.channels.set(id, client.channels._add(apiChannel, guild) ?? apiChannel);
@@ -130570,7 +130622,7 @@ var require_ModalSubmitInteraction = __commonJS({
               }
             }
             if (members2) {
-              data.members = new Collection2();
+              data.members = new Collection3();
               for (const [id, member] of Object.entries(members2)) {
                 if (valueSet.has(id)) {
                   const user = users?.[id];
@@ -130579,7 +130631,7 @@ var require_ModalSubmitInteraction = __commonJS({
               }
             }
             if (roles) {
-              data.roles = new Collection2();
+              data.roles = new Collection3();
               for (const [id, role] of Object.entries(roles)) {
                 if (valueSet.has(id)) {
                   data.roles.set(id, guild?.roles._add(role) ?? role);
@@ -130587,7 +130639,7 @@ var require_ModalSubmitInteraction = __commonJS({
               }
             }
             if (attachments) {
-              data.attachments = new Collection2();
+              data.attachments = new Collection3();
               for (const [id, attachment] of Object.entries(attachments)) {
                 if (valueSet.has(id)) {
                   data.attachments.set(id, new (getAttachment())(attachment));
@@ -130651,7 +130703,7 @@ var require_PrimaryEntryPointCommandInteraction = __commonJS({
 var require_RoleSelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/RoleSelectMenuInteraction.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
     var RoleSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
@@ -130661,7 +130713,7 @@ var require_RoleSelectMenuInteraction = __commonJS({
         super(client, data);
         const { resolved, values } = data.data;
         this.values = values ?? [];
-        this.roles = new Collection2();
+        this.roles = new Collection3();
         for (const role of Object.values(resolved?.roles ?? {})) {
           this.roles.set(role.id, this.guild?.roles._add(role) ?? role);
         }
@@ -130676,7 +130728,7 @@ var require_StringSelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/StringSelectMenuInteraction.js"(exports2, module2) {
     "use strict";
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var StringSelectMenuInteraction = class extends MessageComponentInteraction {
+    var StringSelectMenuInteraction2 = class extends MessageComponentInteraction {
       static {
         __name(this, "StringSelectMenuInteraction");
       }
@@ -130685,7 +130737,7 @@ var require_StringSelectMenuInteraction = __commonJS({
         this.values = data.data.values ?? [];
       }
     };
-    module2.exports = StringSelectMenuInteraction;
+    module2.exports = StringSelectMenuInteraction2;
   }
 });
 
@@ -130723,9 +130775,9 @@ var require_UserContextMenuCommandInteraction = __commonJS({
 var require_UserSelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/UserSelectMenuInteraction.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var MessageComponentInteraction = require_MessageComponentInteraction();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var UserSelectMenuInteraction = class extends MessageComponentInteraction {
       static {
         __name(this, "UserSelectMenuInteraction");
@@ -130734,15 +130786,15 @@ var require_UserSelectMenuInteraction = __commonJS({
         super(client, data);
         const { resolved, values } = data.data;
         this.values = values ?? [];
-        this.users = new Collection2();
-        this.members = new Collection2();
+        this.users = new Collection3();
+        this.members = new Collection3();
         for (const user of Object.values(resolved?.users ?? {})) {
           this.users.set(user.id, this.client.users._add(user));
         }
         for (const [id, member] of Object.entries(resolved?.members ?? {})) {
           const user = resolved.users[id];
           if (!user) {
-            this.client.emit(Events7.Debug, `[UserSelectMenuInteraction] Received a member without a user, skipping ${id}`);
+            this.client.emit(Events8.Debug, `[UserSelectMenuInteraction] Received a member without a user, skipping ${id}`);
             continue;
           }
           this.members.set(id, this.guild?.members._add({ user, ...member }) ?? { user, ...member });
@@ -130757,21 +130809,21 @@ var require_UserSelectMenuInteraction = __commonJS({
 var require_InteractionCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/InteractionCreate.js"(exports2, module2) {
     "use strict";
-    var { InteractionType: InteractionType2, ComponentType: ComponentType2, ApplicationCommandType: ApplicationCommandType2 } = require_v106();
+    var { InteractionType: InteractionType2, ComponentType: ComponentType7, ApplicationCommandType: ApplicationCommandType2 } = require_v106();
     var Action = require_Action();
-    var AutocompleteInteraction = require_AutocompleteInteraction();
-    var ButtonInteraction = require_ButtonInteraction();
+    var AutocompleteInteraction8 = require_AutocompleteInteraction();
+    var ButtonInteraction2 = require_ButtonInteraction();
     var ChannelSelectMenuInteraction = require_ChannelSelectMenuInteraction();
-    var ChatInputCommandInteraction = require_ChatInputCommandInteraction();
+    var ChatInputCommandInteraction18 = require_ChatInputCommandInteraction();
     var MentionableSelectMenuInteraction = require_MentionableSelectMenuInteraction();
     var MessageContextMenuCommandInteraction = require_MessageContextMenuCommandInteraction();
     var ModalSubmitInteraction = require_ModalSubmitInteraction();
     var PrimaryEntryPointCommandInteraction = require_PrimaryEntryPointCommandInteraction();
     var RoleSelectMenuInteraction = require_RoleSelectMenuInteraction();
-    var StringSelectMenuInteraction = require_StringSelectMenuInteraction();
+    var StringSelectMenuInteraction2 = require_StringSelectMenuInteraction();
     var UserContextMenuCommandInteraction = require_UserContextMenuCommandInteraction();
     var UserSelectMenuInteraction = require_UserSelectMenuInteraction();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var InteractionCreateAction = class extends Action {
       static {
         __name(this, "InteractionCreateAction");
@@ -130784,7 +130836,7 @@ var require_InteractionCreate = __commonJS({
           case InteractionType2.ApplicationCommand:
             switch (data.data.type) {
               case ApplicationCommandType2.ChatInput:
-                InteractionClass = ChatInputCommandInteraction;
+                InteractionClass = ChatInputCommandInteraction18;
                 break;
               case ApplicationCommandType2.User:
                 InteractionClass = UserContextMenuCommandInteraction;
@@ -130798,7 +130850,7 @@ var require_InteractionCreate = __commonJS({
                 break;
               default:
                 client.emit(
-                  Events7.Debug,
+                  Events8.Debug,
                   `[INTERACTION] Received application command interaction with unknown type: ${data.data.type}`
                 );
                 return;
@@ -130807,44 +130859,44 @@ var require_InteractionCreate = __commonJS({
           case InteractionType2.MessageComponent:
             if (channel && !channel.isTextBased()) return;
             switch (data.data.component_type) {
-              case ComponentType2.Button:
-                InteractionClass = ButtonInteraction;
+              case ComponentType7.Button:
+                InteractionClass = ButtonInteraction2;
                 break;
-              case ComponentType2.StringSelect:
-                InteractionClass = StringSelectMenuInteraction;
+              case ComponentType7.StringSelect:
+                InteractionClass = StringSelectMenuInteraction2;
                 break;
-              case ComponentType2.UserSelect:
+              case ComponentType7.UserSelect:
                 InteractionClass = UserSelectMenuInteraction;
                 break;
-              case ComponentType2.RoleSelect:
+              case ComponentType7.RoleSelect:
                 InteractionClass = RoleSelectMenuInteraction;
                 break;
-              case ComponentType2.MentionableSelect:
+              case ComponentType7.MentionableSelect:
                 InteractionClass = MentionableSelectMenuInteraction;
                 break;
-              case ComponentType2.ChannelSelect:
+              case ComponentType7.ChannelSelect:
                 InteractionClass = ChannelSelectMenuInteraction;
                 break;
               default:
                 client.emit(
-                  Events7.Debug,
+                  Events8.Debug,
                   `[INTERACTION] Received component interaction with unknown type: ${data.data.component_type}`
                 );
                 return;
             }
             break;
           case InteractionType2.ApplicationCommandAutocomplete:
-            InteractionClass = AutocompleteInteraction;
+            InteractionClass = AutocompleteInteraction8;
             break;
           case InteractionType2.ModalSubmit:
             InteractionClass = ModalSubmitInteraction;
             break;
           default:
-            client.emit(Events7.Debug, `[INTERACTION] Received interaction with unknown type: ${data.type}`);
+            client.emit(Events8.Debug, `[INTERACTION] Received interaction with unknown type: ${data.type}`);
             return;
         }
         const interaction = new InteractionClass(client, data);
-        client.emit(Events7.InteractionCreate, interaction);
+        client.emit(Events8.InteractionCreate, interaction);
       }
     };
     module2.exports = InteractionCreateAction;
@@ -130856,7 +130908,7 @@ var require_InviteCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/InviteCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var InviteCreateAction = class extends Action {
       static {
         __name(this, "InviteCreateAction");
@@ -130868,7 +130920,7 @@ var require_InviteCreate = __commonJS({
         if (!channel) return false;
         const inviteData = Object.assign(data, { channel, guild });
         const invite = guild.invites._add(inviteData);
-        client.emit(Events7.InviteCreate, invite);
+        client.emit(Events8.InviteCreate, invite);
         return { invite };
       }
     };
@@ -130882,7 +130934,7 @@ var require_InviteDelete = __commonJS({
     "use strict";
     var Action = require_Action();
     var Invite2 = require_Invite();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var InviteDeleteAction = class extends Action {
       static {
         __name(this, "InviteDeleteAction");
@@ -130895,7 +130947,7 @@ var require_InviteDelete = __commonJS({
         const inviteData = Object.assign(data, { channel, guild });
         const invite = new Invite2(client, inviteData);
         guild.invites.cache.delete(invite.code);
-        client.emit(Events7.InviteDelete, invite);
+        client.emit(Events8.InviteDelete, invite);
         return { invite };
       }
     };
@@ -130908,7 +130960,7 @@ var require_MessageCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageCreateAction = class extends Action {
       static {
         __name(this, "MessageCreateAction");
@@ -130931,7 +130983,7 @@ var require_MessageCreate = __commonJS({
           if (existing && existing.author?.id !== this.client.user.id) return { message: existing };
           const message = existing ?? channel.messages._add(data);
           channel.lastMessageId = data.id;
-          client.emit(Events7.MessageCreate, message);
+          client.emit(Events8.MessageCreate, message);
           return { message };
         }
         return {};
@@ -130946,7 +130998,7 @@ var require_MessageDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageDeleteAction = class extends Action {
       static {
         __name(this, "MessageDeleteAction");
@@ -130961,7 +131013,7 @@ var require_MessageDelete = __commonJS({
           message = this.getMessage(data, channel);
           if (message) {
             channel.messages.cache.delete(message.id);
-            client.emit(Events7.MessageDelete, message);
+            client.emit(Events8.MessageDelete, message);
           }
         }
         return { message };
@@ -130975,9 +131027,9 @@ var require_MessageDelete = __commonJS({
 var require_MessageDeleteBulk = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageDeleteBulk.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageDeleteBulkAction = class extends Action {
       static {
         __name(this, "MessageDeleteBulkAction");
@@ -130989,7 +131041,7 @@ var require_MessageDeleteBulk = __commonJS({
           if (!channel.isTextBased()) return {};
           if (channel.isThread()) channel.messageCount -= data.ids.length;
           const ids = data.ids;
-          const messages = new Collection2();
+          const messages = new Collection3();
           for (const id of ids) {
             const message = this.getMessage(
               {
@@ -131004,7 +131056,7 @@ var require_MessageDeleteBulk = __commonJS({
               channel.messages.cache.delete(id);
             }
           }
-          if (messages.size > 0) client.emit(Events7.MessageBulkDelete, messages, channel);
+          if (messages.size > 0) client.emit(Events8.MessageBulkDelete, messages, channel);
           return { messages };
         }
         return {};
@@ -131019,7 +131071,7 @@ var require_MessagePollVoteAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/MessagePollVoteAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessagePollVoteAddAction = class extends Action {
       static {
         __name(this, "MessagePollVoteAddAction");
@@ -131038,7 +131090,7 @@ var require_MessagePollVoteAdd = __commonJS({
           answer.voters._add(user);
         }
         answer.voteCount++;
-        this.client.emit(Events7.MessagePollVoteAdd, answer, data.user_id);
+        this.client.emit(Events8.MessagePollVoteAdd, answer, data.user_id);
         return { poll };
       }
     };
@@ -131051,7 +131103,7 @@ var require_MessagePollVoteRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/MessagePollVoteRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessagePollVoteRemoveAction = class extends Action {
       static {
         __name(this, "MessagePollVoteRemoveAction");
@@ -131069,7 +131121,7 @@ var require_MessagePollVoteRemove = __commonJS({
         if (answer.voteCount > 0) {
           answer.voteCount--;
         }
-        this.client.emit(Events7.MessagePollVoteRemove, answer, data.user_id);
+        this.client.emit(Events8.MessagePollVoteRemove, answer, data.user_id);
         return { poll };
       }
     };
@@ -131082,7 +131134,7 @@ var require_MessageReactionAdd = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionAdd.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Partials2 = require_Partials();
     var MessageReactionAdd = class extends Action {
       static {
@@ -131112,7 +131164,7 @@ var require_MessageReactionAdd = __commonJS({
         if (!reaction) return false;
         reaction._add(user, data.burst);
         if (fromStructure) return { message, reaction, user };
-        this.client.emit(Events7.MessageReactionAdd, reaction, user, { type: data.type, burst: data.burst });
+        this.client.emit(Events8.MessageReactionAdd, reaction, user, { type: data.type, burst: data.burst });
         return { message, reaction, user };
       }
     };
@@ -131125,7 +131177,7 @@ var require_MessageReactionRemove = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemove.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageReactionRemove = class extends Action {
       static {
         __name(this, "MessageReactionRemove");
@@ -131145,7 +131197,7 @@ var require_MessageReactionRemove = __commonJS({
         const reaction = this.getReaction(data, message, user);
         if (!reaction) return false;
         reaction._remove(user, data.burst);
-        this.client.emit(Events7.MessageReactionRemove, reaction, user, { type: data.type, burst: data.burst });
+        this.client.emit(Events8.MessageReactionRemove, reaction, user, { type: data.type, burst: data.burst });
         return { message, reaction, user };
       }
     };
@@ -131158,7 +131210,7 @@ var require_MessageReactionRemoveAll = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemoveAll.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageReactionRemoveAll = class extends Action {
       static {
         __name(this, "MessageReactionRemoveAll");
@@ -131170,7 +131222,7 @@ var require_MessageReactionRemoveAll = __commonJS({
         if (!message) return false;
         const removed = message.reactions.cache.clone();
         message.reactions.cache.clear();
-        this.client.emit(Events7.MessageReactionRemoveAll, message, removed);
+        this.client.emit(Events8.MessageReactionRemoveAll, message, removed);
         return { message };
       }
     };
@@ -131183,7 +131235,7 @@ var require_MessageReactionRemoveEmoji = __commonJS({
   "node_modules/discord.js/src/client/actions/MessageReactionRemoveEmoji.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var MessageReactionRemoveEmoji = class extends Action {
       static {
         __name(this, "MessageReactionRemoveEmoji");
@@ -131196,7 +131248,7 @@ var require_MessageReactionRemoveEmoji = __commonJS({
         const reaction = this.getReaction(data, message);
         if (!reaction) return false;
         if (!message.partial) message.reactions.cache.delete(reaction.emoji.id ?? reaction.emoji.name);
-        this.client.emit(Events7.MessageReactionRemoveEmoji, reaction);
+        this.client.emit(Events8.MessageReactionRemoveEmoji, reaction);
         return { reaction };
       }
     };
@@ -131239,7 +131291,7 @@ var require_PresenceUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/PresenceUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Partials2 = require_Partials();
     var PresenceUpdateAction = class extends Action {
       static {
@@ -131264,11 +131316,11 @@ var require_PresenceUpdate = __commonJS({
             deaf: false,
             mute: false
           });
-          this.client.emit(Events7.GuildMemberAvailable, member);
+          this.client.emit(Events8.GuildMemberAvailable, member);
         }
         const newPresence = guild.presences._add(Object.assign(data, { guild }));
-        if (this.client.listenerCount(Events7.PresenceUpdate) && !newPresence.equals(oldPresence)) {
-          this.client.emit(Events7.PresenceUpdate, oldPresence, newPresence);
+        if (this.client.listenerCount(Events8.PresenceUpdate) && !newPresence.equals(oldPresence)) {
+          this.client.emit(Events8.PresenceUpdate, oldPresence, newPresence);
         }
       }
     };
@@ -131281,7 +131333,7 @@ var require_StageInstanceCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var StageInstanceCreateAction = class extends Action {
       static {
         __name(this, "StageInstanceCreateAction");
@@ -131291,7 +131343,7 @@ var require_StageInstanceCreate = __commonJS({
         const channel = this.getChannel({ id: data.channel_id, guild_id: data.guild_id });
         if (channel) {
           const stageInstance = channel.guild.stageInstances._add(data);
-          client.emit(Events7.StageInstanceCreate, stageInstance);
+          client.emit(Events8.StageInstanceCreate, stageInstance);
           return { stageInstance };
         }
         return {};
@@ -131306,7 +131358,7 @@ var require_StageInstanceDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var StageInstanceDeleteAction = class extends Action {
       static {
         __name(this, "StageInstanceDeleteAction");
@@ -131318,7 +131370,7 @@ var require_StageInstanceDelete = __commonJS({
           const stageInstance = channel.guild.stageInstances._add(data);
           if (stageInstance) {
             channel.guild.stageInstances.cache.delete(stageInstance.id);
-            client.emit(Events7.StageInstanceDelete, stageInstance);
+            client.emit(Events8.StageInstanceDelete, stageInstance);
             return { stageInstance };
           }
         }
@@ -131334,7 +131386,7 @@ var require_StageInstanceUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/StageInstanceUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var StageInstanceUpdateAction = class extends Action {
       static {
         __name(this, "StageInstanceUpdateAction");
@@ -131345,7 +131397,7 @@ var require_StageInstanceUpdate = __commonJS({
         if (channel) {
           const oldStageInstance = channel.guild.stageInstances.cache.get(data.id)?._clone() ?? null;
           const newStageInstance = channel.guild.stageInstances._add(data);
-          client.emit(Events7.StageInstanceUpdate, oldStageInstance, newStageInstance);
+          client.emit(Events8.StageInstanceUpdate, oldStageInstance, newStageInstance);
           return { oldStageInstance, newStageInstance };
         }
         return {};
@@ -131360,7 +131412,7 @@ var require_ThreadCreate = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadCreate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ThreadCreateAction = class extends Action {
       static {
         __name(this, "ThreadCreateAction");
@@ -131370,7 +131422,7 @@ var require_ThreadCreate = __commonJS({
         const existing = client.channels.cache.has(data.id);
         const thread = client.channels._add(data);
         if (!existing && thread) {
-          client.emit(Events7.ThreadCreate, thread, data.newly_created ?? false);
+          client.emit(Events8.ThreadCreate, thread, data.newly_created ?? false);
         }
         return { thread };
       }
@@ -131384,7 +131436,7 @@ var require_ThreadDelete = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadDelete.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ThreadDeleteAction = class extends Action {
       static {
         __name(this, "ThreadDeleteAction");
@@ -131394,7 +131446,7 @@ var require_ThreadDelete = __commonJS({
         const thread = client.channels.cache.get(data.id);
         if (thread) {
           client.channels._remove(thread.id);
-          client.emit(Events7.ThreadDelete, thread);
+          client.emit(Events8.ThreadDelete, thread);
         }
         return { thread };
       }
@@ -131407,9 +131459,9 @@ var require_ThreadDelete = __commonJS({
 var require_ThreadListSync = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadListSync.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ThreadListSyncAction = class extends Action {
       static {
         __name(this, "ThreadListSyncAction");
@@ -131431,14 +131483,14 @@ var require_ThreadListSync = __commonJS({
         const syncedThreads = data.threads.reduce((coll, rawThread) => {
           const thread = client.channels._add(rawThread);
           return coll.set(thread.id, thread);
-        }, new Collection2());
+        }, new Collection3());
         for (const rawMember of Object.values(data.members)) {
           const thread = client.channels.cache.get(rawMember.id);
           if (thread) {
             thread.members._add(rawMember);
           }
         }
-        client.emit(Events7.ThreadListSync, syncedThreads, guild);
+        client.emit(Events8.ThreadListSync, syncedThreads, guild);
         return {
           syncedThreads
         };
@@ -131460,7 +131512,7 @@ var require_ThreadMemberUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadMemberUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ThreadMemberUpdateAction = class extends Action {
       static {
         __name(this, "ThreadMemberUpdateAction");
@@ -131475,7 +131527,7 @@ var require_ThreadMemberUpdate = __commonJS({
             return { newMember };
           }
           const old = member._update(data);
-          client.emit(Events7.ThreadMemberUpdate, old, member);
+          client.emit(Events8.ThreadMemberUpdate, old, member);
         }
         return {};
       }
@@ -131488,9 +131540,9 @@ var require_ThreadMemberUpdate = __commonJS({
 var require_ThreadMembersUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/ThreadMembersUpdate.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ThreadMembersUpdateAction = class extends Action {
       static {
         __name(this, "ThreadMembersUpdateAction");
@@ -131500,8 +131552,8 @@ var require_ThreadMembersUpdate = __commonJS({
         const thread = client.channels.cache.get(data.id);
         if (thread) {
           thread.memberCount = data.member_count;
-          const addedMembers = new Collection2();
-          const removedMembers = new Collection2();
+          const addedMembers = new Collection3();
+          const removedMembers = new Collection3();
           data.added_members?.reduce(
             (_addedMembers, addedMember) => _addedMembers.set(addedMember.user_id, thread.members._add(addedMember)),
             addedMembers
@@ -131515,7 +131567,7 @@ var require_ThreadMembersUpdate = __commonJS({
           if (addedMembers.size === 0 && removedMembers.size === 0) {
             return {};
           }
-          client.emit(Events7.ThreadMembersUpdate, addedMembers, removedMembers, thread);
+          client.emit(Events8.ThreadMembersUpdate, addedMembers, removedMembers, thread);
         }
         return {};
       }
@@ -131586,7 +131638,7 @@ var require_TypingStart = __commonJS({
     "use strict";
     var Action = require_Action();
     var Typing = require_Typing();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var TypingStart = class extends Action {
       static {
         __name(this, "TypingStart");
@@ -131595,12 +131647,12 @@ var require_TypingStart = __commonJS({
         const channel = this.getChannel({ id: data.channel_id, ..."guild_id" in data && { guild_id: data.guild_id } });
         if (!channel) return;
         if (!channel.isTextBased()) {
-          this.client.emit(Events7.Warn, `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`);
+          this.client.emit(Events8.Warn, `Discord sent a typing packet to a ${channel.type} channel ${channel.id}`);
           return;
         }
         const user = this.getUserFromMember(data);
         if (user) {
-          this.client.emit(Events7.TypingStart, new Typing(channel, user, data));
+          this.client.emit(Events8.TypingStart, new Typing(channel, user, data));
         }
       }
     };
@@ -131613,7 +131665,7 @@ var require_UserUpdate = __commonJS({
   "node_modules/discord.js/src/client/actions/UserUpdate.js"(exports2, module2) {
     "use strict";
     var Action = require_Action();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var UserUpdateAction = class extends Action {
       static {
         __name(this, "UserUpdateAction");
@@ -131623,7 +131675,7 @@ var require_UserUpdate = __commonJS({
         const newUser = data.id === client.user.id ? client.user : client.users.cache.get(data.id);
         const oldUser = newUser._update(data);
         if (!oldUser.equals(newUser)) {
-          client.emit(Events7.UserUpdate, oldUser, newUser);
+          client.emit(Events8.UserUpdate, oldUser, newUser);
           return {
             old: oldUser,
             updated: newUser
@@ -131645,7 +131697,7 @@ var require_VoiceStateUpdate = __commonJS({
     "use strict";
     var Action = require_Action();
     var VoiceState = require_VoiceState();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var VoiceStateUpdate = class extends Action {
       static {
         __name(this, "VoiceStateUpdate");
@@ -131663,10 +131715,10 @@ var require_VoiceStateUpdate = __commonJS({
             member = guild.members._add(data.member);
           }
           if (member?.user.id === client.user.id) {
-            client.emit(Events7.Debug, `[VOICE] received voice state update: ${JSON.stringify(data)}`);
+            client.emit(Events8.Debug, `[VOICE] received voice state update: ${JSON.stringify(data)}`);
             client.voice.onVoiceStateUpdate(data);
           }
-          client.emit(Events7.VoiceStateUpdate, oldState, newState);
+          client.emit(Events8.VoiceStateUpdate, oldState, newState);
         }
       }
     };
@@ -131793,7 +131845,7 @@ var require_ActionsManager = __commonJS({
 var require_ClientVoiceManager = __commonJS({
   "node_modules/discord.js/src/client/voice/ClientVoiceManager.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var ClientVoiceManager2 = class {
       static {
         __name(this, "ClientVoiceManager");
@@ -131801,7 +131853,7 @@ var require_ClientVoiceManager = __commonJS({
       constructor(client) {
         Object.defineProperty(this, "client", { value: client });
         this.adapters = /* @__PURE__ */ new Map();
-        client.on(Events7.ShardDisconnect, (_, shardId) => {
+        client.on(Events8.ShardDisconnect, (_, shardId) => {
           for (const [guildId, adapter] of this.adapters.entries()) {
             if (client.guilds.cache.get(guildId)?.shardId === shardId) {
               adapter.destroy();
@@ -131846,11 +131898,11 @@ var require_dist10 = __commonJS({
     var __toCommonJS2 = /* @__PURE__ */ __name((mod3) => __copyProps2(__defProp3({}, "__esModule", { value: true }), mod3), "__toCommonJS");
     var src_exports = {};
     __export2(src_exports, {
-      Collection: /* @__PURE__ */ __name(() => Collection2, "Collection"),
+      Collection: /* @__PURE__ */ __name(() => Collection3, "Collection"),
       version: /* @__PURE__ */ __name(() => version3, "version")
     });
     module2.exports = __toCommonJS2(src_exports);
-    var Collection2 = class _Collection extends Map {
+    var Collection3 = class _Collection extends Map {
       static {
         __name(this, "_Collection");
       }
@@ -137946,13 +137998,13 @@ var require_CHANNEL_DELETE = __commonJS({
 var require_CHANNEL_PINS_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/CHANNEL_PINS_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const channel = client.channels.cache.get(data.channel_id);
       const time3 = data.last_pin_timestamp ? Date.parse(data.last_pin_timestamp) : null;
       if (channel) {
         channel.lastPinTimestamp = time3;
-        client.emit(Events7.ChannelPinsUpdate, channel, time3);
+        client.emit(Events8.ChannelPinsUpdate, channel, time3);
       }
     };
   }
@@ -137962,11 +138014,11 @@ var require_CHANNEL_PINS_UPDATE = __commonJS({
 var require_CHANNEL_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/CHANNEL_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.ChannelUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events7.ChannelUpdate, old, updated);
+        client.emit(Events8.ChannelUpdate, old, updated);
       }
     };
   }
@@ -138036,20 +138088,20 @@ var require_GUILD_BAN_REMOVE = __commonJS({
 var require_GUILD_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Status2 = require_Status();
     module2.exports = (client, { d: data }, shard) => {
       let guild = client.guilds.cache.get(data.id);
       if (guild) {
         if (!guild.available && !data.unavailable) {
           guild._patch(data);
-          client.emit(Events7.GuildAvailable, guild);
+          client.emit(Events8.GuildAvailable, guild);
         }
       } else {
         data.shardId = shard.id;
         guild = client.guilds._add(data);
         if (client.ws.status === Status2.Ready) {
-          client.emit(Events7.GuildCreate, guild);
+          client.emit(Events8.GuildCreate, guild);
         }
       }
     };
@@ -138090,17 +138142,17 @@ var require_GUILD_INTEGRATIONS_UPDATE = __commonJS({
 var require_GUILD_MEMBERS_CHUNK = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_MEMBERS_CHUNK.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
-    var Events7 = require_Events();
+    var { Collection: Collection3 } = require_dist7();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
-      const members2 = new Collection2();
+      const members2 = new Collection3();
       for (const member of data.members) members2.set(member.user.id, guild.members._add(member));
       if (data.presences) {
         for (const presence of data.presences) guild.presences._add(Object.assign(presence, { guild }));
       }
-      client.emit(Events7.GuildMembersChunk, members2, guild, {
+      client.emit(Events8.GuildMembersChunk, members2, guild, {
         index: data.chunk_index,
         count: data.chunk_count,
         notFound: data.not_found,
@@ -138114,7 +138166,7 @@ var require_GUILD_MEMBERS_CHUNK = __commonJS({
 var require_GUILD_MEMBER_ADD = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_MEMBER_ADD.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Status2 = require_Status();
     module2.exports = (client, { d: data }, shard) => {
       const guild = client.guilds.cache.get(data.guild_id);
@@ -138122,7 +138174,7 @@ var require_GUILD_MEMBER_ADD = __commonJS({
         guild.memberCount++;
         const member = guild.members._add(data);
         if (shard.status === Status2.Ready) {
-          client.emit(Events7.GuildMemberAdd, member);
+          client.emit(Events8.GuildMemberAdd, member);
         }
       }
     };
@@ -138233,16 +138285,16 @@ var require_GUILD_SCHEDULED_EVENT_USER_REMOVE = __commonJS({
 var require_GUILD_SOUNDBOARD_SOUNDS_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUNDS_UPDATE.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
-    var Events7 = require_Events();
+    var { Collection: Collection3 } = require_dist7();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
-      const soundboardSounds = new Collection2();
+      const soundboardSounds = new Collection3();
       for (const soundboardSound of data.soundboard_sounds) {
         soundboardSounds.set(soundboardSound.sound_id, guild.soundboardSounds._add(soundboardSound));
       }
-      client.emit(Events7.GuildSoundboardSoundsUpdate, soundboardSounds, guild);
+      client.emit(Events8.GuildSoundboardSoundsUpdate, soundboardSounds, guild);
     };
   }
 });
@@ -138251,12 +138303,12 @@ var require_GUILD_SOUNDBOARD_SOUNDS_UPDATE = __commonJS({
 var require_GUILD_SOUNDBOARD_SOUND_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUND_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
       const soundboardSound = guild.soundboardSounds._add(data);
-      client.emit(Events7.GuildSoundboardSoundCreate, soundboardSound);
+      client.emit(Events8.GuildSoundboardSoundCreate, soundboardSound);
     };
   }
 });
@@ -138275,13 +138327,13 @@ var require_GUILD_SOUNDBOARD_SOUND_DELETE = __commonJS({
 var require_GUILD_SOUNDBOARD_SOUND_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/GUILD_SOUNDBOARD_SOUND_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
       const oldGuildSoundboardSound = guild.soundboardSounds.cache.get(data.sound_id)?._clone() ?? null;
       const newGuildSoundboardSound = guild.soundboardSounds._add(data);
-      client.emit(Events7.GuildSoundboardSoundUpdate, oldGuildSoundboardSound, newGuildSoundboardSound);
+      client.emit(Events8.GuildSoundboardSoundUpdate, oldGuildSoundboardSound, newGuildSoundboardSound);
     };
   }
 });
@@ -138430,11 +138482,11 @@ var require_MESSAGE_REACTION_REMOVE_EMOJI = __commonJS({
 var require_MESSAGE_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/MESSAGE_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.MessageUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events7.MessageUpdate, old, updated);
+        client.emit(Events8.MessageUpdate, old, updated);
       }
     };
   }
@@ -138481,9 +138533,9 @@ var require_ClientUser = __commonJS({
   "node_modules/discord.js/src/structures/ClientUser.js"(exports2, module2) {
     "use strict";
     var { Routes: Routes3 } = require_v106();
-    var User2 = require_User();
+    var User5 = require_User();
     var { resolveImage } = require_DataResolver();
-    var ClientUser = class extends User2 {
+    var ClientUser = class extends User5 {
       static {
         __name(this, "ClientUser");
       }
@@ -138687,10 +138739,10 @@ var require_READY = __commonJS({
 var require_RESUMED = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/RESUMED.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, packet, shard) => {
       const replayed = shard.sessionInfo.sequence - shard.closeSequence;
-      client.emit(Events7.ShardResume, shard.id, replayed);
+      client.emit(Events8.ShardResume, shard.id, replayed);
     };
   }
 });
@@ -138699,16 +138751,16 @@ var require_RESUMED = __commonJS({
 var require_SOUNDBOARD_SOUNDS = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SOUNDBOARD_SOUNDS.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
-    var Events7 = require_Events();
+    var { Collection: Collection3 } = require_dist7();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
-      const soundboardSounds = new Collection2();
+      const soundboardSounds = new Collection3();
       for (const soundboardSound of data.soundboard_sounds) {
         soundboardSounds.set(soundboardSound.sound_id, guild.soundboardSounds._add(soundboardSound));
       }
-      client.emit(Events7.SoundboardSounds, soundboardSounds, guild);
+      client.emit(Events8.SoundboardSounds, soundboardSounds, guild);
     };
   }
 });
@@ -138747,10 +138799,10 @@ var require_STAGE_INSTANCE_UPDATE = __commonJS({
 var require_SUBSCRIPTION_CREATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_CREATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const subscription = client.application.subscriptions._add(data);
-      client.emit(Events7.SubscriptionCreate, subscription);
+      client.emit(Events8.SubscriptionCreate, subscription);
     };
   }
 });
@@ -138759,11 +138811,11 @@ var require_SUBSCRIPTION_CREATE = __commonJS({
 var require_SUBSCRIPTION_DELETE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_DELETE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const subscription = client.application.subscriptions._add(data, false);
       client.application.subscriptions.cache.delete(subscription.id);
-      client.emit(Events7.SubscriptionDelete, subscription);
+      client.emit(Events8.SubscriptionDelete, subscription);
     };
   }
 });
@@ -138772,11 +138824,11 @@ var require_SUBSCRIPTION_DELETE = __commonJS({
 var require_SUBSCRIPTION_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/SUBSCRIPTION_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const oldSubscription = client.application.subscriptions.cache.get(data.id)?._clone() ?? null;
       const newSubscription = client.application.subscriptions._add(data);
-      client.emit(Events7.SubscriptionUpdate, oldSubscription, newSubscription);
+      client.emit(Events8.SubscriptionUpdate, oldSubscription, newSubscription);
     };
   }
 });
@@ -138835,11 +138887,11 @@ var require_THREAD_MEMBER_UPDATE = __commonJS({
 var require_THREAD_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/THREAD_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, packet) => {
       const { old, updated } = client.actions.ChannelUpdate.handle(packet.d);
       if (old && updated) {
-        client.emit(Events7.ThreadUpdate, old, updated);
+        client.emit(Events8.ThreadUpdate, old, updated);
       }
     };
   }
@@ -138910,11 +138962,11 @@ var require_VOICE_CHANNEL_EFFECT_SEND = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/VOICE_CHANNEL_EFFECT_SEND.js"(exports2, module2) {
     "use strict";
     var VoiceChannelEffect = require_VoiceChannelEffect();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       const guild = client.guilds.cache.get(data.guild_id);
       if (!guild) return;
-      client.emit(Events7.VoiceChannelEffectSend, new VoiceChannelEffect(data, guild));
+      client.emit(Events8.VoiceChannelEffectSend, new VoiceChannelEffect(data, guild));
     };
   }
 });
@@ -138923,14 +138975,14 @@ var require_VOICE_CHANNEL_EFFECT_SEND = __commonJS({
 var require_VOICE_SERVER_UPDATE = __commonJS({
   "node_modules/discord.js/src/client/websocket/handlers/VOICE_SERVER_UPDATE.js"(exports2, module2) {
     "use strict";
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     module2.exports = (client, { d: data }) => {
       client.emit(
-        Events7.Debug,
+        Events8.Debug,
         `[VOICE] received voice server: ${JSON.stringify({ ...data, token: "*".repeat(data.token.length) })}`
       );
       client.voice.onVoiceServer(data);
-      client.emit(Events7.VoiceServerUpdate, {
+      client.emit(Events8.VoiceServerUpdate, {
         guildId: data.guild_id,
         endpoint: data.endpoint,
         token: data.token
@@ -139049,7 +139101,7 @@ var require_WebSocketManager = __commonJS({
     var EventEmitter9 = require("node:events");
     var process3 = require("node:process");
     var { setImmediate: setImmediate2 } = require("node:timers");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var {
       WebSocketManager: WSWebSocketManager,
       WebSocketShardEvents: WSWebSocketShardEvents,
@@ -139060,7 +139112,7 @@ var require_WebSocketManager = __commonJS({
     var WebSocketShard = require_WebSocketShard();
     var PacketHandlers = require_handlers();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var Status2 = require_Status();
     var WebSocketShardEvents = require_WebSocketShardEvents();
     var zlib;
@@ -139098,7 +139150,7 @@ var require_WebSocketManager = __commonJS({
         super();
         Object.defineProperty(this, "client", { value: client });
         this.gateway = null;
-        this.shards = new Collection2();
+        this.shards = new Collection3();
         Object.defineProperty(this, "packetQueue", { value: [] });
         this.status = Status2.Idle;
         this.destroyed = false;
@@ -139121,7 +139173,7 @@ var require_WebSocketManager = __commonJS({
        */
       debug(messages, shardId) {
         this.client.emit(
-          Events7.Debug,
+          Events8.Debug,
           `[WS => ${typeof shardId === "number" ? `Shard ${shardId}` : "Manager"}] ${messages.join("\n	")}`
         );
       }
@@ -139176,7 +139228,7 @@ var require_WebSocketManager = __commonJS({
             const shard = new WebSocketShard(this, id);
             this.shards.set(id, shard);
             shard.on(WebSocketShardEvents.AllReady, (unavailableGuilds) => {
-              this.client.emit(Events7.ShardReady, shard.id, unavailableGuilds);
+              this.client.emit(Events8.ShardReady, shard.id, unavailableGuilds);
               this.checkShardsReady();
             });
             shard.status = Status2.Connecting;
@@ -139207,7 +139259,7 @@ var require_WebSocketManager = __commonJS({
       attachEvents() {
         this._ws.on(WSWebSocketShardEvents.Debug, ({ message, shardId }) => this.debug([message], shardId));
         this._ws.on(WSWebSocketShardEvents.Dispatch, ({ data, shardId }) => {
-          this.client.emit(Events7.Raw, data, shardId);
+          this.client.emit(Events8.Raw, data, shardId);
           this.emit(data.t, data.d, shardId);
           const shard = this.shards.get(shardId);
           this.handlePacket(data, shard);
@@ -139223,12 +139275,12 @@ var require_WebSocketManager = __commonJS({
           shard.emit(WebSocketShardEvents.Close, { code, reason: reasonIsDeprecated, wasClean: true });
           if (UNRECOVERABLE_CLOSE_CODES.includes(code)) {
             shard.status = Status2.Disconnected;
-            this.client.emit(Events7.ShardDisconnect, { code, reason: reasonIsDeprecated, wasClean: true }, shardId);
+            this.client.emit(Events8.ShardDisconnect, { code, reason: reasonIsDeprecated, wasClean: true }, shardId);
             this.debug([`Shard not recoverable: ${code} (${GatewayCloseCodes2[code] ?? CloseCodes[code]})`], shardId);
             return;
           }
           this.shards.get(shardId).status = Status2.Connecting;
-          this.client.emit(Events7.ShardReconnecting, shardId);
+          this.client.emit(Events8.ShardReconnecting, shardId);
         });
         this._ws.on(WSWebSocketShardEvents.Hello, ({ shardId }) => {
           const shard = this.shards.get(shardId);
@@ -139251,7 +139303,7 @@ var require_WebSocketManager = __commonJS({
           shard.ping = latency;
         });
         this._ws.on(WSWebSocketShardEvents.Error, ({ error: error62, shardId }) => {
-          this.client.emit(Events7.ShardError, error62, shardId);
+          this.client.emit(Events8.ShardError, error62, shardId);
         });
       }
       /**
@@ -139323,7 +139375,7 @@ var require_WebSocketManager = __commonJS({
             "DeprecationWarning"
           );
         }
-        this.client.emit(Events7.ClientReady, this.client);
+        this.client.emit(Events8.ClientReady, this.client);
         this.handlePacket();
       }
     };
@@ -139422,7 +139474,7 @@ var require_ChannelManager = __commonJS({
     var { BaseChannel } = require_BaseChannel();
     var { createChannel } = require_Channels();
     var { ThreadChannelTypes } = require_Constants();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var cacheWarningEmitted = false;
     var ChannelManager2 = class extends CachedManager {
       static {
@@ -139456,7 +139508,7 @@ var require_ChannelManager = __commonJS({
         }
         const channel = createChannel(this.client, data, guild, { allowUnknownGuild });
         if (!channel) {
-          this.client.emit(Events7.Debug, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
+          this.client.emit(Events8.Debug, `Failed to find guild, or unknown type for channel ${data.id} ${data.type}`);
           return null;
         }
         if (cache && !allowUnknownGuild) this.cache.set(channel.id, channel);
@@ -139536,7 +139588,7 @@ var require_ShardClientUtil = __commonJS({
     var process3 = require("node:process");
     var { calculateShardId } = require_dist2();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var { makeError, makePlainError } = require_Util();
     var ShardClientUtil2 = class {
       static {
@@ -139549,32 +139601,32 @@ var require_ShardClientUtil = __commonJS({
         switch (mode) {
           case "process":
             process3.on("message", this._handleMessage.bind(this));
-            client.on(Events7.ShardReady, () => {
+            client.on(Events8.ShardReady, () => {
               process3.send({ _ready: true });
             });
-            client.on(Events7.ShardDisconnect, () => {
+            client.on(Events8.ShardDisconnect, () => {
               process3.send({ _disconnect: true });
             });
-            client.on(Events7.ShardReconnecting, () => {
+            client.on(Events8.ShardReconnecting, () => {
               process3.send({ _reconnecting: true });
             });
-            client.on(Events7.ShardResume, () => {
+            client.on(Events8.ShardResume, () => {
               process3.send({ _resume: true });
             });
             break;
           case "worker":
             this.parentPort = require("node:worker_threads").parentPort;
             this.parentPort.on("message", this._handleMessage.bind(this));
-            client.on(Events7.ShardReady, () => {
+            client.on(Events8.ShardReady, () => {
               this.parentPort.postMessage({ _ready: true });
             });
-            client.on(Events7.ShardDisconnect, () => {
+            client.on(Events8.ShardDisconnect, () => {
               this.parentPort.postMessage({ _disconnect: true });
             });
-            client.on(Events7.ShardReconnecting, () => {
+            client.on(Events8.ShardReconnecting, () => {
               this.parentPort.postMessage({ _reconnecting: true });
             });
-            client.on(Events7.ShardResume, () => {
+            client.on(Events8.ShardResume, () => {
               this.parentPort.postMessage({ _resume: true });
             });
             break;
@@ -139726,7 +139778,7 @@ var require_ShardClientUtil = __commonJS({
         this.send(message).catch((err) => {
           const error62 = new Error(`Error when sending ${type} response to master process: ${err.message}`);
           error62.stack = err.stack;
-          this.client.emit(Events7.Error, error62);
+          this.client.emit(Events8.Error, error62);
         });
       }
       /**
@@ -139740,7 +139792,7 @@ var require_ShardClientUtil = __commonJS({
           this._singleton = new this(client, mode);
         } else {
           client.emit(
-            Events7.Warn,
+            Events8.Warn,
             "Multiple clients created in child process/worker; only the first will handle sharding helpers."
           );
         }
@@ -139788,7 +139840,7 @@ var require_ShardClientUtil = __commonJS({
 var require_GuildAuditLogs = __commonJS({
   "node_modules/discord.js/src/structures/GuildAuditLogs.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var ApplicationCommand = require_ApplicationCommand();
     var GuildAuditLogsEntry = require_GuildAuditLogsEntry();
     var Integration = require_Integration();
@@ -139801,13 +139853,13 @@ var require_GuildAuditLogs = __commonJS({
       constructor(guild, data) {
         if (data.users) for (const user of data.users) guild.client.users._add(user);
         if (data.threads) for (const thread of data.threads) guild.client.channels._add(thread, guild);
-        this.webhooks = new Collection2();
+        this.webhooks = new Collection3();
         if (data.webhooks) {
           for (const hook of data.webhooks) {
             this.webhooks.set(hook.id, new Webhook2(guild.client, hook));
           }
         }
-        this.integrations = new Collection2();
+        this.integrations = new Collection3();
         if (data.integrations) {
           for (const integration of data.integrations) {
             this.integrations.set(integration.id, new Integration(guild.client, integration, guild));
@@ -139815,9 +139867,9 @@ var require_GuildAuditLogs = __commonJS({
         }
         this.guildScheduledEvents = data.guild_scheduled_events.reduce(
           (guildScheduledEvents, guildScheduledEvent) => guildScheduledEvents.set(guildScheduledEvent.id, guild.scheduledEvents._add(guildScheduledEvent)),
-          new Collection2()
+          new Collection3()
         );
-        this.applicationCommands = new Collection2();
+        this.applicationCommands = new Collection3();
         if (data.application_commands) {
           for (const command of data.application_commands) {
             this.applicationCommands.set(command.id, new ApplicationCommand(guild.client, command, guild));
@@ -139825,9 +139877,9 @@ var require_GuildAuditLogs = __commonJS({
         }
         this.autoModerationRules = data.auto_moderation_rules.reduce(
           (autoModerationRules, autoModerationRule) => autoModerationRules.set(autoModerationRule.id, guild.autoModerationRules._add(autoModerationRule)),
-          new Collection2()
+          new Collection3()
         );
-        this.entries = new Collection2();
+        this.entries = new Collection3();
         for (const item of data.audit_log_entries) {
           const entry = new GuildAuditLogsEntry(guild, item, this);
           this.entries.set(entry.id, entry);
@@ -139845,7 +139897,7 @@ var require_GuildAuditLogs = __commonJS({
 var require_GuildOnboarding = __commonJS({
   "node_modules/discord.js/src/structures/GuildOnboarding.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Base = require_Base();
     var { GuildOnboardingPrompt } = require_GuildOnboardingPrompt();
     var GuildOnboarding = class extends Base {
@@ -139858,11 +139910,11 @@ var require_GuildOnboarding = __commonJS({
         const guild = this.guild;
         this.prompts = data.prompts.reduce(
           (prompts, prompt) => prompts.set(prompt.id, new GuildOnboardingPrompt(client, prompt, this.guildId)),
-          new Collection2()
+          new Collection3()
         );
         this.defaultChannels = data.default_channel_ids.reduce(
           (channels, channelId) => channels.set(channelId, guild.channels.cache.get(channelId)),
-          new Collection2()
+          new Collection3()
         );
         this.enabled = data.enabled;
         this.mode = data.mode;
@@ -139907,7 +139959,7 @@ var require_GuildPreviewEmoji = __commonJS({
 var require_GuildPreview = __commonJS({
   "node_modules/discord.js/src/structures/GuildPreview.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordSnowflake } = require_cjs();
     var { Routes: Routes3 } = require_v106();
     var Base = require_Base();
@@ -139951,7 +140003,7 @@ var require_GuildPreview = __commonJS({
           this.description ??= null;
         }
         if (!this.emojis) {
-          this.emojis = new Collection2();
+          this.emojis = new Collection3();
         } else {
           this.emojis.clear();
         }
@@ -139960,7 +140012,7 @@ var require_GuildPreview = __commonJS({
         }
         this.stickers = data.stickers.reduce(
           (stickers, sticker) => stickers.set(sticker.id, new Sticker2(this.client, sticker)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -140037,7 +140089,7 @@ var require_GuildPreview = __commonJS({
 var require_AutoModerationRuleManager = __commonJS({
   "node_modules/discord.js/src/managers/AutoModerationRuleManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var AutoModerationRule = require_AutoModerationRule();
@@ -140278,7 +140330,7 @@ var require_AutoModerationRuleManager = __commonJS({
         const data = await this.client.rest.get(Routes3.guildAutoModerationRules(this.guild.id));
         return data.reduce(
           (col, autoModerationRule) => col.set(autoModerationRule.id, this._add(autoModerationRule, options.cache)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -140321,13 +140373,13 @@ var require_GuildBanManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildBanManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildBan = require_GuildBan();
-    var { GuildMember } = require_GuildMember();
+    var { GuildMember: GuildMember3 } = require_GuildMember();
     var deprecationEmittedForDeleteMessageDays = false;
     var GuildBanManager = class extends CachedManager {
       static {
@@ -140424,7 +140476,7 @@ var require_GuildBanManager = __commonJS({
         const data = await this.client.rest.get(Routes3.guildBans(this.guild.id), {
           query: makeURLSearchParams2(apiOptions)
         });
-        return data.reduce((col, ban) => col.set(ban.user.id, this._add(ban, cache)), new Collection2());
+        return data.reduce((col, ban) => col.set(ban.user.id, this._add(ban, cache)), new Collection3());
       }
       /**
        * Options used to ban a user from a guild.
@@ -140466,7 +140518,7 @@ var require_GuildBanManager = __commonJS({
           },
           reason: options.reason
         });
-        if (user instanceof GuildMember) return user;
+        if (user instanceof GuildMember3) return user;
         const _user = this.client.users.cache.get(id);
         if (_user) {
           return this.guild.members.resolve(_user) ?? _user;
@@ -140518,7 +140570,7 @@ var require_GuildBanManager = __commonJS({
        *   .catch(console.error);
        */
       async bulkCreate(users, options = {}) {
-        if (!users || !(Array.isArray(users) || users instanceof Collection2)) {
+        if (!users || !(Array.isArray(users) || users instanceof Collection3)) {
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "users", "Array or Collection of UserResolvable", true);
         }
         if (typeof options !== "object") throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "options", "object", true);
@@ -140540,8 +140592,8 @@ var require_GuildChannelManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildChannelManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
-    var { ChannelType: ChannelType8, Routes: Routes3 } = require_v106();
+    var { Collection: Collection3 } = require_dist7();
+    var { ChannelType: ChannelType9, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var GuildTextThreadManager = require_GuildTextThreadManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -140807,7 +140859,7 @@ var require_GuildChannelManager = __commonJS({
         if (options.lockPermissions) {
           if (parentId) {
             const newParent = this.cache.get(parentId);
-            if (newParent?.type === ChannelType8.GuildCategory) {
+            if (newParent?.type === ChannelType9.GuildCategory) {
               permission_overwrites = newParent.permissionOverwrites.cache.map(
                 (overwrite) => PermissionOverwrites.resolve(overwrite, this.guild)
               );
@@ -140901,7 +140953,7 @@ var require_GuildChannelManager = __commonJS({
           return this.client.channels._add(data2, this.guild, { cache });
         }
         const data = await this.client.rest.get(Routes3.guildChannels(this.guild.id));
-        const channels = new Collection2();
+        const channels = new Collection3();
         for (const channel of data) channels.set(channel.id, this.client.channels._add(channel, this.guild, { cache }));
         return channels;
       }
@@ -140919,7 +140971,7 @@ var require_GuildChannelManager = __commonJS({
         const id = this.resolveId(channel);
         if (!id) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "channel", "GuildChannelResolvable");
         const data = await this.client.rest.get(Routes3.channelWebhooks(id));
-        return data.reduce((hooks, hook) => hooks.set(hook.id, new Webhook2(this.client, hook)), new Collection2());
+        return data.reduce((hooks, hook) => hooks.set(hook.id, new Webhook2(this.client, hook)), new Collection3());
       }
       /**
        * Data that can be resolved to give a Category Channel object. This can be:
@@ -141012,7 +141064,7 @@ var require_GuildChannelManager = __commonJS({
 var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits31 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -141056,7 +141108,7 @@ var require_GuildEmojiManager = __commonJS({
         if (!attachment) throw new DiscordjsTypeError2(ErrorCodes2.ReqResourceType);
         const body = { image: attachment, name };
         if (roles) {
-          if (!Array.isArray(roles) && !(roles instanceof Collection2)) {
+          if (!Array.isArray(roles) && !(roles instanceof Collection3)) {
             throw new DiscordjsTypeError2(
               ErrorCodes2.InvalidType,
               "options.roles",
@@ -141102,7 +141154,7 @@ var require_GuildEmojiManager = __commonJS({
           return this._add(emoji3, cache);
         }
         const data = await this.client.rest.get(Routes3.guildEmojis(this.guild.id));
-        const emojis = new Collection2();
+        const emojis = new Collection3();
         for (const emoji3 of data) emojis.set(emoji3.id, this._add(emoji3, cache));
         return emojis;
       }
@@ -141172,7 +141224,7 @@ var require_GuildInviteManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildInviteManager.js"(exports2, module2) {
     "use strict";
     var { Buffer: Buffer10 } = require("node:buffer");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -141322,11 +141374,11 @@ var require_GuildInviteManager = __commonJS({
       }
       async _fetchMany(cache) {
         const data = await this.client.rest.get(Routes3.guildInvites(this.guild.id));
-        return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection2());
+        return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection3());
       }
       async _fetchChannelMany(channelId, cache) {
         const data = await this.client.rest.get(Routes3.channelInvites(channelId));
-        return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection2());
+        return data.reduce((col, invite) => col.set(invite.code, this._add(invite, cache)), new Collection3());
       }
       /**
        * Create an invite to the guild from the provided channel.
@@ -141441,7 +141493,7 @@ var require_GuildMemberManager = __commonJS({
     "use strict";
     var { process: process3 } = require("node:process");
     var { setTimeout: setTimeout2, clearTimeout: clearTimeout2 } = require("node:timers");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { GatewayRateLimitError } = require_dist2();
     var { DiscordSnowflake } = require_cjs();
@@ -141449,10 +141501,10 @@ var require_GuildMemberManager = __commonJS({
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
-    var { GuildMember } = require_GuildMember();
-    var { Role } = require_Role();
+    var { GuildMember: GuildMember3 } = require_GuildMember();
+    var { Role: Role3 } = require_Role();
     var { resolveImage } = require_DataResolver();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var { GuildMemberFlagsBitField } = require_GuildMemberFlagsBitField();
     var Partials2 = require_Partials();
     var deprecatedEmittedForEditSoleNickname = false;
@@ -141461,7 +141513,7 @@ var require_GuildMemberManager = __commonJS({
         __name(this, "GuildMemberManager");
       }
       constructor(guild, iterable) {
-        super(guild.client, GuildMember, iterable);
+        super(guild.client, GuildMember3, iterable);
         this.guild = guild;
       }
       /**
@@ -141538,7 +141590,7 @@ var require_GuildMemberManager = __commonJS({
           deaf: options.deaf
         };
         if (options.roles) {
-          if (!Array.isArray(options.roles) && !(options.roles instanceof Collection2)) {
+          if (!Array.isArray(options.roles) && !(options.roles instanceof Collection3)) {
             throw new DiscordjsTypeError2(
               ErrorCodes2.InvalidType,
               "options.roles",
@@ -141645,13 +141697,13 @@ var require_GuildMemberManager = __commonJS({
         if (nonce2.length > 32) throw new DiscordjsRangeError2(ErrorCodes2.MemberFetchNonceLength);
         return new Promise((resolve2, reject) => {
           if (!query && !users) query = "";
-          const fetchedMembers = new Collection2();
+          const fetchedMembers = new Collection3();
           let i = 0;
           const cleanup = /* @__PURE__ */ __name(() => {
             clearTimeout2(timeout);
-            this.client.removeListener(Events7.Raw, rateLimitHandler);
+            this.client.removeListener(Events8.Raw, rateLimitHandler);
             this.client.decrementMaxListeners();
-            this.client.removeListener(Events7.GuildMembersChunk, handler);
+            this.client.removeListener(Events8.GuildMembersChunk, handler);
             this.client.decrementMaxListeners();
           }, "cleanup");
           const timeout = setTimeout2(() => {
@@ -141685,9 +141737,9 @@ var require_GuildMemberManager = __commonJS({
             }
           }, "rateLimitHandler");
           this.client.incrementMaxListeners();
-          this.client.on(Events7.Raw, rateLimitHandler);
+          this.client.on(Events8.Raw, rateLimitHandler);
           this.client.incrementMaxListeners();
-          this.client.on(Events7.GuildMembersChunk, handler);
+          this.client.on(Events8.GuildMembersChunk, handler);
           this.guild.shard.send({
             op: GatewayOpcodes2.RequestGuildMembers,
             d: requestData
@@ -141718,7 +141770,7 @@ var require_GuildMemberManager = __commonJS({
         const data = await this.client.rest.get(Routes3.guildMembersSearch(this.guild.id), {
           query: makeURLSearchParams2({ query, limit })
         });
-        return data.reduce((col, member) => col.set(member.user.id, this._add(member, cache)), new Collection2());
+        return data.reduce((col, member) => col.set(member.user.id, this._add(member, cache)), new Collection3());
       }
       /**
        * Options used for listing guild members.
@@ -141735,7 +141787,7 @@ var require_GuildMemberManager = __commonJS({
       async list({ after, limit, cache = true } = {}) {
         const query = makeURLSearchParams2({ limit, after });
         const data = await this.client.rest.get(Routes3.guildMembers(this.guild.id), { query });
-        return data.reduce((col, member) => col.set(member.user.id, this._add(member, cache)), new Collection2());
+        return data.reduce((col, member) => col.set(member.user.id, this._add(member, cache)), new Collection3());
       }
       /**
        * The data for editing a guild member.
@@ -141772,7 +141824,7 @@ var require_GuildMemberManager = __commonJS({
           options.channel_id = null;
           options.channel = void 0;
         }
-        options.roles &&= options.roles.map((role) => role instanceof Role ? role.id : role);
+        options.roles &&= options.roles.map((role) => role instanceof Role3 ? role.id : role);
         if (options.communicationDisabledUntil !== void 0) {
           options.communication_disabled_until = // eslint-disable-next-line eqeqeq
           options.communicationDisabledUntil != null ? new Date(options.communicationDisabledUntil).toISOString() : options.communicationDisabledUntil;
@@ -141988,7 +142040,7 @@ var require_GuildMemberManager = __commonJS({
 var require_GuildScheduledEventManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildScheduledEventManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { GuildScheduledEventEntityType: GuildScheduledEventEntityType2, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -142135,7 +142187,7 @@ var require_GuildScheduledEventManager = __commonJS({
         });
         return data.reduce(
           (coll, rawGuildScheduledEventData) => coll.set(rawGuildScheduledEventData.id, this._add(rawGuildScheduledEventData, options.cache)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -142256,7 +142308,7 @@ var require_GuildScheduledEventManager = __commonJS({
             user: this.client.users._add(rawData.user),
             member: rawData.member ? this.guild.members._add({ ...rawData.member, user: rawData.user }) : null
           }),
-          new Collection2()
+          new Collection3()
         );
       }
     };
@@ -142406,7 +142458,7 @@ var require_SoundboardSound = __commonJS({
 var require_GuildSoundboardSoundManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildSoundboardSoundManager.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
@@ -142573,7 +142625,7 @@ var require_GuildSoundboardSoundManager = __commonJS({
       }
       async _fetchMany({ cache } = {}) {
         const data = await this.client.rest.get(Routes3.guildSoundboardSounds(this.guild.id));
-        return data.items.reduce((coll, sound) => coll.set(sound.sound_id, this._add(sound, cache)), new Collection2());
+        return data.items.reduce((coll, sound) => coll.set(sound.sound_id, this._add(sound, cache)), new Collection3());
       }
     };
     exports2.GuildSoundboardSoundManager = GuildSoundboardSoundManager;
@@ -142584,7 +142636,7 @@ var require_GuildSoundboardSoundManager = __commonJS({
 var require_GuildStickerManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildStickerManager.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -142723,7 +142775,7 @@ var require_GuildStickerManager = __commonJS({
           return this._add(sticker, cache);
         }
         const data = await this.client.rest.get(Routes3.guildStickers(this.guild.id));
-        return new Collection2(data.map((sticker) => [sticker.id, this._add(sticker, cache)]));
+        return new Collection3(data.map((sticker) => [sticker.id, this._add(sticker, cache)]));
       }
       /**
        * Fetches the user who uploaded this sticker, if this is a guild sticker.
@@ -143003,12 +143055,12 @@ var require_RoleManager = __commonJS({
   "node_modules/discord.js/src/managers/RoleManager.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordAPIError } = require_dist6();
     var { RESTJSONErrorCodes: RESTJSONErrorCodes2, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var { resolveImage } = require_DataResolver();
     var PermissionsBitField2 = require_PermissionsBitField();
     var { setPosition, resolveColor } = require_Util();
@@ -143020,7 +143072,7 @@ var require_RoleManager = __commonJS({
         __name(this, "RoleManager");
       }
       constructor(guild, iterable) {
-        super(guild.client, Role, iterable);
+        super(guild.client, Role3, iterable);
         if (!cacheWarningEmitted && this._cache.constructor.name !== "Collection") {
           cacheWarningEmitted = true;
           process3.emitWarning(
@@ -143057,7 +143109,7 @@ var require_RoleManager = __commonJS({
       async fetch(id, { cache = true, force = false } = {}) {
         if (!id) {
           const data = await this.client.rest.get(Routes3.guildRoles(this.guild.id));
-          const roles = new Collection2();
+          const roles = new Collection3();
           for (const role of data) roles.set(role.id, this._add(role, cache));
           return roles;
         }
@@ -143083,7 +143135,7 @@ var require_RoleManager = __commonJS({
        */
       async fetchMemberCounts() {
         const data = await this.client.rest.get(Routes3.guildRoleMemberCounts(this.guild.id));
-        return new Collection2(Object.entries(data));
+        return new Collection3(Object.entries(data));
       }
       /**
        * Data that can be resolved to a Role object. This can be:
@@ -143629,10 +143681,10 @@ var require_SystemChannelFlagsBitField = __commonJS({
 var require_Guild = __commonJS({
   "node_modules/discord.js/src/structures/Guild.js"(exports2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType8, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
+    var { ChannelType: ChannelType9, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
     var AnonymousGuild = require_AnonymousGuild();
     var GuildAuditLogs = require_GuildAuditLogs();
     var { GuildOnboarding } = require_GuildOnboarding();
@@ -143661,7 +143713,7 @@ var require_Guild = __commonJS({
     var SystemChannelFlagsBitField = require_SystemChannelFlagsBitField();
     var { _transformAPIIncidentsData } = require_Transformers();
     var { discordSort, getSortableGroupTypes, resolvePartialEmoji } = require_Util();
-    var Guild2 = class extends AnonymousGuild {
+    var Guild4 = class extends AnonymousGuild {
       static {
         __name(this, "Guild");
       }
@@ -143999,7 +144051,7 @@ var require_Guild = __commonJS({
         const data = await this.client.rest.get(Routes3.guildIntegrations(this.id));
         return data.reduce(
           (collection, integration) => collection.set(integration.id, new Integration(this.client, integration, this)),
-          new Collection2()
+          new Collection3()
         );
       }
       /**
@@ -144009,7 +144061,7 @@ var require_Guild = __commonJS({
        */
       async fetchTemplates() {
         const templates = await this.client.rest.get(Routes3.guildTemplates(this.id));
-        return templates.reduce((col, data) => col.set(data.code, new GuildTemplate2(this.client, data)), new Collection2());
+        return templates.reduce((col, data) => col.set(data.code, new GuildTemplate2(this.client, data)), new Collection3());
       }
       /**
        * Fetches the welcome screen for this guild.
@@ -144072,7 +144124,7 @@ var require_Guild = __commonJS({
        */
       async fetchWebhooks() {
         const apiHooks = await this.client.rest.get(Routes3.guildWebhooks(this.id));
-        const hooks = new Collection2();
+        const hooks = new Collection3();
         for (const hook of apiHooks) hooks.set(hook.id, new Webhook2(this.client, hook));
         return hooks;
       }
@@ -144771,7 +144823,7 @@ var require_Guild = __commonJS({
        * @private
        */
       _sortedChannels(channel) {
-        const channelIsCategory = channel.type === ChannelType8.GuildCategory;
+        const channelIsCategory = channel.type === ChannelType9.GuildCategory;
         const types = getSortableGroupTypes(channel.type);
         return discordSort(
           this.channels.cache.filter(
@@ -144780,7 +144832,7 @@ var require_Guild = __commonJS({
         );
       }
     };
-    exports2.Guild = Guild2;
+    exports2.Guild = Guild4;
   }
 });
 
@@ -144810,21 +144862,21 @@ var require_GuildManager = __commonJS({
     "use strict";
     var process3 = require("node:process");
     var { setTimeout: setTimeout2, clearTimeout: clearTimeout2 } = require("node:timers");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { GatewayOpcodes: GatewayOpcodes2, Routes: Routes3, RouteBases: RouteBases2 } = require_v106();
     var CachedManager = require_CachedManager();
     var { ErrorCodes: ErrorCodes2, DiscordjsError: DiscordjsError2 } = require_errors4();
     var ShardClientUtil2 = require_ShardClientUtil();
-    var { Guild: Guild2 } = require_Guild();
+    var { Guild: Guild4 } = require_Guild();
     var GuildChannel = require_GuildChannel();
     var GuildEmoji = require_GuildEmoji();
-    var { GuildMember } = require_GuildMember();
+    var { GuildMember: GuildMember3 } = require_GuildMember();
     var Invite2 = require_Invite();
     var OAuth2Guild = require_OAuth2Guild();
-    var { Role } = require_Role();
+    var { Role: Role3 } = require_Role();
     var { resolveImage } = require_DataResolver();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var PermissionsBitField2 = require_PermissionsBitField();
     var SystemChannelFlagsBitField = require_SystemChannelFlagsBitField();
     var { _transformAPIIncidentsData } = require_Transformers();
@@ -144835,7 +144887,7 @@ var require_GuildManager = __commonJS({
         __name(this, "GuildManager");
       }
       constructor(client, iterable) {
-        super(client, Guild2, iterable);
+        super(client, Guild4, iterable);
         if (!cacheWarningEmitted && this._cache.constructor.name !== "Collection") {
           cacheWarningEmitted = true;
           process3.emitWarning(
@@ -144906,7 +144958,7 @@ var require_GuildManager = __commonJS({
        * @returns {?Guild}
        */
       resolve(guild) {
-        if (guild instanceof GuildChannel || guild instanceof GuildMember || guild instanceof GuildEmoji || guild instanceof Role || guild instanceof Invite2 && guild.guild) {
+        if (guild instanceof GuildChannel || guild instanceof GuildMember3 || guild instanceof GuildEmoji || guild instanceof Role3 || guild instanceof Invite2 && guild.guild) {
           return super.resolve(guild.guild);
         }
         return super.resolve(guild);
@@ -144920,7 +144972,7 @@ var require_GuildManager = __commonJS({
        * @returns {?Snowflake}
        */
       resolveId(guild) {
-        if (guild instanceof GuildChannel || guild instanceof GuildMember || guild instanceof GuildEmoji || guild instanceof Role || guild instanceof Invite2 && guild.guild) {
+        if (guild instanceof GuildChannel || guild instanceof GuildMember3 || guild instanceof GuildEmoji || guild instanceof Role3 || guild instanceof Invite2 && guild.guild) {
           return super.resolveId(guild.guild.id);
         }
         return super.resolveId(guild);
@@ -145013,9 +145065,9 @@ var require_GuildManager = __commonJS({
             }
           }, "handleGuild");
           this.client.incrementMaxListeners();
-          this.client.once(Events7.GuildCreate, handleGuild);
+          this.client.once(Events8.GuildCreate, handleGuild);
           const timeout = setTimeout2(() => {
-            this.client.removeListener(Events7.GuildCreate, handleGuild);
+            this.client.removeListener(Events8.GuildCreate, handleGuild);
             this.client.decrementMaxListeners();
             resolve2(this.client.guilds._add(data));
           }, 1e4).unref();
@@ -145053,7 +145105,7 @@ var require_GuildManager = __commonJS({
           return this._add(data2, options.cache);
         }
         const data = await this.client.rest.get(Routes3.userGuilds(), { query: makeURLSearchParams2(options) });
-        return data.reduce((coll, guild) => coll.set(guild.id, new OAuth2Guild(this.client, guild)), new Collection2());
+        return data.reduce((coll, guild) => coll.set(guild.id, new OAuth2Guild(this.client, guild)), new Collection3());
       }
       /**
        * @typedef {Object} FetchSoundboardSoundsOptions
@@ -145091,7 +145143,7 @@ var require_GuildManager = __commonJS({
         }
         return new Promise((resolve2, reject) => {
           const remainingGuildIds = new Set(guildIds);
-          const fetchedSoundboardSounds = new Collection2();
+          const fetchedSoundboardSounds = new Collection3();
           const handler = /* @__PURE__ */ __name((soundboardSounds, guild) => {
             timeout.refresh();
             if (!remainingGuildIds.has(guild.id)) return;
@@ -145099,18 +145151,18 @@ var require_GuildManager = __commonJS({
             remainingGuildIds.delete(guild.id);
             if (remainingGuildIds.size === 0) {
               clearTimeout2(timeout);
-              this.client.removeListener(Events7.SoundboardSounds, handler);
+              this.client.removeListener(Events8.SoundboardSounds, handler);
               this.client.decrementMaxListeners();
               resolve2(fetchedSoundboardSounds);
             }
           }, "handler");
           const timeout = setTimeout2(() => {
-            this.client.removeListener(Events7.SoundboardSounds, handler);
+            this.client.removeListener(Events8.SoundboardSounds, handler);
             this.client.decrementMaxListeners();
             reject(new DiscordjsError2(ErrorCodes2.GuildSoundboardSoundsTimeout));
           }, time3).unref();
           this.client.incrementMaxListeners();
-          this.client.on(Events7.SoundboardSounds, handler);
+          this.client.on(Events8.SoundboardSounds, handler);
         });
       }
       /**
@@ -145159,20 +145211,20 @@ var require_GuildManager = __commonJS({
 var require_UserManager = __commonJS({
   "node_modules/discord.js/src/managers/UserManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType8, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType9, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
-    var { GuildMember } = require_GuildMember();
-    var { Message } = require_Message();
+    var { GuildMember: GuildMember3 } = require_GuildMember();
+    var { Message: Message8 } = require_Message();
     var ThreadMember = require_ThreadMember();
-    var User2 = require_User();
+    var User5 = require_User();
     var { emitDeprecationWarningForUserFetchFlags } = require_Util();
     var UserManager2 = class extends CachedManager {
       static {
         __name(this, "UserManager");
       }
       constructor(client, iterable) {
-        super(client, User2, iterable);
+        super(client, User5, iterable);
       }
       /**
        * The cache of this manager
@@ -145197,7 +145249,7 @@ var require_UserManager = __commonJS({
       dmChannel(userId) {
         const expectedRecipientIds = [userId, this.client.user.id];
         return this.client.channels.cache.find(
-          (channel) => channel.type === ChannelType8.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
+          (channel) => channel.type === ChannelType9.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
         ) ?? null;
       }
       /**
@@ -145270,8 +145322,8 @@ var require_UserManager = __commonJS({
        * @returns {?User}
        */
       resolve(user) {
-        if (user instanceof GuildMember || user instanceof ThreadMember) return user.user;
-        if (user instanceof Message) return user.author;
+        if (user instanceof GuildMember3 || user instanceof ThreadMember) return user.user;
+        if (user instanceof Message8) return user.author;
         return super.resolve(user);
       }
       /**
@@ -145281,8 +145333,8 @@ var require_UserManager = __commonJS({
        */
       resolveId(user) {
         if (user instanceof ThreadMember) return user.id;
-        if (user instanceof GuildMember) return user.user.id;
-        if (user instanceof Message) return user.author.id;
+        if (user instanceof GuildMember3) return user.user.id;
+        if (user instanceof Message8) return user.author.id;
         return super.resolveId(user);
       }
     };
@@ -145374,7 +145426,7 @@ var require_ClientPresence = __commonJS({
 var require_StickerPack = __commonJS({
   "node_modules/discord.js/src/structures/StickerPack.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { DiscordSnowflake } = require_cjs();
     var Base = require_Base();
     var { Sticker: Sticker2 } = require_Sticker();
@@ -145385,7 +145437,7 @@ var require_StickerPack = __commonJS({
       constructor(client, pack) {
         super(client);
         this.id = pack.id;
-        this.stickers = new Collection2(pack.stickers.map((sticker) => [sticker.id, new Sticker2(client, sticker)]));
+        this.stickers = new Collection3(pack.stickers.map((sticker) => [sticker.id, new Sticker2(client, sticker)]));
         this.name = pack.name;
         this.skuId = pack.sku_id;
         this.coverStickerId = pack.cover_sticker_id ?? null;
@@ -145492,7 +145544,7 @@ var require_WidgetMember = __commonJS({
 var require_Widget = __commonJS({
   "node_modules/discord.js/src/structures/Widget.js"(exports2, module2) {
     "use strict";
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var { Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var WidgetMember = require_WidgetMember();
@@ -145519,11 +145571,11 @@ var require_Widget = __commonJS({
         if ("instant_invite" in data) {
           this.instantInvite = data.instant_invite;
         }
-        this.channels = new Collection2();
+        this.channels = new Collection3();
         for (const channel of data.channels) {
           this.channels.set(channel.id, channel);
         }
-        this.members = new Collection2();
+        this.members = new Collection3();
         for (const member of data.members) {
           this.members.set(member.id, new WidgetMember(this.client, member));
         }
@@ -145580,7 +145632,7 @@ var require_Sweepers = __commonJS({
     "use strict";
     var { setInterval: setInterval2, clearInterval: clearInterval2 } = require("node:timers");
     var { ThreadChannelTypes, SweeperKeys } = require_Constants();
-    var Events7 = require_Events();
+    var Events8 = require_Events();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var Sweepers2 = class {
       static {
@@ -145618,7 +145670,7 @@ var require_Sweepers = __commonJS({
         const { guilds, items: guildCommands } = this._sweepGuildDirectProp("commands", filter, { emit: false });
         const globalCommands = this.client.application?.commands.cache.sweep(filter) ?? 0;
         this.client.emit(
-          Events7.CacheSweep,
+          Events8.CacheSweep,
           `Swept ${globalCommands} global application commands and ${guildCommands} guild commands in ${guilds} guilds.`
         );
         return guildCommands + globalCommands;
@@ -145658,7 +145710,7 @@ var require_Sweepers = __commonJS({
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "filter", "function");
         }
         const entitlements = this.client.application.entitlements.cache.sweep(filter);
-        this.client.emit(Events7.CacheSweep, `Swept ${entitlements} entitlements.`);
+        this.client.emit(Events8.CacheSweep, `Swept ${entitlements} entitlements.`);
         return entitlements;
       }
       /**
@@ -145703,7 +145755,7 @@ var require_Sweepers = __commonJS({
           channels++;
           messages += channel.messages.cache.sweep(filter);
         }
-        this.client.emit(Events7.CacheSweep, `Swept ${messages} messages in ${channels} text-based channels.`);
+        this.client.emit(Events8.CacheSweep, `Swept ${messages} messages in ${channels} text-based channels.`);
         return messages;
       }
       /**
@@ -145735,7 +145787,7 @@ var require_Sweepers = __commonJS({
           }
         }
         this.client.emit(
-          Events7.CacheSweep,
+          Events8.CacheSweep,
           `Swept ${reactions} reactions on ${messages} messages in ${channels} text-based channels.`
         );
         return reactions;
@@ -145773,7 +145825,7 @@ var require_Sweepers = __commonJS({
           threads++;
           members2 += channel.members.cache.sweep(filter);
         }
-        this.client.emit(Events7.CacheSweep, `Swept ${members2} thread members in ${threads} threads.`);
+        this.client.emit(Events8.CacheSweep, `Swept ${members2} thread members in ${threads} threads.`);
         return members2;
       }
       /**
@@ -145802,7 +145854,7 @@ var require_Sweepers = __commonJS({
             this.client.channels._remove(key);
           }
         }
-        this.client.emit(Events7.CacheSweep, `Swept ${threads} threads.`);
+        this.client.emit(Events8.CacheSweep, `Swept ${threads} threads.`);
         return threads;
       }
       /**
@@ -145815,7 +145867,7 @@ var require_Sweepers = __commonJS({
           throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "filter", "function");
         }
         const users = this.client.users.cache.sweep(filter);
-        this.client.emit(Events7.CacheSweep, `Swept ${users} users.`);
+        this.client.emit(Events8.CacheSweep, `Swept ${users} users.`);
         return users;
       }
       /**
@@ -145940,7 +145992,7 @@ var require_Sweepers = __commonJS({
           items += cache.sweep(filter);
         }
         if (emit) {
-          this.client.emit(Events7.CacheSweep, `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`);
+          this.client.emit(Events8.CacheSweep, `Swept ${items} ${outputName ?? key} in ${guilds} guilds.`);
         }
         return { guilds, items };
       }
@@ -146804,7 +146856,7 @@ var require_ShardingManager = __commonJS({
     var path3 = require("node:path");
     var process3 = require("node:process");
     var { setTimeout: sleep } = require("node:timers/promises");
-    var { Collection: Collection2 } = require_dist7();
+    var { Collection: Collection3 } = require_dist7();
     var Shard = require_Shard();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { fetchRecommendedShardCount } = require_Util();
@@ -146888,7 +146940,7 @@ var require_ShardingManager = __commonJS({
         this.shardArgs = _options.shardArgs;
         this.execArgv = _options.execArgv;
         this.token = _options.token?.replace(/^Bot\s*/i, "") ?? null;
-        this.shards = new Collection2();
+        this.shards = new Collection3();
         process3.env.SHARDING_MANAGER = true;
         process3.env.SHARDING_MANAGER_MODE = this.mode;
         process3.env.DISCORD_TOKEN = this.token;
@@ -147290,7 +147342,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder34 = class extends BuildersEmbed {
+    var EmbedBuilder52 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147322,7 +147374,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder34;
+    module2.exports = EmbedBuilder52;
   }
 });
 
@@ -147456,7 +147508,7 @@ var require_ModalBuilder = __commonJS({
     var { ModalBuilder: BuildersModal, ComponentBuilder } = require_dist9();
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
-    var ModalBuilder = class extends BuildersModal {
+    var ModalBuilder8 = class extends BuildersModal {
       static {
         __name(this, "ModalBuilder");
       }
@@ -147477,7 +147529,7 @@ var require_ModalBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ModalBuilder;
+    module2.exports = ModalBuilder8;
   }
 });
 
@@ -147486,9 +147538,9 @@ var require_SelectMenuBuilder = __commonJS({
   "node_modules/discord.js/src/structures/SelectMenuBuilder.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var StringSelectMenuBuilder = require_StringSelectMenuBuilder();
+    var StringSelectMenuBuilder4 = require_StringSelectMenuBuilder();
     var deprecationEmitted = false;
-    var SelectMenuBuilder3 = class extends StringSelectMenuBuilder {
+    var SelectMenuBuilder3 = class extends StringSelectMenuBuilder4 {
       static {
         __name(this, "SelectMenuBuilder");
       }
@@ -147538,9 +147590,9 @@ var require_SelectMenuInteraction = __commonJS({
   "node_modules/discord.js/src/structures/SelectMenuInteraction.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var StringSelectMenuInteraction = require_StringSelectMenuInteraction();
+    var StringSelectMenuInteraction2 = require_StringSelectMenuInteraction();
     var deprecationEmitted = false;
-    var SelectMenuInteraction = class extends StringSelectMenuInteraction {
+    var SelectMenuInteraction = class extends StringSelectMenuInteraction2 {
       static {
         __name(this, "SelectMenuInteraction");
       }
@@ -147567,7 +147619,7 @@ var require_StringSelectMenuOptionBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var StringSelectMenuOptionBuilder = class extends BuildersSelectMenuOption {
+    var StringSelectMenuOptionBuilder4 = class extends BuildersSelectMenuOption {
       static {
         __name(this, "StringSelectMenuOptionBuilder");
       }
@@ -147599,7 +147651,7 @@ var require_StringSelectMenuOptionBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = StringSelectMenuOptionBuilder;
+    module2.exports = StringSelectMenuOptionBuilder4;
   }
 });
 
@@ -147608,9 +147660,9 @@ var require_SelectMenuOptionBuilder = __commonJS({
   "node_modules/discord.js/src/structures/SelectMenuOptionBuilder.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var StringSelectMenuOptionBuilder = require_StringSelectMenuOptionBuilder();
+    var StringSelectMenuOptionBuilder4 = require_StringSelectMenuOptionBuilder();
     var deprecationEmitted = false;
-    var SelectMenuOptionBuilder2 = class extends StringSelectMenuOptionBuilder {
+    var SelectMenuOptionBuilder2 = class extends StringSelectMenuOptionBuilder4 {
       static {
         __name(this, "SelectMenuOptionBuilder");
       }
@@ -169037,19 +169089,19 @@ async function writeConfigDocument(key, value) {
     { upsert: true }
   );
 }
-var import_mongoose5, botConfigSchema, BotConfig;
+var import_mongoose24, botConfigSchema, BotConfig;
 var init_BotConfig = __esm({
   "src/db/models/BotConfig.ts"() {
     "use strict";
-    import_mongoose5 = __toESM(require_mongoose2());
-    botConfigSchema = new import_mongoose5.Schema(
+    import_mongoose24 = __toESM(require_mongoose2());
+    botConfigSchema = new import_mongoose24.Schema(
       {
         key: { type: String, required: true, unique: true, index: true },
-        value: { type: import_mongoose5.Schema.Types.Mixed, default: {} }
+        value: { type: import_mongoose24.Schema.Types.Mixed, default: {} }
       },
       { timestamps: true, collection: "bot_configs" }
     );
-    BotConfig = (0, import_mongoose5.model)("BotConfig", botConfigSchema);
+    BotConfig = (0, import_mongoose24.model)("BotConfig", botConfigSchema);
     __name(readConfigDocument, "readConfigDocument");
     __name(writeConfigDocument, "writeConfigDocument");
   }
@@ -171957,16 +172009,16 @@ to ${stringifyState(newState)}`);
        *
        * @param ms - The interval in milliseconds. If negative, the interval will be unset
        */
-      setHeartbeatInterval(ms) {
+      setHeartbeatInterval(ms2) {
         if (this.heartbeatInterval !== void 0) clearInterval(this.heartbeatInterval);
-        if (ms > 0) {
+        if (ms2 > 0) {
           this.heartbeatInterval = setInterval(() => {
             if (this.lastHeartbeatSend !== 0 && this.missedHeartbeats >= 3) {
               this.ws.close();
               this.setHeartbeatInterval(-1);
             }
             this.sendHeartbeat();
-          }, ms);
+          }, ms2);
         }
       }
     };
@@ -172207,7 +172259,7 @@ to ${stringifyState2(newState)}`);
         if (packet.op === VoiceOpcodes.Hello && this.state.code !== 6) {
           this.state.ws.setHeartbeatInterval(packet.d.heartbeat_interval);
         } else if (packet.op === VoiceOpcodes.Ready && this.state.code === 1) {
-          const { ip, port, ssrc, modes } = packet.d;
+          const { ip, port, ssrc, modes: modes2 } = packet.d;
           const udp = new VoiceUDPSocket({ ip, port });
           udp.on("error", this.onChildError);
           udp.on("debug", this.onUdpDebug);
@@ -172221,7 +172273,7 @@ to ${stringifyState2(newState)}`);
                 data: {
                   address: localConfig.ip,
                   port: localConfig.port,
-                  mode: chooseEncryptionMode(modes)
+                  mode: chooseEncryptionMode(modes2)
                 }
               }
             });
@@ -175614,29 +175666,29 @@ var require_atomic_sleep = __commonJS({
   "node_modules/atomic-sleep/index.js"(exports2, module2) {
     "use strict";
     if (typeof SharedArrayBuffer !== "undefined" && typeof Atomics !== "undefined") {
-      let sleep = function(ms) {
-        const valid = ms > 0 && ms < Infinity;
+      let sleep = function(ms2) {
+        const valid = ms2 > 0 && ms2 < Infinity;
         if (valid === false) {
-          if (typeof ms !== "number" && typeof ms !== "bigint") {
+          if (typeof ms2 !== "number" && typeof ms2 !== "bigint") {
             throw TypeError("sleep: ms must be a number");
           }
           throw RangeError("sleep: ms must be a number that is greater than 0 but less than Infinity");
         }
-        Atomics.wait(nil, 0, 0, Number(ms));
+        Atomics.wait(nil, 0, 0, Number(ms2));
       };
       __name(sleep, "sleep");
       const nil = new Int32Array(new SharedArrayBuffer(4));
       module2.exports = sleep;
     } else {
-      let sleep = function(ms) {
-        const valid = ms > 0 && ms < Infinity;
+      let sleep = function(ms2) {
+        const valid = ms2 > 0 && ms2 < Infinity;
         if (valid === false) {
-          if (typeof ms !== "number" && typeof ms !== "bigint") {
+          if (typeof ms2 !== "number" && typeof ms2 !== "bigint") {
             throw TypeError("sleep: ms must be a number");
           }
           throw RangeError("sleep: ms must be a number that is greater than 0 but less than Infinity");
         }
-        const target = Date.now() + Number(ms);
+        const target = Date.now() + Number(ms2);
         while (target > Date.now()) {
         }
       };
@@ -179187,7 +179239,7 @@ var require_pino = __commonJS({
 });
 
 // src/db/index.ts
-var import_mongoose4 = __toESM(require_mongoose2());
+var import_mongoose23 = __toESM(require_mongoose2());
 
 // src/db/models/Guild.ts
 var import_mongoose = __toESM(require_mongoose2());
@@ -179512,11 +179564,650 @@ async function countRanked() {
 }
 __name(countRanked, "countRanked");
 
+// src/db/models/AutoModRule.ts
+var import_mongoose4 = __toESM(require_mongoose2());
+var autoModRuleSchema = new import_mongoose4.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    name: { type: String, required: true, maxlength: 100 },
+    type: {
+      type: String,
+      enum: ["spam", "links", "invites", "words", "caps", "mentions", "attachments", "newlines", "emojis", "repeated"],
+      required: true
+    },
+    enabled: { type: Boolean, default: true },
+    actions: {
+      type: [String],
+      enum: ["delete", "warn", "timeout", "ban", "log"],
+      default: ["delete", "log"]
+    },
+    timeoutDuration: { type: Number, default: 300 },
+    warnMessage: { type: String, maxlength: 500 },
+    logChannel: { type: String },
+    ignoreChannels: { type: [String], default: [] },
+    ignoreRoles: { type: [String], default: [] },
+    config: {
+      type: import_mongoose4.Schema.Types.Mixed,
+      default: {}
+    }
+  },
+  { timestamps: true }
+);
+autoModRuleSchema.index({ guildId: 1, type: 1 });
+var AutoModRule = (0, import_mongoose4.model)("AutoModRule", autoModRuleSchema);
+
+// src/db/models/Infraction.ts
+var import_mongoose5 = __toESM(require_mongoose2());
+var infractionSchema = new import_mongoose5.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    userId: { type: String, required: true, index: true },
+    moderatorId: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ["warn", "timeout", "ban", "kick", "unban", "untimeout", "note"],
+      required: true
+    },
+    reason: { type: String, required: true, maxlength: 1e3 },
+    duration: { type: Number },
+    expiresAt: { type: Date, index: true },
+    active: { type: Boolean, default: true },
+    dmSent: { type: Boolean, default: false },
+    messageId: { type: String },
+    channelId: { type: String }
+  },
+  { timestamps: true }
+);
+infractionSchema.index({ guildId: 1, userId: 1, createdAt: -1 });
+infractionSchema.index({ guildId: 1, active: 1, expiresAt: 1 });
+var Infraction = (0, import_mongoose5.model)("Infraction", infractionSchema);
+
+// src/db/models/ReactionRolePanel.ts
+var import_mongoose6 = __toESM(require_mongoose2());
+var reactionRoleOptionSchema = new import_mongoose6.Schema(
+  {
+    roleId: { type: String, required: true },
+    emoji: { type: String, required: true },
+    label: { type: String, maxlength: 80 },
+    description: { type: String, maxlength: 100 }
+  },
+  { _id: false }
+);
+var reactionRolePanelSchema = new import_mongoose6.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    channelId: { type: String, required: true },
+    messageId: { type: String },
+    title: { type: String, required: true, maxlength: 256 },
+    description: { type: String, maxlength: 4e3 },
+    color: { type: Number },
+    image: { type: String },
+    thumbnail: { type: String },
+    mode: {
+      type: String,
+      enum: ["unique", "verify", "reversed", "binding", "temporary"],
+      default: "unique"
+    },
+    temporaryDuration: { type: Number },
+    bindingRoleId: { type: String },
+    options: { type: [reactionRoleOptionSchema], default: [] },
+    useButtons: { type: Boolean, default: false },
+    buttonStyle: { type: Number, enum: [1, 2, 3, 4] },
+    selectPlaceholder: { type: String, maxlength: 150 },
+    minSelect: { type: Number, default: 1, min: 1, max: 25 },
+    maxSelect: { type: Number, default: 1, min: 1, max: 25 },
+    active: { type: Boolean, default: true },
+    dmUser: { type: Boolean, default: false }
+  },
+  { timestamps: true }
+);
+reactionRolePanelSchema.index({ guildId: 1, channelId: 1 });
+reactionRolePanelSchema.index({ messageId: 1 });
+var ReactionRolePanel = (0, import_mongoose6.model)("ReactionRolePanel", reactionRolePanelSchema);
+
+// src/db/index.ts
+init_CustomCommand();
+
+// src/db/models/LogChannel.ts
+var import_mongoose8 = __toESM(require_mongoose2());
+var logChannelSchema = new import_mongoose8.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    event: {
+      type: String,
+      enum: [
+        "messageDelete",
+        "messageEdit",
+        "messageDeleteBulk",
+        "memberJoin",
+        "memberLeave",
+        "memberBanAdd",
+        "memberBanRemove",
+        "memberUpdate",
+        "roleCreate",
+        "roleDelete",
+        "roleUpdate",
+        "channelCreate",
+        "channelDelete",
+        "channelUpdate",
+        "voiceStateUpdate",
+        "inviteCreate",
+        "inviteDelete",
+        "guildUpdate",
+        "emojiCreate",
+        "emojiDelete",
+        "emojiUpdate",
+        "stickerCreate",
+        "stickerDelete",
+        "stickerUpdate",
+        "threadCreate",
+        "threadDelete",
+        "threadUpdate",
+        "moderationWarn",
+        "moderationTimeout",
+        "moderationBan",
+        "moderationKick",
+        "moderationUnban",
+        "moderationNote",
+        "automodTrigger"
+      ],
+      required: true
+    },
+    channelId: { type: String, required: true },
+    includeContent: { type: Boolean, default: true },
+    logBots: { type: Boolean, default: false },
+    ignoredChannels: { type: [String], default: [] },
+    ignoredRoles: { type: [String], default: [] },
+    webhookId: { type: String },
+    webhookToken: { type: String }
+  },
+  { timestamps: true }
+);
+logChannelSchema.index({ guildId: 1, event: 1 }, { unique: true });
+var LogChannel = (0, import_mongoose8.model)("LogChannel", logChannelSchema);
+
+// src/db/models/InviteTracker.ts
+var import_mongoose9 = __toESM(require_mongoose2());
+var inviteTrackerSchema = new import_mongoose9.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    code: { type: String, required: true },
+    inviterId: { type: String, required: true, index: true },
+    uses: { type: Number, default: 0 },
+    maxUses: { type: Number, default: 0 },
+    temporary: { type: Boolean, default: false },
+    expiresAt: { type: Date },
+    channelId: { type: String },
+    vanity: { type: Boolean, default: false },
+    members: [{
+      userId: { type: String, required: true },
+      joinedAt: { type: Date, default: Date.now },
+      leftAt: { type: Date },
+      fake: { type: Boolean, default: false }
+    }]
+  },
+  { timestamps: true }
+);
+inviteTrackerSchema.index({ guildId: 1, code: 1 }, { unique: true });
+inviteTrackerSchema.index({ guildId: 1, inviterId: 1 });
+var InviteTracker = (0, import_mongoose9.model)("InviteTracker", inviteTrackerSchema);
+
+// src/db/models/Starboard.ts
+var import_mongoose10 = __toESM(require_mongoose2());
+var starboardConfigSchema = new import_mongoose10.Schema(
+  {
+    guildId: { type: String, required: true, unique: true, index: true },
+    channelId: { type: String, required: true },
+    threshold: { type: Number, required: true, min: 1, max: 1e3, default: 5 },
+    emoji: { type: String, default: "\u2B50" },
+    allowSelfStar: { type: Boolean, default: false },
+    allowBotMessages: { type: Boolean, default: false },
+    requireAttachment: { type: Boolean, default: false },
+    requireEmbed: { type: Boolean, default: false },
+    ignoredChannels: { type: [String], default: [] },
+    ignoredRoles: { type: [String], default: [] },
+    color: { type: Number },
+    includeJumpLink: { type: Boolean, default: true },
+    showCountOnOriginal: { type: Boolean, default: false },
+    maxAgeDays: { type: Number, default: 0, min: 0 },
+    allowMultiple: { type: Boolean, default: false },
+    enabled: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+var starboardEntrySchema = new import_mongoose10.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    messageId: { type: String, required: true },
+    starboardMessageId: { type: String, required: true },
+    channelId: { type: String, required: true },
+    authorId: { type: String, required: true },
+    stars: { type: Number, default: 1 },
+    starredBy: { type: [String], default: [] }
+  },
+  { timestamps: true }
+);
+starboardEntrySchema.index({ guildId: 1, messageId: 1 }, { unique: true });
+starboardEntrySchema.index({ guildId: 1, starboardMessageId: 1 });
+var StarboardConfig = (0, import_mongoose10.model)("StarboardConfig", starboardConfigSchema);
+var StarboardEntry = (0, import_mongoose10.model)("StarboardEntry", starboardEntrySchema);
+
+// src/db/models/Suggestion.ts
+var import_mongoose11 = __toESM(require_mongoose2());
+var suggestionSchema = new import_mongoose11.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    channelId: { type: String, required: true },
+    messageId: { type: String },
+    authorId: { type: String, required: true, index: true },
+    title: { type: String, required: true, maxlength: 256 },
+    description: { type: String, required: true, maxlength: 4e3 },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "denied", "implemented", "deferred"],
+      default: "pending",
+      index: true
+    },
+    reviewedBy: { type: String },
+    reviewReason: { type: String, maxlength: 1e3 },
+    reviewedAt: { type: Date },
+    upvotes: { type: [String], default: [] },
+    downvotes: { type: [String], default: [] },
+    anonymous: { type: Boolean, default: false },
+    attachments: { type: [String], default: [] }
+  },
+  { timestamps: true }
+);
+suggestionSchema.index({ guildId: 1, status: 1, createdAt: -1 });
+suggestionSchema.index({ guildId: 1, channelId: 1 });
+var Suggestion = (0, import_mongoose11.model)("Suggestion", suggestionSchema);
+
+// src/db/models/Reminder.ts
+var import_mongoose12 = __toESM(require_mongoose2());
+var reminderSchema = new import_mongoose12.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    guildId: { type: String, index: true },
+    channelId: { type: String },
+    text: { type: String, required: true, maxlength: 2e3 },
+    remindAt: { type: Date, required: true, index: true },
+    sent: { type: Boolean, default: false, index: true },
+    recurring: {
+      pattern: { type: String },
+      timezone: { type: String, default: "UTC" },
+      nextRun: { type: Date }
+    },
+    messageId: { type: String },
+    dm: { type: Boolean, default: false }
+  },
+  { timestamps: true }
+);
+reminderSchema.index({ sent: 1, remindAt: 1 });
+var Reminder = (0, import_mongoose12.model)("Reminder", reminderSchema);
+
+// src/db/models/AFK.ts
+var import_mongoose13 = __toESM(require_mongoose2());
+var afkSchema = new import_mongoose13.Schema(
+  {
+    userId: { type: String, required: true },
+    guildId: { type: String, required: true, index: true },
+    reason: { type: String, maxlength: 500, default: "AFK" },
+    setAt: { type: Date, default: Date.now },
+    mentions: { type: Number, default: 0 },
+    lastMentionedAt: { type: Date },
+    originalNickname: { type: String }
+  },
+  { timestamps: true }
+);
+afkSchema.index({ guildId: 1, userId: 1 }, { unique: true });
+var AFK = (0, import_mongoose13.model)("AFK", afkSchema);
+
+// src/db/models/Birthday.ts
+var import_mongoose14 = __toESM(require_mongoose2());
+var birthdaySchema = new import_mongoose14.Schema(
+  {
+    userId: { type: String, required: true },
+    guildId: { type: String, required: true, index: true },
+    month: { type: Number, required: true, min: 1, max: 12 },
+    day: { type: Number, required: true, min: 1, max: 31 },
+    year: { type: Number, min: 1900, max: (/* @__PURE__ */ new Date()).getFullYear() },
+    announce: { type: Boolean, default: true },
+    customMessage: { type: String, maxlength: 500 },
+    roleId: { type: String },
+    lastAnnouncedYear: { type: Number },
+    timezone: { type: String, default: "UTC" }
+  },
+  { timestamps: true }
+);
+birthdaySchema.index({ guildId: 1, month: 1, day: 1 });
+birthdaySchema.index({ guildId: 1, userId: 1 }, { unique: true });
+var Birthday = (0, import_mongoose14.model)("Birthday", birthdaySchema);
+
+// src/db/models/Marriage.ts
+var import_mongoose15 = __toESM(require_mongoose2());
+var marriageSchema = new import_mongoose15.Schema(
+  {
+    userId1: { type: String, required: true, index: true },
+    userId2: { type: String, required: true, index: true },
+    guildId: { type: String, required: true, index: true },
+    proposerId: { type: String, required: true },
+    marriedAt: { type: Date, default: Date.now },
+    message: { type: String, maxlength: 500 },
+    divorced: { type: Boolean, default: false },
+    divorcedAt: { type: Date },
+    divorceInitiatorId: { type: String },
+    stats: {
+      hugs: { type: Number, default: 0 },
+      kisses: { type: Number, default: 0 },
+      gifts: { type: Number, default: 0 }
+    }
+  },
+  { timestamps: true }
+);
+marriageSchema.index({ guildId: 1, userId1: 1 }, { unique: true });
+marriageSchema.index({ guildId: 1, userId2: 1 }, { unique: true });
+var Marriage = (0, import_mongoose15.model)("Marriage", marriageSchema);
+
+// src/db/models/Pet.ts
+var import_mongoose16 = __toESM(require_mongoose2());
+var petSchema = new import_mongoose16.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    guildId: { type: String, required: true, index: true },
+    name: { type: String, required: true, maxlength: 32 },
+    type: {
+      type: String,
+      enum: ["dog", "cat", "fox", "dragon", "phoenix", "unicorn", "slime", "robot", "ghost", "bunny"],
+      required: true
+    },
+    level: { type: Number, default: 1, min: 1, max: 100 },
+    xp: { type: Number, default: 0 },
+    hunger: { type: Number, default: 100, min: 0, max: 100 },
+    happiness: { type: Number, default: 100, min: 0, max: 100 },
+    health: { type: Number, default: 100, min: 0, max: 100 },
+    energy: { type: Number, default: 100, min: 0, max: 100 },
+    lastFed: { type: Date },
+    lastPlayed: { type: Date },
+    lastTrained: { type: Date },
+    lastBattled: { type: Date },
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 },
+    draws: { type: Number, default: 0 },
+    coinsEarned: { type: Number, default: 0 },
+    accessories: { type: [String], default: [] },
+    evolution: { type: Number, default: 0 },
+    description: { type: String, maxlength: 500 }
+  },
+  { timestamps: true }
+);
+petSchema.index({ guildId: 1, userId: 1 }, { unique: true });
+var Pet = (0, import_mongoose16.model)("Pet", petSchema);
+
+// src/db/models/GameProfile.ts
+var import_mongoose17 = __toESM(require_mongoose2());
+var gameProfileSchema = new import_mongoose17.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    guildId: { type: String, required: true, index: true },
+    casino: {
+      wagered: { type: Number, default: 0 },
+      won: { type: Number, default: 0 },
+      lost: { type: Number, default: 0 },
+      biggestWin: { type: Number, default: 0 },
+      biggestLoss: { type: Number, default: 0 },
+      gamesPlayed: { type: Number, default: 0 },
+      slots: { played: { type: Number, default: 0 }, won: { type: Number, default: 0 }, lost: { type: Number, default: 0 }, jackpots: { type: Number, default: 0 } },
+      blackjack: { played: { type: Number, default: 0 }, won: { type: Number, default: 0 }, lost: { type: Number, default: 0 }, pushed: { type: Number, default: 0 }, blackjacks: { type: Number, default: 0 } },
+      roulette: { played: { type: Number, default: 0 }, won: { type: Number, default: 0 }, lost: { type: Number, default: 0 }, straightWins: { type: Number, default: 0 } },
+      crash: { played: { type: Number, default: 0 }, won: { type: Number, default: 0 }, lost: { type: Number, default: 0 }, highestMultiplier: { type: Number, default: 0 } },
+      coinflip: { played: { type: Number, default: 0 }, won: { type: Number, default: 0 }, lost: { type: Number, default: 0 }, streak: { type: Number, default: 0 }, maxStreak: { type: Number, default: 0 } }
+    },
+    fishing: { caught: { type: Number, default: 0 }, sold: { type: Number, default: 0 }, biggestFish: { name: { type: String }, weight: { type: Number }, value: { type: Number } }, rareCatches: { type: Number, default: 0 } },
+    mining: { mined: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
+    hunting: { hunted: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
+    work: { timesWorked: { type: Number, default: 0 }, totalEarned: { type: Number, default: 0 }, bestJob: { type: String } },
+    dailyStreak: { type: Number, default: 0 },
+    maxDailyStreak: { type: Number, default: 0 },
+    lastDaily: { type: Date },
+    achievements: { type: [String], default: [] }
+  },
+  { timestamps: true }
+);
+gameProfileSchema.index({ guildId: 1, userId: 1 }, { unique: true });
+var GameProfile = (0, import_mongoose17.model)("GameProfile", gameProfileSchema);
+
+// src/db/models/WelcomeConfig.ts
+var import_mongoose18 = __toESM(require_mongoose2());
+var welcomeConfigSchema = new import_mongoose18.Schema(
+  {
+    guildId: { type: String, required: true, unique: true, index: true },
+    welcomeChannelId: { type: String },
+    welcomeMessage: { type: String, maxlength: 2e3 },
+    welcomeEmbed: {
+      title: { type: String, maxlength: 256 },
+      description: { type: String, maxlength: 4e3 },
+      color: { type: Number },
+      thumbnail: { type: String },
+      image: { type: String },
+      footer: { type: String, maxlength: 2048 },
+      fields: [{
+        name: { type: String, maxlength: 256 },
+        value: { type: String, maxlength: 1024 },
+        inline: { type: Boolean }
+      }]
+    },
+    dmMessage: { type: String, maxlength: 2e3 },
+    dmEmbed: {
+      title: { type: String, maxlength: 256 },
+      description: { type: String, maxlength: 4e3 },
+      color: { type: Number },
+      thumbnail: { type: String },
+      image: { type: String },
+      footer: { type: String, maxlength: 2048 }
+    },
+    leaveChannelId: { type: String },
+    leaveMessage: { type: String, maxlength: 2e3 },
+    leaveEmbed: {
+      title: { type: String, maxlength: 256 },
+      description: { type: String, maxlength: 4e3 },
+      color: { type: Number },
+      thumbnail: { type: String },
+      image: { type: String },
+      footer: { type: String, maxlength: 2048 }
+    },
+    autoRoleId: { type: String },
+    botAutoRoleId: { type: String },
+    banChannelId: { type: String },
+    banMessage: { type: String, maxlength: 1e3 },
+    memberCountChannelName: { type: String, maxlength: 100 },
+    memberCountChannelId: { type: String },
+    updateMemberCount: { type: Boolean, default: false },
+    vanityRoleId: { type: String },
+    vanityCode: { type: String },
+    welcomeImage: {
+      enabled: { type: Boolean, default: false },
+      background: { type: String },
+      avatarBorder: { type: Boolean, default: true },
+      avatarBorderColor: { type: Number },
+      textColor: { type: Number },
+      font: { type: String }
+    }
+  },
+  { timestamps: true }
+);
+var WelcomeConfig = (0, import_mongoose18.model)("WelcomeConfig", welcomeConfigSchema);
+
+// src/db/models/NotificationFeed.ts
+var import_mongoose19 = __toESM(require_mongoose2());
+var notificationFeedSchema = new import_mongoose19.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    type: {
+      type: String,
+      enum: ["twitch", "youtube", "reddit", "twitter", "rss", "steam"],
+      required: true
+    },
+    channelId: { type: String, required: true },
+    source: { type: String, required: true },
+    sourceUrl: { type: String },
+    message: { type: String, maxlength: 2e3 },
+    color: { type: Number },
+    roleId: { type: String },
+    pingEveryone: { type: Boolean, default: false },
+    active: { type: Boolean, default: true },
+    lastChecked: { type: Date },
+    lastItemId: { type: String },
+    errorCount: { type: Number, default: 0 },
+    lastError: { type: String },
+    keywords: { type: [String], default: [] },
+    excludeKeywords: { type: [String], default: [] },
+    redditSort: { type: String, enum: ["hot", "new", "top", "rising"] },
+    redditTime: { type: String, enum: ["hour", "day", "week", "month", "year", "all"] },
+    rssHeaders: { type: import_mongoose19.Schema.Types.Mixed, default: {} }
+  },
+  { timestamps: true }
+);
+notificationFeedSchema.index({ guildId: 1, type: 1, source: 1 }, { unique: true });
+notificationFeedSchema.index({ active: 1, lastChecked: 1 });
+var NotificationFeed = (0, import_mongoose19.model)("NotificationFeed", notificationFeedSchema);
+
+// src/db/models/ThemeConfig.ts
+var import_mongoose20 = __toESM(require_mongoose2());
+var themeConfigSchema = new import_mongoose20.Schema(
+  {
+    guildId: { type: String, required: true, unique: true, index: true },
+    preset: { type: String },
+    primaryColor: { type: String, default: "#e5484d", match: /^#[0-9A-Fa-f]{6}$/ },
+    secondaryColor: { type: String, default: "#10141d", match: /^#[0-9A-Fa-f]{6}$/ },
+    accentColor: { type: String, default: "#ff6b70", match: /^#[0-9A-Fa-f]{6}$/ },
+    backgroundColor: { type: String, default: "#0b0d12", match: /^#[0-9A-Fa-f]{6}$/ },
+    surfaceColor: { type: String, default: "#121722", match: /^#[0-9A-Fa-f]{6}$/ },
+    textColor: { type: String, default: "#e8ecf4", match: /^#[0-9A-Fa-f]{6}$/ },
+    mutedColor: { type: String, default: "#768099", match: /^#[0-9A-Fa-f]{6}$/ },
+    borderColor: { type: String, default: "#232b3b", match: /^#[0-9A-Fa-f]{6}$/ },
+    successColor: { type: String, default: "#34d399", match: /^#[0-9A-Fa-f]{6}$/ },
+    warningColor: { type: String, default: "#f5b544", match: /^#[0-9A-Fa-f]{6}$/ },
+    errorColor: { type: String, default: "#e5484d", match: /^#[0-9A-Fa-f]{6}$/ },
+    fontFamily: { type: String },
+    headingFontFamily: { type: String },
+    borderRadius: { type: Number, default: 14, min: 0, max: 50 },
+    glassmorphism: { type: Boolean, default: true },
+    glassOpacity: { type: Number, default: 0.8, min: 0, max: 1 },
+    customCSS: { type: String, maxlength: 1e4 },
+    embedDefaults: {
+      color: { type: String, match: /^#[0-9A-Fa-f]{6}$/ },
+      footerText: { type: String, maxlength: 2048 },
+      footerIcon: { type: String },
+      thumbnail: { type: String },
+      image: { type: String },
+      timestamp: { type: Boolean, default: true }
+    },
+    active: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+var ThemeConfig = (0, import_mongoose20.model)("ThemeConfig", themeConfigSchema);
+
+// src/db/models/ColorRole.ts
+var import_mongoose21 = __toESM(require_mongoose2());
+var colorRoleSchema = new import_mongoose21.Schema(
+  {
+    guildId: { type: String, required: true, index: true },
+    roleId: { type: String, required: true, unique: true },
+    name: { type: String, required: true, maxlength: 50 },
+    gradient: { type: String, required: true },
+    colors: { type: [String], required: true, validate: /* @__PURE__ */ __name((v) => v.length >= 2, "validate") },
+    animationDuration: { type: Number, default: 10, min: 1, max: 60 },
+    pickable: { type: Boolean, default: true },
+    requiredRoleId: { type: String },
+    cost: { type: Number, default: 0, min: 0 },
+    maxUsers: { type: Number, default: 0, min: 0 },
+    currentUsers: { type: Number, default: 0 },
+    position: { type: Number, default: 0 },
+    active: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+colorRoleSchema.index({ guildId: 1, position: 1 });
+var ColorRole = (0, import_mongoose21.model)("ColorRole", colorRoleSchema);
+
+// src/db/models/AnalyticsEvent.ts
+var import_mongoose22 = __toESM(require_mongoose2());
+var analyticsEventSchema = new import_mongoose22.Schema(
+  {
+    type: {
+      type: String,
+      enum: [
+        "command_used",
+        "command_error",
+        "message_received",
+        "message_sent",
+        "voice_join",
+        "voice_leave",
+        "voice_speak",
+        "xp_gained",
+        "level_up",
+        "economy_transaction",
+        "moderation_action",
+        "automod_trigger",
+        "reaction_role_add",
+        "reaction_role_remove",
+        "suggestion_created",
+        "suggestion_voted",
+        "ticket_created",
+        "ticket_closed",
+        "music_play",
+        "music_skip",
+        "invite_join",
+        "invite_leave",
+        "starboard_star",
+        "reminder_triggered",
+        "afk_set",
+        "afk_removed",
+        "birthday_announced",
+        "marriage_propose",
+        "marriage_accept",
+        "marriage_divorce",
+        "pet_adopt",
+        "pet_feed",
+        "pet_battle",
+        "casino_play",
+        "welcome_sent",
+        "leave_sent",
+        "notification_posted",
+        "theme_changed",
+        "color_role_picked",
+        "dashboard_view",
+        "dashboard_action",
+        "bot_startup",
+        "bot_shutdown",
+        "error"
+      ],
+      required: true,
+      index: true
+    },
+    guildId: { type: String, index: true },
+    userId: { type: String, index: true },
+    name: { type: String, required: true },
+    properties: { type: import_mongoose22.Schema.Types.Mixed, default: {} },
+    timestamp: { type: Date, default: Date.now, index: true },
+    sessionId: { type: String }
+  },
+  { timestamps: false }
+  // We use custom timestamp
+);
+analyticsEventSchema.index({ type: 1, timestamp: -1 });
+analyticsEventSchema.index({ guildId: 1, timestamp: -1 });
+analyticsEventSchema.index({ userId: 1, timestamp: -1 });
+analyticsEventSchema.index({ sessionId: 1 });
+analyticsEventSchema.index({ timestamp: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+var AnalyticsEvent = (0, import_mongoose22.model)("AnalyticsEvent", analyticsEventSchema);
+
 // src/db/index.ts
 var _conn = null;
 async function connectDatabase(uri) {
   if (_conn) return _conn;
-  _conn = await import_mongoose4.default.connect(uri);
+  _conn = await import_mongoose23.default.connect(uri);
   return _conn;
 }
 __name(connectDatabase, "connectDatabase");
@@ -179701,8 +180392,8 @@ var voiceCommand = {
 var import_discord5 = __toESM(require_src());
 
 // src/db/models/Vc.ts
-var import_mongoose6 = __toESM(require_mongoose2());
-var vcPanelSchema = new import_mongoose6.Schema(
+var import_mongoose25 = __toESM(require_mongoose2());
+var vcPanelSchema = new import_mongoose25.Schema(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true },
@@ -179719,7 +180410,7 @@ var vcPanelSchema = new import_mongoose6.Schema(
   { timestamps: true }
 );
 vcPanelSchema.index({ guildId: 1 });
-var VcPanel = (0, import_mongoose6.model)("VcPanel", vcPanelSchema);
+var VcPanel = (0, import_mongoose25.model)("VcPanel", vcPanelSchema);
 async function readVcPanel(guildId, messageId) {
   return VcPanel.findOne({ guildId, messageId }).lean();
 }
@@ -179844,8 +180535,8 @@ __name(handleRemove, "handleRemove");
 var import_discord6 = __toESM(require_src());
 
 // src/db/models/TempVC.ts
-var import_mongoose7 = __toESM(require_mongoose2());
-var tempVCConfigSchema = new import_mongoose7.Schema(
+var import_mongoose26 = __toESM(require_mongoose2());
+var tempVCConfigSchema = new import_mongoose26.Schema(
   {
     guildId: { type: String, required: true, unique: true, index: true },
     createChannelId: { type: String },
@@ -179860,8 +180551,8 @@ var tempVCConfigSchema = new import_mongoose7.Schema(
   },
   { timestamps: true }
 );
-var TempVCConfig = (0, import_mongoose7.model)("TempVCConfig", tempVCConfigSchema);
-var activeTempVCSchema = new import_mongoose7.Schema(
+var TempVCConfig = (0, import_mongoose26.model)("TempVCConfig", tempVCConfigSchema);
+var activeTempVCSchema = new import_mongoose26.Schema(
   {
     guildId: { type: String, required: true, index: true },
     channelId: { type: String, required: true, unique: true },
@@ -179870,7 +180561,7 @@ var activeTempVCSchema = new import_mongoose7.Schema(
   { timestamps: true }
 );
 activeTempVCSchema.index({ guildId: 1, ownerId: 1 });
-var ActiveTempVC = (0, import_mongoose7.model)("ActiveTempVC", activeTempVCSchema);
+var ActiveTempVC = (0, import_mongoose26.model)("ActiveTempVC", activeTempVCSchema);
 async function readTempVCConfig(guildId) {
   return TempVCConfig.findOne({ guildId }).lean();
 }
@@ -180300,10 +180991,904 @@ var warnCommand = {
   }, "execute")
 };
 
-// src/commands/economy/balance.ts
+// src/commands/moderation/automod.ts
 var import_discord15 = __toESM(require_src());
+
+// src/core/metrics.ts
+var import_node_stream4 = require("node:stream");
+var MAX_EVENTS = 400;
+var events = [];
+var counters = {
+  startedAt: Date.now(),
+  messagesSeen: 0,
+  commandsRun: 0,
+  aiReplies: 0,
+  errors: 0,
+  guildJoins: 0
+};
+var nextId = 1;
+function sanitizeMeta(meta3) {
+  if (!meta3) return void 0;
+  const clean = {};
+  for (const [key, value] of Object.entries(meta3)) {
+    if (value === void 0 || value === null) {
+      clean[key] = null;
+      continue;
+    }
+    if (typeof value === "string") {
+      clean[key] = value.length > 200 ? value.slice(0, 200) : value;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      clean[key] = value;
+    }
+  }
+  return Object.keys(clean).length > 0 ? clean : void 0;
+}
+__name(sanitizeMeta, "sanitizeMeta");
+function recordActivity(kind, message, options = {}) {
+  const event = {
+    id: nextId++,
+    kind,
+    level: options.level ?? "info",
+    message: String(message ?? "").slice(0, 500),
+    meta: sanitizeMeta(options.meta),
+    at: Date.now()
+  };
+  events.unshift(event);
+  if (events.length > MAX_EVENTS) events.length = MAX_EVENTS;
+  return event;
+}
+__name(recordActivity, "recordActivity");
+function getActivity(limit = 100, kind) {
+  const max = Math.min(Math.max(Math.round(limit) || 100, 1), MAX_EVENTS);
+  if (!kind || kind === "all") return events.slice(0, max);
+  return events.filter((event) => event.kind === kind).slice(0, max);
+}
+__name(getActivity, "getActivity");
+function bumpCounter(key, by = 1) {
+  counters[key] += by;
+}
+__name(bumpCounter, "bumpCounter");
+function getCounters() {
+  return { ...counters };
+}
+__name(getCounters, "getCounters");
+var PINO_LEVELS = {
+  10: "info",
+  20: "info",
+  30: "info",
+  40: "warn",
+  50: "error",
+  60: "error"
+};
+var activityLogStream = new import_node_stream4.Writable({
+  write(chunk, _encoding, callback) {
+    try {
+      const raw = chunk.toString().trim();
+      if (!raw) return callback();
+      const line = JSON.parse(raw);
+      const levelNumber = typeof line.level === "number" ? line.level : 30;
+      const level = PINO_LEVELS[levelNumber] ?? "info";
+      const message = typeof line.msg === "string" ? line.msg : "";
+      if (!message) return callback();
+      const isErr = line.err !== void 0 || level === "error";
+      recordActivity(isErr ? "error" : "log", message, {
+        level,
+        meta: {
+          tag: typeof line.tag === "string" ? line.tag : void 0,
+          command: typeof line.command === "string" ? line.command : void 0,
+          guildId: typeof line.guildId === "string" ? line.guildId : void 0,
+          userId: typeof line.userId === "string" ? line.userId : void 0,
+          event: typeof line.event === "string" ? line.event : void 0,
+          errorId: typeof line.errorId === "string" ? line.errorId : void 0
+        }
+      });
+    } catch {
+    }
+    callback();
+  }
+});
+
+// src/commands/moderation/automod.ts
+var automodTypes = [
+  { name: "Spam", value: "spam", description: "Limit messages per time window" },
+  { name: "Links/Invites", value: "links", description: "Block unauthorized links and Discord invites" },
+  { name: "Banned Words", value: "words", description: "Block messages containing banned words/phrases" },
+  { name: "Excessive Caps", value: "caps", description: "Block messages with too many capital letters" },
+  { name: "Excessive Mentions", value: "mentions", description: "Block messages with too many mentions" },
+  { name: "Attachments", value: "attachments", description: "Block messages with banned file types" },
+  { name: "Excessive Newlines", value: "newlines", description: "Block messages with too many newlines" },
+  { name: "Excessive Emojis", value: "emojis", description: "Block messages with too many emojis" },
+  { name: "Repeated Messages", value: "repeated", description: "Block users sending the same message repeatedly" }
+];
+var automodActions = [
+  { name: "Delete Message", value: "delete" },
+  { name: "Warn User", value: "warn" },
+  { name: "Timeout User", value: "timeout" },
+  { name: "Ban User", value: "ban" },
+  { name: "Log Only", value: "log" }
+];
+var configKeys = [
+  "maxMessages",
+  "windowSeconds",
+  "minLength",
+  "maxCapsPercent",
+  "maxMentions",
+  "maxNewlines",
+  "maxEmojis",
+  "maxRepeated",
+  "allowedDomains",
+  "bannedWords",
+  "regexPatterns",
+  "blockedExtensions"
+];
+var automodCommand = {
+  data: new import_discord15.SlashCommandBuilder().setName("automod").setDescription("Auto-moderation system").addSubcommand(
+    (sub) => sub.setName("add").setDescription("Add an auto-mod rule").addStringOption(
+      (opt) => opt.setName("type").setDescription("Rule type").setRequired(true).addChoices(...automodTypes)
+    ).addStringOption(
+      (opt) => opt.setName("name").setDescription("Rule name").setRequired(true).setMaxLength(100)
+    ).addStringOption(
+      (opt) => opt.setName("actions").setDescription("Actions to take (comma-separated)").setRequired(true).addChoices(...automodActions)
+    ).addStringOption(
+      (opt) => opt.setName("ignore_channels").setDescription("Channels to ignore (comma-separated IDs)").setRequired(false)
+    ).addStringOption(
+      (opt) => opt.setName("ignore_roles").setDescription("Roles to ignore (comma-separated IDs)").setRequired(false)
+    ).addStringOption(
+      (opt) => opt.setName("log_channel").setDescription("Channel to log triggers").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove an auto-mod rule").addStringOption(
+      (opt) => opt.setName("id").setDescription("Rule ID").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all auto-mod rules")
+  ).addSubcommand(
+    (sub) => sub.setName("toggle").setDescription("Enable/disable a rule").addStringOption(
+      (opt) => opt.setName("id").setDescription("Rule ID").setRequired(true).setAutocomplete(true)
+    ).addBooleanOption(
+      (opt) => opt.setName("enabled").setDescription("Enable or disable").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("config").setDescription("Configure rule-specific settings").addStringOption(
+      (opt) => opt.setName("id").setDescription("Rule ID").setRequired(true).setAutocomplete(true)
+    )
+  ),
+  category: "moderation",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["ManageMessages", "ModerateMembers", "BanMembers"],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "id") {
+      const rules = await AutoModRule.find({ guildId: interaction.guildId }).lean();
+      await interaction.respond(
+        rules.filter((r) => String(r._id).includes(focused.value) || r.name.toLowerCase().includes(focused.value.toLowerCase())).slice(0, 25).map((r) => ({ name: `${r.name} (${r.type})`, value: String(r._id) }))
+      );
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "add") {
+      const type = interaction.options.getString("type", true);
+      const name = interaction.options.getString("name", true);
+      const actionsStr = interaction.options.getString("actions", true);
+      const actions = actionsStr.split(",").map((a) => a.trim());
+      const ignoreChannels = interaction.options.getString("ignore_channels")?.split(",").map((c) => c.trim()) || [];
+      const ignoreRoles = interaction.options.getString("ignore_roles")?.split(",").map((r) => r.trim()) || [];
+      const logChannel = interaction.options.getString("log_channel") ?? void 0;
+      const validActions = ["delete", "warn", "timeout", "ban", "log"];
+      for (const action of actions) {
+        if (!validActions.includes(action)) {
+          await interaction.reply({ content: `Invalid action: ${action}. Valid: ${validActions.join(", ")}`, ephemeral: true });
+          return;
+        }
+      }
+      const defaultConfig = getDefaultConfig(type);
+      const rule = await AutoModRule.create({
+        guildId,
+        name,
+        type,
+        enabled: true,
+        actions,
+        ignoreChannels,
+        ignoreRoles,
+        logChannel,
+        config: defaultConfig
+      });
+      const embed = new import_discord15.EmbedBuilder().setColor(import_discord15.Colors.Green).setTitle("\u2705 Auto-Mod Rule Created").addFields(
+        { name: "Name", value: rule.name, inline: true },
+        { name: "Type", value: rule.type, inline: true },
+        { name: "Actions", value: rule.actions.join(", "), inline: true },
+        { name: "ID", value: String(rule._id), inline: true }
+      ).setFooter({ text: "Use /automod config to adjust rule-specific settings" });
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "AutoMod rule added", { meta: { guildId, ruleId: String(rule._id), type } });
+      return;
+    }
+    if (sub === "remove") {
+      const id = interaction.options.getString("id", true);
+      const rule = await AutoModRule.findOneAndDelete({ _id: id, guildId });
+      if (!rule) {
+        await interaction.reply({ content: "Rule not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `\u2705 Deleted rule: **${rule.name}**`, ephemeral: true });
+      recordActivity("command", "AutoMod rule removed", { meta: { guildId, ruleId: id } });
+      return;
+    }
+    if (sub === "list") {
+      const rules = await AutoModRule.find({ guildId }).lean();
+      if (!rules.length) {
+        await interaction.reply({ content: "No auto-mod rules configured", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord15.EmbedBuilder().setColor(import_discord15.Colors.Blurple).setTitle("\u{1F6E1}\uFE0F Auto-Mod Rules").setDescription(rules.map(
+        (r) => `**${r.name}** (${r.type}) \u2014 ${r.enabled ? "\u{1F7E2}" : "\u{1F534}"} \u2014 Actions: ${r.actions.join(", ")} \u2014 ID: \`${r._id}\``
+      ).join("\n")).setFooter({ text: `${rules.length} rule(s)` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "toggle") {
+      const id = interaction.options.getString("id", true);
+      const enabled = interaction.options.getBoolean("enabled", true);
+      const rule = await AutoModRule.findOneAndUpdate({ _id: id, guildId }, { enabled }, { new: true });
+      if (!rule) {
+        await interaction.reply({ content: "Rule not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `${enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} **${rule.name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "config") {
+      const id = interaction.options.getString("id", true);
+      const rule = await AutoModRule.findOne({ _id: id, guildId }).lean();
+      if (!rule) {
+        await interaction.reply({ content: "Rule not found", ephemeral: true });
+        return;
+      }
+      const modal = buildConfigModal(rule);
+      await interaction.showModal(modal);
+      return;
+    }
+  }
+};
+function getDefaultConfig(type) {
+  const defaults = {
+    spam: { maxMessages: 5, windowSeconds: 10 },
+    links: { allowedDomains: [] },
+    invites: { allowedDomains: [] },
+    words: { bannedWords: [], regexPatterns: [] },
+    caps: { minLength: 10, maxCapsPercent: 70 },
+    mentions: { maxMentions: 5 },
+    attachments: { blockedExtensions: ["exe", "bat", "cmd", "scr", "pif", "com", "jar", "msi"] },
+    newlines: { maxNewlines: 20 },
+    emojis: { maxEmojis: 20 },
+    repeated: { maxRepeated: 3 }
+  };
+  return defaults[type] || {};
+}
+__name(getDefaultConfig, "getDefaultConfig");
+function buildConfigModal(rule) {
+  const modal = new import_discord15.ModalBuilder().setCustomId(`automod_config:${rule._id}`).setTitle(`Configure: ${rule.name}`);
+  const config2 = rule.config;
+  switch (rule.type) {
+    case "spam": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxMessages").setLabel("Max Messages").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxMessages ?? 5)).setRequired(true)
+        ),
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("windowSeconds").setLabel("Time Window (seconds)").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.windowSeconds ?? 10)).setRequired(true)
+        )
+      );
+      break;
+    }
+    case "links":
+    case "invites": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("allowedDomains").setLabel("Allowed Domains (comma-separated)").setStyle(import_discord15.TextInputStyle.Paragraph).setValue(config2.allowedDomains?.join(", ") || "").setRequired(false).setPlaceholder("example.com, discord.gg")
+        )
+      );
+      break;
+    }
+    case "words": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("bannedWords").setLabel("Banned Words (comma-separated)").setStyle(import_discord15.TextInputStyle.Paragraph).setValue(config2.bannedWords?.join(", ") || "").setRequired(false)
+        ),
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("regexPatterns").setLabel("Regex Patterns (one per line)").setStyle(import_discord15.TextInputStyle.Paragraph).setValue(config2.regexPatterns?.join("\n") || "").setRequired(false).setPlaceholder("(?i)badword\n^spam$")
+        )
+      );
+      break;
+    }
+    case "caps": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("minLength").setLabel("Min Message Length").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.minLength ?? 10)).setRequired(true)
+        ),
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxCapsPercent").setLabel("Max Caps Percentage").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxCapsPercent ?? 70)).setRequired(true)
+        )
+      );
+      break;
+    }
+    case "mentions": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxMentions").setLabel("Max Mentions Per Message").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxMentions ?? 5)).setRequired(true)
+        )
+      );
+      break;
+    }
+    case "attachments": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("blockedExtensions").setLabel("Blocked Extensions (comma-separated)").setStyle(import_discord15.TextInputStyle.Short).setValue(config2.blockedExtensions?.join(", ") || "exe,bat,cmd,scr").setRequired(true)
+        )
+      );
+      break;
+    }
+    case "newlines": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxNewlines").setLabel("Max Newlines").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxNewlines ?? 20)).setRequired(true)
+        )
+      );
+      break;
+    }
+    case "emojis": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxEmojis").setLabel("Max Emojis").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxEmojis ?? 20)).setRequired(true)
+        )
+      );
+      break;
+    }
+    case "repeated": {
+      modal.addComponents(
+        new import_discord15.ActionRowBuilder().addComponents(
+          new import_discord15.TextInputBuilder().setCustomId("maxRepeated").setLabel("Max Repeated Messages").setStyle(import_discord15.TextInputStyle.Short).setValue(String(config2.maxRepeated ?? 3)).setRequired(true)
+        )
+      );
+      break;
+    }
+  }
+  return modal;
+}
+__name(buildConfigModal, "buildConfigModal");
+async function handleAutomodConfigModal(interaction) {
+  const [, ruleId] = interaction.customId.split(":");
+  const rule = await AutoModRule.findById(ruleId);
+  if (!rule) return interaction.reply({ content: "Rule not found", ephemeral: true });
+  const config2 = { ...rule.config };
+  const fields = interaction.fields.fields;
+  for (const [key, value] of fields) {
+    if (configKeys.includes(key)) {
+      switch (key) {
+        case "maxMessages":
+        case "windowSeconds":
+        case "minLength":
+        case "maxCapsPercent":
+        case "maxMentions":
+        case "maxNewlines":
+        case "maxEmojis":
+        case "maxRepeated":
+          config2[key] = parseInt(value, 10);
+          break;
+        case "allowedDomains":
+          config2[key] = value.split(",").map((d) => d.trim()).filter(Boolean);
+          break;
+        case "bannedWords":
+          config2[key] = value.split(",").map((w) => w.trim()).filter(Boolean);
+          break;
+        case "regexPatterns":
+          config2[key] = value.split("\n").map((p) => p.trim()).filter(Boolean);
+          break;
+        case "blockedExtensions":
+          config2[key] = value.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+          break;
+      }
+    }
+  }
+  rule.config = config2;
+  await rule.save();
+  await interaction.reply({ content: "\u2705 Configuration saved", ephemeral: true });
+}
+__name(handleAutomodConfigModal, "handleAutomodConfigModal");
+async function handleTagEmbedModal(interaction) {
+  const [, name] = interaction.customId.split(":");
+  const guildId = interaction.guildId;
+  const title = interaction.fields.getTextInputValue("title");
+  const description = interaction.fields.getTextInputValue("description");
+  const colorStr = interaction.fields.getTextInputValue("color");
+  const footer = interaction.fields.getTextInputValue("footer");
+  const image = interaction.fields.getTextInputValue("image");
+  const { CustomCommand: CustomCommand2 } = await Promise.resolve().then(() => (init_CustomCommand(), CustomCommand_exports));
+  const tag = await CustomCommand2.findOne({ guildId, name });
+  if (!tag) return interaction.reply({ content: "Command not found", ephemeral: true });
+  const color = colorStr ? parseInt(colorStr.replace("#", ""), 16) : void 0;
+  tag.embed = {
+    title: title || void 0,
+    description: description || void 0,
+    color,
+    footer: footer || void 0,
+    image: image || void 0
+  };
+  await tag.save();
+  const { EmbedBuilder: EmbedBuilder52, Colors: Colors20 } = await Promise.resolve().then(() => __toESM(require_src()));
+  const embed = new EmbedBuilder52().setColor(Colors20.Green).setTitle("\u2705 Embed Updated").setDescription(`Custom command **/${name}** now has a custom embed`);
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+__name(handleTagEmbedModal, "handleTagEmbedModal");
+
+// src/commands/moderation/discordautomod.ts
+var import_discord16 = __toESM(require_src());
+var discordautomodCommand = {
+  data: new import_discord16.SlashCommandBuilder().setName("discordautomod").setDescription("Manage Discord native AutoMod rules").addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all Discord AutoMod rules")
+  ).addSubcommand(
+    (sub) => sub.setName("create").setDescription("Create a Discord AutoMod rule").addStringOption(
+      (opt) => opt.setName("name").setDescription("Rule name").setRequired(true).setMaxLength(100)
+    ).addStringOption(
+      (opt) => opt.setName("type").setDescription("Rule type").setRequired(true).addChoices(
+        { name: "Keyword", value: "keyword" },
+        { name: "Spam", value: "spam" },
+        { name: "Keyword Preset", value: "keyword_preset" }
+      )
+    ).addStringOption(
+      (opt) => opt.setName("keyword").setDescription("Keywords to match (comma-separated)").setRequired(false)
+    ).addStringOption(
+      (opt) => opt.setName("preset").setDescription("Keyword preset").setRequired(false).addChoices(
+        { name: "Profanity", value: "profanity" },
+        { name: "Sexual Content", value: "sexual_content" },
+        { name: "Slurs", value: "slurs" }
+      )
+    ).addStringOption(
+      (opt) => opt.setName("action").setDescription("Action to take").setRequired(true).addChoices(
+        { name: "Block Message", value: "block_message" },
+        { name: "Send Alert", value: "send_alert" },
+        { name: "Timeout", value: "timeout" }
+      )
+    ).addChannelOption(
+      (opt) => opt.setName("alert_channel").setDescription("Channel for alerts (required for send_alert action)").setRequired(false)
+    ).addIntegerOption(
+      (opt) => opt.setName("timeout_duration").setDescription("Timeout duration in seconds (for timeout action)").setRequired(false).setMinValue(60).setMaxValue(2419200)
+    ).addBooleanOption(
+      (opt) => opt.setName("enabled").setDescription("Enable rule immediately").setRequired(false)
+    ).addChannelOption(
+      (opt) => opt.setName("exempt_channel").setDescription("Channel to exempt from rule").setRequired(false)
+    ).addRoleOption(
+      (opt) => opt.setName("exempt_role").setDescription("Role to exempt from rule").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("delete").setDescription("Delete a Discord AutoMod rule").addStringOption(
+      (opt) => opt.setName("rule_id").setDescription("Rule ID to delete").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("toggle").setDescription("Enable/disable a Discord AutoMod rule").addStringOption(
+      (opt) => opt.setName("rule_id").setDescription("Rule ID").setRequired(true).setAutocomplete(true)
+    ).addBooleanOption(
+      (opt) => opt.setName("enabled").setDescription("Enable or disable").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("info").setDescription("View details of a Discord AutoMod rule").addStringOption(
+      (opt) => opt.setName("rule_id").setDescription("Rule ID").setRequired(true).setAutocomplete(true)
+    )
+  ),
+  category: "moderation",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["ManageGuild"],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "rule_id") {
+      try {
+        const rules = await interaction.guild?.autoModerationRules.fetch();
+        if (rules) {
+          const rulesArray = Array.from(rules.values());
+          await interaction.respond(
+            rulesArray.filter((r) => r.id.includes(focused.value) || r.name.toLowerCase().includes(focused.value.toLowerCase())).slice(0, 25).map((r) => ({ name: `${r.name} (${r.id})`, value: r.id }))
+          );
+        }
+      } catch (error62) {
+        console.error("Failed to fetch Discord AutoMod rules:", error62);
+      }
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "list") {
+      try {
+        const rules = await guild.autoModerationRules.fetch();
+        if (!rules.size) {
+          await interaction.reply({ content: "No Discord AutoMod rules configured", ephemeral: true });
+          return;
+        }
+        const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Blurple).setTitle("\u{1F916} Discord Native AutoMod Rules").setDescription(
+          Array.from(rules.values()).map(
+            (r) => `**${r.name}** (${r.id})
+Type: ${r.triggerType} | Action: ${r.actions.map((a) => a.type).join(", ")}
+Status: ${r.enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} | Exempt: ${r.exemptChannels.size} channels, ${r.exemptRoles.size} roles`
+          ).join("\n\n")
+        ).setFooter({ text: `${rules.size} rule(s)` });
+        await interaction.reply({ embeds: [embed] });
+      } catch (error62) {
+        await interaction.reply({ content: `Failed to fetch rules: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+    if (sub === "create") {
+      const name = interaction.options.getString("name", true);
+      const type = interaction.options.getString("type", true);
+      const action = interaction.options.getString("action", true);
+      const keyword = interaction.options.getString("keyword");
+      const preset = interaction.options.getString("preset");
+      const alertChannel = interaction.options.getChannel("alert_channel");
+      const timeoutDuration = interaction.options.getInteger("timeout_duration");
+      const enabled = interaction.options.getBoolean("enabled") ?? true;
+      const exemptChannel = interaction.options.getChannel("exempt_channel");
+      const exemptRole = interaction.options.getRole("exempt_role");
+      if (type === "keyword" && !keyword) {
+        await interaction.reply({ content: "Keyword is required for keyword type", ephemeral: true });
+        return;
+      }
+      if (type === "keyword_preset" && !preset) {
+        await interaction.reply({ content: "Preset is required for keyword_preset type", ephemeral: true });
+        return;
+      }
+      if (action === "send_alert" && !alertChannel) {
+        await interaction.reply({ content: "Alert channel is required for send_alert action", ephemeral: true });
+        return;
+      }
+      if (action === "timeout" && !timeoutDuration) {
+        await interaction.reply({ content: "Timeout duration is required for timeout action", ephemeral: true });
+        return;
+      }
+      try {
+        let triggerMetadata = {};
+        if (type === "keyword") {
+          triggerMetadata.keywordFilter = keyword.split(",").map((k) => k.trim());
+        } else if (type === "keyword_preset") {
+          triggerMetadata.presets = [preset];
+        } else if (type === "spam") {
+          triggerMetadata.mentionTotalLimit = 5;
+          triggerMetadata.mentionRaidProtectionEnabled = true;
+        }
+        const actions = [];
+        if (action === "block_message") {
+          actions.push({ type: 1 });
+        }
+        if (action === "send_alert") {
+          actions.push({ type: 2, channelId: alertChannel.id });
+        }
+        if (action === "timeout") {
+          actions.push({ type: 3, durationSeconds: timeoutDuration });
+        }
+        const exemptChannels = exemptChannel ? [exemptChannel.id] : [];
+        const exemptRoles = exemptRole ? [exemptRole.id] : [];
+        const rule = await guild.autoModerationRules.create({
+          name,
+          eventType: 1,
+          // MessageSend
+          triggerType: type === "keyword" ? 1 : type === "spam" ? 4 : 5,
+          // Keyword, Spam, KeywordPreset
+          triggerMetadata,
+          actions,
+          enabled,
+          exemptChannels,
+          exemptRoles
+        });
+        const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Green).setTitle("\u2705 Discord AutoMod Rule Created").addFields(
+          { name: "Name", value: rule.name, inline: true },
+          { name: "ID", value: rule.id, inline: true },
+          { name: "Type", value: rule.triggerType.toString(), inline: true },
+          { name: "Enabled", value: rule.enabled ? "Yes" : "No", inline: true }
+        );
+        await interaction.reply({ embeds: [embed] });
+        recordActivity("command", "Discord AutoMod rule created", { meta: { guildId, ruleId: rule.id, type } });
+      } catch (error62) {
+        await interaction.reply({ content: `Failed to create rule: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+    if (sub === "delete") {
+      const ruleId = interaction.options.getString("rule_id", true);
+      try {
+        const rule = await guild.autoModerationRules.fetch(ruleId);
+        if (!rule) {
+          await interaction.reply({ content: "Rule not found", ephemeral: true });
+          return;
+        }
+        await rule.delete();
+        await interaction.reply({ content: `\u2705 Deleted Discord AutoMod rule: **${rule.name}**`, ephemeral: true });
+      } catch (error62) {
+        await interaction.reply({ content: `Failed to delete rule: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+    if (sub === "toggle") {
+      const ruleId = interaction.options.getString("rule_id", true);
+      const enabled = interaction.options.getBoolean("enabled", true);
+      try {
+        const rule = await guild.autoModerationRules.fetch(ruleId);
+        if (!rule) {
+          await interaction.reply({ content: "Rule not found", ephemeral: true });
+          return;
+        }
+        await rule.edit({ enabled });
+        await interaction.reply({ content: `${enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} Discord AutoMod rule **${rule.name}**`, ephemeral: true });
+      } catch (error62) {
+        await interaction.reply({ content: `Failed to toggle rule: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+    if (sub === "info") {
+      const ruleId = interaction.options.getString("rule_id", true);
+      try {
+        const rule = await guild.autoModerationRules.fetch(ruleId);
+        if (!rule) {
+          await interaction.reply({ content: "Rule not found", ephemeral: true });
+          return;
+        }
+        const triggerTypeNames = {
+          1: "Keyword",
+          4: "Spam",
+          5: "Keyword Preset"
+        };
+        const actionTypeNames = {
+          1: "Block Message",
+          2: "Send Alert",
+          3: "Timeout"
+        };
+        const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Blurple).setTitle(`\u{1F916} Discord AutoMod Rule: ${rule.name}`).addFields(
+          { name: "ID", value: rule.id, inline: true },
+          { name: "Enabled", value: rule.enabled ? "\u{1F7E2} Yes" : "\u{1F534} No", inline: true },
+          { name: "Trigger Type", value: triggerTypeNames[rule.triggerType] || "Unknown", inline: true },
+          { name: "Actions", value: rule.actions.map((a) => actionTypeNames[a.type] || "Unknown").join(", "), inline: true },
+          { name: "Exempt Channels", value: rule.exemptChannels.size.toString(), inline: true },
+          { name: "Exempt Roles", value: rule.exemptRoles.size.toString(), inline: true },
+          { name: "Creator", value: `<@${rule.creatorId}>`, inline: true }
+        );
+        if (rule.triggerMetadata.keywordFilter?.length) {
+          embed.addFields({ name: "Keywords", value: rule.triggerMetadata.keywordFilter.join(", "), inline: false });
+        }
+        if (rule.triggerMetadata.presets?.length) {
+          embed.addFields({ name: "Presets", value: rule.triggerMetadata.presets.join(", "), inline: false });
+        }
+        await interaction.reply({ embeds: [embed] });
+      } catch (error62) {
+        await interaction.reply({ content: `Failed to fetch rule: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+  }
+};
+
+// src/commands/moderation/logs.ts
+var import_discord17 = __toESM(require_src());
+var logEvents = [
+  { name: "Message Delete", value: "messageDelete", description: "When a message is deleted" },
+  { name: "Message Edit", value: "messageEdit", description: "When a message is edited" },
+  { name: "Bulk Message Delete", value: "messageDeleteBulk", description: "When multiple messages are deleted" },
+  { name: "Member Join", value: "memberJoin", description: "When a member joins" },
+  { name: "Member Leave", value: "memberLeave", description: "When a member leaves" },
+  { name: "Member Ban", value: "memberBanAdd", description: "When a member is banned" },
+  { name: "Member Unban", value: "memberBanRemove", description: "When a member is unbanned" },
+  { name: "Member Update", value: "memberUpdate", description: "When member updates (nickname, roles, etc.)" },
+  { name: "Role Create", value: "roleCreate", description: "When a role is created" },
+  { name: "Role Delete", value: "roleDelete", description: "When a role is deleted" },
+  { name: "Role Update", value: "roleUpdate", description: "When a role is updated" },
+  { name: "Channel Create", value: "channelCreate", description: "When a channel is created" },
+  { name: "Channel Delete", value: "channelDelete", description: "When a channel is deleted" },
+  { name: "Channel Update", value: "channelUpdate", description: "When a channel is updated" },
+  { name: "Voice State Update", value: "voiceStateUpdate", description: "Voice channel join/leave/move" },
+  { name: "Invite Create", value: "inviteCreate", description: "When an invite is created" },
+  { name: "Invite Delete", value: "inviteDelete", description: "When an invite is deleted" },
+  { name: "Guild Update", value: "guildUpdate", description: "When server settings change" },
+  { name: "Emoji Create", value: "emojiCreate", description: "When an emoji is added" },
+  { name: "Emoji Delete", value: "emojiDelete", description: "When an emoji is removed" },
+  { name: "Emoji Update", value: "emojiUpdate", description: "When an emoji is updated" },
+  { name: "Thread Create", value: "threadCreate", description: "When a thread is created" },
+  { name: "Thread Delete", value: "threadDelete", description: "When a thread is deleted" },
+  { name: "Thread Update", value: "threadUpdate", description: "When a thread is updated" },
+  { name: "Warn", value: "moderationWarn", description: "When a user is warned" },
+  { name: "Timeout", value: "moderationTimeout", description: "When a user is timed out" },
+  { name: "Ban", value: "moderationBan", description: "When a user is banned" },
+  { name: "Kick", value: "moderationKick", description: "When a user is kicked" },
+  { name: "Unban", value: "moderationUnban", description: "When a user is unbanned" },
+  { name: "Note", value: "moderationNote", description: "When a mod note is added" },
+  { name: "Auto-Mod Trigger", value: "automodTrigger", description: "When auto-mod triggers" }
+];
+var logsCommand = {
+  data: new import_discord17.SlashCommandBuilder().setName("logs").setDescription("Configure logging channels").addSubcommand(
+    (sub) => sub.setName("set").setDescription("Set a log channel for an event").addStringOption(
+      (opt) => opt.setName("event").setDescription("Event to log").setRequired(true).addChoices(...logEvents)
+    ).addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Channel to log to").setRequired(true).addChannelTypes(import_discord17.ChannelType.GuildText, import_discord17.ChannelType.GuildAnnouncement)
+    ).addBooleanOption(
+      (opt) => opt.setName("include_content").setDescription("Include message content in logs").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("log_bots").setDescription("Log bot messages/actions").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a log channel").addStringOption(
+      (opt) => opt.setName("event").setDescription("Event to stop logging").setRequired(true).addChoices(...logEvents)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all configured log channels")
+  ).addSubcommand(
+    (sub) => sub.setName("ignore").setDescription("Ignore channels/roles from logging").addStringOption(
+      (opt) => opt.setName("event").setDescription("Event to configure ignores for").setRequired(true).addChoices(...logEvents)
+    ).addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Channel to ignore").setRequired(false)
+    ).addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to ignore (users with this role)").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("remove").setDescription("Remove from ignore list").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("test").setDescription("Send a test log message").addStringOption(
+      (opt) => opt.setName("event").setDescription("Event to test").setRequired(true).addChoices(...logEvents)
+    )
+  ),
+  category: "moderation",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["SendMessages", "EmbedLinks", "ManageWebhooks"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "set") {
+      const event = interaction.options.getString("event", true);
+      const channel = interaction.options.getChannel("channel", true);
+      const includeContent = interaction.options.getBoolean("include_content") ?? true;
+      const logBots = interaction.options.getBoolean("log_bots") ?? false;
+      let webhookId;
+      let webhookToken;
+      try {
+        const webhook = await channel.createWebhook({
+          name: "\u7231 Doctora Logs",
+          avatar: interaction.client.user.displayAvatarURL(),
+          reason: "Auto-mod logging webhook"
+        });
+        webhookId = webhook.id;
+        webhookToken = webhook.token ?? void 0;
+      } catch (error62) {
+        console.warn("[Logs] Could not create webhook:", error62);
+      }
+      await LogChannel.findOneAndUpdate(
+        { guildId, event },
+        {
+          guildId,
+          event,
+          channelId: channel.id,
+          includeContent,
+          logBots,
+          webhookId,
+          webhookToken
+        },
+        { upsert: true, new: true }
+      );
+      const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Green).setTitle("\u2705 Log Channel Set").addFields(
+        { name: "Event", value: event, inline: true },
+        { name: "Channel", value: `<#${channel.id}>`, inline: true },
+        { name: "Include Content", value: includeContent ? "Yes" : "No", inline: true },
+        { name: "Log Bots", value: logBots ? "Yes" : "No", inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "Log channel set", { meta: { guildId, event, channelId: channel.id } });
+      return;
+    }
+    if (sub === "remove") {
+      const event = interaction.options.getString("event", true);
+      const config2 = await LogChannel.findOneAndDelete({ guildId, event });
+      if (!config2) {
+        await interaction.reply({ content: "No log channel configured for this event", ephemeral: true });
+        return;
+      }
+      if (config2.webhookId && config2.webhookToken) {
+        try {
+          const webhookClient = new import_discord17.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
+          await webhookClient.delete();
+        } catch {
+        }
+      }
+      await interaction.reply({ content: `\u2705 Removed log channel for **${event}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "list") {
+      const configs = await LogChannel.find({ guildId }).lean();
+      if (!configs.length) {
+        await interaction.reply({ content: "No log channels configured", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Blurple).setTitle("\u{1F4CB} Log Channels").setDescription(configs.map((c) => {
+        const ch = guild.channels.cache.get(c.channelId);
+        const chName = ch ? `<#${c.channelId}>` : `#deleted-channel`;
+        return `**${c.event}** \u2192 ${chName} ${c.includeContent ? "\u{1F4DD}" : ""} ${c.logBots ? "\u{1F916}" : ""}`;
+      }).join("\n")).setFooter({ text: `${configs.length} event(s) configured` });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "ignore") {
+      const event = interaction.options.getString("event", true);
+      const channel = interaction.options.getChannel("channel");
+      const role = interaction.options.getRole("role");
+      const remove = interaction.options.getBoolean("remove") ?? false;
+      if (!channel && !role) {
+        await interaction.reply({ content: "Specify a channel or role", ephemeral: true });
+        return;
+      }
+      const config2 = await LogChannel.findOne({ guildId, event });
+      if (!config2) {
+        await interaction.reply({ content: "No log channel configured for this event", ephemeral: true });
+        return;
+      }
+      if (channel) {
+        if (remove) {
+          config2.ignoredChannels = config2.ignoredChannels.filter((c) => c !== channel.id);
+        } else {
+          if (!config2.ignoredChannels.includes(channel.id)) {
+            config2.ignoredChannels.push(channel.id);
+          }
+        }
+      }
+      if (role) {
+        if (remove) {
+          config2.ignoredRoles = config2.ignoredRoles.filter((r) => r !== role.id);
+        } else {
+          if (!config2.ignoredRoles.includes(role.id)) {
+            config2.ignoredRoles.push(role.id);
+          }
+        }
+      }
+      await config2.save();
+      await interaction.reply({ content: `\u2705 ${remove ? "Removed" : "Added"} ignore for ${channel ? `<#${channel.id}>` : `<@&${role?.id}>`} on **${event}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "test") {
+      const event = interaction.options.getString("event", true);
+      const config2 = await LogChannel.findOne({ guildId, event });
+      if (!config2) {
+        await interaction.reply({ content: "No log channel configured for this event", ephemeral: true });
+        return;
+      }
+      const logChannel = guild.channels.cache.get(config2.channelId);
+      if (!logChannel) {
+        await interaction.reply({ content: "Log channel not found", ephemeral: true });
+        return;
+      }
+      const testEmbed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Blurple).setTitle("\u{1F9EA} Test Log").setDescription(`This is a test log for **${event}**`).addFields(
+        { name: "Triggered by", value: interaction.user.tag, inline: true },
+        { name: "Channel", value: `<#${interaction.channelId}>`, inline: true }
+      ).setTimestamp();
+      try {
+        if (config2.webhookId && config2.webhookToken) {
+          const webhookClient = new import_discord17.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
+          await webhookClient.send({ embeds: [testEmbed] });
+        } else {
+          await logChannel.send({ embeds: [testEmbed] });
+        }
+        await interaction.reply({ content: "\u2705 Test log sent", ephemeral: true });
+      } catch (error62) {
+        await interaction.reply({ content: `\u274C Failed to send test log: ${error62}`, ephemeral: true });
+      }
+      return;
+    }
+  }
+};
+
+// src/commands/economy/balance.ts
+var import_discord18 = __toESM(require_src());
 var balanceCommand = {
-  data: new import_discord15.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
+  data: new import_discord18.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "economy",
@@ -180320,9 +181905,9 @@ var balanceCommand = {
 };
 
 // src/commands/economy/daily.ts
-var import_discord16 = __toESM(require_src());
+var import_discord19 = __toESM(require_src());
 var dailyCommand = {
-  data: new import_discord16.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
+  data: new import_discord19.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
   category: "economy",
   cooldownSeconds: 86400,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -180349,9 +181934,9 @@ var dailyCommand = {
 };
 
 // src/commands/economy/work.ts
-var import_discord17 = __toESM(require_src());
+var import_discord20 = __toESM(require_src());
 var workCommand = {
-  data: new import_discord17.SlashCommandBuilder().setName("work").setDescription("Work to earn some coins."),
+  data: new import_discord20.SlashCommandBuilder().setName("work").setDescription("Work to earn some coins."),
   category: "economy",
   cooldownSeconds: 3600,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -180377,10 +181962,288 @@ var workCommand = {
   }, "execute")
 };
 
+// src/commands/economy/casino.ts
+var import_discord21 = __toESM(require_src());
+var casinoCommand = {
+  data: new import_discord21.SlashCommandBuilder().setName("casino").setDescription("Casino games").addSubcommand(
+    (sub) => sub.setName("slots").setDescription("Play slots").addIntegerOption(
+      (opt) => opt.setName("bet").setDescription("Bet amount").setRequired(true).setMinValue(1).setMaxValue(1e4)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("coinflip").setDescription("Coin flip").addIntegerOption(
+      (opt) => opt.setName("bet").setDescription("Bet amount").setRequired(true).setMinValue(1).setMaxValue(1e4)
+    ).addStringOption(
+      (opt) => opt.setName("choice").setDescription("Heads or tails").setRequired(true).addChoices(
+        { name: "Heads", value: "heads" },
+        { name: "Tails", value: "tails" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("blackjack").setDescription("Blackjack").addIntegerOption(
+      (opt) => opt.setName("bet").setDescription("Bet amount").setRequired(true).setMinValue(1).setMaxValue(1e4)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("roulette").setDescription("Roulette").addIntegerOption(
+      (opt) => opt.setName("bet").setDescription("Bet amount").setRequired(true).setMinValue(1).setMaxValue(1e4)
+    ).addStringOption(
+      (opt) => opt.setName("choice").setDescription("Bet on color or number").setRequired(true).addChoices(
+        { name: "Red", value: "red" },
+        { name: "Black", value: "black" },
+        { name: "Green (0)", value: "green" },
+        { name: "Odd", value: "odd" },
+        { name: "Even", value: "even" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("crash").setDescription("Crash game").addIntegerOption(
+      (opt) => opt.setName("bet").setDescription("Bet amount").setRequired(true).setMinValue(1).setMaxValue(1e4)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("stats").setDescription("View casino stats")
+  ),
+  category: "economy",
+  cooldownSeconds: 3,
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const userId = interaction.user.id;
+    const sub = interaction.options.getSubcommand();
+    let profile = await GameProfile.findOne({ userId, guildId });
+    if (!profile) {
+      profile = await GameProfile.create({ userId, guildId });
+    }
+    let user = await User.findOne({ userId });
+    if (!user) {
+      user = await User.create({ userId });
+    }
+    if (sub === "slots") {
+      const bet = interaction.options.getInteger("bet", true);
+      if (user.balance < bet) {
+        await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
+        return;
+      }
+      const symbols = ["\u{1F34E}", "\u{1F34A}", "\u{1F347}", "\u{1F352}", "7", "\u2B50"];
+      const result = [symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)], symbols[Math.floor(Math.random() * symbols.length)]];
+      let winnings = 0;
+      let message = "";
+      if (result[0] === result[1] && result[1] === result[2]) {
+        winnings = bet * 10;
+        message = "\u{1F3B0} JACKPOT! All three match!";
+      } else if (result[0] === result[1] || result[1] === result[2] || result[0] === result[2]) {
+        winnings = bet * 2;
+        message = "\u{1F3B0} Two match! You win!";
+      } else {
+        message = "\u{1F3B0} No match. Better luck next time!";
+      }
+      user.balance -= bet;
+      user.balance += winnings;
+      await user.save();
+      profile.casino.gamesPlayed++;
+      profile.casino.wagered += bet;
+      profile.casino.won += winnings;
+      profile.casino.lost += bet - winnings;
+      if (winnings > bet) profile.casino.slots.won++;
+      else profile.casino.slots.lost++;
+      profile.casino.slots.played++;
+      if (winnings >= bet * 10) profile.casino.slots.jackpots++;
+      await profile.save();
+      const embed = new import_discord21.EmbedBuilder().setColor(winnings >= bet ? import_discord21.Colors.Green : import_discord21.Colors.Red).setTitle("\u{1F3B0} Slots").setDescription(`| ${result[0]} | ${result[1]} | ${result[2]} |
+
+${message}`).addFields(
+        { name: "Bet", value: bet.toString(), inline: true },
+        { name: "Won", value: winnings.toString(), inline: true },
+        { name: "Net", value: (winnings - bet).toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "coinflip") {
+      const bet = interaction.options.getInteger("bet", true);
+      const choice = interaction.options.getString("choice", true);
+      if (user.balance < bet) {
+        await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
+        return;
+      }
+      const result = Math.random() < 0.5 ? "heads" : "tails";
+      const won = choice === result;
+      const winnings = won ? bet * 2 : 0;
+      user.balance -= bet;
+      user.balance += winnings;
+      await user.save();
+      profile.casino.gamesPlayed++;
+      profile.casino.wagered += bet;
+      profile.casino.won += winnings;
+      profile.casino.lost += bet - winnings;
+      profile.casino.coinflip.played++;
+      if (won) profile.casino.coinflip.won++;
+      else profile.casino.coinflip.lost++;
+      await profile.save();
+      const embed = new import_discord21.EmbedBuilder().setColor(won ? import_discord21.Colors.Green : import_discord21.Colors.Red).setTitle("\u{1FA99} Coin Flip").setDescription(`Result: **${result}**
+You ${won ? "won" : "lost"}!`).addFields(
+        { name: "Bet", value: bet.toString(), inline: true },
+        { name: "Your choice", value: choice, inline: true },
+        { name: "Result", value: result, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "blackjack") {
+      const bet = interaction.options.getInteger("bet", true);
+      if (user.balance < bet) {
+        await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
+        return;
+      }
+      const drawCard = /* @__PURE__ */ __name(() => {
+        const cards = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+        return cards[Math.floor(Math.random() * cards.length)];
+      }, "drawCard");
+      const cardValue = /* @__PURE__ */ __name((card) => {
+        if (card === "A") return 11;
+        if (["J", "Q", "K"].includes(card)) return 10;
+        return parseInt(card);
+      }, "cardValue");
+      const playerCards = [drawCard(), drawCard()];
+      const dealerCards = [drawCard(), drawCard()];
+      const playerScore = playerCards.reduce((sum, c) => sum + cardValue(c), 0);
+      const dealerScore = dealerCards.reduce((sum, c) => sum + cardValue(c), 0);
+      let resultText = "";
+      let winnings = 0;
+      if (playerScore === 21 && dealerScore !== 21) {
+        resultText = "Blackjack! You win!";
+        winnings = bet * 2.5;
+      } else if (playerScore > 21) {
+        resultText = "Bust! You lose.";
+      } else if (dealerScore > 21 || playerScore > dealerScore) {
+        resultText = "You win!";
+        winnings = bet * 2;
+      } else if (playerScore < dealerScore) {
+        resultText = "Dealer wins.";
+      } else {
+        resultText = "Push (tie).";
+        winnings = bet;
+      }
+      user.balance -= bet;
+      user.balance += winnings;
+      await user.save();
+      profile.casino.gamesPlayed++;
+      profile.casino.wagered += bet;
+      profile.casino.won += winnings;
+      profile.casino.lost += bet - winnings;
+      profile.casino.blackjack.played++;
+      if (winnings === bet * 2.5) profile.casino.blackjack.blackjacks++;
+      else if (winnings > bet) profile.casino.blackjack.won++;
+      else if (winnings === bet) profile.casino.blackjack.pushed++;
+      else profile.casino.blackjack.lost++;
+      await profile.save();
+      const embed = new import_discord21.EmbedBuilder().setColor(winnings >= bet ? import_discord21.Colors.Green : import_discord21.Colors.Red).setTitle("\u2660\uFE0F Blackjack").setDescription(`Your cards: ${playerCards.join(" ")} (${playerScore})
+Dealer: ${dealerCards.join(" ")} (${dealerScore})
+
+${resultText}`).addFields(
+        { name: "Bet", value: bet.toString(), inline: true },
+        { name: "Won", value: winnings.toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "roulette") {
+      const bet = interaction.options.getInteger("bet", true);
+      const choice = interaction.options.getString("choice", true);
+      if (user.balance < bet) {
+        await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
+        return;
+      }
+      const number4 = Math.floor(Math.random() * 37);
+      const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+      const isRed = redNumbers.includes(number4);
+      const color = number4 === 0 ? "green" : isRed ? "red" : "black";
+      let won = false;
+      let multiplier = 0;
+      if (choice === "green" && number4 === 0) {
+        won = true;
+        multiplier = 36;
+      } else if (choice === color && color !== "green") {
+        won = true;
+        multiplier = 2;
+      } else if (choice === "odd" && number4 % 2 === 1 && number4 !== 0) {
+        won = true;
+        multiplier = 2;
+      } else if (choice === "even" && number4 % 2 === 0 && number4 !== 0) {
+        won = true;
+        multiplier = 2;
+      }
+      const winnings = won ? bet * multiplier : 0;
+      user.balance -= bet;
+      user.balance += winnings;
+      await user.save();
+      profile.casino.gamesPlayed++;
+      profile.casino.wagered += bet;
+      profile.casino.won += winnings;
+      profile.casino.lost += bet - winnings;
+      profile.casino.roulette.played++;
+      if (won) profile.casino.roulette.won++;
+      if (choice === "green" && number4 === 0) profile.casino.roulette.straightWins++;
+      else profile.casino.roulette.lost++;
+      await profile.save();
+      const embed = new import_discord21.EmbedBuilder().setColor(won ? import_discord21.Colors.Green : import_discord21.Colors.Red).setTitle("\u{1F3A1} Roulette").setDescription(`The ball landed on **${number4}** (${color})
+You ${won ? "won" : "lost"}!`).addFields(
+        { name: "Bet", value: bet.toString(), inline: true },
+        { name: "Your choice", value: choice, inline: true },
+        { name: "Result", value: `${number4} (${color})`, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "crash") {
+      const bet = interaction.options.getInteger("bet", true);
+      if (user.balance < bet) {
+        await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
+        return;
+      }
+      const crashPoint = 1 + Math.random() * 9;
+      const cashOut = 1 + Math.random() * Math.min(crashPoint - 1, 5);
+      const won = cashOut < crashPoint;
+      const winnings = won ? Math.floor(bet * cashOut) : 0;
+      user.balance -= bet;
+      user.balance += winnings;
+      await user.save();
+      profile.casino.gamesPlayed++;
+      profile.casino.wagered += bet;
+      profile.casino.won += winnings;
+      profile.casino.lost += bet - winnings;
+      profile.casino.crash.played++;
+      if (won) profile.casino.crash.won++;
+      else profile.casino.crash.lost++;
+      if (cashOut > profile.casino.crash.highestMultiplier) profile.casino.crash.highestMultiplier = cashOut;
+      await profile.save();
+      const embed = new import_discord21.EmbedBuilder().setColor(won ? import_discord21.Colors.Green : import_discord21.Colors.Red).setTitle("\u{1F4C8} Crash").setDescription(`Crash point: ${crashPoint.toFixed(2)}x
+You cashed out at ${cashOut.toFixed(2)}x
+You ${won ? "won" : "lost"}!`).addFields(
+        { name: "Bet", value: bet.toString(), inline: true },
+        { name: "Won", value: winnings.toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "stats") {
+      const embed = new import_discord21.EmbedBuilder().setColor(import_discord21.Colors.Blurple).setTitle("\u{1F3B0} Casino Stats").addFields(
+        { name: "Games Played", value: profile.casino.gamesPlayed.toString(), inline: true },
+        { name: "Total Wagered", value: profile.casino.wagered.toString(), inline: true },
+        { name: "Total Won", value: profile.casino.won.toString(), inline: true },
+        { name: "Total Lost", value: profile.casino.lost.toString(), inline: true },
+        { name: "Biggest Win", value: profile.casino.biggestWin.toString(), inline: true },
+        { name: "Slots Jackpots", value: profile.casino.slots.jackpots.toString(), inline: true },
+        { name: "Blackjacks", value: profile.casino.blackjack.blackjacks.toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+  }
+};
+
 // src/commands/fun/coinflip.ts
-var import_discord18 = __toESM(require_src());
+var import_discord22 = __toESM(require_src());
 var coinflipCommand = {
-  data: new import_discord18.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
+  data: new import_discord22.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -180390,9 +182253,9 @@ var coinflipCommand = {
 };
 
 // src/commands/fun/dice.ts
-var import_discord19 = __toESM(require_src());
+var import_discord23 = __toESM(require_src());
 var diceCommand = {
-  data: new import_discord19.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
+  data: new import_discord23.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
     (option) => option.setName("sides").setDescription("Number of sides").setRequired(false).setMinValue(2).setMaxValue(1e3)
   ),
   category: "fun",
@@ -180405,16 +182268,16 @@ var diceCommand = {
 };
 
 // src/commands/leveling/rank.ts
-var import_discord21 = __toESM(require_src());
+var import_discord25 = __toESM(require_src());
 
 // src/utils/rankEmbeds.ts
-var import_discord20 = __toESM(require_src());
+var import_discord24 = __toESM(require_src());
 function buildRankCard(opts) {
   const { user, info } = opts;
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
   const levelColor = info.level % 2 === 0 ? 5793266 : 10499071;
-  const embed = new import_discord20.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
+  const embed = new import_discord24.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
     { name: "Progress", value: `${info.xpInLevel.toLocaleString()} / ${info.xpForNext.toLocaleString()} XP`, inline: true },
     { name: "Total XP", value: info.totalXp.toLocaleString(), inline: true }
   ).setFooter({ text: `Rank #${opts.position || ""} \u2022 ${opts.guildName}` }).setTimestamp();
@@ -180431,14 +182294,14 @@ function buildLeaderboardEmbed(entries, guildName) {
     const medal = i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : `**${i + 1}.**`;
     return `${medal} <@${entry.userId}> \u2014 level **${entry.level}** (\`${entry.totalXp.toLocaleString()}\` XP)`;
   }).join("\n");
-  return new import_discord20.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
+  return new import_discord24.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
 }
 __name(buildLeaderboardEmbed, "buildLeaderboardEmbed");
 
 // src/utils/fonts.ts
 var import_node_fs = __toESM(require("node:fs"));
 var import_node_path = __toESM(require("node:path"));
-var import_node_stream4 = require("node:stream");
+var import_node_stream5 = require("node:stream");
 var import_promises = require("node:stream/promises");
 
 // src/utils/canvas-runtime.ts
@@ -180637,7 +182500,7 @@ async function ensureEmojiFont(canvas) {
       const res = await fetch(url2);
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
       const tmp = `${dest}.part`;
-      await (0, import_promises.pipeline)(import_node_stream4.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
+      await (0, import_promises.pipeline)(import_node_stream5.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
       if (import_node_fs.default.statSync(tmp).size < EMOJI_MIN_BYTES) throw new Error("download incomplete");
       import_node_fs.default.renameSync(tmp, dest);
       canvas.GlobalFonts.registerFromPath(dest, "AtlasEmoji");
@@ -180671,7 +182534,7 @@ async function downloadFont(canvas, file2, alias, downloading) {
     const res = await fetch(url2);
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
     const tmp = `${dest}.part`;
-    await (0, import_promises.pipeline)(import_node_stream4.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
+    await (0, import_promises.pipeline)(import_node_stream5.Readable.fromWeb(res.body), import_node_fs.default.createWriteStream(tmp));
     import_node_fs.default.renameSync(tmp, dest);
     canvas.GlobalFonts.registerFromPath(dest, alias);
     registeredAliases.add(alias);
@@ -181128,7 +182991,7 @@ var leaderboardPodium = new LeaderboardPodiumCanvas();
 
 // src/commands/leveling/rank.ts
 var rankCommand = {
-  data: new import_discord21.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
+  data: new import_discord25.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "leveling",
@@ -181140,7 +183003,7 @@ var rankCommand = {
     if (!row || row.xp <= 0) {
       await interaction.reply({
         content: `${target.username} hasn't earned any XP yet.`,
-        flags: import_discord21.MessageFlags.Ephemeral
+        flags: import_discord25.MessageFlags.Ephemeral
       });
       return;
     }
@@ -181163,7 +183026,7 @@ var rankCommand = {
         totalXp: info.totalXp,
         guildName: guild?.name
       });
-      const attachment = new import_discord21.AttachmentBuilder(buffer, { name: "rank.png" });
+      const attachment = new import_discord25.AttachmentBuilder(buffer, { name: "rank.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render rank card:", err);
@@ -181179,9 +183042,9 @@ var rankCommand = {
 };
 
 // src/commands/leveling/leaderboard.ts
-var import_discord22 = __toESM(require_src());
+var import_discord26 = __toESM(require_src());
 var leaderboardCommand = {
-  data: new import_discord22.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
+  data: new import_discord26.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many members to show (1-25)").setMinValue(1).setMaxValue(25)
   ),
   category: "leveling",
@@ -181192,7 +183055,7 @@ var leaderboardCommand = {
     if (rows.length === 0) {
       await interaction.reply({
         content: "No XP records yet.",
-        flags: import_discord22.MessageFlags.Ephemeral
+        flags: import_discord26.MessageFlags.Ephemeral
       });
       return;
     }
@@ -181222,7 +183085,7 @@ var leaderboardCommand = {
         interaction.guild?.name ?? "this server",
         "\u{1F3C6} Top members"
       );
-      const attachment = new import_discord22.AttachmentBuilder(buffer, { name: "leaderboard.png" });
+      const attachment = new import_discord26.AttachmentBuilder(buffer, { name: "leaderboard.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render leaderboard image:", err);
@@ -181241,14 +183104,14 @@ var leaderboardCommand = {
 };
 
 // src/commands/leveling/levels.ts
-var import_discord25 = __toESM(require_src());
+var import_discord29 = __toESM(require_src());
 
 // src/utils/discord.ts
-var import_discord23 = __toESM(require_src());
+var import_discord27 = __toESM(require_src());
 function canAssignRole(guild, role) {
   const me = guild.members.me;
   if (!me) return "I could not resolve my own member object.";
-  if (!me.permissions.has(import_discord23.PermissionFlagsBits.ManageRoles)) {
+  if (!me.permissions.has(import_discord27.PermissionFlagsBits.ManageRoles)) {
     return "I need the **Manage Roles** permission to assign roles.";
   }
   if (role.managed) {
@@ -181262,7 +183125,7 @@ function canAssignRole(guild, role) {
 __name(canAssignRole, "canAssignRole");
 
 // src/utils/liveLeaderboard.ts
-var import_discord24 = __toESM(require_src());
+var import_discord28 = __toESM(require_src());
 
 // src/utils/levelSettings.ts
 var DEFAULT_LEVEL_UP_MESSAGE = "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
@@ -181356,7 +183219,7 @@ function clampText(text, max) {
 }
 __name(clampText, "clampText");
 function linkText(text) {
-  return (0, import_discord24.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
+  return (0, import_discord28.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
 }
 __name(linkText, "linkText");
 function userLink(entry) {
@@ -181407,7 +183270,7 @@ __name(collectEntries, "collectEntries");
 function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updatedAt = Date.now()) {
   const title = titleOverride.trim() || `\u{1F3C6} ${guild.name} leaderboard`;
   const top = entries.slice(0, 3);
-  const embed = new import_discord24.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
+  const embed = new import_discord28.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
     `\u{1F465} **${guild.memberCount.toLocaleString("en-US")}** members \u2728 *Ranked by experience*`
   ).addFields({ name: "\u200B", value: DIVIDER });
   const topLines = top.map(
@@ -181473,7 +183336,7 @@ async function buildMessagePayload(entries, guild, rows, title, updatedAt) {
         percent: entry.percent
       }))
     );
-    const file2 = new import_discord24.AttachmentBuilder(buffer, { name: "top-3.png" });
+    const file2 = new import_discord28.AttachmentBuilder(buffer, { name: "top-3.png" });
     return {
       embeds: [buildContentEmbed(entries, guild, rows, title, "attachment://top-3.png", updatedAt)],
       files: [file2]
@@ -181611,11 +183474,11 @@ __name(saveGuildSettings, "saveGuildSettings");
 
 // src/commands/leveling/levels.ts
 var levelsCommand = {
-  data: new import_discord25.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord25.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord29.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord29.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Configure XP rates and announcement channels").addBooleanOption(
       (o) => o.setName("enabled").setDescription("Whether members earn XP in this server")
     ).addChannelOption(
-      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord25.ChannelType.GuildText)
+      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord29.ChannelType.GuildText)
     ).addIntegerOption(
       (o) => o.setName("xp_per_message").setDescription("Minimum XP per message (MEE6 default 15)").setMinValue(0).setMaxValue(1e4)
     ).addIntegerOption(
@@ -181648,7 +183511,7 @@ var levelsCommand = {
   ).addSubcommandGroup(
     (group) => group.setName("leaderboard").setDescription("Manage the self-updating leaderboard message").addSubcommand(
       (sub) => sub.setName("start").setDescription("Post and keep a leaderboard message up to date").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord25.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord29.ChannelType.GuildText).setRequired(true)
       ).addIntegerOption(
         (o) => o.setName("interval_minutes").setDescription("Refresh interval in minutes (default 10)").setMinValue(1).setMaxValue(1440)
       ).addIntegerOption(
@@ -181762,7 +183625,7 @@ async function setup(context) {
     changes.push("Level-up message template updated");
   }
   const cfg = await saveGuildSettings(context, updates);
-  const embed = new import_discord25.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
+  const embed = new import_discord29.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
     {
       name: "XP per message",
       value: cfg.perMessageMin === cfg.perMessageMax ? `${cfg.perMessageMin}` : `${cfg.perMessageMin}-${cfg.perMessageMax} (random)`,
@@ -181831,7 +183694,7 @@ async function roleList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
   const entries = Object.entries(current.levelRoles).sort((a, b) => Number(a[0]) - Number(b[0]));
-  const embed = new import_discord25.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
+  const embed = new import_discord29.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
   if (entries.length === 0) {
     embed.setDescription("No level roles configured. Add one with `/levels role add`.");
   } else {
@@ -181893,7 +183756,7 @@ __name(leaderboardStop, "leaderboardStop");
 async function leaderboardStatus(context) {
   const { interaction } = context;
   const settings = (await loadLevelSettings(context)).liveLeaderboard;
-  const embed = new import_discord25.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
+  const embed = new import_discord29.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
     { name: "Status", value: settings.enabled ? "Enabled" : "Disabled", inline: true },
     {
       name: "Channel",
@@ -181914,20 +183777,20 @@ async function leaderboardStatus(context) {
 __name(leaderboardStatus, "leaderboardStatus");
 
 // src/commands/leveling/xp.ts
-var import_discord27 = __toESM(require_src());
+var import_discord31 = __toESM(require_src());
 var xpCommand = {
-  data: new import_discord27.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord27.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord31.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("channel").setDescription("Only earn XP in one channel (or allow all channels again)").addChannelOption(
-      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord27.ChannelType.GuildText)
+      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord31.ChannelType.GuildText)
     )
   ).addSubcommandGroup(
     (group) => group.setName("nocxp").setDescription("Channels where members earn no XP").addSubcommand(
       (sub) => sub.setName("add").setDescription("Exclude a channel from XP").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord27.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord31.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand(
       (sub) => sub.setName("remove").setDescription("Allow XP in an excluded channel again").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord27.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord31.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand((sub) => sub.setName("list").setDescription("List excluded channels"))
   ),
@@ -182008,7 +183871,7 @@ __name(nocxpRemove, "nocxpRemove");
 async function nocxpList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
-  const embed = new import_discord27.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
+  const embed = new import_discord31.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
   if (current.noXpChannels.length === 0) {
     embed.setDescription("No channels are excluded \u2014 XP is earned everywhere.");
   } else {
@@ -182022,7 +183885,7 @@ async function nocxpList(context) {
 __name(nocxpList, "nocxpList");
 
 // src/commands/tickets/ticket.ts
-var import_discord28 = __toESM(require_src());
+var import_discord32 = __toESM(require_src());
 function shortId() {
   return Math.random().toString(36).slice(2, 8);
 }
@@ -182042,7 +183905,7 @@ async function getTicketConfig(guildId) {
 }
 __name(getTicketConfig, "getTicketConfig");
 var ticketCommand = {
-  data: new import_discord28.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
+  data: new import_discord32.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Post the live ticket panel in a channel.").addChannelOption(
       (o) => o.setName("channel").setDescription("Channel to post the panel (default: current)")
     )
@@ -182146,7 +184009,7 @@ async function handleSetup3(interaction, guild) {
   if (existing) {
     await interaction.reply({
       content: "\u274C A ticket panel already exists in this channel.",
-      flags: import_discord28.MessageFlags.Ephemeral
+      flags: import_discord32.MessageFlags.Ephemeral
     });
     return;
   }
@@ -182158,18 +184021,18 @@ async function handleSetup3(interaction, guild) {
     });
     departments = await TicketDepartment.find({ guildId: guild.id, isActive: true }).lean();
   }
-  const embed = new import_discord28.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
+  const embed = new import_discord32.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
     "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" + departments.map((d) => `${d.emoji} **${d.name}** \u2014 ${d.description}`).join("\n")
-  ).setImage("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+  ).setImage("https://media1.tenor.com/m/kQNXoHoGFc0AAAAC/support.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
   const rows = [];
-  let row = new import_discord28.ActionRowBuilder();
+  let row = new import_discord32.ActionRowBuilder();
   for (const dept of departments) {
     row.addComponents(
-      new import_discord28.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord28.ButtonStyle.Primary).setEmoji(dept.emoji)
+      new import_discord32.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord32.ButtonStyle.Primary).setEmoji(dept.emoji)
     );
     if (row.components.length >= 5) {
       rows.push(row);
-      row = new import_discord28.ActionRowBuilder();
+      row = new import_discord32.ActionRowBuilder();
     }
   }
   if (row.components.length > 0) rows.push(row);
@@ -182190,7 +184053,7 @@ async function handleSetup3(interaction, guild) {
   });
   await interaction.reply({
     content: `\u2705 Live ticket panel posted in ${channel} with ${departments.length} department(s).`,
-    flags: import_discord28.MessageFlags.Ephemeral
+    flags: import_discord32.MessageFlags.Ephemeral
   });
 }
 __name(handleSetup3, "handleSetup");
@@ -182206,16 +184069,16 @@ async function handleDepartment(interaction, guild) {
     if (departments.length === 0) {
       await interaction.reply({
         content: "\u{1F4ED} No departments configured.",
-        flags: import_discord28.MessageFlags.Ephemeral
+        flags: import_discord32.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord28.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
+    const embed = new import_discord32.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
       departments.map(
         (d) => `${d.emoji} **${d.name}**${d.isActive ? "" : " (inactive)"} \u2014 ${d.description}${d.staffRoleId ? ` \u2022 Staff: <@&${d.staffRoleId}>` : ""}`
       ).join("\n")
     );
-    await interaction.reply({ embeds: [embed], flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord32.MessageFlags.Ephemeral });
     return;
   }
   if (!name) {
@@ -182240,7 +184103,7 @@ async function handleDepartment(interaction, guild) {
     });
     await interaction.reply({
       content: `\u2705 Department **${name}** created.`,
-      flags: import_discord28.MessageFlags.Ephemeral
+      flags: import_discord32.MessageFlags.Ephemeral
     });
     return;
   }
@@ -182257,12 +184120,12 @@ async function handleDepartment(interaction, guild) {
     if (emoji3) dept.emoji = emoji3;
     if (staffRole) dept.staffRoleId = staffRole.id;
     await dept.save();
-    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord32.MessageFlags.Ephemeral });
     return;
   }
   if (action === "delete") {
     await TicketDepartment.deleteOne({ _id: dept._id });
-    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord32.MessageFlags.Ephemeral });
     return;
   }
 }
@@ -182310,7 +184173,7 @@ async function handleClaim(interaction, guild) {
   await ticket.save();
   await interaction.reply({
     content: `\u2705 Ticket claimed by <@${interaction.user.id}>.`,
-    flags: import_discord28.MessageFlags.Ephemeral
+    flags: import_discord32.MessageFlags.Ephemeral
   });
 }
 __name(handleClaim, "handleClaim");
@@ -182336,7 +184199,7 @@ async function handleAdd(interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> added to the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord32.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to add member to the ticket.");
   }
@@ -182363,7 +184226,7 @@ async function handleRemove3(interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> removed from the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord28.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord32.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to remove member from the ticket.");
   }
@@ -182381,7 +184244,7 @@ async function handleTranscript(interaction, guild) {
   }
   const target = interaction.options.getString("target") ?? "channel";
   await sendTranscript(interaction, guild, ticket, target);
-  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord28.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord32.MessageFlags.Ephemeral });
 }
 __name(handleTranscript, "handleTranscript");
 async function sendTranscript(interaction, guild, ticket, target) {
@@ -182469,7 +184332,7 @@ async function handleConfig(interaction, guild) {
     config2.staffRoleIds = value ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
   }
   await config2.save();
-  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord28.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord32.MessageFlags.Ephemeral });
 }
 __name(handleConfig, "handleConfig");
 async function handleStats(interaction, guild) {
@@ -182477,26 +184340,332 @@ async function handleStats(interaction, guild) {
   const closed = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: { $ne: null } });
   const panels = await TicketPanel.countDocuments({ guildId: guild.id });
   const departments = await TicketDepartment.countDocuments({ guildId: guild.id, isActive: true });
-  const embed = new import_discord28.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
+  const embed = new import_discord32.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
     { name: "Open tickets", value: String(open2), inline: true },
     { name: "Closed tickets", value: String(closed), inline: true },
     { name: "Panels posted", value: String(panels), inline: true },
     { name: "Active departments", value: String(departments), inline: true }
   ).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
-  await interaction.reply({ embeds: [embed], flags: import_discord28.MessageFlags.Ephemeral });
+  await interaction.reply({ embeds: [embed], flags: import_discord32.MessageFlags.Ephemeral });
 }
 __name(handleStats, "handleStats");
 
+// src/commands/music/play.ts
+var import_discord33 = __toESM(require_src());
+var musicCommand = {
+  data: new import_discord33.SlashCommandBuilder().setName("music").setDescription("Music player system").addSubcommand(
+    (sub) => sub.setName("play").setDescription("Play a song or search for music").addStringOption(
+      (opt) => opt.setName("query").setDescription("Song name, URL, or search query").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("queue").setDescription("Show the current music queue")
+  ).addSubcommand(
+    (sub) => sub.setName("skip").setDescription("Skip the current song")
+  ).addSubcommand(
+    (sub) => sub.setName("pause").setDescription("Pause the current song")
+  ).addSubcommand(
+    (sub) => sub.setName("resume").setDescription("Resume the paused song")
+  ).addSubcommand(
+    (sub) => sub.setName("stop").setDescription("Stop music and disconnect")
+  ).addSubcommand(
+    (sub) => sub.setName("loop").setDescription("Set loop mode").addStringOption(
+      (opt) => opt.setName("mode").setDescription("Loop mode").setRequired(true).addChoices(
+        { name: "Off", value: "off" },
+        { name: "Track", value: "track" },
+        { name: "Queue", value: "queue" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("volume").setDescription("Set the volume").addIntegerOption(
+      (opt) => opt.setName("level").setDescription("Volume level (0-200)").setRequired(true).setMinValue(0).setMaxValue(200)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("nowplaying").setDescription("Show the currently playing song")
+  ).addSubcommand(
+    (sub) => sub.setName("seek").setDescription("Seek to a position in the song").addStringOption(
+      (opt) => opt.setName("time").setDescription("Time to seek to (e.g., 1:30, 90s)").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("shuffle").setDescription("Shuffle the queue")
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a song from the queue").addIntegerOption(
+      (opt) => opt.setName("position").setDescription("Position in queue").setRequired(true).setMinValue(1)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("lyrics").setDescription("Show lyrics for the current song").addStringOption(
+      (opt) => opt.setName("query").setDescription("Song name to search lyrics for").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("filter").setDescription("Apply audio filters").addStringOption(
+      (opt) => opt.setName("filter").setDescription("Filter to apply").setRequired(true).addChoices(
+        { name: "Off", value: "off" },
+        { name: "Bassboost", value: "bassboost" },
+        { name: "Nightcore", value: "nightcore" },
+        { name: "Vaporwave", value: "vaporwave" },
+        { name: "8D", value: "8d" },
+        { name: "Vibrato", value: "vibrato" },
+        { name: "Tremolo", value: "tremolo" },
+        { name: "Reverse", value: "reverse" },
+        { name: "Treble", value: "treble" },
+        { name: "Normalizer", value: "normalizer" },
+        { name: "Surrounding", value: "surrounding" },
+        { name: "Phaser", value: "phaser" },
+        { name: "Compressor", value: "compressor" },
+        { name: "Karaoke", value: "karaoke" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("247").setDescription("Enable/disable 24/7 mode").addBooleanOption(
+      (opt) => opt.setName("enabled").setDescription("Enable or disable 24/7").setRequired(true)
+    )
+  ),
+  category: "music",
+  cooldownSeconds: 3,
+  botPermissions: ["Connect", "Speak", "UseVAD"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    const lavalink = interaction.client.lavalink;
+    if (!lavalink) {
+      await interaction.reply({ content: "\u274C Music system is not available on this instance.", ephemeral: true });
+      return;
+    }
+    if (sub === "play") {
+      const query = interaction.options.getString("query", true);
+      const member = interaction.member;
+      const voiceChannel = member.voice?.channel;
+      if (!voiceChannel) {
+        await interaction.reply({ content: "\u274C You need to be in a voice channel to play music.", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply();
+      try {
+        const player = await lavalink.join({
+          guildId,
+          channelId: voiceChannel.id,
+          deaf: true
+        });
+        const search = await lavalink.search(query, interaction.user);
+        if (!search || !search.tracks.length) {
+          await interaction.editReply({ content: "\u274C No tracks found for that query." });
+          return;
+        }
+        if (search.loadType === "TRACK_LOADED" || search.loadType === "SEARCH_RESULT") {
+          await player.queue.add(search.tracks[0]);
+          if (!player.playing) {
+            await player.play();
+          }
+          const track = search.tracks[0];
+          const embed = new import_discord33.EmbedBuilder().setColor(import_discord33.Colors.Blurple).setTitle("\u25B6\uFE0F Added to Queue").setDescription(`[${track.title}](${track.uri})`).addFields(
+            { name: "Author", value: track.author, inline: true },
+            { name: "Duration", value: new Date(track.duration).toISOString().substr(11, 8), inline: true },
+            { name: "Requested by", value: interaction.user.tag, inline: true }
+          ).setThumbnail(track.thumbnail ?? "");
+          await interaction.editReply({ embeds: [embed] });
+          recordActivity("command", "Music play", { meta: { guildId, track: track.title } });
+        } else if (search.loadType === "PLAYLIST_LOADED") {
+          for (const track of search.tracks) {
+            await player.queue.add(track);
+          }
+          if (!player.playing) {
+            await player.play();
+          }
+          const embed = new import_discord33.EmbedBuilder().setColor(import_discord33.Colors.Blurple).setTitle("\u{1F4CB} Playlist Added").setDescription(`${search.playlist.name} - ${search.tracks.length} tracks added to queue`).addFields(
+            { name: "Requested by", value: interaction.user.tag, inline: true }
+          );
+          await interaction.editReply({ embeds: [embed] });
+          recordActivity("command", "Music playlist", { meta: { guildId, tracks: search.tracks.length } });
+        }
+      } catch (error62) {
+        await interaction.editReply({ content: `\u274C Failed to play music: ${error62}` });
+      }
+      return;
+    }
+    if (sub === "queue") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.queue.size) {
+        await interaction.reply({ content: "\u274C The queue is empty.", ephemeral: true });
+        return;
+      }
+      const current = player.current;
+      const queue = player.queue.toArray();
+      const embed = new import_discord33.EmbedBuilder().setColor(import_discord33.Colors.Blurple).setTitle("\u{1F3B5} Music Queue").addFields(
+        {
+          name: "Current",
+          value: current ? `[${current.title}](${current.uri})` : "Nothing",
+          inline: false
+        }
+      ).setFooter({ text: `${queue.length} track(s) in queue` });
+      if (queue.length > 0) {
+        embed.addFields({
+          name: "Up Next",
+          value: queue.slice(0, 10).map((t, i) => `**${i + 1}.** [${t.title}](${t.uri})`).join("\n"),
+          inline: false
+        });
+      }
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "skip") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.playing) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      await player.stop();
+      await interaction.reply({ content: "\u23ED\uFE0F Skipped the current song." });
+      recordActivity("command", "Music skip", { meta: { guildId } });
+      return;
+    }
+    if (sub === "pause") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.playing) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      await player.pause(true);
+      await interaction.reply({ content: "\u23F8\uFE0F Paused the music." });
+      return;
+    }
+    if (sub === "resume") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.paused) {
+        await interaction.reply({ content: "\u274C Nothing is paused.", ephemeral: true });
+        return;
+      }
+      await player.pause(false);
+      await interaction.reply({ content: "\u25B6\uFE0F Resumed the music." });
+      return;
+    }
+    if (sub === "stop") {
+      const player = lavalink.players.get(guildId);
+      if (!player) {
+        await interaction.reply({ content: "\u274C I am not in a voice channel.", ephemeral: true });
+        return;
+      }
+      await player.destroy();
+      await interaction.reply({ content: "\u23F9\uFE0F Stopped the music and disconnected." });
+      recordActivity("command", "Music stop", { meta: { guildId } });
+      return;
+    }
+    if (sub === "loop") {
+      const mode = interaction.options.getString("mode", true);
+      const player = lavalink.players.get(guildId);
+      if (!player) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      const loopMode = mode === "track" ? 1 : mode === "queue" ? 2 : 0;
+      await player.setLoop(loopMode);
+      await interaction.reply({ content: `\u{1F501} Loop mode set to: **${mode}**` });
+      return;
+    }
+    if (sub === "volume") {
+      const level = interaction.options.getInteger("level", true);
+      const player = lavalink.players.get(guildId);
+      if (!player) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      await player.setVolume(level);
+      await interaction.reply({ content: `\u{1F50A} Volume set to: **${level}%**` });
+      return;
+    }
+    if (sub === "nowplaying") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.current) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      const track = player.current;
+      const embed = new import_discord33.EmbedBuilder().setColor(import_discord33.Colors.Blurple).setTitle("\u{1F3B6} Now Playing").setDescription(`[${track.title}](${track.uri})`).addFields(
+        { name: "Author", value: track.author, inline: true },
+        { name: "Duration", value: new Date(track.duration).toISOString().substr(11, 8), inline: true },
+        { name: "Requested by", value: track.requester?.tag ?? "Unknown", inline: true },
+        { name: "Volume", value: `${player.volume}%`, inline: true }
+      ).setThumbnail(track.thumbnail ?? "");
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "seek") {
+      const timeStr = interaction.options.getString("time", true);
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.current) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      let ms2 = 0;
+      const parts = timeStr.split(":");
+      if (parts.length === 2) {
+        ms2 = (parseInt(parts[0]) * 60 + parseInt(parts[1])) * 1e3;
+      } else if (timeStr.endsWith("s")) {
+        ms2 = parseInt(timeStr) * 1e3;
+      } else {
+        ms2 = parseInt(timeStr) * 1e3;
+      }
+      await player.seek(ms2);
+      await interaction.reply({ content: `\u23E9 Seeked to ${timeStr}.` });
+      return;
+    }
+    if (sub === "shuffle") {
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.queue.size) {
+        await interaction.reply({ content: "\u274C The queue is empty.", ephemeral: true });
+        return;
+      }
+      await player.queue.shuffle();
+      await interaction.reply({ content: "\u{1F500} Shuffled the queue." });
+      return;
+    }
+    if (sub === "remove") {
+      const position = interaction.options.getInteger("position", true);
+      const player = lavalink.players.get(guildId);
+      if (!player || !player.queue.size) {
+        await interaction.reply({ content: "\u274C The queue is empty.", ephemeral: true });
+        return;
+      }
+      if (position > player.queue.size) {
+        await interaction.reply({ content: `\u274C Position out of range. Queue has ${player.queue.size} track(s).`, ephemeral: true });
+        return;
+      }
+      const track = player.queue.remove(position - 1);
+      await interaction.reply({ content: `\u274C Removed **[${track.title}](${track.uri})** from the queue.` });
+      return;
+    }
+    if (sub === "lyrics") {
+      const query = interaction.options.getString("query");
+      await interaction.reply({ content: "\u{1F3B5} Lyrics feature coming soon!", ephemeral: true });
+      return;
+    }
+    if (sub === "filter") {
+      const filter = interaction.options.getString("filter", true);
+      const player = lavalink.players.get(guildId);
+      if (!player) {
+        await interaction.reply({ content: "\u274C Nothing is playing.", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `\u{1F527} Audio filter "${filter}" applied (simulated).` });
+      return;
+    }
+    if (sub === "247") {
+      const enabled = interaction.options.getBoolean("enabled", true);
+      await interaction.reply({ content: `${enabled ? "\u2705" : "\u274C"} 24/7 mode ${enabled ? "enabled" : "disabled"}.` });
+      return;
+    }
+  }
+};
+
 // src/commands/fun/poll.ts
-var import_discord29 = __toESM(require_src());
+var import_discord34 = __toESM(require_src());
 var pollCommand = {
-  data: new import_discord29.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
+  data: new import_discord34.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options (max 10)").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes (default 10)").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord29.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord34.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182507,18 +184676,18 @@ var pollCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord29.MessageFlags.Ephemeral
+        flags: import_discord34.MessageFlags.Ephemeral
       });
       return;
     }
     if (options.length > 10) {
       await interaction.reply({
         content: "\u274C Maximum 10 options allowed.",
-        flags: import_discord29.MessageFlags.Ephemeral
+        flags: import_discord34.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord29.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await interaction.reply({
       embeds: [embed],
       fetchReply: true
@@ -182561,15 +184730,15 @@ ${resultDesc}`
 };
 
 // src/commands/fun/rps.ts
-var import_discord30 = __toESM(require_src());
+var import_discord35 = __toESM(require_src());
 var rpsCommand = {
-  data: new import_discord30.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
+  data: new import_discord35.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
     (option) => option.setName("choice").setDescription("Rock, Paper, or Scissors").setRequired(true).addChoices(
       { name: "Rock", value: "rock" },
       { name: "Paper", value: "paper" },
       { name: "Scissors", value: "scissors" }
     )
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord30.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182591,16 +184760,16 @@ var rpsCommand = {
     }
     const resultEmoji = { win: "\u{1F947}", lose: "\u{1F948}", tie: "\u{1F91D}" };
     const resultColor = { win: 2278750, lose: 14695998, tie: 16096779 };
-    const embed = new import_discord30.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
+    const embed = new import_discord35.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
       { name: "Your choice", value: userChoice.charAt(0).toUpperCase() + userChoice.slice(1), inline: true },
       { name: "Bot's choice", value: botChoice.charAt(0).toUpperCase() + botChoice.slice(1), inline: true }
     ).setFooter({ text: `${resultEmoji[result]} You ${result === "win" ? "win!" : result === "lose" ? "lose!" : "tie!"}` }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord30.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord35.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/truth.ts
-var import_discord31 = __toESM(require_src());
+var import_discord36 = __toESM(require_src());
 var truthQuestions = [
   "What is the most embarrassing thing that happened to you in public?",
   "What is a secret you have never told anyone?",
@@ -182612,17 +184781,17 @@ var truthQuestions = [
   "What is the worst gift you have ever received?"
 ];
 var truthCommand = {
-  data: new import_discord31.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.SendMessages),
+  data: new import_discord36.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
-    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord31.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord36.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/dare.ts
-var import_discord32 = __toESM(require_src());
+var import_discord37 = __toESM(require_src());
 var darePrompts = [
   "Do 10 push-ups right now.",
   "Send a random message to your closest contact.",
@@ -182634,21 +184803,21 @@ var darePrompts = [
   "Open your Spotify and share the now-playing song."
 ];
 var dareCommand = {
-  data: new import_discord32.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord32.PermissionFlagsBits.SendMessages),
+  data: new import_discord37.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const dare = darePrompts[Math.floor(Math.random() * darePrompts.length)];
-    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord32.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord37.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/compliment.ts
-var import_discord33 = __toESM(require_src());
+var import_discord38 = __toESM(require_src());
 var complimentCommand = {
-  data: new import_discord33.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
+  data: new import_discord38.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
     (option) => option.setName("user").setDescription("The user to compliment").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord33.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182666,31 +184835,31 @@ var complimentCommand = {
       "You light up every room you enter."
     ];
     const compliment = compliments[Math.floor(Math.random() * compliments.length)];
-    const embed = new import_discord33.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord33.MessageFlags.Ephemeral });
+    const embed = new import_discord38.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord38.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/avatar.ts
-var import_discord34 = __toESM(require_src());
+var import_discord39 = __toESM(require_src());
 var avatarCommand = {
-  data: new import_discord34.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
+  data: new import_discord39.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
     (option) => option.setName("user").setDescription("The user to view avatar for").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord34.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
     const avatarUrl = target.displayAvatarURL({ extension: "png", size: 1024 });
-    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
+    const embed = new import_discord39.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/fun/servercard.ts
-var import_discord35 = __toESM(require_src());
+var import_discord40 = __toESM(require_src());
 var servercardCommand = {
-  data: new import_discord35.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
+  data: new import_discord40.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182698,11 +184867,11 @@ var servercardCommand = {
     if (!guild) {
       await interaction.reply({
         content: "\u274C This command can only be used in a server.",
-        flags: import_discord35.MessageFlags.Ephemeral
+        flags: import_discord40.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord35.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
+    const embed = new import_discord40.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
       { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
       { name: "Members", value: guild.memberCount.toLocaleString(), inline: true },
       { name: "Text Channels", value: guild.channels.cache.filter((c) => c.isTextBased()).size.toString(), inline: true },
@@ -182714,11 +184883,11 @@ var servercardCommand = {
 };
 
 // src/commands/fun/choose.ts
-var import_discord36 = __toESM(require_src());
+var import_discord41 = __toESM(require_src());
 var chooseCommand = {
-  data: new import_discord36.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
+  data: new import_discord41.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options").setRequired(true).setMaxLength(200)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182727,31 +184896,31 @@ var chooseCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord36.MessageFlags.Ephemeral
+        flags: import_discord41.MessageFlags.Ephemeral
       });
       return;
     }
     const choice = options[Math.floor(Math.random() * options.length)];
-    const embed = new import_discord36.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord36.MessageFlags.Ephemeral });
+    const embed = new import_discord41.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord41.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/flip.ts
-var import_discord37 = __toESM(require_src());
+var import_discord42 = __toESM(require_src());
 var flipCommand = {
-  data: new import_discord37.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
+  data: new import_discord42.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const result = Math.random() < 0.5 ? "Heads" : "Tails";
-    const embed = new import_discord37.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord37.MessageFlags.Ephemeral });
+    const embed = new import_discord42.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord42.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/eightball-enhanced.ts
-var import_discord38 = __toESM(require_src());
+var import_discord43 = __toESM(require_src());
 var eightBallAnswers = [
   "As I see it, yes.",
   "It is certain.",
@@ -182768,15 +184937,15 @@ var eightBallAnswers = [
   "Very doubtful."
 ];
 var eightBallEnhancedCommand = {
-  data: new import_discord38.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
+  data: new import_discord43.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
     (option) => option.setName("question").setDescription("Your question").setRequired(true).setMaxLength(500)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = interaction.options.getString("question", true);
     const answer = eightBallAnswers[Math.floor(Math.random() * eightBallAnswers.length)];
-    const embed = new import_discord38.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
+    const embed = new import_discord43.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
       { name: "Question", value: question, inline: false },
       { name: "Answer", value: answer, inline: false }
     ).setFooter({ text: "\u7231 Doctora \u2022 8-Ball" }).setTimestamp();
@@ -182784,33 +184953,573 @@ var eightBallEnhancedCommand = {
   }, "execute")
 };
 
-// src/commands/utility/suggest.ts
-var import_discord39 = __toESM(require_src());
-var suggestCommand = {
-  data: new import_discord39.SlashCommandBuilder().setName("suggest").setDescription("Suggest a feature or idea for the bot.").addStringOption(
-    (option) => option.setName("suggestion").setDescription("Your suggestion").setRequired(true).setMaxLength(500)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.SendMessages),
-  category: "utility",
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const suggestion = interaction.options.getString("suggestion", true);
-    const embed = new import_discord39.EmbedBuilder().setColor(5793266).setTitle("\u{1F4A1} Suggestion").setDescription(`**${suggestion}**`).setFooter({ text: "\u7231 Doctora \u2022 Suggestion submitted" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord39.MessageFlags.Ephemeral });
-    const cfg = interaction.client.guilds.cache.values().next().value;
-    console.log(`[Suggestion] From ${interaction.user.tag}: ${suggestion}`);
-  }, "execute")
+// src/commands/fun/pet.ts
+var import_discord44 = __toESM(require_src());
+var petTypes = {
+  dog: { emoji: "\u{1F415}", color: import_discord44.Colors.Blurple },
+  cat: { emoji: "\u{1F431}", color: import_discord44.Colors.Purple },
+  fox: { emoji: "\u{1F98A}", color: import_discord44.Colors.Orange },
+  dragon: { emoji: "\u{1F409}", color: import_discord44.Colors.Red },
+  phoenix: { emoji: "\u{1F426}\u200D\u{1F525}", color: import_discord44.Colors.Orange },
+  unicorn: { emoji: "\u{1F984}", color: import_discord44.Colors.Purple },
+  slime: { emoji: "\u{1F49A}", color: import_discord44.Colors.Green },
+  robot: { emoji: "\u{1F916}", color: import_discord44.Colors.Blue },
+  ghost: { emoji: "\u{1F47B}", color: import_discord44.Colors.Purple },
+  bunny: { emoji: "\u{1F430}", color: import_discord44.Colors.LuminousVividPink }
+};
+var petCommand = {
+  data: new import_discord44.SlashCommandBuilder().setName("pet").setDescription("Pet system").addSubcommand(
+    (sub) => sub.setName("adopt").setDescription("Adopt a pet").addStringOption(
+      (opt) => opt.setName("name").setDescription("Pet name").setRequired(true).setMaxLength(32)
+    ).addStringOption(
+      (opt) => opt.setName("type").setDescription("Pet type").setRequired(true).addChoices(
+        { name: "Dog", value: "dog" },
+        { name: "Cat", value: "cat" },
+        { name: "Fox", value: "fox" },
+        { name: "Dragon", value: "dragon" },
+        { name: "Phoenix", value: "phoenix" },
+        { name: "Unicorn", value: "unicorn" },
+        { name: "Slime", value: "slime" },
+        { name: "Robot", value: "robot" },
+        { name: "Ghost", value: "ghost" },
+        { name: "Bunny", value: "bunny" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("feed").setDescription("Feed your pet")
+  ).addSubcommand(
+    (sub) => sub.setName("play").setDescription("Play with your pet")
+  ).addSubcommand(
+    (sub) => sub.setName("profile").setDescription("View pet profile").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to view").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("battle").setDescription("Battle another pet").addUserOption(
+      (opt) => opt.setName("user").setDescription("Opponent to battle").setRequired(true)
+    )
+  ),
+  category: "fun",
+  cooldownSeconds: 3,
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const userId = interaction.user.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "adopt") {
+      const name = interaction.options.getString("name", true);
+      const type = interaction.options.getString("type", true);
+      const existing = await Pet.findOne({ userId, guildId });
+      if (existing) {
+        await interaction.reply({ content: "\u274C You already have a pet!", ephemeral: true });
+        return;
+      }
+      const pet = await Pet.create({
+        userId,
+        guildId,
+        name,
+        type,
+        level: 1,
+        xp: 0,
+        hunger: 100,
+        happiness: 100,
+        health: 100,
+        energy: 100
+      });
+      const info = petTypes[type];
+      const embed = new import_discord44.EmbedBuilder().setColor(info.color).setTitle("\u{1F43E} Pet Adopted!").setDescription(`You adopted **${name}** the ${type}! ${info.emoji}`).addFields(
+        { name: "Level", value: "1", inline: true },
+        { name: "XP", value: "0/100", inline: true },
+        { name: "Hunger", value: "100%", inline: true },
+        { name: "Happiness", value: "100%", inline: true },
+        { name: "Health", value: "100%", inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "Pet adopted", { meta: { guildId, userId, type } });
+      return;
+    }
+    if (sub === "feed") {
+      const pet = await Pet.findOne({ userId, guildId });
+      if (!pet) {
+        await interaction.reply({ content: "\u274C You dont have a pet! Adopt one with /pet adopt.", ephemeral: true });
+        return;
+      }
+      pet.hunger = Math.min(100, pet.hunger + 30);
+      pet.happiness = Math.min(100, pet.happiness + 10);
+      pet.lastFed = /* @__PURE__ */ new Date();
+      await pet.save();
+      const embed = new import_discord44.EmbedBuilder().setColor(import_discord44.Colors.Green).setTitle("\u{1F356} Pet Fed").setDescription(`You fed **${pet.name}**!`).addFields(
+        { name: "Hunger", value: `${pet.hunger}%`, inline: true },
+        { name: "Happiness", value: `${pet.happiness}%`, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "play") {
+      const pet = await Pet.findOne({ userId, guildId });
+      if (!pet) {
+        await interaction.reply({ content: "\u274C You dont have a pet! Adopt one with /pet adopt.", ephemeral: true });
+        return;
+      }
+      pet.happiness = Math.min(100, pet.happiness + 25);
+      pet.hunger = Math.max(0, pet.hunger - 15);
+      pet.energy = Math.max(0, pet.energy - 20);
+      pet.lastPlayed = /* @__PURE__ */ new Date();
+      await pet.save();
+      const embed = new import_discord44.EmbedBuilder().setColor(import_discord44.Colors.Blue).setTitle("\u{1F3BE} Played with Pet").setDescription(`You played with **${pet.name}**!`).addFields(
+        { name: "Happiness", value: `${pet.happiness}%`, inline: true },
+        { name: "Hunger", value: `${pet.hunger}%`, inline: true },
+        { name: "Energy", value: `${pet.energy}%`, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "profile") {
+      const targetUser = interaction.options.getUser("user") ?? interaction.user;
+      const pet = await Pet.findOne({ userId: targetUser.id, guildId });
+      if (!pet) {
+        await interaction.reply({ content: `${targetUser.tag} doesn't have a pet.`, ephemeral: true });
+        return;
+      }
+      const info = petTypes[pet.type];
+      const xpNeeded = pet.level * 100;
+      const progress = Math.floor(pet.xp / xpNeeded * 100);
+      const embed = new import_discord44.EmbedBuilder().setColor(info.color).setTitle(`${info.emoji} ${pet.name}'s Profile`).setThumbnail(targetUser.displayAvatarURL()).addFields(
+        { name: "Type", value: pet.type, inline: true },
+        { name: "Level", value: pet.level.toString(), inline: true },
+        { name: "XP", value: `${pet.xp}/${xpNeeded} (${progress}%)`, inline: true },
+        { name: "Hunger", value: `${pet.hunger}%`, inline: true },
+        { name: "Happiness", value: `${pet.happiness}%`, inline: true },
+        { name: "Health", value: `${pet.health}%`, inline: true },
+        { name: "Energy", value: `${pet.energy}%`, inline: true },
+        { name: "Wins", value: pet.wins.toString(), inline: true },
+        { name: "Losses", value: pet.losses.toString(), inline: true }
+      ).setFooter({ text: `Owner: ${targetUser.tag}` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "battle") {
+      const opponent = interaction.options.getUser("user", true);
+      if (opponent.id === userId) {
+        await interaction.reply({ content: "\u274C You cannot battle yourself.", ephemeral: true });
+        return;
+      }
+      const pet = await Pet.findOne({ userId, guildId });
+      const opponentPet = await Pet.findOne({ userId: opponent.id, guildId });
+      if (!pet || !opponentPet) {
+        await interaction.reply({ content: "\u274C Both users need pets to battle.", ephemeral: true });
+        return;
+      }
+      const petPower = pet.level + pet.health / 10 + Math.random() * 10;
+      const opponentPower = opponentPet.level + opponentPet.health / 10 + Math.random() * 10;
+      let winner, loser;
+      if (petPower > opponentPower) {
+        winner = userId;
+        loser = opponent.id;
+        pet.wins++;
+        opponentPet.losses++;
+      } else {
+        winner = opponent.id;
+        loser = userId;
+        opponentPet.wins++;
+        pet.losses++;
+      }
+      const winnerPet = winner === userId ? pet : opponentPet;
+      winnerPet.xp += 50;
+      if (winnerPet.xp >= winnerPet.level * 100) {
+        winnerPet.level++;
+        winnerPet.xp = 0;
+      }
+      await pet.save();
+      await opponentPet.save();
+      const winnerUser = winner === userId ? interaction.user : opponent;
+      const embed = new import_discord44.EmbedBuilder().setColor(import_discord44.Colors.Blurple).setTitle("\u2694\uFE0F Pet Battle!").setDescription(`**${pet.name}** vs **${opponentPet.name}**
+
+Winner: **${winnerUser.tag}**!`).addFields(
+        { name: `${pet.name}`, value: `Level ${pet.level} - ${Math.floor(petPower)} power`, inline: true },
+        { name: `${opponentPet.name}`, value: `Level ${opponentPet.level} - ${Math.floor(opponentPower)} power`, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "Pet battle", { meta: { guildId, userId, opponentId: opponent.id } });
+      return;
+    }
+  }
 };
 
+// src/commands/fun/marry.ts
+var import_discord45 = __toESM(require_src());
+var marriageCommand = {
+  data: new import_discord45.SlashCommandBuilder().setName("marry").setDescription("Marriage system").addSubcommand(
+    (sub) => sub.setName("propose").setDescription("Propose marriage to someone").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to propose to").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("accept").setDescription("Accept a marriage proposal")
+  ).addSubcommand(
+    (sub) => sub.setName("divorce").setDescription("Divorce your spouse")
+  ).addSubcommand(
+    (sub) => sub.setName("profile").setDescription("View marriage profile").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to view").setRequired(false)
+    )
+  ),
+  category: "fun",
+  cooldownSeconds: 5,
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const userId = interaction.user.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "propose") {
+      const target = interaction.options.getUser("user", true);
+      if (target.id === userId) {
+        await interaction.reply({ content: "\u274C You cannot marry yourself.", ephemeral: true });
+        return;
+      }
+      const existing1 = await Marriage.findOne({ guildId, userId1: userId, divorced: false });
+      const existing2 = await Marriage.findOne({ guildId, userId2: userId, divorced: false });
+      if (existing1 || existing2) {
+        await interaction.reply({ content: "\u274C You are already married.", ephemeral: true });
+        return;
+      }
+      const existing3 = await Marriage.findOne({ guildId, userId1: target.id, divorced: false });
+      const existing4 = await Marriage.findOne({ guildId, userId2: target.id, divorced: false });
+      if (existing3 || existing4) {
+        await interaction.reply({ content: "\u274C That user is already married.", ephemeral: true });
+        return;
+      }
+      const buttons = new import_discord45.ActionRowBuilder().addComponents(
+        new import_discord45.ButtonBuilder().setCustomId(`marry_accept:${userId}`).setLabel("Accept").setStyle(import_discord45.ButtonStyle.Success),
+        new import_discord45.ButtonBuilder().setCustomId(`marry_decline:${userId}`).setLabel("Decline").setStyle(import_discord45.ButtonStyle.Danger)
+      );
+      const embed = new import_discord45.EmbedBuilder().setColor(import_discord45.Colors.Purple).setTitle("\u{1F48D} Marriage Proposal").setDescription(`${interaction.user} is proposing to ${target}!`);
+      await interaction.reply({ content: `${target}`, embeds: [embed], components: [buttons] });
+      const filter = /* @__PURE__ */ __name((i) => i.user.id === target.id && i.isButton(), "filter");
+      const collector = interaction.channel?.createMessageComponentCollector({
+        filter,
+        time: 6e4
+      });
+      collector?.on("collect", async (i) => {
+        if (i.customId === `marry_accept:${userId}`) {
+          await Marriage.create({
+            userId1: userId,
+            userId2: target.id,
+            guildId,
+            proposerId: userId
+          });
+          await i.update({ content: "\u2705 Marriage accepted! Congratulations!", embeds: [], components: [] });
+          recordActivity("command", "Marriage accepted", { meta: { guildId, userId1: userId, userId2: target.id } });
+        } else {
+          await i.update({ content: "\u274C Proposal declined.", embeds: [], components: [] });
+        }
+        collector.stop();
+      });
+      collector?.on("end", () => {
+      });
+      return;
+    }
+    if (sub === "accept") {
+      await interaction.reply({ content: "\u274C No pending proposal to accept. Someone needs to propose to you first.", ephemeral: true });
+      return;
+    }
+    if (sub === "divorce") {
+      const marriage = await Marriage.findOne({
+        guildId,
+        $or: [{ userId1: userId }, { userId2: userId }],
+        divorced: false
+      });
+      if (!marriage) {
+        await interaction.reply({ content: "\u274C You are not married.", ephemeral: true });
+        return;
+      }
+      marriage.divorced = true;
+      marriage.divorcedAt = /* @__PURE__ */ new Date();
+      marriage.divorceInitiatorId = userId;
+      await marriage.save();
+      await interaction.reply({ content: "\u2705 Divorce finalized.", ephemeral: true });
+      recordActivity("command", "Marriage divorce", { meta: { guildId, userId } });
+      return;
+    }
+    if (sub === "profile") {
+      const targetUser = interaction.options.getUser("user") ?? interaction.user;
+      const marriage = await Marriage.findOne({
+        guildId,
+        $or: [{ userId1: targetUser.id }, { userId2: targetUser.id }],
+        divorced: false
+      });
+      if (!marriage) {
+        await interaction.reply({ content: `${targetUser.tag} is not married.`, ephemeral: true });
+        return;
+      }
+      const spouseId = marriage.userId1 === targetUser.id ? marriage.userId2 : marriage.userId1;
+      const spouse = await guild.members.fetch(spouseId).catch(() => null);
+      const spouseName = spouse ? spouse.user.tag : `Unknown (${spouseId})`;
+      const embed = new import_discord45.EmbedBuilder().setColor(import_discord45.Colors.Purple).setTitle("\u{1F48D} Marriage Profile").addFields(
+        { name: "User", value: targetUser.tag, inline: true },
+        { name: "Spouse", value: spouseName, inline: true },
+        { name: "Married since", value: `<t:${Math.floor(marriage.marriedAt.getTime() / 1e3)}:R>`, inline: true },
+        { name: "Hugs", value: marriage.stats.hugs.toString(), inline: true },
+        { name: "Kisses", value: marriage.stats.kisses.toString(), inline: true },
+        { name: "Gifts", value: marriage.stats.gifts.toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+  }
+};
+
+// src/commands/utility/suggest.ts
+var import_discord46 = __toESM(require_src());
+var suggestCommand = {
+  data: new import_discord46.SlashCommandBuilder().setName("suggest").setDescription("Suggestion system").addSubcommand(
+    (sub) => sub.setName("create").setDescription("Create a suggestion").addStringOption(
+      (opt) => opt.setName("title").setDescription("Suggestion title").setRequired(true).setMaxLength(256)
+    ).addStringOption(
+      (opt) => opt.setName("description").setDescription("Suggestion description").setRequired(true).setMaxLength(4e3)
+    ).addBooleanOption(
+      (opt) => opt.setName("anonymous").setDescription("Post anonymously").setRequired(false)
+    ).addAttachmentOption(
+      (opt) => opt.setName("attachment").setDescription("Attachment to include").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List suggestions").addStringOption(
+      (opt) => opt.setName("status").setDescription("Filter by status").setRequired(false).addChoices(
+        { name: "Pending", value: "pending" },
+        { name: "Approved", value: "approved" },
+        { name: "Denied", value: "denied" },
+        { name: "Implemented", value: "implemented" },
+        { name: "Deferred", value: "deferred" }
+      )
+    ).addIntegerOption(
+      (opt) => opt.setName("limit").setDescription("Number to show").setRequired(false).setMinValue(1).setMaxValue(50)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("approve").setDescription("Approve a suggestion (staff)").addStringOption(
+      (opt) => opt.setName("id").setDescription("Suggestion ID").setRequired(true).setAutocomplete(true)
+    ).addStringOption(
+      (opt) => opt.setName("reason").setDescription("Reason for approval").setRequired(false).setMaxLength(1e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("deny").setDescription("Deny a suggestion (staff)").addStringOption(
+      (opt) => opt.setName("id").setDescription("Suggestion ID").setRequired(true).setAutocomplete(true)
+    ).addStringOption(
+      (opt) => opt.setName("reason").setDescription("Reason for denial").setRequired(false).setMaxLength(1e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("implement").setDescription("Mark suggestion as implemented (staff)").addStringOption(
+      (opt) => opt.setName("id").setDescription("Suggestion ID").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("delete").setDescription("Delete a suggestion (staff/author)").addStringOption(
+      (opt) => opt.setName("id").setDescription("Suggestion ID").setRequired(true).setAutocomplete(true)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: [],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "id") {
+      const status = interaction.options.getString("status");
+      const filter = { guildId: interaction.guildId };
+      if (status) filter.status = status;
+      const suggestions = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(25).lean();
+      await interaction.respond(
+        suggestions.filter((s) => String(s._id).includes(focused.value) || s.title.toLowerCase().includes(focused.value.toLowerCase())).map((s) => ({ name: `${s.title} (${s.status})`, value: String(s._id) }))
+      );
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "create") {
+      const title = interaction.options.getString("title", true);
+      const description = interaction.options.getString("description", true);
+      const anonymous = interaction.options.getBoolean("anonymous") ?? false;
+      const attachment = interaction.options.getAttachment("attachment");
+      const suggestionsChannel = guild.channels.cache.find((c) => c.name.includes("suggestion"));
+      if (!suggestionsChannel) {
+        await interaction.reply({ content: 'No suggestions channel found. Create a channel named "suggestions" or ask admin to configure.', ephemeral: true });
+        return;
+      }
+      const suggestion = await Suggestion.create({
+        guildId,
+        channelId: suggestionsChannel.id,
+        authorId: anonymous ? interaction.client.user.id : interaction.user.id,
+        title,
+        description,
+        status: "pending",
+        anonymous,
+        attachments: attachment ? [attachment.url] : []
+      });
+      const embed = buildSuggestionEmbed(suggestion, interaction.user, anonymous);
+      const buttons = new import_discord46.ActionRowBuilder().addComponents(
+        new import_discord46.ButtonBuilder().setCustomId(`suggest_up:${suggestion._id}`).setLabel("\u{1F44D} Upvote").setStyle(import_discord46.ButtonStyle.Success),
+        new import_discord46.ButtonBuilder().setCustomId(`suggest_down:${suggestion._id}`).setLabel("\u{1F44E} Downvote").setStyle(import_discord46.ButtonStyle.Danger)
+      );
+      const message = await suggestionsChannel.send({ embeds: [embed], components: [buttons] });
+      suggestion.messageId = message.id;
+      await suggestion.save();
+      await interaction.reply({ content: `\u2705 Suggestion submitted! Check <#${suggestionsChannel.id}>`, ephemeral: true });
+      recordActivity("command", "Suggestion created", { meta: { guildId, suggestionId: String(suggestion._id) } });
+      return;
+    }
+    if (sub === "list") {
+      const status = interaction.options.getString("status");
+      const limit = interaction.options.getInteger("limit") ?? 10;
+      const filter = { guildId };
+      if (status) filter.status = status;
+      const suggestions = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
+      if (!suggestions.length) {
+        await interaction.reply({ content: "No suggestions found", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Blurple).setTitle("\u{1F4CB} Suggestions").setDescription(
+        suggestions.map((s) => {
+          const statusEmoji = { pending: "\u23F3", approved: "\u2705", denied: "\u274C", implemented: "\u{1F680}", deferred: "\u23F8\uFE0F" }[s.status] || "\u2753";
+          const votes = s.upvotes.length - s.downvotes.length;
+          return `${statusEmoji} **${s.title}** \u2014 ${votes > 0 ? "+" : ""}${votes} votes \u2014 ID: \`${s._id}\``;
+        }).join("\n")
+      ).setFooter({ text: `${suggestions.length} suggestion(s)` });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "approve" || sub === "deny" || sub === "implement") {
+      if (!interaction.memberPermissions?.has("ManageMessages")) {
+        await interaction.reply({ content: "Manage Messages permission required", ephemeral: true });
+        return;
+      }
+      const id = interaction.options.getString("id", true);
+      const reason = interaction.options.getString("reason");
+      const suggestion = await Suggestion.findById(id);
+      if (!suggestion || suggestion.guildId !== guildId) {
+        await interaction.reply({ content: "Suggestion not found", ephemeral: true });
+        return;
+      }
+      const newStatus = sub === "approve" ? "approved" : sub === "deny" ? "denied" : "implemented";
+      suggestion.status = newStatus;
+      suggestion.reviewedBy = interaction.user.id;
+      suggestion.reviewReason = reason ?? void 0;
+      suggestion.reviewedAt = /* @__PURE__ */ new Date();
+      await suggestion.save();
+      try {
+        const channel = guild.channels.cache.get(suggestion.channelId);
+        if (channel && suggestion.messageId) {
+          const message = await channel.messages.fetch(suggestion.messageId);
+          const embed = buildSuggestionEmbed(suggestion, await interaction.client.users.fetch(suggestion.authorId), suggestion.anonymous);
+          await message.edit({ embeds: [embed], components: [] });
+        }
+      } catch {
+      }
+      if (!suggestion.anonymous) {
+        try {
+          const author = await interaction.client.users.fetch(suggestion.authorId);
+          await author.send(`Your suggestion **"${suggestion.title}"** was **${newStatus}**${reason ? `: ${reason}` : ""} in **${guild.name}**`).catch(() => {
+          });
+        } catch {
+        }
+      }
+      await interaction.reply({ content: `\u2705 Suggestion **${newStatus}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "delete") {
+      const id = interaction.options.getString("id", true);
+      const suggestion = await Suggestion.findById(id);
+      if (!suggestion || suggestion.guildId !== guildId) {
+        await interaction.reply({ content: "Suggestion not found", ephemeral: true });
+        return;
+      }
+      const isAuthor = suggestion.authorId === interaction.user.id;
+      const isStaff = interaction.memberPermissions?.has("ManageMessages");
+      if (!isAuthor && !isStaff) {
+        await interaction.reply({ content: "You can only delete your own suggestions", ephemeral: true });
+        return;
+      }
+      try {
+        const channel = guild.channels.cache.get(suggestion.channelId);
+        if (channel && suggestion.messageId) {
+          await channel.messages.delete(suggestion.messageId);
+        }
+      } catch {
+      }
+      await suggestion.deleteOne();
+      await interaction.reply({ content: "\u2705 Suggestion deleted", ephemeral: true });
+      return;
+    }
+  }
+};
+function buildSuggestionEmbed(suggestion, author, anonymous) {
+  const statusColors = { pending: import_discord46.Colors.Yellow, approved: import_discord46.Colors.Green, denied: import_discord46.Colors.Red, implemented: import_discord46.Colors.Blue, deferred: import_discord46.Colors.Grey };
+  const statusLabels = { pending: "\u23F3 Pending", approved: "\u2705 Approved", denied: "\u274C Denied", implemented: "\u{1F680} Implemented", deferred: "\u23F8\uFE0F Deferred" };
+  const status = String(suggestion.status);
+  const embed = new import_discord46.EmbedBuilder().setColor(statusColors[status] || import_discord46.Colors.Blurple).setTitle(suggestion.title).setDescription(suggestion.description).addFields(
+    { name: "Status", value: statusLabels[status] || status, inline: true },
+    { name: "Votes", value: `\u{1F44D} ${suggestion.upvotes.length} | \u{1F44E} ${suggestion.downvotes.length}`, inline: true },
+    { name: "Author", value: anonymous ? "Anonymous" : author?.tag || "Unknown", inline: true }
+  ).setFooter({ text: `ID: ${suggestion._id}` }).setTimestamp(suggestion.createdAt);
+  if (suggestion.reviewedBy) {
+    embed.addFields({ name: "Reviewed by", value: `<@${suggestion.reviewedBy}>`, inline: true });
+  }
+  if (suggestion.reviewReason) {
+    embed.addFields({ name: "Reason", value: suggestion.reviewReason, inline: false });
+  }
+  if (suggestion.attachments.length) {
+    embed.setImage(suggestion.attachments[0]);
+  }
+  return embed;
+}
+__name(buildSuggestionEmbed, "buildSuggestionEmbed");
+async function handleSuggestionVote(interaction) {
+  if (!interaction.isButton()) return;
+  if (!interaction.customId.startsWith("suggest_")) return;
+  const [, action, suggestionId] = interaction.customId.split(":");
+  if (!action || !suggestionId) return;
+  const suggestion = await Suggestion.findById(suggestionId);
+  if (!suggestion) return interaction.reply({ content: "Suggestion not found", ephemeral: true });
+  const userId = interaction.user.id;
+  const isUpvote = action === "up";
+  const upvoted = suggestion.upvotes.includes(userId);
+  const downvoted = suggestion.downvotes.includes(userId);
+  if (isUpvote) {
+    if (upvoted) {
+      suggestion.upvotes = suggestion.upvotes.filter((id) => id !== userId);
+    } else {
+      suggestion.upvotes.push(userId);
+      suggestion.downvotes = suggestion.downvotes.filter((id) => id !== userId);
+    }
+  } else {
+    if (downvoted) {
+      suggestion.downvotes = suggestion.downvotes.filter((id) => id !== userId);
+    } else {
+      suggestion.downvotes.push(userId);
+      suggestion.upvotes = suggestion.upvotes.filter((id) => id !== userId);
+    }
+  }
+  await suggestion.save();
+  try {
+    const guild = interaction.guild;
+    const channel = guild.channels.cache.get(suggestion.channelId);
+    if (channel && suggestion.messageId) {
+      const message = await channel.messages.fetch(suggestion.messageId);
+      const author = await interaction.client.users.fetch(suggestion.authorId);
+      const embed = buildSuggestionEmbed(suggestion, author, suggestion.anonymous);
+      await message.edit({ embeds: [embed] });
+    }
+  } catch {
+  }
+  await interaction.reply({ content: isUpvote ? "\u{1F44D} Upvoted!" : "\u{1F44E} Downvoted!", ephemeral: true });
+}
+__name(handleSuggestionVote, "handleSuggestionVote");
+
 // src/commands/utility/poll-create.ts
-var import_discord40 = __toESM(require_src());
+var import_discord47 = __toESM(require_src());
 var pollCreateCommand = {
-  data: new import_discord40.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
+  data: new import_discord47.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated options").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord47.PermissionFlagsBits.ManageGuild),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182821,19 +185530,19 @@ var pollCreateCommand = {
     if (options.length < 2 || options.length > 10) {
       await interaction.reply({
         content: "\u274C You need 2-10 options.",
-        flags: import_discord40.MessageFlags.Ephemeral
+        flags: import_discord47.MessageFlags.Ephemeral
       });
       return;
     }
-    if (!interaction.guild || !(interaction.channel instanceof import_discord40.TextChannel)) {
+    if (!interaction.guild || !(interaction.channel instanceof import_discord47.TextChannel)) {
       await interaction.reply({
         content: "\u274C Polls can only be created in a server text channel.",
-        flags: import_discord40.MessageFlags.Ephemeral
+        flags: import_discord47.MessageFlags.Ephemeral
       });
       return;
     }
     const channel = interaction.channel;
-    const embed = new import_discord40.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord47.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await channel.send({ embeds: [embed] });
     const reactionEmojis = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}"];
     for (let i = 0; i < options.length; i++) {
@@ -182866,18 +185575,18 @@ ${resultDesc}`
         console.error("Poll auto-close failed:", error62);
       }
     }, (duration3 ?? 10) * 60 * 1e3);
-    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord40.MessageFlags.Ephemeral });
+    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord47.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/utility/poll-vote.ts
-var import_discord41 = __toESM(require_src());
+var import_discord48 = __toESM(require_src());
 var pollVoteCommand = {
-  data: new import_discord41.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
+  data: new import_discord48.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
     (option) => option.setName("poll_id").setDescription("The poll message ID").setRequired(true)
   ).addStringOption(
     (option) => option.setName("option").setDescription("Your option (use the number emoji)").setRequired(true)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182885,15 +185594,2078 @@ var pollVoteCommand = {
     const option = interaction.options.getString("option", true);
     await interaction.reply({
       content: `\u2705 Your vote for option "${option}" has been recorded!`,
-      flags: import_discord41.MessageFlags.Ephemeral
+      flags: import_discord48.MessageFlags.Ephemeral
     });
   }, "execute")
 };
 
+// src/commands/utility/reactionrole.ts
+var import_discord50 = __toESM(require_src());
+
+// src/handlers/reactionRoles.ts
+var import_discord49 = __toESM(require_src());
+function buildPanelEmbed(panel) {
+  const embed = new import_discord49.EmbedBuilder().setTitle(panel.title).setDescription(panel.description || "Click buttons below to get roles!").setColor(panel.color || import_discord49.Colors.Blurple).setTimestamp();
+  if (panel.thumbnail) embed.setThumbnail(panel.thumbnail);
+  if (panel.image) embed.setImage(panel.image);
+  if (panel.options.length > 0) {
+    const optionsText = panel.options.map((opt) => {
+      const roleMention = `<@&${opt.roleId}>`;
+      return `${opt.emoji} **${opt.label || roleMention}**${opt.description ? ` \u2014 ${opt.description}` : ""}`;
+    }).join("\n");
+    embed.addFields({ name: "Available Roles", value: optionsText });
+  }
+  if (panel.mode === "temporary" && panel.temporaryDuration) {
+    const hours = Math.floor(panel.temporaryDuration / 3600);
+    const minutes = Math.floor(panel.temporaryDuration % 3600 / 60);
+    embed.setFooter({ text: `Temporary roles last: ${hours}h ${minutes}m` });
+  }
+  return embed;
+}
+__name(buildPanelEmbed, "buildPanelEmbed");
+function buildPanelComponents(panel) {
+  const rows = [];
+  if (panel.useButtons) {
+    const styleMap = {
+      1: import_discord49.ButtonStyle.Primary,
+      2: import_discord49.ButtonStyle.Secondary,
+      3: import_discord49.ButtonStyle.Success,
+      4: import_discord49.ButtonStyle.Danger
+    };
+    const buttonStyle = styleMap[panel.buttonStyle || 2] || import_discord49.ButtonStyle.Secondary;
+    let currentRow = new import_discord49.ActionRowBuilder();
+    let buttonCount = 0;
+    for (const opt of panel.options.slice(0, 25)) {
+      const button = new import_discord49.ButtonBuilder().setCustomId(`rr:${panel._id}:${opt.roleId}`).setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setEmoji(opt.emoji).setStyle(buttonStyle);
+      currentRow.addComponents(button);
+      buttonCount++;
+      if (buttonCount === 5) {
+        rows.push(currentRow);
+        currentRow = new import_discord49.ActionRowBuilder();
+        buttonCount = 0;
+      }
+    }
+    if (buttonCount > 0) {
+      rows.push(currentRow);
+    }
+  } else {
+    const selectMenu = new import_discord49.StringSelectMenuBuilder().setCustomId(`rr_select:${panel._id}`).setPlaceholder(panel.selectPlaceholder || "Select a role...").setMinValues(panel.minSelect || 1).setMaxValues(panel.maxSelect || 1).addOptions(
+      panel.options.slice(0, 25).map(
+        (opt) => new import_discord49.StringSelectMenuOptionBuilder().setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setDescription(opt.description || "").setValue(opt.roleId).setEmoji(opt.emoji)
+      )
+    );
+    rows.push(new import_discord49.ActionRowBuilder().addComponents(selectMenu));
+  }
+  return rows;
+}
+__name(buildPanelComponents, "buildPanelComponents");
+async function sendPanel(panel, channel) {
+  try {
+    const embed = buildPanelEmbed(panel);
+    const components = buildPanelComponents(panel);
+    const message = await channel.send({ embeds: [embed], components });
+    await ReactionRolePanel.updateOne({ _id: panel._id }, { messageId: message.id });
+    recordActivity("command", `Panel sent: ${panel.title}`, {
+      level: "success",
+      meta: { guildId: panel.guildId, panelId: String(panel._id), channelId: channel.id }
+    });
+    return message;
+  } catch (error62) {
+    console.error("[ReactionRoles] Failed to send panel:", error62);
+    return null;
+  }
+}
+__name(sendPanel, "sendPanel");
+async function handleButtonInteraction(interaction) {
+  const parts = interaction.customId.split(":");
+  if (parts[0] !== "rr" || parts.length < 3) return;
+  const [, panelId, roleId] = parts;
+  if (!panelId || !roleId) return;
+  const panel = await ReactionRolePanel.findById(panelId).lean();
+  if (!panel || !panel.active) return;
+  const guild = interaction.guild;
+  const member = interaction.member;
+  const role = guild.roles.cache.get(roleId);
+  if (!role) {
+    await interaction.reply({ content: "Role not found", ephemeral: true });
+    return;
+  }
+  if (panel.mode === "binding" && panel.bindingRoleId) {
+    const bindingRole = guild.roles.cache.get(panel.bindingRoleId);
+    if (bindingRole && !member.roles.cache.has(bindingRole.id)) {
+      await interaction.reply({ content: "You need the required role to use this button", ephemeral: true });
+      return;
+    }
+  }
+  const botMember = guild.members.me;
+  if (!botMember || role.position >= botMember.roles.highest.position) {
+    await interaction.reply({ content: "I cannot manage this role (hierarchy)", ephemeral: true });
+    return;
+  }
+  try {
+    const hasRole = member.roles.cache.has(role.id);
+    switch (panel.mode) {
+      case "unique": {
+        if (!hasRole) {
+          const otherRoles = panel.options.map((o) => o.roleId).filter((id) => id !== roleId);
+          for (const otherRoleId of otherRoles) {
+            if (member.roles.cache.has(otherRoleId)) {
+              await member.roles.remove(otherRoleId, "Unique reaction role");
+              await logRoleChange(panel.guildId, member.id, otherRoleId, "removed (unique)");
+            }
+          }
+          await member.roles.add(role, "Reaction role (button)");
+          await logRoleChange(panel.guildId, member.id, role.id, "added");
+          await interaction.reply({ content: `\u2705 Added role **${role.name}**`, ephemeral: true });
+          if (panel.dmUser) {
+            await member.send(`Added role **${role.name}** in **${guild.name}**`).catch(() => {
+            });
+          }
+          if (panel.temporaryDuration) {
+            setTimeout(async () => {
+              const freshMember = await guild.members.fetch(member.id).catch(() => null);
+              if (freshMember?.roles.cache.has(role.id)) {
+                await freshMember.roles.remove(role, "Temporary reaction role expired");
+                await logRoleChange(panel.guildId, member.id, role.id, "removed (expired)");
+              }
+            }, panel.temporaryDuration * 1e3);
+          }
+        } else {
+          await interaction.reply({ content: `\u2139\uFE0F You already have **${role.name}**`, ephemeral: true });
+        }
+        break;
+      }
+      case "verify": {
+        if (!hasRole) {
+          await member.roles.add(role, "Verification role");
+          await logRoleChange(panel.guildId, member.id, role.id, "added (verify)");
+          await interaction.reply({ content: `\u2705 Verified! Added role **${role.name}**`, ephemeral: true });
+          if (panel.dmUser) {
+            await member.send(`You've been verified in **${guild.name}**`).catch(() => {
+            });
+          }
+        } else {
+          await interaction.reply({ content: `\u2139\uFE0F Already verified`, ephemeral: true });
+        }
+        break;
+      }
+      case "reversed": {
+        if (hasRole) {
+          await member.roles.remove(role, "Reaction role (reversed)");
+          await logRoleChange(panel.guildId, member.id, role.id, "removed");
+          await interaction.reply({ content: `\u2705 Removed role **${role.name}**`, ephemeral: true });
+          if (panel.dmUser) {
+            await member.send(`Removed role **${role.name}** in **${guild.name}**`).catch(() => {
+            });
+          }
+        } else {
+          await interaction.reply({ content: `\u2139\uFE0F You don't have **${role.name}**`, ephemeral: true });
+        }
+        break;
+      }
+      case "temporary": {
+        if (!hasRole) {
+          await member.roles.add(role, "Temporary reaction role");
+          await logRoleChange(panel.guildId, member.id, role.id, "added (temporary)");
+          await interaction.reply({ content: `\u2705 Added temporary role **${role.name}**`, ephemeral: true });
+          if (panel.dmUser) {
+            await member.send(`Added temporary role **${role.name}** in **${guild.name}**`).catch(() => {
+            });
+          }
+          setTimeout(async () => {
+            const freshMember = await guild.members.fetch(member.id).catch(() => null);
+            if (freshMember?.roles.cache.has(role.id)) {
+              await freshMember.roles.remove(role, "Temporary reaction role expired");
+              await logRoleChange(panel.guildId, member.id, role.id, "removed (expired)");
+            }
+          }, panel.temporaryDuration * 1e3);
+        } else {
+          await interaction.reply({ content: `\u2139\uFE0F You already have **${role.name}**`, ephemeral: true });
+        }
+        break;
+      }
+      default: {
+        if (hasRole) {
+          await member.roles.remove(role, "Reaction role toggle");
+          await logRoleChange(panel.guildId, member.id, role.id, "removed");
+          await interaction.reply({ content: `\u2705 Removed role **${role.name}**`, ephemeral: true });
+        } else {
+          await member.roles.add(role, "Reaction role toggle");
+          await logRoleChange(panel.guildId, member.id, role.id, "added");
+          await interaction.reply({ content: `\u2705 Added role **${role.name}**`, ephemeral: true });
+        }
+      }
+    }
+    if (panel.dmUser) {
+    }
+  } catch (error62) {
+    console.error("[ReactionRoles] Button interaction failed:", error62);
+    await interaction.reply({ content: "Failed to manage role", ephemeral: true });
+  }
+}
+__name(handleButtonInteraction, "handleButtonInteraction");
+async function handleSelectMenuInteraction(interaction) {
+  const panelId = interaction.customId.replace("rr_select:", "");
+  const panel = await ReactionRolePanel.findById(panelId).lean();
+  if (!panel || !panel.active || panel.useButtons) return;
+  const guild = interaction.guild;
+  const member = interaction.member;
+  const selectedRoleIds = interaction.values;
+  const botMember = guild.members.me;
+  if (!botMember) return;
+  const roles = selectedRoleIds.map((id) => guild.roles.cache.get(id)).filter((r) => r !== void 0 && r.position < botMember.roles.highest.position);
+  if (roles.length === 0) {
+    await interaction.reply({ content: "No valid roles selected", ephemeral: true });
+    return;
+  }
+  try {
+    const added = [];
+    const removed = [];
+    if (panel.mode === "unique") {
+      const allPanelRoles = panel.options.map((o) => o.roleId);
+      for (const roleId of allPanelRoles) {
+        if (member.roles.cache.has(roleId) && !selectedRoleIds.includes(roleId)) {
+          await member.roles.remove(roleId, "Unique reaction role (select)");
+          removed.push(roleId);
+          await logRoleChange(panel.guildId, member.id, roleId, "removed");
+        }
+      }
+      for (const role of roles) {
+        if (!member.roles.cache.has(role.id)) {
+          await member.roles.add(role, "Reaction role (select)");
+          added.push(role.name);
+          await logRoleChange(panel.guildId, member.id, role.id, "added");
+        }
+      }
+    } else {
+      for (const role of roles) {
+        if (member.roles.cache.has(role.id)) {
+          await member.roles.remove(role, "Reaction role toggle");
+          removed.push(role.name);
+          await logRoleChange(panel.guildId, member.id, role.id, "removed");
+        } else {
+          await member.roles.add(role, "Reaction role toggle");
+          added.push(role.name);
+          await logRoleChange(panel.guildId, member.id, role.id, "added");
+        }
+      }
+    }
+    let reply = "";
+    if (added.length) reply += `\u2705 Added: ${added.join(", ")}
+`;
+    if (removed.length) reply += `\u274C Removed: ${removed.join(", ")}`;
+    if (!reply) reply = "No changes made";
+    await interaction.reply({ content: reply, ephemeral: true });
+    if (panel.dmUser && (added.length || removed.length)) {
+      const dmText = [
+        added.length ? `Added: ${added.join(", ")}` : "",
+        removed.length ? `Removed: ${removed.join(", ")}` : ""
+      ].filter(Boolean).join("\n");
+      await member.send(dmText).catch(() => {
+      });
+    }
+  } catch (error62) {
+    console.error("[ReactionRoles] Select menu failed:", error62);
+    await interaction.reply({ content: "Failed to manage roles", ephemeral: true });
+  }
+}
+__name(handleSelectMenuInteraction, "handleSelectMenuInteraction");
+async function logRoleChange(guildId, userId, roleId, action) {
+  recordActivity("command", `Role ${action}`, {
+    level: "info",
+    meta: { guildId, userId, roleId, action }
+  });
+}
+__name(logRoleChange, "logRoleChange");
+async function initReactionRoles(guild) {
+  const panels = await ReactionRolePanel.find({ guildId: guild.id, active: true }).lean();
+  for (const panel of panels) {
+    const channel = guild.channels.cache.get(panel.channelId);
+    if (!channel) continue;
+    if (panel.messageId) {
+      try {
+        const message = await channel.messages.fetch(panel.messageId);
+        continue;
+      } catch {
+        await sendPanel(panel, channel);
+      }
+    } else {
+      await sendPanel(panel, channel);
+    }
+  }
+}
+__name(initReactionRoles, "initReactionRoles");
+
+// src/commands/utility/reactionrole.ts
+var modes = [
+  { name: "Unique (one role at a time)", value: "unique" },
+  { name: "Verify (one-time button)", value: "verify" },
+  { name: "Reversed (click to remove)", value: "reversed" },
+  { name: "Binding (requires role)", value: "binding" },
+  { name: "Temporary (time-limited)", value: "temporary" },
+  { name: "Normal (toggle)", value: "normal" }
+];
+var buttonStyles = [
+  { name: "Primary (Blurple)", value: 1 },
+  { name: "Secondary (Gray)", value: 2 },
+  { name: "Success (Green)", value: 3 },
+  { name: "Danger (Red)", value: 4 }
+];
+var reactionroleCommand = {
+  data: new import_discord50.SlashCommandBuilder().setName("reactionrole").setDescription("Button-based reaction roles").addSubcommand(
+    (sub) => sub.setName("create").setDescription("Create a reaction role panel").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Channel to send panel").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("title").setDescription("Panel title").setRequired(true).setMaxLength(256)
+    ).addStringOption(
+      (opt) => opt.setName("description").setDescription("Panel description").setRequired(false).setMaxLength(4e3)
+    ).addStringOption(
+      (opt) => opt.setName("mode").setDescription("Panel mode").setRequired(true).addChoices(...modes)
+    ).addStringOption(
+      (opt) => opt.setName("temporary_duration").setDescription("Duration for temporary roles (e.g., 1h, 30m, 1d)").setRequired(false)
+    ).addRoleOption(
+      (opt) => opt.setName("binding_role").setDescription("Required role for binding mode").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("use_buttons").setDescription("Use buttons instead of select menu").setRequired(false)
+    ).addIntegerOption(
+      (opt) => opt.setName("button_style").setDescription("Button style").setRequired(false).addChoices(...buttonStyles)
+    ).addStringOption(
+      (opt) => opt.setName("color").setDescription("Embed color (hex)").setRequired(false)
+    ).addStringOption(
+      (opt) => opt.setName("thumbnail").setDescription("Thumbnail URL").setRequired(false)
+    ).addStringOption(
+      (opt) => opt.setName("image").setDescription("Image URL").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("dm_user").setDescription("DM user on role change").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("add").setDescription("Add a role to a panel").addStringOption(
+      (opt) => opt.setName("panel").setDescription("Panel ID").setRequired(true).setAutocomplete(true)
+    ).addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to add").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("emoji").setDescription("Emoji (unicode or custom)").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("label").setDescription("Button/option label").setRequired(false).setMaxLength(80)
+    ).addStringOption(
+      (opt) => opt.setName("description").setDescription("Option description (for select menu)").setRequired(false).setMaxLength(100)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a role from a panel").addStringOption(
+      (opt) => opt.setName("panel").setDescription("Panel ID").setRequired(true).setAutocomplete(true)
+    ).addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to remove").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all panels")
+  ).addSubcommand(
+    (sub) => sub.setName("send").setDescription("Send/resend a panel").addStringOption(
+      (opt) => opt.setName("panel").setDescription("Panel ID").setRequired(true).setAutocomplete(true)
+    ).addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Channel to send to (default: panel channel)").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("delete").setDescription("Delete a panel").addStringOption(
+      (opt) => opt.setName("panel").setDescription("Panel ID").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("toggle").setDescription("Enable/disable a panel").addStringOption(
+      (opt) => opt.setName("panel").setDescription("Panel ID").setRequired(true).setAutocomplete(true)
+    ).addBooleanOption(
+      (opt) => opt.setName("enabled").setDescription("Enable or disable").setRequired(true)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageRoles"],
+  botPermissions: ["ManageRoles", "SendMessages", "EmbedLinks"],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "panel") {
+      const panels = await ReactionRolePanel.find({ guildId: interaction.guildId }).lean();
+      await interaction.respond(
+        panels.filter((p) => String(p._id).includes(focused.value) || p.title.toLowerCase().includes(focused.value.toLowerCase())).slice(0, 25).map((p) => ({ name: `${p.title} (${p.mode})`, value: String(p._id) }))
+      );
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "create") {
+      await interaction.deferReply({ ephemeral: true });
+      const channel = interaction.options.getChannel("channel", true);
+      const title = interaction.options.getString("title", true);
+      const description = interaction.options.getString("description") ?? void 0;
+      const mode = interaction.options.getString("mode", true);
+      const temporaryDurationStr = interaction.options.getString("temporary_duration");
+      const bindingRole = interaction.options.getRole("binding_role");
+      const useButtons = interaction.options.getBoolean("use_buttons") ?? true;
+      const buttonStyle = interaction.options.getInteger("button_style");
+      const color = interaction.options.getString("color");
+      const thumbnail = interaction.options.getString("thumbnail");
+      const image = interaction.options.getString("image");
+      const dmUser = interaction.options.getBoolean("dm_user") ?? false;
+      let temporaryDuration;
+      if (temporaryDurationStr) {
+        const match = temporaryDurationStr.match(/^(\d+)([smhd])$/);
+        if (match) {
+          const value = parseInt(match[1]);
+          const unit = match[2];
+          const multipliers = { s: 1, m: 60, h: 3600, d: 86400 };
+          temporaryDuration = value * (multipliers[unit] || 1);
+        }
+      }
+      if (mode === "temporary" && !temporaryDuration) {
+        await interaction.editReply({ content: "Temporary mode requires a duration" });
+        return;
+      }
+      if (mode === "binding" && !bindingRole) {
+        await interaction.editReply({ content: "Binding mode requires a binding role" });
+        return;
+      }
+      const panel = await ReactionRolePanel.create({
+        guildId,
+        channelId: channel.id,
+        title,
+        description,
+        color: color ? parseInt(color.replace("#", ""), 16) : void 0,
+        thumbnail: thumbnail ?? void 0,
+        image: image ?? void 0,
+        mode,
+        temporaryDuration,
+        bindingRoleId: bindingRole?.id,
+        options: [],
+        useButtons,
+        buttonStyle: buttonStyle ?? 2,
+        dmUser,
+        active: true
+      });
+      const embed = new import_discord50.EmbedBuilder().setColor(import_discord50.Colors.Green).setTitle("\u2705 Reaction Role Panel Created").addFields(
+        { name: "Title", value: panel.title, inline: true },
+        { name: "Channel", value: `<#${panel.channelId}>`, inline: true },
+        { name: "Mode", value: panel.mode, inline: true },
+        { name: "ID", value: String(panel._id), inline: true }
+      ).setFooter({ text: "Use /reactionrole add to add roles to this panel" });
+      await interaction.editReply({ embeds: [embed] });
+      recordActivity("command", "ReactionRole panel created", { meta: { guildId, panelId: String(panel._id) } });
+      return;
+    }
+    if (sub === "add") {
+      const panelId = interaction.options.getString("panel", true);
+      const role = interaction.options.getRole("role", true);
+      const emoji3 = interaction.options.getString("emoji", true);
+      const label = interaction.options.getString("label");
+      const description = interaction.options.getString("description");
+      const panel = await ReactionRolePanel.findOne({ _id: panelId, guildId });
+      if (!panel) {
+        await interaction.reply({ content: "Panel not found", ephemeral: true });
+        return;
+      }
+      if (panel.options.some((o) => o.roleId === role.id)) {
+        await interaction.reply({ content: "This role is already in the panel", ephemeral: true });
+        return;
+      }
+      if (!isValidEmoji(emoji3)) {
+        await interaction.reply({ content: "Invalid emoji format", ephemeral: true });
+        return;
+      }
+      const botMember = guild.members.me;
+      const targetRole = guild.roles.cache.get(role.id);
+      if (!botMember || targetRole.position >= botMember.roles.highest.position) {
+        await interaction.reply({ content: "I cannot manage this role (hierarchy)", ephemeral: true });
+        return;
+      }
+      panel.options.push({
+        roleId: role.id,
+        emoji: emoji3,
+        label: label ?? void 0,
+        description: description ?? void 0
+      });
+      await panel.save();
+      await interaction.reply({ content: `\u2705 Added **${role.name}** to panel **${panel.title}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "remove") {
+      const panelId = interaction.options.getString("panel", true);
+      const role = interaction.options.getRole("role", true);
+      const panel = await ReactionRolePanel.findOne({ _id: panelId, guildId });
+      if (!panel) {
+        await interaction.reply({ content: "Panel not found", ephemeral: true });
+        return;
+      }
+      const initialLength = panel.options.length;
+      panel.options = panel.options.filter((o) => o.roleId !== role.id);
+      if (panel.options.length === initialLength) {
+        await interaction.reply({ content: "Role not found in panel", ephemeral: true });
+        return;
+      }
+      await panel.save();
+      await interaction.reply({ content: `\u2705 Removed **${role.name}** from panel **${panel.title}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "list") {
+      const panels = await ReactionRolePanel.find({ guildId }).lean();
+      if (!panels.length) {
+        await interaction.reply({ content: "No panels configured", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord50.EmbedBuilder().setColor(import_discord50.Colors.Blurple).setTitle("\u{1F3AD} Reaction Role Panels").setDescription(panels.map(
+        (p) => `**${p.title}** (${p.mode}) \u2014 ${p.active ? "\u{1F7E2}" : "\u{1F534}"} \u2014 ${p.options.length} roles \u2014 <#${p.channelId}> \u2014 ID: \`${p._id}\``
+      ).join("\n")).setFooter({ text: `${panels.length} panel(s)` });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "send") {
+      await interaction.deferReply({ ephemeral: true });
+      const panelId = interaction.options.getString("panel", true);
+      const channel = interaction.options.getChannel("channel");
+      const panel = await ReactionRolePanel.findOne({ _id: panelId, guildId });
+      if (!panel) {
+        await interaction.editReply({ content: "Panel not found" });
+        return;
+      }
+      const targetChannel = channel || guild.channels.cache.get(panel.channelId);
+      if (!targetChannel || !targetChannel.isTextBased()) {
+        await interaction.editReply({ content: "Invalid channel" });
+        return;
+      }
+      const message = await sendPanel(panel, targetChannel);
+      if (!message) {
+        await interaction.editReply({ content: "Failed to send panel" });
+        return;
+      }
+      await interaction.editReply({ content: `\u2705 Panel sent to <#${targetChannel.id}>` });
+      return;
+    }
+    if (sub === "delete") {
+      const panelId = interaction.options.getString("panel", true);
+      const panel = await ReactionRolePanel.findOneAndDelete({ _id: panelId, guildId });
+      if (!panel) {
+        await interaction.reply({ content: "Panel not found", ephemeral: true });
+        return;
+      }
+      const ch = guild.channels.cache.get(panel.channelId);
+      if (ch && panel.messageId) {
+        try {
+          await ch.messages.delete(panel.messageId);
+        } catch {
+        }
+      }
+      await interaction.reply({ content: `\u2705 Deleted panel **${panel.title}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "toggle") {
+      const panelId = interaction.options.getString("panel", true);
+      const enabled = interaction.options.getBoolean("enabled", true);
+      const panel = await ReactionRolePanel.findOneAndUpdate(
+        { _id: panelId, guildId },
+        { active: enabled },
+        { new: true }
+      );
+      if (!panel) {
+        await interaction.reply({ content: "Panel not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `${enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} panel **${panel.title}**`, ephemeral: true });
+      return;
+    }
+  }
+};
+function isValidEmoji(emoji3) {
+  if (emoji3.match(/^[\u{1F300}-\u{1FAFF}]/u)) return true;
+  if (emoji3.match(/^<a?:[a-zA-Z0-9_]+:\d+>$/)) return true;
+  if (emoji3.length <= 4) return true;
+  return false;
+}
+__name(isValidEmoji, "isValidEmoji");
+
+// src/commands/utility/customcmd.ts
+var import_discord51 = __toESM(require_src());
+init_CustomCommand();
+var customcmdCommand = {
+  data: new import_discord51.SlashCommandBuilder().setName("tag").setDescription("Custom commands (tags)").addSubcommand(
+    (sub) => sub.setName("create").setDescription("Create a custom command").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name (trigger)").setRequired(true).setMaxLength(100)
+    ).addStringOption(
+      (opt) => opt.setName("content").setDescription("Response content").setRequired(true).setMaxLength(4e3)
+    ).addStringOption(
+      (opt) => opt.setName("aliases").setDescription("Aliases (comma-separated)").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("edit").setDescription("Edit a custom command").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name").setRequired(true).setAutocomplete(true)
+    ).addStringOption(
+      (opt) => opt.setName("content").setDescription("New content").setRequired(true).setMaxLength(4e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("delete").setDescription("Delete a custom command").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("info").setDescription("View a custom command").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all custom commands")
+  ).addSubcommand(
+    (sub) => sub.setName("alias").setDescription("Add/remove alias").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name").setRequired(true).setAutocomplete(true)
+    ).addStringOption(
+      (opt) => opt.setName("alias").setDescription("Alias to add/remove").setRequired(true)
+    ).addBooleanOption(
+      (opt) => opt.setName("remove").setDescription("Remove instead of add").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("embed").setDescription("Create/edit with embed").addStringOption(
+      (opt) => opt.setName("name").setDescription("Command name").setRequired(true).setAutocomplete(true)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 3,
+  userPermissions: ["ManageMessages"],
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "name") {
+      const tags = await CustomCommand.find({ guildId: interaction.guildId }).lean();
+      await interaction.respond(
+        tags.filter((t) => t.name.toLowerCase().includes(focused.value.toLowerCase())).slice(0, 25).map((t) => ({ name: t.name, value: t.name }))
+      );
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "create") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const content = interaction.options.getString("content", true);
+      const aliasesStr = interaction.options.getString("aliases");
+      const aliases = aliasesStr ? aliasesStr.split(",").map((a) => a.trim().toLowerCase()).filter(Boolean) : [];
+      const existing = await CustomCommand.findOne({ guildId, name });
+      if (existing) {
+        await interaction.reply({ content: "A command with this name already exists", ephemeral: true });
+        return;
+      }
+      for (const alias of aliases) {
+        const conflict = await CustomCommand.findOne({ guildId, $or: [{ name: alias }, { aliases: alias }] });
+        if (conflict) {
+          await interaction.reply({ content: `Alias "${alias}" conflicts with existing command`, ephemeral: true });
+          return;
+        }
+      }
+      const tag = await CustomCommand.create({
+        guildId,
+        name,
+        aliases,
+        content,
+        creatorId: interaction.user.id
+      });
+      const embed = new import_discord51.EmbedBuilder().setColor(import_discord51.Colors.Green).setTitle("\u2705 Custom Command Created").addFields(
+        { name: "Name", value: `/${tag.name}`, inline: true },
+        { name: "Aliases", value: tag.aliases.length ? tag.aliases.map((a) => `/${a}`).join(", ") : "None", inline: true },
+        { name: "Content", value: tag.content.slice(0, 1e3), inline: false }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "Custom command created", { meta: { guildId, name: tag.name } });
+      return;
+    }
+    if (sub === "edit") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const content = interaction.options.getString("content", true);
+      const tag = await CustomCommand.findOneAndUpdate(
+        { guildId, name },
+        { content },
+        { new: true }
+      );
+      if (!tag) {
+        await interaction.reply({ content: "Command not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `\u2705 Updated **/${tag.name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "delete") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const tag = await CustomCommand.findOneAndDelete({ guildId, name });
+      if (!tag) {
+        await interaction.reply({ content: "Command not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `\u2705 Deleted **/${tag.name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "info") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const tag = await CustomCommand.findOne({ guildId, name });
+      if (!tag) {
+        await interaction.reply({ content: "Command not found", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord51.EmbedBuilder().setColor(import_discord51.Colors.Blurple).setTitle(`\u{1F4DD} Custom Command: /${tag.name}`).addFields(
+        { name: "Content", value: tag.content.slice(0, 2e3), inline: false },
+        { name: "Aliases", value: tag.aliases.length ? tag.aliases.map((a) => `/${a}`).join(", ") : "None", inline: true },
+        { name: "Uses", value: tag.uses.toString(), inline: true },
+        { name: "Creator", value: `<@${tag.creatorId}>`, inline: true },
+        { name: "Cooldown", value: `${tag.cooldown ?? 0}s`, inline: true },
+        { name: "NSFW", value: tag.nsfw ? "Yes" : "No", inline: true },
+        { name: "Enabled", value: tag.enabled ? "Yes" : "No", inline: true }
+      ).setTimestamp(tag.createdAt);
+      if (tag.embed) {
+        embed.addFields({ name: "Embed", value: "Yes (custom)", inline: true });
+      }
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "list") {
+      const tags = await CustomCommand.find({ guildId }).sort({ name: 1 }).lean();
+      if (!tags.length) {
+        await interaction.reply({ content: "No custom commands", ephemeral: true });
+        return;
+      }
+      const chunks = [];
+      let current = "";
+      for (const tag of tags) {
+        const line = `**/${tag.name}**${tag.aliases.length ? ` (${tag.aliases.map((a) => `/${a}`).join(", ")})` : ""} \u2014 ${tag.uses} uses
+`;
+        if (current.length + line.length > 4e3) {
+          chunks.push(current);
+          current = "";
+        }
+        current += line;
+      }
+      if (current) chunks.push(current);
+      const embeds = chunks.map(
+        (chunk, i) => new import_discord51.EmbedBuilder().setColor(import_discord51.Colors.Blurple).setTitle(`\u{1F4CB} Custom Commands (Page ${i + 1}/${chunks.length})`).setDescription(chunk).setFooter({ text: `${tags.length} total` })
+      );
+      await interaction.reply({ embeds: embeds.slice(0, 10), ephemeral: true });
+      return;
+    }
+    if (sub === "alias") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const alias = interaction.options.getString("alias", true).toLowerCase();
+      const remove = interaction.options.getBoolean("remove") ?? false;
+      const tag = await CustomCommand.findOne({ guildId, name });
+      if (!tag) {
+        await interaction.reply({ content: "Command not found", ephemeral: true });
+        return;
+      }
+      if (remove) {
+        if (!tag.aliases.includes(alias)) {
+          await interaction.reply({ content: "Alias not found", ephemeral: true });
+          return;
+        }
+        tag.aliases = tag.aliases.filter((a) => a !== alias);
+      } else {
+        if (tag.aliases.includes(alias)) {
+          await interaction.reply({ content: "Alias already exists", ephemeral: true });
+          return;
+        }
+        const conflict = await CustomCommand.findOne({ guildId, $or: [{ name: alias }, { aliases: alias }] });
+        if (conflict) {
+          await interaction.reply({ content: `Alias conflicts with existing command`, ephemeral: true });
+          return;
+        }
+        tag.aliases.push(alias);
+      }
+      await tag.save();
+      await interaction.reply({ content: `${remove ? "Removed" : "Added"} alias **/${alias}** for **/${name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "embed") {
+      const name = interaction.options.getString("name", true).toLowerCase();
+      const tag = await CustomCommand.findOne({ guildId, name });
+      const modal = new import_discord51.ModalBuilder().setCustomId(`tag_embed:${name}`).setTitle(tag ? `Edit Embed: /${name}` : `Create Embed Command: /${name}`);
+      modal.addComponents(
+        new import_discord51.ActionRowBuilder().addComponents(
+          new import_discord51.TextInputBuilder().setCustomId("title").setLabel("Title").setStyle(import_discord51.TextInputStyle.Short).setValue(tag?.embed?.title || "").setMaxLength(256).setRequired(false)
+        ),
+        new import_discord51.ActionRowBuilder().addComponents(
+          new import_discord51.TextInputBuilder().setCustomId("description").setLabel("Description").setStyle(import_discord51.TextInputStyle.Paragraph).setValue(tag?.embed?.description || "").setMaxLength(4e3).setRequired(false)
+        ),
+        new import_discord51.ActionRowBuilder().addComponents(
+          new import_discord51.TextInputBuilder().setCustomId("color").setLabel("Color (hex, e.g., #ff0000)").setStyle(import_discord51.TextInputStyle.Short).setValue(tag?.embed?.color ? "#" + tag.embed.color.toString(16).padStart(6, "0") : "").setMaxLength(7).setRequired(false)
+        ),
+        new import_discord51.ActionRowBuilder().addComponents(
+          new import_discord51.TextInputBuilder().setCustomId("footer").setLabel("Footer Text").setStyle(import_discord51.TextInputStyle.Short).setValue(tag?.embed?.footer || "").setMaxLength(2048).setRequired(false)
+        ),
+        new import_discord51.ActionRowBuilder().addComponents(
+          new import_discord51.TextInputBuilder().setCustomId("image").setLabel("Image URL").setStyle(import_discord51.TextInputStyle.Short).setValue(tag?.embed?.image || "").setRequired(false)
+        )
+      );
+      await interaction.showModal(modal);
+      return;
+    }
+  }
+};
+async function executeCustomCommand(message, commandName, args) {
+  const guildId = message.guildId;
+  if (!guildId) return false;
+  const tag = await CustomCommand.findOne({
+    guildId,
+    $or: [{ name: commandName }, { aliases: commandName }],
+    enabled: true
+  });
+  if (!tag) return false;
+  if (tag.requiredPermissions?.length) {
+    const hasPerm = tag.requiredPermissions.every((p) => message.member.permissions.has(p));
+    if (!hasPerm) return false;
+  }
+  if (tag.requiredRoles?.length) {
+    const hasRole = tag.requiredRoles.some((r) => message.member.roles.cache.has(r));
+    if (!hasRole) return false;
+  }
+  if (tag.nsfw && !message.channel.nsfw) {
+    return message.reply({ content: "This command can only be used in NSFW channels", ephemeral: true });
+  }
+  if ((tag.cooldown ?? 0) > 0) {
+  }
+  tag.uses++;
+  await tag.save();
+  let content = tag.content.replace(/{user}/g, message.author.toString()).replace(/{user.name}/g, message.author.username).replace(/{user.id}/g, message.author.id).replace(/{server}/g, message.guild?.name || "DM").replace(/{channel}/g, message.channel.toString()).replace(/{args}/g, args.join(" ")).replace(/{random:(\d+)}/g, (_, max) => Math.floor(Math.random() * parseInt(max)).toString());
+  if (tag.embed) {
+    const { EmbedBuilder: EmbedBuilder52, Colors: Colors20 } = await Promise.resolve().then(() => __toESM(require_src()));
+    const embed = new EmbedBuilder52().setColor(tag.embed.color || Colors20.Blurple).setDescription(content);
+    if (tag.embed.title) embed.setTitle(tag.embed.title);
+    if (tag.embed.description) embed.setDescription(tag.embed.description);
+    if (tag.embed.footer) embed.setFooter({ text: tag.embed.footer });
+    if (tag.embed.image) embed.setImage(tag.embed.image);
+    if (tag.embed.thumbnail) embed.setThumbnail(tag.embed.thumbnail);
+    if (tag.embed.author) embed.setAuthor({ name: tag.embed.author.name, iconURL: tag.embed.author.icon });
+    if (tag.embed.fields) embed.addFields(tag.embed.fields);
+    await message.reply({ embeds: [embed] });
+  } else {
+    await message.reply(content);
+  }
+  recordActivity("command", "Custom command executed", { meta: { guildId, name: tag.name } });
+  return true;
+}
+__name(executeCustomCommand, "executeCustomCommand");
+
+// src/commands/utility/invites.ts
+var import_discord52 = __toESM(require_src());
+var invitesCommand = {
+  data: new import_discord52.SlashCommandBuilder().setName("invites").setDescription("Invite tracking system").addSubcommand(
+    (sub) => sub.setName("leaderboard").setDescription("Show top inviters").addIntegerOption(
+      (opt) => opt.setName("limit").setDescription("Number of users to show").setRequired(false).setMinValue(1).setMaxValue(50)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("info").setDescription("Show invite info for a user").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to check").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("add").setDescription("Add bonus invites to a user (admin)").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to add invites to").setRequired(true)
+    ).addIntegerOption(
+      (opt) => opt.setName("amount").setDescription("Number of invites to add").setRequired(true).setMinValue(1).setMaxValue(1e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove bonus invites from a user (admin)").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to remove invites from").setRequired(true)
+    ).addIntegerOption(
+      (opt) => opt.setName("amount").setDescription("Number of invites to remove").setRequired(true).setMinValue(1).setMaxValue(1e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("reset").setDescription("Reset a user's invites (admin)").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to reset").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("sync").setDescription("Sync invites from Discord (admin)")
+  ).addSubcommand(
+    (sub) => sub.setName("vanity").setDescription("Show vanity URL info")
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["ManageGuild"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "leaderboard") {
+      const limit = interaction.options.getInteger("limit") ?? 10;
+      const invites = await InviteTracker.aggregate([
+        { $match: { guildId } },
+        { $group: { _id: "$inviterId", totalInvites: { $sum: "$uses" }, codes: { $sum: 1 } } },
+        { $sort: { totalInvites: -1 } },
+        { $limit: limit }
+      ]);
+      if (!invites.length) {
+        await interaction.reply({ content: "No invite data yet", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Gold).setTitle("\u{1F3C6} Invite Leaderboard").setDescription(
+        invites.map((inv, i) => {
+          const member = guild.members.cache.get(inv._id);
+          const name = member ? member.user.tag : `Unknown (${inv._id})`;
+          return `**${i + 1}.** ${name} \u2014 **${inv.totalInvites}** invites (${inv.codes} codes)`;
+        }).join("\n")
+      ).setFooter({ text: `Top ${limit} inviters` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "info") {
+      const user = interaction.options.getUser("user") ?? interaction.user;
+      const invites = await InviteTracker.find({ guildId, inviterId: user.id }).lean();
+      const totalInvites = invites.reduce((sum, i) => sum + (i.uses ?? 0), 0);
+      const totalCodes = invites.length;
+      let leftCount = 0;
+      let joinedCount = 0;
+      for (const inv of invites) {
+        for (const m of inv.members) {
+          if (m.leftAt) leftCount++;
+          else joinedCount++;
+        }
+      }
+      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Blurple).setTitle(`\u{1F4E8} Invites for ${user.tag}`).setThumbnail(user.displayAvatarURL()).addFields(
+        { name: "Total Invites", value: totalInvites.toString(), inline: true },
+        { name: "Active Members", value: joinedCount.toString(), inline: true },
+        { name: "Left Members", value: leftCount.toString(), inline: true },
+        { name: "Invite Codes", value: totalCodes.toString(), inline: true }
+      );
+      if (invites.length) {
+        const codeList = invites.sort((a, b) => (b.uses ?? 0) - (a.uses ?? 0)).slice(0, 10).map((i) => `\`${i.code}\` \u2014 ${i.uses ?? 0} uses${i.vanity ? " (vanity)" : ""}`).join("\n");
+        embed.addFields({ name: "Top Codes", value: codeList || "None", inline: false });
+      }
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "add") {
+      if (!interaction.memberPermissions?.has("Administrator")) {
+        await interaction.reply({ content: "Administrator permission required", ephemeral: true });
+        return;
+      }
+      const user = interaction.options.getUser("user", true);
+      const amount = interaction.options.getInteger("amount", true);
+      let bonusInvite = await InviteTracker.findOne({ guildId, inviterId: user.id, code: "bonus" });
+      if (!bonusInvite) {
+        bonusInvite = await InviteTracker.create({
+          guildId,
+          code: "bonus",
+          inviterId: user.id,
+          uses: 0,
+          maxUses: 0,
+          temporary: false,
+          channelId: "0",
+          vanity: false,
+          members: []
+        });
+      }
+      bonusInvite.uses += amount;
+      await bonusInvite.save();
+      await interaction.reply({ content: `\u2705 Added **${amount}** bonus invites to ${user.tag} (total: ${bonusInvite.uses})`, ephemeral: true });
+      return;
+    }
+    if (sub === "remove") {
+      if (!interaction.memberPermissions?.has("Administrator")) {
+        await interaction.reply({ content: "Administrator permission required", ephemeral: true });
+        return;
+      }
+      const user = interaction.options.getUser("user", true);
+      const amount = interaction.options.getInteger("amount", true);
+      const bonusInvite = await InviteTracker.findOne({ guildId, inviterId: user.id, code: "bonus" });
+      if (!bonusInvite) {
+        await interaction.reply({ content: "No bonus invites found for this user", ephemeral: true });
+        return;
+      }
+      bonusInvite.uses = Math.max(0, bonusInvite.uses - amount);
+      await bonusInvite.save();
+      await interaction.reply({ content: `\u2705 Removed **${amount}** bonus invites from ${user.tag} (total: ${bonusInvite.uses})`, ephemeral: true });
+      return;
+    }
+    if (sub === "reset") {
+      if (!interaction.memberPermissions?.has("Administrator")) {
+        await interaction.reply({ content: "Administrator permission required", ephemeral: true });
+        return;
+      }
+      const user = interaction.options.getUser("user", true);
+      await InviteTracker.deleteMany({ guildId, inviterId: user.id });
+      await interaction.reply({ content: `\u2705 Reset all invites for ${user.tag}`, ephemeral: true });
+      return;
+    }
+    if (sub === "sync") {
+      if (!interaction.memberPermissions?.has("Administrator")) {
+        await interaction.reply({ content: "Administrator permission required", ephemeral: true });
+        return;
+      }
+      await interaction.deferReply({ ephemeral: true });
+      try {
+        const discordInvites = await guild.invites.fetch();
+        let synced = 0;
+        for (const [code, invite] of discordInvites) {
+          const existing = await InviteTracker.findOne({ guildId, code });
+          if (existing) {
+            existing.uses = invite.uses ?? 0;
+            existing.maxUses = invite.maxUses ?? 0;
+            existing.temporary = invite.temporary ?? false;
+            existing.channelId = invite.channelId ?? "0";
+            existing.vanity = invite.guild?.vanityURLCode === code;
+            await existing.save();
+          } else {
+            await InviteTracker.create({
+              guildId,
+              code,
+              inviterId: invite.inviter?.id || "unknown",
+              uses: invite.uses ?? 0,
+              maxUses: invite.maxUses ?? 0,
+              temporary: invite.temporary ?? false,
+              channelId: invite.channelId ?? "0",
+              vanity: invite.guild?.vanityURLCode === code,
+              members: []
+            });
+          }
+          synced++;
+        }
+        await interaction.editReply({ content: `\u2705 Synced **${synced}** invite codes` });
+      } catch (error62) {
+        await interaction.editReply({ content: `\u274C Sync failed: ${error62}` });
+      }
+      return;
+    }
+    if (sub === "vanity") {
+      const vanityCode = guild.vanityURLCode;
+      if (!vanityCode) {
+        await interaction.reply({ content: "This server has no vanity URL", ephemeral: true });
+        return;
+      }
+      const vanityInvite = await InviteTracker.findOne({ guildId, code: vanityCode, vanity: true }).lean();
+      const uses = vanityInvite?.uses ?? 0;
+      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Gold).setTitle("\u{1F31F} Vanity URL").addFields(
+        { name: "Code", value: `discord.gg/${vanityCode}`, inline: true },
+        { name: "Total Uses", value: uses.toString(), inline: true },
+        { name: "URL", value: `https://discord.gg/${vanityCode}`, inline: false }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+  }
+};
+async function trackInviteJoin(member) {
+  const guildId = member.guild.id;
+  const currentInvites = await member.guild.invites.fetch();
+  const storedInvites = await InviteTracker.find({ guildId }).lean();
+  for (const stored of storedInvites) {
+    const current = currentInvites.get(stored.code);
+    if (current && (current.uses ?? 0) > (stored.uses ?? 0)) {
+      const newUses = current.uses ?? 0;
+      stored.uses = newUses;
+      stored.members.push({
+        userId: member.id,
+        joinedAt: /* @__PURE__ */ new Date(),
+        fake: false
+      });
+      await InviteTracker.updateOne({ _id: stored._id }, { $set: { uses: stored.uses, members: stored.members } });
+      recordActivity("command", "Member joined via invite", {
+        meta: { guildId, inviterId: stored.inviterId, code: stored.code, memberId: member.id }
+      });
+      break;
+    }
+  }
+  if (member.guild.vanityURLCode) {
+    const vanityStored = await InviteTracker.findOne({ guildId, code: member.guild.vanityURLCode, vanity: true });
+    if (vanityStored) {
+      if (!vanityStored.members.some((m) => m.userId === member.id && !m.leftAt)) {
+        vanityStored.members.push({
+          userId: member.id,
+          joinedAt: /* @__PURE__ */ new Date(),
+          fake: false
+        });
+        await vanityStored.save();
+      }
+    }
+  }
+}
+__name(trackInviteJoin, "trackInviteJoin");
+async function trackInviteLeave(member) {
+  const guildId = member.guild.id;
+  const storedInvites = await InviteTracker.find({ guildId, "members.userId": member.id, "members.leftAt": { $exists: false } }).lean();
+  for (const stored of storedInvites) {
+    const memberEntry = stored.members.find((m) => m.userId === member.id && !m.leftAt);
+    if (memberEntry) {
+      memberEntry.leftAt = /* @__PURE__ */ new Date();
+      memberEntry.fake = memberEntry.fake || Date.now() - memberEntry.joinedAt.getTime() < 24 * 60 * 60 * 1e3;
+      await InviteTracker.updateOne({ _id: stored._id }, { $set: { members: stored.members } });
+    }
+  }
+}
+__name(trackInviteLeave, "trackInviteLeave");
+
+// src/commands/utility/starboard.ts
+var import_discord53 = __toESM(require_src());
+var starboardCommand = {
+  data: new import_discord53.SlashCommandBuilder().setName("starboard").setDescription("Starboard system").addSubcommand(
+    (sub) => sub.setName("set").setDescription("Configure starboard").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Channel to post starred messages").setRequired(true)
+    ).addIntegerOption(
+      (opt) => opt.setName("threshold").setDescription("Minimum stars required (default: 5)").setRequired(false).setMinValue(1).setMaxValue(1e3)
+    ).addStringOption(
+      (opt) => opt.setName("emoji").setDescription("Emoji to use for starring (default: \u2B50)").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Disable starboard")
+  ).addSubcommand(
+    (sub) => sub.setName("config").setDescription("View/configure starboard settings").addBooleanOption(
+      (opt) => opt.setName("allow_self_star").setDescription("Allow users to star their own messages").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("allow_bot_messages").setDescription("Allow starring bot messages").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("require_attachment").setDescription("Only star messages with attachments").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("require_embed").setDescription("Only star messages with embeds").setRequired(false)
+    ).addChannelOption(
+      (opt) => opt.setName("ignore_channel").setDescription("Channel to ignore").setRequired(false)
+    ).addRoleOption(
+      (opt) => opt.setName("ignore_role").setDescription("Role to ignore (users with this role)").setRequired(false)
+    ).addBooleanOption(
+      (opt) => opt.setName("remove_ignore").setDescription("Remove from ignore list").setRequired(false)
+    ).addIntegerOption(
+      (opt) => opt.setName("max_age_days").setDescription("Max age of message to star (0 = no limit)").setRequired(false).setMinValue(0).setMaxValue(365)
+    ).addBooleanOption(
+      (opt) => opt.setName("allow_multiple").setDescription("Allow multiple starboard entries per message at different thresholds").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("Show recently starred messages").addIntegerOption(
+      (opt) => opt.setName("limit").setDescription("Number to show").setRequired(false).setMinValue(1).setMaxValue(50)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("leaderboard").setDescription("Show top starred users").addIntegerOption(
+      (opt) => opt.setName("limit").setDescription("Number to show").setRequired(false).setMinValue(1).setMaxValue(50)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["SendMessages", "EmbedLinks", "AddReactions", "ReadMessageHistory"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "set") {
+      const channel = interaction.options.getChannel("channel", true);
+      const threshold = interaction.options.getInteger("threshold") ?? 5;
+      const emoji3 = interaction.options.getString("emoji") ?? "\u2B50";
+      await StarboardConfig.findOneAndUpdate(
+        { guildId },
+        {
+          guildId,
+          channelId: channel.id,
+          threshold,
+          emoji: emoji3,
+          enabled: true
+        },
+        { upsert: true, new: true }
+      );
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u2705 Starboard Configured").addFields(
+        { name: "Channel", value: `<#${channel.id}>`, inline: true },
+        { name: "Threshold", value: threshold.toString(), inline: true },
+        { name: "Emoji", value: emoji3, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "remove") {
+      const config2 = await StarboardConfig.findOneAndUpdate({ guildId }, { enabled: false });
+      if (!config2) {
+        await interaction.reply({ content: "Starboard not configured", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: "\u2705 Starboard disabled", ephemeral: true });
+      return;
+    }
+    if (sub === "config") {
+      const config2 = await StarboardConfig.findOne({ guildId });
+      if (!config2) {
+        await interaction.reply({ content: "Starboard not configured. Use /starboard set first", ephemeral: true });
+        return;
+      }
+      const allowSelfStar = interaction.options.getBoolean("allow_self_star");
+      const allowBotMessages = interaction.options.getBoolean("allow_bot_messages");
+      const requireAttachment = interaction.options.getBoolean("require_attachment");
+      const requireEmbed = interaction.options.getBoolean("require_embed");
+      const ignoreChannel = interaction.options.getChannel("ignore_channel");
+      const ignoreRole = interaction.options.getRole("ignore_role");
+      const removeIgnore = interaction.options.getBoolean("remove_ignore") ?? false;
+      const maxAgeDays = interaction.options.getInteger("max_age_days");
+      const allowMultiple = interaction.options.getBoolean("allow_multiple");
+      if (allowSelfStar !== null) config2.allowSelfStar = allowSelfStar;
+      if (allowBotMessages !== null) config2.allowBotMessages = allowBotMessages;
+      if (requireAttachment !== null) config2.requireAttachment = requireAttachment;
+      if (requireEmbed !== null) config2.requireEmbed = requireEmbed;
+      if (maxAgeDays !== null) config2.maxAgeDays = maxAgeDays;
+      if (allowMultiple !== null) config2.allowMultiple = allowMultiple;
+      if (ignoreChannel) {
+        if (removeIgnore) {
+          config2.ignoredChannels = config2.ignoredChannels.filter((c) => c !== ignoreChannel.id);
+        } else {
+          if (!config2.ignoredChannels.includes(ignoreChannel.id)) config2.ignoredChannels.push(ignoreChannel.id);
+        }
+      }
+      if (ignoreRole) {
+        if (removeIgnore) {
+          config2.ignoredRoles = config2.ignoredRoles.filter((r) => r !== ignoreRole.id);
+        } else {
+          if (!config2.ignoredRoles.includes(ignoreRole.id)) config2.ignoredRoles.push(ignoreRole.id);
+        }
+      }
+      await config2.save();
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u2699\uFE0F Starboard Settings Updated").addFields(
+        { name: "Self-Star", value: config2.allowSelfStar ? "\u2705" : "\u274C", inline: true },
+        { name: "Bot Messages", value: config2.allowBotMessages ? "\u2705" : "\u274C", inline: true },
+        { name: "Require Attachment", value: config2.requireAttachment ? "\u2705" : "\u274C", inline: true },
+        { name: "Require Embed", value: config2.requireEmbed ? "\u2705" : "\u274C", inline: true },
+        { name: "Max Age", value: config2.maxAgeDays ? `${config2.maxAgeDays}d` : "None", inline: true },
+        { name: "Multiple Entries", value: config2.allowMultiple ? "\u2705" : "\u274C", inline: true },
+        { name: "Ignored Channels", value: config2.ignoredChannels.map((c) => `<#${c}>`).join(", ") || "None", inline: false },
+        { name: "Ignored Roles", value: config2.ignoredRoles.map((r) => `<@&${r}>`).join(", ") || "None", inline: false }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "list") {
+      const limit = interaction.options.getInteger("limit") ?? 10;
+      const entries = await StarboardEntry.find({ guildId }).sort({ stars: -1, createdAt: -1 }).limit(limit).lean();
+      if (!entries.length) {
+        await interaction.reply({ content: "No starred messages yet", ephemeral: true });
+        return;
+      }
+      const config2 = await StarboardConfig.findOne({ guildId });
+      const emoji3 = config2?.emoji || "\u2B50";
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u2B50 Recent Starboard Entries").setDescription(
+        entries.map((e, i) => {
+          const author = guild.members.cache.get(e.authorId);
+          const name = author ? author.user.tag : `Unknown (${e.authorId})`;
+          return `**${i + 1}.** ${e.stars} ${emoji3} \u2014 ${name} \u2014 [Jump](${getJumpUrl(guildId, e.channelId, e.messageId)})`;
+        }).join("\n")
+      ).setFooter({ text: `Top ${limit} starred messages` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "leaderboard") {
+      const limit = interaction.options.getInteger("limit") ?? 10;
+      const entries = await StarboardEntry.aggregate([
+        { $match: { guildId } },
+        { $group: { _id: "$authorId", totalStars: { $sum: "$stars" }, messages: { $sum: 1 } } },
+        { $sort: { totalStars: -1 } },
+        { $limit: limit }
+      ]);
+      if (!entries.length) {
+        await interaction.reply({ content: "No star data yet", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u{1F3C6} Star Leaderboard").setDescription(
+        entries.map((e, i) => {
+          const user = guild.members.cache.get(e._id);
+          const name = user ? user.user.tag : `Unknown (${e._id})`;
+          return `**${i + 1}.** ${name} \u2014 **${e.totalStars}** \u2B50 (${e.messages} messages)`;
+        }).join("\n")
+      ).setFooter({ text: `Top ${limit} starred users` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+  }
+};
+var configCache = /* @__PURE__ */ new Map();
+async function handleStarboardReaction(reaction, user, added) {
+  if (reaction.partial) {
+    try {
+      await reaction.fetch();
+    } catch {
+      return;
+    }
+  }
+  const message = reaction.message;
+  if (!message.guildId) return;
+  if (message.author.bot && !configCache.get(message.guildId)?.allowBotMessages) return;
+  if (message.author.id === user.id && !configCache.get(message.guildId)?.allowSelfStar) return;
+  const guildId = message.guildId;
+  let config2 = configCache.get(guildId);
+  if (!config2) {
+    config2 = await StarboardConfig.findOne({ guildId, enabled: true }).lean();
+    if (!config2) return;
+    configCache.set(guildId, config2);
+  }
+  if (config2.ignoredChannels.includes(message.channelId)) return;
+  if (message.member && config2.ignoredRoles.some((r) => message.member.roles.cache.has(r))) return;
+  const reactionEmoji = reaction.emoji.name || reaction.emoji.toString();
+  if (reactionEmoji !== config2.emoji) return;
+  if (config2.requireAttachment && message.attachments.size === 0) return;
+  if (config2.requireEmbed && message.embeds.length === 0) return;
+  if (config2.maxAgeDays > 0) {
+    const ageDays = (Date.now() - message.createdTimestamp) / (1e3 * 60 * 60 * 24);
+    if (ageDays > config2.maxAgeDays) return;
+  }
+  const starCount = reaction.count || 0;
+  if (added && starCount >= config2.threshold) {
+    let entry = await StarboardEntry.findOne({ guildId, messageId: message.id });
+    if (entry && !config2.allowMultiple) {
+      entry.stars = starCount;
+      entry.starredBy = [.../* @__PURE__ */ new Set([...entry.starredBy, user.id])];
+      await entry.save();
+      await updateStarboardMessage(guildId, config2, entry, message);
+    } else if (!entry || config2.allowMultiple) {
+      const g = reaction.client.guilds.cache.get(guildId);
+      if (!g) return;
+      const starChannel = g.channels.cache.get(config2.channelId);
+      if (!starChannel) return;
+      const starEmbed = buildStarboardEmbed(message, starCount, config2);
+      const starMessage = await starChannel.send({ embeds: [starEmbed] });
+      entry = await StarboardEntry.create({
+        guildId,
+        messageId: message.id,
+        starboardMessageId: starMessage.id,
+        channelId: message.channelId,
+        authorId: message.author.id,
+        stars: starCount,
+        starredBy: [user.id]
+      });
+    }
+  } else if (!added && starCount < config2.threshold) {
+    const entry = await StarboardEntry.findOne({ guildId, messageId: message.id });
+    if (entry) {
+      await entry.deleteOne();
+      try {
+        const g = reaction.client.guilds.cache.get(guildId);
+        if (g) {
+          const starChannel = g.channels.cache.get(config2.channelId);
+          if (starChannel) {
+            const starMsg = await starChannel.messages.fetch(entry.starboardMessageId);
+            await starMsg.delete();
+          }
+        }
+      } catch {
+      }
+    }
+  }
+}
+__name(handleStarboardReaction, "handleStarboardReaction");
+function buildStarboardEmbed(message, stars, config2) {
+  const embed = new import_discord53.EmbedBuilder().setColor(config2.color || import_discord53.Colors.Gold).setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setDescription(message.content || "*No text content*").addFields(
+    { name: "Channel", value: `<#${message.channelId}>`, inline: true },
+    { name: "Stars", value: `${stars} ${config2.emoji}`, inline: true }
+  ).setTimestamp(message.createdAt).setFooter({ text: `ID: ${message.id}` });
+  if (config2.includeJumpLink) {
+    embed.addFields({ name: "Jump", value: `[Go to message](${getJumpUrl(message.guildId, message.channelId, message.id)})`, inline: true });
+  }
+  const firstAttachment = message.attachments.first();
+  if (firstAttachment && firstAttachment.contentType?.startsWith("image/")) {
+    embed.setImage(firstAttachment.url);
+  }
+  if (message.embeds.length > 0) {
+    const firstEmbed = message.embeds[0];
+    if (firstEmbed.image?.url) embed.setImage(firstEmbed.image.url);
+    if (firstEmbed.thumbnail?.url) embed.setThumbnail(firstEmbed.thumbnail.url);
+  }
+  return embed;
+}
+__name(buildStarboardEmbed, "buildStarboardEmbed");
+async function updateStarboardMessage(guildId, config2, entry, message) {
+  try {
+    const g = entry.client.guilds.cache.get(guildId);
+    if (!g) return;
+    const starChannel = g.channels.cache.get(config2.channelId);
+    if (!starChannel) return;
+    const starMessage = await starChannel.messages.fetch(entry.starboardMessageId);
+    const newEmbed = buildStarboardEmbed(message, entry.stars, config2);
+    await starMessage.edit({ embeds: [newEmbed] });
+  } catch {
+  }
+}
+__name(updateStarboardMessage, "updateStarboardMessage");
+function getJumpUrl(guildId, channelId, messageId) {
+  return `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+}
+__name(getJumpUrl, "getJumpUrl");
+function invalidateStarboardCache(guildId) {
+  configCache.delete(guildId);
+}
+__name(invalidateStarboardCache, "invalidateStarboardCache");
+
+// src/commands/utility/remind.ts
+var import_discord54 = __toESM(require_src());
+var import_ms2 = __toESM(require_ms());
+var remindCommand = {
+  data: new import_discord54.SlashCommandBuilder().setName("remind").setDescription("Reminder system").addSubcommand(
+    (sub) => sub.setName("me").setDescription("Set a reminder for yourself").addStringOption(
+      (opt) => opt.setName("time").setDescription("When to remind (e.g., 1h, 30m, 1d, 2024-12-25 15:00)").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("text").setDescription("What to remind you about").setRequired(true).setMaxLength(2e3)
+    ).addBooleanOption(
+      (opt) => opt.setName("dm").setDescription("Send via DM instead of channel mention").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List your reminders")
+  ).addSubcommand(
+    (sub) => sub.setName("cancel").setDescription("Cancel a reminder").addStringOption(
+      (opt) => opt.setName("id").setDescription("Reminder ID").setRequired(true).setAutocomplete(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("recurring").setDescription("Set a recurring reminder").addStringOption(
+      (opt) => opt.setName("pattern").setDescription('Cron pattern (e.g., "0 9 * * *" for daily 9am)').setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("text").setDescription("What to remind you about").setRequired(true).setMaxLength(2e3)
+    ).addStringOption(
+      (opt) => opt.setName("timezone").setDescription("Timezone (e.g., UTC, America/New_York)").setRequired(false)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 3,
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === "id") {
+      const reminders = await Reminder.find({ userId: interaction.user.id, sent: false }).sort({ remindAt: 1 }).limit(25).lean();
+      await interaction.respond(
+        reminders.map((r) => ({
+          name: `${new Date(r.remindAt).toLocaleString()} \u2014 ${r.text.slice(0, 50)}`,
+          value: String(r._id)
+        }))
+      );
+    }
+  },
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild?.id;
+    const sub = interaction.options.getSubcommand();
+    const userId = interaction.user.id;
+    if (sub === "me") {
+      const timeStr = interaction.options.getString("time", true);
+      const text = interaction.options.getString("text", true);
+      const dm = interaction.options.getBoolean("dm") ?? false;
+      let remindAt;
+      const msParsed = (0, import_ms2.default)(timeStr);
+      if (msParsed && typeof msParsed === "number") {
+        remindAt = new Date(Date.now() + msParsed);
+      } else {
+        const parsed = new Date(timeStr);
+        if (isNaN(parsed.getTime())) {
+          await interaction.reply({ content: "Invalid time format. Use relative (1h, 30m) or absolute (2024-12-25 15:00)", ephemeral: true });
+          return;
+        }
+        remindAt = parsed;
+      }
+      if (remindAt <= /* @__PURE__ */ new Date()) {
+        await interaction.reply({ content: "Reminder time must be in the future", ephemeral: true });
+        return;
+      }
+      if (remindAt > new Date(Date.now() + 365 * 24 * 60 * 60 * 1e3)) {
+        await interaction.reply({ content: "Reminder cannot be more than 1 year in the future", ephemeral: true });
+        return;
+      }
+      const reminder = await Reminder.create({
+        userId,
+        guildId,
+        channelId: interaction.channelId,
+        text,
+        remindAt,
+        dm
+      });
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Green).setTitle("\u23F0 Reminder Set").addFields(
+        { name: "When", value: `<t:${Math.floor(remindAt.getTime() / 1e3)}:F> (<t:${Math.floor(remindAt.getTime() / 1e3)}:R>)`, inline: false },
+        { name: "What", value: text, inline: false },
+        { name: "ID", value: String(reminder._id), inline: true }
+      );
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      recordActivity("command", "Reminder set", { meta: { userId, remindAt: remindAt.toISOString() } });
+      return;
+    }
+    if (sub === "list") {
+      const reminders = await Reminder.find({ userId, sent: false }).sort({ remindAt: 1 }).limit(20).lean();
+      if (!reminders.length) {
+        await interaction.reply({ content: "No active reminders", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Blurple).setTitle("\u23F0 Your Reminders").setDescription(
+        reminders.map((r) => {
+          const time3 = `<t:${Math.floor(r.remindAt.getTime() / 1e3)}:F> (<t:${Math.floor(r.remindAt.getTime() / 1e3)}:R>)`;
+          const guildInfo = r.guildId ? ` in <#${r.channelId}>` : " (DM)";
+          return `**${r._id}** \u2014 ${time3}${guildInfo}
+${r.text.slice(0, 100)}`;
+        }).join("\n\n")
+      ).setFooter({ text: `${reminders.length} reminder(s)` });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "cancel") {
+      const id = interaction.options.getString("id", true);
+      const reminder = await Reminder.findOneAndDelete({ _id: id, userId });
+      if (!reminder) {
+        await interaction.reply({ content: "Reminder not found", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: "\u2705 Reminder cancelled", ephemeral: true });
+      return;
+    }
+    if (sub === "recurring") {
+      const pattern = interaction.options.getString("pattern", true);
+      const text = interaction.options.getString("text", true);
+      const timezone = interaction.options.getString("timezone") || "UTC";
+      const parts = pattern.split(" ");
+      if (parts.length !== 5) {
+        await interaction.reply({ content: "Invalid cron pattern. Use 5 fields: minute hour day month weekday", ephemeral: true });
+        return;
+      }
+      const now = /* @__PURE__ */ new Date();
+      let nextRun = new Date(now);
+      nextRun.setMinutes(nextRun.getMinutes() + 1);
+      const reminder = await Reminder.create({
+        userId,
+        guildId,
+        channelId: interaction.channelId,
+        text,
+        remindAt: nextRun,
+        recurring: { pattern, timezone, nextRun }
+      });
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Green).setTitle("\u{1F504} Recurring Reminder Set").addFields(
+        { name: "Pattern", value: `\`${pattern}\``, inline: true },
+        { name: "Timezone", value: timezone, inline: true },
+        { name: "Next Run", value: `<t:${Math.floor(nextRun.getTime() / 1e3)}:R>`, inline: true },
+        { name: "What", value: text, inline: false },
+        { name: "ID", value: String(reminder._id), inline: true }
+      );
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+  }
+};
+async function checkReminders(client) {
+  const now = /* @__PURE__ */ new Date();
+  const dueReminders = await Reminder.find({ sent: false, remindAt: { $lte: now } }).limit(50).lean();
+  for (const reminder of dueReminders) {
+    try {
+      const user = await client.users.fetch(reminder.userId);
+      const content = `\u23F0 **Reminder:** ${reminder.text}`;
+      if (reminder.dm || !reminder.guildId) {
+        await user.send(content).catch(() => {
+        });
+      } else {
+        const g = client.guilds.cache.get(reminder.guildId);
+        if (g) {
+          const channel = g.channels.cache.get(reminder.channelId);
+          if (channel) {
+            await channel.send({ content: `<@${reminder.userId}> ${content}` }).catch(() => {
+              user.send(content).catch(() => {
+              });
+            });
+          }
+        }
+      }
+      if (reminder.recurring) {
+        const nextRun = new Date(reminder.remindAt.getTime() + 60 * 60 * 1e3);
+        reminder.remindAt = nextRun;
+        reminder.recurring.nextRun = nextRun;
+        reminder.sent = false;
+        await Reminder.updateOne({ _id: reminder._id }, { $set: { remindAt: nextRun, "recurring.nextRun": nextRun, sent: false } });
+      } else {
+        reminder.sent = true;
+        await Reminder.updateOne({ _id: reminder._id }, { $set: { sent: true } });
+      }
+    } catch (error62) {
+      console.error("[Reminders] Failed to send reminder:", error62);
+    }
+  }
+}
+__name(checkReminders, "checkReminders");
+
+// src/commands/utility/afk.ts
+var import_discord55 = __toESM(require_src());
+var afkCommand = {
+  data: new import_discord55.SlashCommandBuilder().setName("afk").setDescription("AFK system").addSubcommand(
+    (sub) => sub.setName("set").setDescription("Set your AFK status").addStringOption(
+      (opt) => opt.setName("reason").setDescription("AFK reason").setRequired(false).setMaxLength(500)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove your AFK status")
+  ).addSubcommand(
+    (sub) => sub.setName("info").setDescription("Check someone's AFK status").addUserOption(
+      (opt) => opt.setName("user").setDescription("User to check").setRequired(true)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 3,
+  async execute(context) {
+    const { interaction, guild, member } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    const userId = interaction.user.id;
+    if (sub === "set") {
+      const reason = interaction.options.getString("reason") || "AFK";
+      const existing = await AFK.findOne({ guildId, userId });
+      if (existing) {
+        await interaction.reply({ content: "You're already AFK", ephemeral: true });
+        return;
+      }
+      let originalNickname;
+      if (member && "nickname" in member && member.nickname) {
+        originalNickname = member.nickname;
+      }
+      const afk = await AFK.create({
+        userId,
+        guildId,
+        reason,
+        originalNickname
+      });
+      if (member && "setNickname" in member) {
+        try {
+          await member.setNickname(`[AFK] ${member.displayName}`, "AFK system");
+        } catch {
+        }
+      }
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Yellow).setTitle("\u{1F4A4} AFK Set").addFields(
+        { name: "Reason", value: reason, inline: false },
+        { name: "Since", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>`, inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "AFK set", { meta: { guildId, userId } });
+      return;
+    }
+    if (sub === "remove") {
+      const afk = await AFK.findOneAndDelete({ guildId, userId });
+      if (!afk) {
+        await interaction.reply({ content: "You're not AFK", ephemeral: true });
+        return;
+      }
+      if (member && "setNickname" in member && afk.originalNickname) {
+        try {
+          await member.setNickname(afk.originalNickname, "AFK removed");
+        } catch {
+        }
+      }
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Green).setTitle("\u2705 AFK Removed").addFields(
+        { name: "Was AFK for", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>`, inline: true },
+        { name: "Mentions received", value: afk.mentions.toString(), inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "info") {
+      const user = interaction.options.getUser("user", true);
+      const afk = await AFK.findOne({ guildId, userId: user.id });
+      if (!afk) {
+        await interaction.reply({ content: `${user.tag} is not AFK`, ephemeral: true });
+        return;
+      }
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Yellow).setTitle(`\u{1F4A4} ${user.tag} is AFK`).addFields(
+        { name: "Reason", value: afk.reason, inline: false },
+        { name: "Since", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:F> (<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>)`, inline: false },
+        { name: "Mentions", value: afk.mentions.toString(), inline: true }
+      );
+      if (afk.lastMentionedAt) {
+        embed.addFields({ name: "Last Mentioned", value: `<t:${Math.floor(afk.lastMentionedAt.getTime() / 1e3)}:R>`, inline: true });
+      }
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+  }
+};
+async function handleAfkMessage(message) {
+  if (!message.guild || message.author.bot) return;
+  const guildId = message.guild.id;
+  const authorAfk = await AFK.findOne({ guildId, userId: message.author.id });
+  if (authorAfk) {
+    await AFK.deleteOne({ _id: authorAfk._id });
+    const member = message.member;
+    if (member && authorAfk.originalNickname) {
+      try {
+        await member.setNickname(authorAfk.originalNickname, "AFK auto-removed");
+      } catch {
+      }
+    }
+    const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Green).setDescription(`\u{1F44B} Welcome back! You were AFK for <t:${Math.floor(authorAfk.setAt.getTime() / 1e3)}:R> (${authorAfk.mentions} mentions)`);
+    await message.reply({ embeds: [embed] }).catch(() => {
+    });
+  }
+  const mentionedUsers = message.mentions.users.filter((u) => u.id !== message.author.id);
+  for (const mentionedUser of mentionedUsers.values()) {
+    const afk = await AFK.findOne({ guildId, userId: mentionedUser.id });
+    if (afk) {
+      afk.mentions++;
+      afk.lastMentionedAt = /* @__PURE__ */ new Date();
+      await afk.save();
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Yellow).setDescription(`\u{1F4A4} **${mentionedUser.tag}** is AFK: ${afk.reason}
+Since <t:${Math.floor(afk.setAt.getTime() / 1e3)}:R> (${afk.mentions} mentions total)`);
+      await message.reply({ embeds: [embed], allowedMentions: { users: [] } }).catch(() => {
+      });
+      break;
+    }
+  }
+}
+__name(handleAfkMessage, "handleAfkMessage");
+
+// src/commands/utility/welcome.ts
+var import_discord56 = __toESM(require_src());
+var welcomeCommand = {
+  data: new import_discord56.SlashCommandBuilder().setName("welcome").setDescription("Welcome and greetings system").addSubcommand(
+    (sub) => sub.setName("set").setDescription("Set welcome channel and message").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Welcome channel").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("message").setDescription("Welcome message (supports {user}, {server}, {memberCount})").setRequired(false).setMaxLength(2e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("dm").setDescription("Set welcome DM message").addStringOption(
+      (opt) => opt.setName("message").setDescription("DM welcome message").setRequired(true).setMaxLength(2e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("leave").setDescription("Set leave channel and message").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Leave channel").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("message").setDescription("Leave message").setRequired(false).setMaxLength(2e3)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("autorole").setDescription("Set auto-role on join").addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to assign on join").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("botrole").setDescription("Set auto-role for bots on join").addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to assign to bots on join").setRequired(true)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("test").setDescription("Test welcome message")
+  ).addSubcommand(
+    (sub) => sub.setName("disable").setDescription("Disable welcome system")
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["SendMessages", "EmbedLinks", "ManageRoles"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "set") {
+      const channel = interaction.options.getChannel("channel", true);
+      const message = interaction.options.getString("message");
+      await WelcomeConfig.findOneAndUpdate(
+        { guildId },
+        {
+          guildId,
+          welcomeChannelId: channel.id,
+          welcomeMessage: message
+        },
+        { upsert: true, new: true }
+      );
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setTitle("\u2705 Welcome System Configured").addFields(
+        { name: "Channel", value: `<#${channel.id}>`, inline: true },
+        { name: "Message", value: message || "Default welcome embed", inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      recordActivity("command", "Welcome system set", { meta: { guildId, channelId: channel.id } });
+      return;
+    }
+    if (sub === "dm") {
+      const message = interaction.options.getString("message", true);
+      await WelcomeConfig.findOneAndUpdate(
+        { guildId },
+        { guildId, dmMessage: message },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: "\u2705 Welcome DM message set.", ephemeral: true });
+      return;
+    }
+    if (sub === "leave") {
+      const channel = interaction.options.getChannel("channel", true);
+      const message = interaction.options.getString("message");
+      await WelcomeConfig.findOneAndUpdate(
+        { guildId },
+        {
+          guildId,
+          leaveChannelId: channel.id,
+          leaveMessage: message
+        },
+        { upsert: true, new: true }
+      );
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setTitle("\u2705 Leave System Configured").addFields(
+        { name: "Channel", value: `<#${channel.id}>`, inline: true },
+        { name: "Message", value: message || "Default leave embed", inline: true }
+      );
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "autorole") {
+      const role = interaction.options.getRole("role", true);
+      await WelcomeConfig.findOneAndUpdate(
+        { guildId },
+        { guildId, autoRoleId: role.id },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 Auto-role set to: **${role.name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "botrole") {
+      const role = interaction.options.getRole("role", true);
+      await WelcomeConfig.findOneAndUpdate(
+        { guildId },
+        { guildId, botAutoRoleId: role.id },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 Bot auto-role set to: **${role.name}**`, ephemeral: true });
+      return;
+    }
+    if (sub === "test") {
+      const config2 = await WelcomeConfig.findOne({ guildId });
+      if (!config2) {
+        await interaction.reply({ content: "Welcome system not configured. Use /welcome set first.", ephemeral: true });
+        return;
+      }
+      const channel = guild.channels.cache.get(config2.welcomeChannelId);
+      if (!channel) {
+        await interaction.reply({ content: "Welcome channel not found.", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Blurple).setTitle("\u{1F44B} Welcome Test").setDescription(`Welcome to **${guild.name}**, {user}!`).setFooter({ text: "Test welcome message" }).setTimestamp();
+      const message = config2.welcomeMessage?.replace("{user}", interaction.user.toString()).replace("{server}", guild.name).replace("{memberCount}", guild.memberCount.toString()) || "";
+      await channel.send({ content: message || void 0, embeds: [embed] });
+      await interaction.reply({ content: `\u2705 Test welcome sent to ${channel}.`, ephemeral: true });
+      return;
+    }
+    if (sub === "disable") {
+      await WelcomeConfig.findOneAndDelete({ guildId });
+      await interaction.reply({ content: "\u2705 Welcome system disabled.", ephemeral: true });
+      return;
+    }
+  }
+};
+
+// src/commands/utility/notifications.ts
+var import_discord57 = __toESM(require_src());
+var notificationsCommand = {
+  data: new import_discord57.SlashCommandBuilder().setName("notifications").setDescription("Feed notifications system").addSubcommand(
+    (sub) => sub.setName("twitch").setDescription("Twitch live stream alerts").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Discord channel to post alerts").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("twitch_channel").setDescription("Twitch channel name").setRequired(true)
+    ).addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to ping on live").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("youtube").setDescription("YouTube upload alerts").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Discord channel to post alerts").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("youtube_channel").setDescription("YouTube channel ID").setRequired(true)
+    ).addRoleOption(
+      (opt) => opt.setName("role").setDescription("Role to ping on upload").setRequired(false)
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("reddit").setDescription("Reddit subreddit feed").addChannelOption(
+      (opt) => opt.setName("channel").setDescription("Discord channel to post alerts").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("subreddit").setDescription("Subreddit name").setRequired(true)
+    ).addStringOption(
+      (opt) => opt.setName("sort").setDescription("Sort type").setRequired(false).addChoices(
+        { name: "Hot", value: "hot" },
+        { name: "New", value: "new" },
+        { name: "Top", value: "top" },
+        { name: "Rising", value: "rising" }
+      )
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("List all notification feeds")
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove a notification feed").addStringOption(
+      (opt) => opt.setName("type").setDescription("Feed type").setRequired(true).addChoices(
+        { name: "Twitch", value: "twitch" },
+        { name: "YouTube", value: "youtube" },
+        { name: "Reddit", value: "reddit" }
+      )
+    ).addStringOption(
+      (opt) => opt.setName("source").setDescription("Source identifier").setRequired(true)
+    )
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  userPermissions: ["ManageGuild"],
+  botPermissions: ["SendMessages", "EmbedLinks"],
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "twitch") {
+      const channel = interaction.options.getChannel("channel", true);
+      const twitchChannel = interaction.options.getString("twitch_channel", true);
+      const role = interaction.options.getRole("role");
+      await NotificationFeed.findOneAndUpdate(
+        { guildId, type: "twitch", source: twitchChannel },
+        {
+          guildId,
+          type: "twitch",
+          channelId: channel.id,
+          source: twitchChannel,
+          roleId: role?.id,
+          pingEveryone: false,
+          active: true
+        },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 Twitch alerts set for **${twitchChannel}** in <#${channel.id}>`, ephemeral: true });
+      return;
+    }
+    if (sub === "youtube") {
+      const channel = interaction.options.getChannel("channel", true);
+      const youtubeChannel = interaction.options.getString("youtube_channel", true);
+      const role = interaction.options.getRole("role");
+      await NotificationFeed.findOneAndUpdate(
+        { guildId, type: "youtube", source: youtubeChannel },
+        {
+          guildId,
+          type: "youtube",
+          channelId: channel.id,
+          source: youtubeChannel,
+          roleId: role?.id,
+          pingEveryone: false,
+          active: true
+        },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 YouTube alerts set for **${youtubeChannel}** in <#${channel.id}>`, ephemeral: true });
+      return;
+    }
+    if (sub === "reddit") {
+      const channel = interaction.options.getChannel("channel", true);
+      const subreddit = interaction.options.getString("subreddit", true);
+      const sort = interaction.options.getString("sort") || "hot";
+      await NotificationFeed.findOneAndUpdate(
+        { guildId, type: "reddit", source: subreddit },
+        {
+          guildId,
+          type: "reddit",
+          channelId: channel.id,
+          source: subreddit,
+          redditSort: sort,
+          pingEveryone: false,
+          active: true
+        },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 Reddit feed set for **r/${subreddit}** in <#${channel.id}>`, ephemeral: true });
+      return;
+    }
+    if (sub === "list") {
+      const feeds = await NotificationFeed.find({ guildId }).lean();
+      if (!feeds.length) {
+        await interaction.reply({ content: "No notification feeds configured.", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Blurple).setTitle("\u{1F4E2} Notification Feeds").setDescription(
+        feeds.map((f) => `**${f.type}** \u2014 ${f.source} \u2192 <#${f.channelId}> ${f.active ? "\u{1F7E2}" : "\u{1F534}"}`).join("\n")
+      ).setFooter({ text: `${feeds.length} feed(s)` });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+    if (sub === "remove") {
+      const type = interaction.options.getString("type", true);
+      const source = interaction.options.getString("source", true);
+      const feed = await NotificationFeed.findOneAndDelete({ guildId, type, source });
+      if (!feed) {
+        await interaction.reply({ content: "Feed not found.", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: `\u2705 Removed ${type} feed for **${source}**.`, ephemeral: true });
+      return;
+    }
+  }
+};
+
+// src/commands/utility/birthday.ts
+var import_discord58 = __toESM(require_src());
+var birthdayCommand = {
+  data: new import_discord58.SlashCommandBuilder().setName("birthday").setDescription("Birthday system").addSubcommand(
+    (sub) => sub.setName("set").setDescription("Set your birthday").addIntegerOption(
+      (opt) => opt.setName("month").setDescription("Birth month (1-12)").setRequired(true).setMinValue(1).setMaxValue(12)
+    ).addIntegerOption(
+      (opt) => opt.setName("day").setDescription("Birth day (1-31)").setRequired(true).setMinValue(1).setMaxValue(31)
+    ).addIntegerOption(
+      (opt) => opt.setName("year").setDescription("Birth year (optional)").setRequired(false).setMinValue(1900).setMaxValue((/* @__PURE__ */ new Date()).getFullYear())
+    )
+  ).addSubcommand(
+    (sub) => sub.setName("remove").setDescription("Remove your birthday")
+  ).addSubcommand(
+    (sub) => sub.setName("list").setDescription("Show upcoming birthdays")
+  ).addSubcommand(
+    (sub) => sub.setName("today").setDescription("Show today's birthdays")
+  ),
+  category: "utility",
+  cooldownSeconds: 5,
+  async execute(context) {
+    const { interaction, guild } = context;
+    const guildId = guild.id;
+    const userId = interaction.user.id;
+    const sub = interaction.options.getSubcommand();
+    if (sub === "set") {
+      const month = interaction.options.getInteger("month", true);
+      const day = interaction.options.getInteger("day", true);
+      const year = interaction.options.getInteger("year");
+      const testDate = new Date(year ?? 2e3, month - 1, day);
+      if (testDate.getMonth() !== month - 1 || testDate.getDate() !== day) {
+        await interaction.reply({ content: "\u274C Invalid date.", ephemeral: true });
+        return;
+      }
+      await Birthday.findOneAndUpdate(
+        { guildId, userId },
+        { guildId, userId, month, day, year, announce: true },
+        { upsert: true, new: true }
+      );
+      await interaction.reply({ content: `\u2705 Birthday set to: ${month}/${day}${year ? `/${year}` : ""}`, ephemeral: true });
+      recordActivity("command", "Birthday set", { meta: { guildId, userId } });
+      return;
+    }
+    if (sub === "remove") {
+      const result = await Birthday.deleteOne({ guildId, userId });
+      if (result.deletedCount === 0) {
+        await interaction.reply({ content: "\u274C No birthday set.", ephemeral: true });
+        return;
+      }
+      await interaction.reply({ content: "\u2705 Birthday removed.", ephemeral: true });
+      return;
+    }
+    if (sub === "list") {
+      const now = /* @__PURE__ */ new Date();
+      const birthdays = await Birthday.find({ guildId }).sort({ month: 1, day: 1 }).lean();
+      if (!birthdays.length) {
+        await interaction.reply({ content: "No birthdays set.", ephemeral: true });
+        return;
+      }
+      const upcoming = birthdays.map((b) => {
+        const next = new Date(now.getFullYear(), b.month - 1, b.day);
+        if (next < now) next.setFullYear(next.getFullYear() + 1);
+        return { ...b, next };
+      }).sort((a, b) => a.next.getTime() - b.next.getTime()).slice(0, 20);
+      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Blurple).setTitle("\u{1F382} Upcoming Birthdays").setDescription(
+        upcoming.map((b) => {
+          const member = guild.members.cache.get(b.userId);
+          const name = member ? member.user.tag : `Unknown (${b.userId})`;
+          const days = Math.ceil((b.next.getTime() - now.getTime()) / (1e3 * 60 * 60 * 24));
+          return `\u{1F382} ${name} \u2014 ${b.month}/${b.day} (${days} days)`;
+        }).join("\n")
+      ).setFooter({ text: `${birthdays.length} total` });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+    if (sub === "today") {
+      const now = /* @__PURE__ */ new Date();
+      const todayBirthdays = await Birthday.find({
+        guildId,
+        month: now.getMonth() + 1,
+        day: now.getDate()
+      }).lean();
+      if (!todayBirthdays.length) {
+        await interaction.reply({ content: "No birthdays today.", ephemeral: true });
+        return;
+      }
+      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Gold).setTitle("\u{1F389} Today's Birthdays!").setDescription(
+        todayBirthdays.map((b) => {
+          const member = guild.members.cache.get(b.userId);
+          const name = member ? member.user.tag : `Unknown (${b.userId})`;
+          return `\u{1F382} Happy Birthday, ${name}!`;
+        }).join("\n")
+      ).setFooter({ text: "Wishing you a wonderful day!" });
+      await interaction.reply({ embeds: [embed] });
+      return;
+    }
+  }
+};
+
 // src/commands/leveling/levelup.ts
-var import_discord42 = __toESM(require_src());
+var import_discord59 = __toESM(require_src());
 var levelupCommand = {
-  data: new import_discord42.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.ManageGuild),
+  data: new import_discord59.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord59.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182901,13 +187673,13 @@ var levelupCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord42.MessageFlags.Ephemeral
+        flags: import_discord59.MessageFlags.Ephemeral
       });
       return;
     }
     const current = await loadLevelSettings(context);
     const { levelUpMessage, levelUpChannel } = current;
-    const testEmbed = new import_discord42.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
+    const testEmbed = new import_discord59.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
       levelUpMessage.replace("{user}", "@everyone").replace("{username}", "TestUser").replace("{level}", "10").replace("{server}", interaction.guild?.name ?? "this server").replace("{role}", "@everyone").replace("{xp}", "1500").replace("{xpneeded}", "500")
     ).setFooter({ text: "\u7231 Doctora \u2022 Level Up Test" }).setTimestamp();
     const channel = interaction.guild?.channels.cache.get(levelUpChannel);
@@ -182915,28 +187687,28 @@ var levelupCommand = {
       await channel.send({ embeds: [testEmbed] });
       await interaction.reply({
         content: `\u2705 Test level-up sent to <#${levelUpChannel}>`,
-        flags: import_discord42.MessageFlags.Ephemeral
+        flags: import_discord59.MessageFlags.Ephemeral
       });
     } else {
       await interaction.reply({
         content: `\u2705 Level-up message template: "${levelUpMessage}"
 (No level-up channel configured)`,
-        flags: import_discord42.MessageFlags.Ephemeral
+        flags: import_discord59.MessageFlags.Ephemeral
       });
     }
   }, "execute")
 };
 
 // src/commands/leveling/xpgive.ts
-var import_discord43 = __toESM(require_src());
+var import_discord60 = __toESM(require_src());
 var xpgiveCommand = {
-  data: new import_discord43.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
+  data: new import_discord60.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to give XP to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of XP to give").setMinValue(1).setMaxValue(1e4).setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("level").setDescription("Force a level (optional)").setMinValue(0).setMaxValue(1e3)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord60.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182946,25 +187718,25 @@ var xpgiveCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord43.MessageFlags.Ephemeral
+        flags: import_discord60.MessageFlags.Ephemeral
       });
       return;
     }
     await addXp(targetUser.id, amount, "admin", 0);
-    const embed = new import_discord43.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
+    const embed = new import_discord60.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
       { name: "User", value: targetUser.tag, inline: true },
       { name: "XP Given", value: `${amount}`, inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 XP Given" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord43.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord60.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/leveling/resetxp.ts
-var import_discord44 = __toESM(require_src());
+var import_discord61 = __toESM(require_src());
 var resetXpCommand = {
-  data: new import_discord44.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
+  data: new import_discord61.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to reset XP for").setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord61.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -182973,25 +187745,25 @@ var resetXpCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord44.MessageFlags.Ephemeral
+        flags: import_discord61.MessageFlags.Ephemeral
       });
       return;
     }
     await setUserXp(targetUser.id, 0);
-    const embed = new import_discord44.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord44.MessageFlags.Ephemeral });
+    const embed = new import_discord61.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord61.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/economy.ts
-var import_discord45 = __toESM(require_src());
+var import_discord62 = __toESM(require_src());
 var economyCommand = {
-  data: new import_discord45.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord45.PermissionFlagsBits.SendMessages),
+  data: new import_discord62.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord62.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const config2 = await loadLevelSettings(context);
-    const embed = new import_discord45.EmbedBuilder().setColor(5793266).setTitle("\u{1F4B0} Server Economy").addFields(
+    const embed = new import_discord62.EmbedBuilder().setColor(5793266).setTitle("\u{1F4B0} Server Economy").addFields(
       { name: "XP Enabled", value: config2.enabled ? "Yes" : "No", inline: true },
       { name: "Message XP", value: `${config2.perMessageMin}-${config2.perMessageMax} (random)`, inline: true },
       { name: "Cooldown", value: `${config2.cooldownSeconds}s`, inline: true },
@@ -182999,16 +187771,16 @@ var economyCommand = {
       { name: "Ignore Bots", value: config2.ignoreBots ? "Yes" : "No", inline: true },
       { name: "Exclusive XP Channel", value: config2.xpChannel ? `<#${config2.xpChannel}>` : "None", inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 Economy" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord45.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord62.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/shop.ts
-var import_discord46 = __toESM(require_src());
+var import_discord63 = __toESM(require_src());
 var shopCommand = {
-  data: new import_discord46.SlashCommandBuilder().setName("shop").setDescription("View the server shop and purchase items.").addStringOption(
+  data: new import_discord63.SlashCommandBuilder().setName("shop").setDescription("View the server shop and purchase items.").addStringOption(
     (option) => option.setName("item").setDescription("Item to buy").setRequired(false)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord46.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord63.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -183018,21 +187790,21 @@ var shopCommand = {
       { id: "special_role", name: "Special Role", cost: 1500, description: "A unique role" },
       { id: "voice_boost", name: "Voice Boost", cost: 750, description: "Priority in voice queue" }
     ];
-    const embed = new import_discord46.EmbedBuilder().setColor(5793266).setTitle("\u{1F3EA} Server Shop").setDescription("Use `/balance` to check your coins, then `/buy` to purchase items.").setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
+    const embed = new import_discord63.EmbedBuilder().setColor(5793266).setTitle("\u{1F3EA} Server Shop").setDescription("Use `/balance` to check your coins, then `/buy` to purchase items.").setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
     let fields = "";
     for (const item of shopItems) {
       fields += `\u2022 **${item.name}** \u2014 ${item.cost} coins: ${item.description}
 `;
     }
     embed.addFields({ name: "Available Items", value: fields || "No items available" });
-    await interaction.reply({ embeds: [embed], flags: import_discord46.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord63.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/inventory.ts
-var import_discord47 = __toESM(require_src());
+var import_discord64 = __toESM(require_src());
 var inventoryCommand = {
-  data: new import_discord47.SlashCommandBuilder().setName("inventory").setDescription("View your personal inventory and balance.").setDMPermission(true).setDefaultMemberPermissions(import_discord47.PermissionFlagsBits.SendMessages),
+  data: new import_discord64.SlashCommandBuilder().setName("inventory").setDescription("View your personal inventory and balance.").setDMPermission(true).setDefaultMemberPermissions(import_discord64.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -183040,7 +187812,7 @@ var inventoryCommand = {
     const userBank = 5e3;
     const bankLimit = 1e4;
     const ownedItems = ["rank_card_theme", "special_role"];
-    const embed = new import_discord47.EmbedBuilder().setColor(5793266).setTitle("\u{1F392} Your Inventory").addFields(
+    const embed = new import_discord64.EmbedBuilder().setColor(5793266).setTitle("\u{1F392} Your Inventory").addFields(
       { name: "\u{1F4B5} Balance", value: `${userBalance} coins`, inline: true },
       { name: "\u{1F3E6} Bank", value: `${userBank}/${bankLimit} coins`, inline: true }
     );
@@ -183054,38 +187826,38 @@ var inventoryCommand = {
     }
     embed.setFooter({ text: "\u7231 Doctora \u2022 Inventory" });
     embed.setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord47.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord64.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/give.ts
-var import_discord48 = __toESM(require_src());
+var import_discord65 = __toESM(require_src());
 var giveCommand = {
-  data: new import_discord48.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
+  data: new import_discord65.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to give coins to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of coins to give").setMinValue(1).setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord65.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const targetUser = interaction.options.getUser("user", true);
     const amount = interaction.options.getInteger("amount", true);
-    const embed = new import_discord48.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
+    const embed = new import_discord65.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
       { name: "From", value: interaction.user.tag, inline: true },
       { name: "To", value: targetUser.tag, inline: true },
       { name: "Amount", value: `${amount} coins`, inline: true }
     ).setFooter({ text: "\u7231 Doctora \u2022 Coin Transfer" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord48.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord65.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/rich.ts
-var import_discord49 = __toESM(require_src());
+var import_discord66 = __toESM(require_src());
 var richCommand = {
-  data: new import_discord49.SlashCommandBuilder().setName("rich").setDescription("View the richest members of the server.").addIntegerOption(
+  data: new import_discord66.SlashCommandBuilder().setName("rich").setDescription("View the richest members of the server.").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many top members to show").setMinValue(1).setMaxValue(10).setRequired(false)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord49.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord66.PermissionFlagsBits.SendMessages),
   category: "economy",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -183097,23 +187869,23 @@ var richCommand = {
       { user: "User4", xp: 38e3, level: 22 },
       { user: "User5", xp: 35e3, level: 21 }
     ];
-    const embed = new import_discord49.EmbedBuilder().setColor(16766720).setTitle("\u{1F48E} Richest Members").setDescription(`Top ${limit} members by XP`);
+    const embed = new import_discord66.EmbedBuilder().setColor(16766720).setTitle("\u{1F48E} Richest Members").setDescription(`Top ${limit} members by XP`);
     const fields = richList.slice(0, limit).map(
       (member, i) => `**#${i + 1}** <@${member.user.replace("<@", "").replace(">", "")}> \u2014 Level ${member.level} (${member.xp.toLocaleString()} XP)`
     ).join("\n");
     embed.addFields({ name: "Members", value: fields || "No data available" });
     embed.setFooter({ text: "\u7231 Doctora \u2022 Rich List" });
     embed.setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord49.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord66.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/tickets/quick-ticket.ts
-var import_discord50 = __toESM(require_src());
+var import_discord67 = __toESM(require_src());
 var quickticketCommand = {
-  data: new import_discord50.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
+  data: new import_discord67.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
     (option) => option.setName("channel").setDescription("Channel to post the panel (default: current)")
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord50.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord67.PermissionFlagsBits.ManageGuild),
   category: "moderation",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -183122,7 +187894,7 @@ var quickticketCommand = {
     if (!ownerIds.includes(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord50.MessageFlags.Ephemeral
+        flags: import_discord67.MessageFlags.Ephemeral
       });
       return;
     }
@@ -183138,13 +187910,13 @@ var quickticketCommand = {
         isActive: true
       });
     }
-    const embed = new import_discord50.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription(
+    const embed = new import_discord67.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription(
       "Click a department below to open a private support ticket.\n\n\u{1F3AB} **Support** \u2014 General support"
     ).setThumbnail(guild.iconURL()).setFooter({ text: "\u7231 Doctora \u2022 Quick Tickets" }).setTimestamp();
     const rows = [];
-    const row = new import_discord50.ActionRowBuilder();
+    const row = new import_discord67.ActionRowBuilder();
     row.addComponents(
-      new import_discord50.ButtonBuilder().setCustomId("ticket_create:support").setLabel("Support").setStyle(import_discord50.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
+      new import_discord67.ButtonBuilder().setCustomId("ticket_create:support").setLabel("Support").setStyle(import_discord67.ButtonStyle.Primary).setEmoji("\u{1F3AB}")
     );
     rows.push(row);
     const message = await channel.send({
@@ -183161,7 +187933,7 @@ var quickticketCommand = {
     });
     await interaction.reply({
       content: `\u2705 Quick ticket panel posted in ${channel}`,
-      flags: import_discord50.MessageFlags.Ephemeral
+      flags: import_discord67.MessageFlags.Ephemeral
     });
   }, "execute")
 };
@@ -183183,6 +187955,9 @@ var commands = [
   timeoutCommand,
   clearCommand,
   warnCommand,
+  automodCommand,
+  discordautomodCommand,
+  logsCommand,
   // Economy
   balanceCommand,
   dailyCommand,
@@ -183192,6 +187967,7 @@ var commands = [
   inventoryCommand,
   giveCommand,
   richCommand,
+  casinoCommand,
   // Fun
   coinflipCommand,
   diceCommand,
@@ -183205,10 +187981,23 @@ var commands = [
   chooseCommand,
   flipCommand,
   eightBallEnhancedCommand,
+  petCommand,
+  marriageCommand,
+  // Music
+  musicCommand,
   // Utility
   suggestCommand,
   pollCreateCommand,
   pollVoteCommand,
+  reactionroleCommand,
+  customcmdCommand,
+  invitesCommand,
+  starboardCommand,
+  remindCommand,
+  afkCommand,
+  welcomeCommand,
+  notificationsCommand,
+  birthdayCommand,
   // Leveling
   rankCommand,
   leaderboardCommand,
@@ -183232,8 +188021,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord51 = __toESM(require_src());
-var SukunaClient = class extends import_discord51.Client {
+var import_discord68 = __toESM(require_src());
+var SukunaClient = class extends import_discord68.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -183248,15 +188037,15 @@ var SukunaClient = class extends import_discord51.Client {
   constructor() {
     super({
       intents: [
-        import_discord51.GatewayIntentBits.Guilds,
-        import_discord51.GatewayIntentBits.GuildMembers,
-        import_discord51.GatewayIntentBits.GuildMessages,
-        import_discord51.GatewayIntentBits.MessageContent,
-        import_discord51.GatewayIntentBits.DirectMessages,
-        import_discord51.GatewayIntentBits.GuildVoiceStates,
-        import_discord51.GatewayIntentBits.GuildMessageReactions
+        import_discord68.GatewayIntentBits.Guilds,
+        import_discord68.GatewayIntentBits.GuildMembers,
+        import_discord68.GatewayIntentBits.GuildMessages,
+        import_discord68.GatewayIntentBits.MessageContent,
+        import_discord68.GatewayIntentBits.DirectMessages,
+        import_discord68.GatewayIntentBits.GuildVoiceStates,
+        import_discord68.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord51.Partials.Message, import_discord51.Partials.Channel, import_discord51.Partials.GuildMember, import_discord51.Partials.Reaction],
+      partials: [import_discord68.Partials.Message, import_discord68.Partials.Channel, import_discord68.Partials.GuildMember, import_discord68.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
       // Always appear as "Do Not Disturb" with no activity text. Sent with the
       // IDENTIFY payload, so it applies on login and on every reconnect.
@@ -183340,102 +188129,6 @@ __name(registerEvents, "registerEvents");
 
 // src/core/logger.ts
 var import_pino = __toESM(require_pino());
-
-// src/core/metrics.ts
-var import_node_stream5 = require("node:stream");
-var MAX_EVENTS = 400;
-var events = [];
-var counters = {
-  startedAt: Date.now(),
-  messagesSeen: 0,
-  commandsRun: 0,
-  aiReplies: 0,
-  errors: 0,
-  guildJoins: 0
-};
-var nextId = 1;
-function sanitizeMeta(meta3) {
-  if (!meta3) return void 0;
-  const clean = {};
-  for (const [key, value] of Object.entries(meta3)) {
-    if (value === void 0 || value === null) {
-      clean[key] = null;
-      continue;
-    }
-    if (typeof value === "string") {
-      clean[key] = value.length > 200 ? value.slice(0, 200) : value;
-    } else if (typeof value === "number" || typeof value === "boolean") {
-      clean[key] = value;
-    }
-  }
-  return Object.keys(clean).length > 0 ? clean : void 0;
-}
-__name(sanitizeMeta, "sanitizeMeta");
-function recordActivity(kind, message, options = {}) {
-  const event = {
-    id: nextId++,
-    kind,
-    level: options.level ?? "info",
-    message: String(message ?? "").slice(0, 500),
-    meta: sanitizeMeta(options.meta),
-    at: Date.now()
-  };
-  events.unshift(event);
-  if (events.length > MAX_EVENTS) events.length = MAX_EVENTS;
-  return event;
-}
-__name(recordActivity, "recordActivity");
-function getActivity(limit = 100, kind) {
-  const max = Math.min(Math.max(Math.round(limit) || 100, 1), MAX_EVENTS);
-  if (!kind || kind === "all") return events.slice(0, max);
-  return events.filter((event) => event.kind === kind).slice(0, max);
-}
-__name(getActivity, "getActivity");
-function bumpCounter(key, by = 1) {
-  counters[key] += by;
-}
-__name(bumpCounter, "bumpCounter");
-function getCounters() {
-  return { ...counters };
-}
-__name(getCounters, "getCounters");
-var PINO_LEVELS = {
-  10: "info",
-  20: "info",
-  30: "info",
-  40: "warn",
-  50: "error",
-  60: "error"
-};
-var activityLogStream = new import_node_stream5.Writable({
-  write(chunk, _encoding, callback) {
-    try {
-      const raw = chunk.toString().trim();
-      if (!raw) return callback();
-      const line = JSON.parse(raw);
-      const levelNumber = typeof line.level === "number" ? line.level : 30;
-      const level = PINO_LEVELS[levelNumber] ?? "info";
-      const message = typeof line.msg === "string" ? line.msg : "";
-      if (!message) return callback();
-      const isErr = line.err !== void 0 || level === "error";
-      recordActivity(isErr ? "error" : "log", message, {
-        level,
-        meta: {
-          tag: typeof line.tag === "string" ? line.tag : void 0,
-          command: typeof line.command === "string" ? line.command : void 0,
-          guildId: typeof line.guildId === "string" ? line.guildId : void 0,
-          userId: typeof line.userId === "string" ? line.userId : void 0,
-          event: typeof line.event === "string" ? line.event : void 0,
-          errorId: typeof line.errorId === "string" ? line.errorId : void 0
-        }
-      });
-    } catch {
-    }
-    callback();
-  }
-});
-
-// src/core/logger.ts
 var logger = (0, import_pino.default)({
   level: process.env.LOG_LEVEL || "info"
 });
@@ -183449,7 +188142,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord52 = __toESM(require_src());
+var import_discord69 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -183483,14 +188176,22 @@ __name(newErrorId, "newErrorId");
 // src/events/interactionCreate.ts
 init_manager();
 var interactionCreate = {
-  name: import_discord52.Events.InteractionCreate,
+  name: import_discord69.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     const allowedGuildId = client.env?.GUILD_ID;
     if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
       return;
     }
+    if (interaction.isModalSubmit()) {
+      await handleModalSubmit(client, interaction);
+      return;
+    }
     if (interaction.isButton()) {
-      await handleButtonInteraction(client, interaction);
+      await handleButtonInteraction2(client, interaction);
+      return;
+    }
+    if (interaction.isStringSelectMenu()) {
+      await handleSelectMenuInteraction2(client, interaction);
       return;
     }
     if (!interaction.isChatInputCommand()) return;
@@ -183581,8 +188282,28 @@ var interactionCreate = {
     }
   }, "execute")
 };
-async function handleButtonInteraction(client, interaction) {
+async function handleModalSubmit(client, interaction) {
   const { customId } = interaction;
+  if (customId.startsWith("automod_config:")) {
+    await handleAutomodConfigModal(interaction);
+    return;
+  }
+  if (customId.startsWith("tag_embed:")) {
+    await handleTagEmbedModal(interaction);
+    return;
+  }
+}
+__name(handleModalSubmit, "handleModalSubmit");
+async function handleButtonInteraction2(client, interaction) {
+  const { customId } = interaction;
+  if (customId.startsWith("rr:")) {
+    await handleButtonInteraction(interaction);
+    return;
+  }
+  if (customId.startsWith("suggest_")) {
+    await handleSuggestionVote(interaction);
+    return;
+  }
   if (customId.startsWith("ticket_create:")) {
     await handleTicketCreate(client, interaction);
     return;
@@ -183596,7 +188317,15 @@ async function handleButtonInteraction(client, interaction) {
     return;
   }
 }
-__name(handleButtonInteraction, "handleButtonInteraction");
+__name(handleButtonInteraction2, "handleButtonInteraction");
+async function handleSelectMenuInteraction2(client, interaction) {
+  const { customId } = interaction;
+  if (customId.startsWith("rr_select:")) {
+    await handleSelectMenuInteraction(interaction);
+    return;
+  }
+}
+__name(handleSelectMenuInteraction2, "handleSelectMenuInteraction");
 async function handleTicketCreate(client, interaction) {
   await interaction.deferReply({ flags: 64 });
   const guild = interaction.guild;
@@ -183684,10 +188413,10 @@ async function handleTicketCreate(client, interaction) {
       departmentId: department._id.toString(),
       departmentName: department.name
     });
-    const closeButton = new import_discord52.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord52.ButtonStyle.Danger).setEmoji("\u{1F512}");
-    const closeRow = new import_discord52.ActionRowBuilder().addComponents(closeButton);
+    const closeButton = new import_discord69.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord69.ButtonStyle.Danger).setEmoji("\u{1F512}");
+    const closeRow = new import_discord69.ActionRowBuilder().addComponents(closeButton);
     const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
-    const welcomeEmbed = new import_discord52.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+    const welcomeEmbed = new import_discord69.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
     await channel.send({
       content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
       embeds: [welcomeEmbed],
@@ -183792,7 +188521,7 @@ async function handleVcJoin(client, interaction) {
 __name(handleVcJoin, "handleVcJoin");
 
 // src/events/ready.ts
-var import_discord55 = __toESM(require_src());
+var import_discord73 = __toESM(require_src());
 
 // dashboard/server.ts
 var import_node_http = __toESM(require("node:http"));
@@ -183803,8 +188532,8 @@ init_zod();
 init_config();
 
 // src/db/models/SukunaMemory.ts
-var import_mongoose8 = __toESM(require_mongoose2());
-var memorySchema = new import_mongoose8.Schema({
+var import_mongoose27 = __toESM(require_mongoose2());
+var memorySchema = new import_mongoose27.Schema({
   guildId: { type: String, required: true, index: true },
   fact: { type: String, required: true },
   aboutUserId: { type: String, default: null },
@@ -183812,7 +188541,7 @@ var memorySchema = new import_mongoose8.Schema({
   createdAt: { type: Number, required: true, default: Date.now }
 });
 memorySchema.index({ guildId: 1, fact: 1, aboutUserId: 1 }, { unique: true });
-var SukunaMemory = (0, import_mongoose8.model)("SukunaMemory", memorySchema);
+var SukunaMemory = (0, import_mongoose27.model)("SukunaMemory", memorySchema);
 
 // src/utils/sukuna-memory.ts
 var MAX_NOTES_PER_GUILD = 300;
@@ -183867,16 +188596,16 @@ async function clearMemories(guildId) {
 __name(clearMemories, "clearMemories");
 
 // src/utils/sukuna-storage.ts
-var import_mongoose9 = __toESM(require_mongoose2());
-var announcementSchema = new import_mongoose9.Schema({
+var import_mongoose28 = __toESM(require_mongoose2());
+var announcementSchema = new import_mongoose28.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   content: { type: String, required: true },
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaAnnouncement = (0, import_mongoose9.model)("SukunaAnnouncement", announcementSchema);
-var faqSchema = new import_mongoose9.Schema({
+var SukunaAnnouncement = (0, import_mongoose28.model)("SukunaAnnouncement", announcementSchema);
+var faqSchema = new import_mongoose28.Schema({
   guildId: { type: String, required: true },
   question: { type: String, required: true, index: "text" },
   answer: { type: String, required: true },
@@ -183884,8 +188613,8 @@ var faqSchema = new import_mongoose9.Schema({
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaFaq = (0, import_mongoose9.model)("SukunaFaq", faqSchema);
-var eventSchema = new import_mongoose9.Schema({
+var SukunaFaq = (0, import_mongoose28.model)("SukunaFaq", faqSchema);
+var eventSchema = new import_mongoose28.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   description: { type: String },
@@ -183894,8 +188623,8 @@ var eventSchema = new import_mongoose9.Schema({
   pinned: { type: Boolean, default: false },
   createdAt: { type: Number, required: true }
 });
-var SukunaEvent = (0, import_mongoose9.model)("SukunaEvent", eventSchema);
-var scheduledSchema = new import_mongoose9.Schema({
+var SukunaEvent = (0, import_mongoose28.model)("SukunaEvent", eventSchema);
+var scheduledSchema = new import_mongoose28.Schema({
   guildId: { type: String, required: true, index: true },
   channelId: { type: String, required: true },
   content: { type: String, required: true },
@@ -183904,13 +188633,13 @@ var scheduledSchema = new import_mongoose9.Schema({
   messageId: { type: String },
   createdAt: { type: Number, required: true }
 });
-var SukunaScheduled = (0, import_mongoose9.model)("SukunaScheduled", scheduledSchema);
-var rulesSchema = new import_mongoose9.Schema({
+var SukunaScheduled = (0, import_mongoose28.model)("SukunaScheduled", scheduledSchema);
+var rulesSchema = new import_mongoose28.Schema({
   guildId: { type: String, required: true, unique: true },
   rules: { type: [String], required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaRules = (0, import_mongoose9.model)("SukunaRules", rulesSchema);
+var SukunaRules = (0, import_mongoose28.model)("SukunaRules", rulesSchema);
 async function createAnnouncement(guildId, input2) {
   return SukunaAnnouncement.create({
     guildId,
@@ -184804,13 +189533,13 @@ function extractJsonObject(text) {
   return null;
 }
 __name(extractJsonObject, "extractJsonObject");
-function looksLikeLiveModel(model9) {
-  const name = model9.replace(/^models\//, "").toLowerCase();
+function looksLikeLiveModel(model28) {
+  const name = model28.replace(/^models\//, "").toLowerCase();
   return name.includes("live") || name.includes("native-audio");
 }
 __name(looksLikeLiveModel, "looksLikeLiveModel");
-function resolveThinkingLevel(model9, level) {
-  const normalisedModel = model9.replace(/^models\//, "");
+function resolveThinkingLevel(model28, level) {
+  const normalisedModel = model28.replace(/^models\//, "");
   const explicit = level?.trim().toLowerCase() || null;
   if (normalisedModel === "gemini-3.8-live") return null;
   if (normalisedModel === "gemini-3.8-live-extended-thinking") return explicit ?? "low";
@@ -185319,7 +190048,7 @@ function sendOverview(client, res) {
     },
     database: {
       state: dbState(),
-      name: import_mongoose4.default.connection.name ?? null
+      name: import_mongoose23.default.connection.name ?? null
     },
     persona: {
       enabled: config2.enabled,
@@ -186315,19 +191044,19 @@ function readJson(req) {
 __name(readJson, "readJson");
 function dbState() {
   const names = ["disconnected", "connected", "connecting", "disconnecting"];
-  return names[import_mongoose4.default.connection.readyState] ?? "unknown";
+  return names[import_mongoose23.default.connection.readyState] ?? "unknown";
 }
 __name(dbState, "dbState");
 function isDatabaseError(error62) {
-  if (import_mongoose4.default.connection.readyState !== 1) return true;
+  if (import_mongoose23.default.connection.readyState !== 1) return true;
   if (!error62 || typeof error62 !== "object") return false;
   const name = error62.name ?? "";
   const message = error62.message ?? "";
-  return error62 instanceof import_mongoose4.default.Error || name.includes("Mongo") || /buffering timed out|connection .*closed|ECONNREFUSED|ENOTFOUND/i.test(message);
+  return error62 instanceof import_mongoose23.default.Error || name.includes("Mongo") || /buffering timed out|connection .*closed|ECONNREFUSED|ENOTFOUND/i.test(message);
 }
 __name(isDatabaseError, "isDatabaseError");
 function requireObjectId(id) {
-  if (!import_mongoose4.default.isValidObjectId(id)) throw new HttpError(400, "Invalid record id");
+  if (!import_mongoose23.default.isValidObjectId(id)) throw new HttpError(400, "Invalid record id");
 }
 __name(requireObjectId, "requireObjectId");
 function escapeRegex2(value) {
@@ -186429,7 +191158,7 @@ async function closeTicket(client, ticket, reason) {
 __name(closeTicket, "closeTicket");
 
 // src/events/voiceStateUpdate.ts
-var import_discord54 = __toESM(require_src());
+var import_discord71 = __toESM(require_src());
 
 // src/handlers/levelUp.ts
 function resolveLevelRoles(levelRoles, level) {
@@ -186625,13 +191354,13 @@ async function handleTempVCJoin(newState) {
     return;
   }
   const createChannel = guild.channels.cache.get(config2.createChannelId);
-  const category = config2.categoryId && guild.channels.cache.get(config2.categoryId)?.type === import_discord54.ChannelType.GuildCategory ? guild.channels.cache.get(config2.categoryId) : createChannel?.parent;
+  const category = config2.categoryId && guild.channels.cache.get(config2.categoryId)?.type === import_discord71.ChannelType.GuildCategory ? guild.channels.cache.get(config2.categoryId) : createChannel?.parent;
   const name = config2.nameTemplate.replace(/\{user\}/g, member.user.username).replace(/\{guild\}/g, guild.name);
   let newChannel;
   try {
     newChannel = await guild.channels.create({
       name,
-      type: import_discord54.ChannelType.GuildVoice,
+      type: import_discord71.ChannelType.GuildVoice,
       parent: category?.id ?? void 0,
       bitrate: config2.bitrate ?? void 0,
       userLimit: config2.userLimit ?? void 0,
@@ -186717,15 +191446,309 @@ function stopVoiceTracking() {
 }
 __name(stopVoiceTracking, "stopVoiceTracking");
 var voiceStateUpdate = {
-  name: import_discord54.Events.VoiceStateUpdate,
+  name: import_discord71.Events.VoiceStateUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldState, newState) => {
     await handleVoiceStateUpdate(client, oldState, newState);
   }, "execute")
 };
 
+// src/handlers/automod.ts
+var import_discord72 = __toESM(require_src());
+function hasIgnoreRole(member, ignoreRoles) {
+  if (!member || !member.roles) return false;
+  return member.roles.cache.hasAny(...ignoreRoles);
+}
+__name(hasIgnoreRole, "hasIgnoreRole");
+function isIgnoredChannel(channelId, ignoreChannels) {
+  return ignoreChannels.includes(channelId);
+}
+__name(isIgnoredChannel, "isIgnoredChannel");
+async function getLogChannel(guild, event) {
+  const logConfig = await LogChannel.findOne({ guildId: guild.id, event }).lean();
+  if (!logConfig) return { channel: null };
+  const channel = guild.channels.cache.get(logConfig.channelId);
+  return { channel: channel ?? null, webhookId: logConfig.webhookId, webhookToken: logConfig.webhookToken };
+}
+__name(getLogChannel, "getLogChannel");
+async function sendLog(channel, embed, webhook) {
+  try {
+    if (webhook?.id && webhook?.token) {
+      const webhookClient = new import_discord72.WebhookClient({ id: webhook.id, token: webhook.token });
+      await webhookClient.send({ embeds: [embed] });
+    } else {
+      await channel.send({ embeds: [embed] });
+    }
+  } catch (error62) {
+    console.warn("[AutoMod] Failed to send log:", error62);
+  }
+}
+__name(sendLog, "sendLog");
+async function createInfraction(guildId, userId, moderatorId, type, reason, duration3) {
+  const expiresAt = duration3 ? new Date(Date.now() + duration3 * 1e3) : void 0;
+  return Infraction.create({
+    guildId,
+    userId,
+    moderatorId,
+    type,
+    reason,
+    duration: duration3,
+    expiresAt,
+    active: !!duration3
+  });
+}
+__name(createInfraction, "createInfraction");
+async function executeActions(ctx, rule, reason) {
+  const { guild, message, user } = ctx;
+  const member = await guild.members.fetch(user.id).catch(() => null);
+  const botMember = guild.members.me;
+  if (!member || !botMember) return;
+  const canModerate = botMember.permissions.has("ModerateMembers");
+  const canBan = botMember.permissions.has("BanMembers");
+  const canKick = botMember.permissions.has("KickMembers");
+  const canManageMessages = botMember.permissions.has("ManageMessages");
+  const canActOnMember = member.roles.highest.position < botMember.roles.highest.position;
+  const logResult = await getLogChannel(guild, "automodTrigger");
+  const logChannel = logResult.channel;
+  const embed = new import_discord72.EmbedBuilder().setColor(import_discord72.Colors.Red).setTitle("\u{1F6E1}\uFE0F Auto-Mod Triggered").setDescription(`**Rule:** ${rule.name} (${rule.type})`).addFields(
+    { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+    { name: "Channel", value: `<#${message.channelId}>`, inline: true },
+    { name: "Reason", value: reason, inline: false }
+  ).setTimestamp();
+  if (message.content) {
+    embed.addFields({ name: "Message", value: message.content.slice(0, 1e3), inline: false });
+  }
+  for (const action of rule.actions) {
+    try {
+      switch (action) {
+        case "delete": {
+          if (canManageMessages) {
+            await message.delete().catch(() => {
+            });
+            embed.addFields({ name: "Action", value: "\u2705 Message deleted", inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Missing ManageMessages permission", inline: true });
+          }
+          break;
+        }
+        case "warn": {
+          await createInfraction(guild.id, user.id, guild.client.user.id, "warn", reason);
+          embed.addFields({ name: "Action", value: "\u2705 Warning issued", inline: true });
+          const warnMsg = rule.warnMessage || `You were warned in **${guild.name}**: ${reason}`;
+          await user.send(warnMsg).catch(() => {
+          });
+          break;
+        }
+        case "timeout": {
+          if (canModerate && canActOnMember && rule.timeoutDuration) {
+            await member.timeout(rule.timeoutDuration * 1e3, reason).catch(() => {
+            });
+            await createInfraction(guild.id, user.id, guild.client.user.id, "timeout", reason, rule.timeoutDuration);
+            embed.addFields({ name: "Action", value: `\u2705 Timed out for ${rule.timeoutDuration}s`, inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Cannot timeout (permissions/hierarchy)", inline: true });
+          }
+          break;
+        }
+        case "ban": {
+          if (canBan && canActOnMember) {
+            await guild.members.ban(user.id, { reason, deleteMessageSeconds: 0 }).catch(() => {
+            });
+            await createInfraction(guild.id, user.id, guild.client.user.id, "ban", reason);
+            embed.addFields({ name: "Action", value: "\u2705 User banned", inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Cannot ban (permissions/hierarchy)", inline: true });
+          }
+          break;
+        }
+        case "log": {
+          embed.addFields({ name: "Action", value: "\u{1F4DD} Logged", inline: true });
+          break;
+        }
+      }
+    } catch (error62) {
+      console.error("[AutoMod] Action failed:", error62);
+      embed.addFields({ name: `Action (${action})`, value: `\u274C Error: ${error62}`, inline: true });
+    }
+  }
+  if (logChannel) {
+    await sendLog(logChannel, embed, logResult.webhookId && logResult.webhookToken ? { id: logResult.webhookId, token: logResult.webhookToken } : void 0);
+  }
+  recordActivity("command", `AutoMod Triggered: ${rule.name}`, {
+    level: "warn",
+    meta: { guildId: guild.id, userId: user.id, ruleType: rule.type }
+  });
+}
+__name(executeActions, "executeActions");
+function checkLinks(rule, content) {
+  const config2 = rule.config;
+  const allowedDomains = config2.allowedDomains ?? [];
+  const urlRegex = /(https?:\/\/[^\s]+)/gi;
+  const urls = content.match(urlRegex) ?? [];
+  for (const url2 of urls) {
+    try {
+      const hostname3 = new URL(url2).hostname.replace("www.", "");
+      if (!allowedDomains.some((d) => hostname3 === d || hostname3.endsWith("." + d))) {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  }
+  const inviteRegex = /(discord\.gg\/|discordapp\.com\/invite\/)[a-zA-Z0-9]+/gi;
+  if (inviteRegex.test(content)) return true;
+  return false;
+}
+__name(checkLinks, "checkLinks");
+function checkWords(rule, content) {
+  const config2 = rule.config;
+  const bannedWords = config2.bannedWords ?? [];
+  const regexPatterns = config2.regexPatterns ?? [];
+  const lowerContent = content.toLowerCase();
+  for (const word of bannedWords) {
+    if (lowerContent.includes(word.toLowerCase())) return true;
+  }
+  for (const pattern of regexPatterns) {
+    try {
+      const regex = new RegExp(pattern, "gi");
+      if (regex.test(content)) return true;
+    } catch {
+    }
+  }
+  return false;
+}
+__name(checkWords, "checkWords");
+function checkCaps(rule, content) {
+  const config2 = rule.config;
+  const minLength = config2.minLength ?? 10;
+  const maxPercent = config2.maxCapsPercent ?? 70;
+  if (content.length < minLength) return false;
+  const letters = content.match(/[a-zA-Z]/g);
+  if (!letters || letters.length < minLength) return false;
+  const caps = letters.filter((c) => c === c.toUpperCase()).length;
+  const percent = caps / letters.length * 100;
+  return percent > maxPercent;
+}
+__name(checkCaps, "checkCaps");
+function checkMentions(rule, message) {
+  const config2 = rule.config;
+  const maxMentions = config2.maxMentions ?? 5;
+  const mentionCount = message.mentions.users.size + message.mentions.roles.size;
+  return mentionCount > maxMentions;
+}
+__name(checkMentions, "checkMentions");
+function checkAttachments(rule, message) {
+  const config2 = rule.config;
+  const blockedExtensions = config2.blockedExtensions ?? ["exe", "bat", "cmd", "scr", "pif", "com", "jar", "msi"];
+  for (const attachment of message.attachments.values()) {
+    const ext = attachment.name.split(".").pop()?.toLowerCase();
+    if (ext && blockedExtensions.includes(ext)) return true;
+  }
+  return false;
+}
+__name(checkAttachments, "checkAttachments");
+function checkNewlines(rule, content) {
+  const config2 = rule.config;
+  const maxNewlines = config2.maxNewlines ?? 20;
+  const newlines = (content.match(/\n/g) || []).length;
+  return newlines > maxNewlines;
+}
+__name(checkNewlines, "checkNewlines");
+function checkEmojis(rule, content) {
+  const config2 = rule.config;
+  const maxEmojis = config2.maxEmojis ?? 20;
+  const customEmojis = (content.match(/<a?:[a-zA-Z0-9_]+:\d+>/g) || []).length;
+  const unicodeEmojis = (content.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
+  return customEmojis + unicodeEmojis > maxEmojis;
+}
+__name(checkEmojis, "checkEmojis");
+async function checkAutomod(message) {
+  if (!message.guild || !message.channel.isTextBased()) return;
+  if (message.author.bot) return;
+  const guild = message.guild;
+  const member = await guild.members.fetch(message.author.id).catch(() => null);
+  if (!member) return;
+  if (member.permissions.has("Administrator") || member.permissions.has("ManageMessages")) return;
+  const rules = await AutoModRule.find({ guildId: guild.id, enabled: true }).lean();
+  if (!rules.length) return;
+  const recentMessages = [];
+  for (const rule of rules) {
+    if (isIgnoredChannel(message.channelId, rule.ignoreChannels)) continue;
+    if (hasIgnoreRole(member, rule.ignoreRoles)) continue;
+    let triggered = false;
+    let reason = "";
+    switch (rule.type) {
+      case "spam": {
+        break;
+      }
+      case "links":
+      case "invites": {
+        if (checkLinks(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains unauthorized links/invites";
+        }
+        break;
+      }
+      case "words": {
+        if (checkWords(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains banned words/phrases";
+        }
+        break;
+      }
+      case "caps": {
+        if (checkCaps(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive caps";
+        }
+        break;
+      }
+      case "mentions": {
+        if (checkMentions(rule, message)) {
+          triggered = true;
+          reason = "Message contains excessive mentions";
+        }
+        break;
+      }
+      case "attachments": {
+        if (checkAttachments(rule, message)) {
+          triggered = true;
+          reason = "Message contains blocked file types";
+        }
+        break;
+      }
+      case "newlines": {
+        if (checkNewlines(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive newlines";
+        }
+        break;
+      }
+      case "emojis": {
+        if (checkEmojis(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive emojis";
+        }
+        break;
+      }
+      case "repeated": {
+        break;
+      }
+    }
+    if (triggered) {
+      await executeActions({ guild, message, user: message.author }, rule, reason);
+      break;
+    }
+  }
+}
+__name(checkAutomod, "checkAutomod");
+async function initAutomod() {
+  console.log("[AutoMod] Auto-moderation system initialized");
+}
+__name(initAutomod, "initAutomod");
+
 // src/events/ready.ts
 var ready2 = {
-  name: import_discord55.Events.ClientReady,
+  name: import_discord73.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
@@ -186750,10 +191773,26 @@ var ready2 = {
     } else {
       client.logger.info("[Sukuna] AI persona disabled");
     }
+    initAutomod();
+    client.logger.info("[AutoMod] Auto-moderation system initialized");
+    for (const guild of client.guilds.cache.values()) {
+      try {
+        await initReactionRoles(guild);
+      } catch (err) {
+        client.logger.warn({ err, guildId: guild.id }, "reaction roles init failed");
+      }
+    }
+    client.logger.info("[ReactionRoles] Panels initialized");
+    invalidateStarboardCache("");
+    client.logger.info("[Starboard] Cache initialized");
     startVoiceTracking(client);
     startLiveLeaderboard(client);
     startTicketScheduler(client);
     client.logger.info("[Tickets] Voice tracking, live leaderboard and auto-close scheduler started");
+    setInterval(() => {
+      checkReminders(client).catch((err) => client.logger.warn({ err }, "reminder check failed"));
+    }, 6e4);
+    client.logger.info("[Reminders] Background checker started");
     const allowedGuildId = client.env?.GUILD_ID;
     if (allowedGuildId) {
       const toLeave = [...client.guilds.cache.values()].filter((g) => g.id !== allowedGuildId);
@@ -186770,20 +191809,24 @@ var ready2 = {
         "guild restriction applied"
       );
     }
+    recordActivity("system", "Bot ready", {
+      level: "success",
+      meta: { guilds: client.guilds.cache.size, users: client.users.cache.size }
+    });
   }, "execute")
 };
 
 // src/events/messageCreate.ts
-var import_discord58 = __toESM(require_src());
+var import_discord76 = __toESM(require_src());
 
 // src/utils/sukuna.ts
-var import_discord57 = __toESM(require_src());
+var import_discord75 = __toESM(require_src());
 init_config();
 init_sukuna();
 
 // src/utils/sukuna-tools.ts
 var import_genai4 = require("@google/genai");
-var import_discord56 = __toESM(require_src());
+var import_discord74 = __toESM(require_src());
 var DM_MAX_CHARS = 1500;
 var DM_RATE_LIMIT_PER_HOUR = 10;
 var DM_MIN_INTERVAL_PER_USER_MS = 6e4;
@@ -187096,7 +192139,7 @@ function isDmTargetAllowed(member, trigger) {
     const needle = candidate.toLowerCase();
     if (needle.length >= 3 && haystack.includes(needle)) return true;
   }
-  return trigger.member?.permissions.has(import_discord56.PermissionFlagsBits.ManageGuild) ?? false;
+  return trigger.member?.permissions.has(import_discord74.PermissionFlagsBits.ManageGuild) ?? false;
 }
 __name(isDmTargetAllowed, "isDmTargetAllowed");
 function checkDmLimit(guildId, userId) {
@@ -187213,7 +192256,7 @@ function handleMessage(message) {
   if (!cfg.enabled) return;
   if (message.channel.isDMBased()) {
     if (!cfg.dmEnabled) return;
-    if (message.channel.type !== import_discord57.ChannelType.DM) return;
+    if (message.channel.type !== import_discord75.ChannelType.DM) return;
     if (message.author.bot) return;
     if (!message.content?.trim() && message.attachments.size === 0) return;
     addToHistory(message, cfg);
@@ -187632,7 +192675,7 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord58.Events.MessageCreate,
+  name: import_discord76.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     try {
       handleMessage(message);
@@ -187676,6 +192719,27 @@ var messageCreate = {
       xpCooldowns.set(cooldownKey, storedExpiry);
       return;
     }
+    try {
+      await checkAutomod(message);
+    } catch (err) {
+      client.logger?.warn({ err }, "automod check failed");
+    }
+    try {
+      const prefixMatch = message.content.match(/^([!/])(\w+)/);
+      if (prefixMatch && !message.author.bot) {
+        const commandName = prefixMatch[2].toLowerCase();
+        const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
+        const handled = await executeCustomCommand(message, commandName, args);
+        if (handled) return;
+      }
+    } catch (err) {
+      client.logger?.warn({ err }, "custom command handler failed");
+    }
+    try {
+      await handleAfkMessage(message);
+    } catch (err) {
+      client.logger?.warn({ err }, "afk handler failed");
+    }
     const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
     if (amount <= 0) return;
     try {
@@ -187705,9 +192769,9 @@ function cleanupCooldowns(cooldowns2, now) {
 __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
-var import_discord59 = __toESM(require_src());
+var import_discord77 = __toESM(require_src());
 var guildMemberAdd = {
-  name: import_discord59.Events.GuildMemberAdd,
+  name: import_discord77.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     if (!member || member.user?.bot) return;
     try {
@@ -187722,12 +192786,70 @@ var guildMemberAdd = {
   }, "execute")
 };
 
+// src/events/reactionEvents.ts
+var import_discord78 = __toESM(require_src());
+var reactionAdd = {
+  name: import_discord78.Events.MessageReactionAdd,
+  execute: /* @__PURE__ */ __name(async (client, reaction, user) => {
+    if (user.bot) return;
+    try {
+      await handleStarboardReaction(reaction, user, true);
+    } catch (err) {
+      client.logger?.warn({ err }, "starboard reaction add failed");
+    }
+    try {
+      await handleButtonInteraction({ isButton: /* @__PURE__ */ __name(() => false, "isButton"), customId: "", ...reaction });
+    } catch (err) {
+      client.logger?.warn({ err }, "reaction role add failed");
+    }
+  }, "execute")
+};
+var reactionRemove = {
+  name: import_discord78.Events.MessageReactionRemove,
+  execute: /* @__PURE__ */ __name(async (client, reaction, user) => {
+    if (user.bot) return;
+    try {
+      await handleStarboardReaction(reaction, user, false);
+    } catch (err) {
+      client.logger?.warn({ err }, "starboard reaction remove failed");
+    }
+    try {
+    } catch (err) {
+      client.logger?.warn({ err }, "reaction role remove failed");
+    }
+  }, "execute")
+};
+var guildMemberAdd2 = {
+  name: import_discord78.Events.GuildMemberAdd,
+  execute: /* @__PURE__ */ __name(async (client, member) => {
+    try {
+      await trackInviteJoin(member);
+    } catch (err) {
+      client.logger?.warn({ err }, "invite tracking join failed");
+    }
+  }, "execute")
+};
+var guildMemberRemove = {
+  name: import_discord78.Events.GuildMemberRemove,
+  execute: /* @__PURE__ */ __name(async (client, member) => {
+    try {
+      await trackInviteLeave(member);
+    } catch (err) {
+      client.logger?.warn({ err }, "invite tracking leave failed");
+    }
+  }, "execute")
+};
+
 // src/events/index.ts
 var events2 = [
   ready2,
   interactionCreate,
   messageCreate,
   guildMemberAdd,
+  guildMemberAdd2,
+  guildMemberRemove,
+  reactionAdd,
+  reactionRemove,
   voiceStateUpdate
 ];
 

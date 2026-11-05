@@ -240,14 +240,16 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
 
   const embed = new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle('🎫 愛 Doctora Support Tickets')
+    .setTitle("🎫 愛 Doctora Support Tickets")
     .setDescription(
-      'Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n' +
-        departments.map((d) => `${d.emoji} **${d.name}** — ${d.description}`).join('\n'),
+      "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" +
+        departments
+          .map((d) => `${d.emoji} **${d.name}** — ${d.description}`)
+          .join("\n"),
     )
-    .setImage('https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif')
+    .setImage("https://media1.tenor.com/m/kQNXoHoGFc0AAAAC/support.gif")
     .setThumbnail(guild.iconURL())
-    .setFooter({ text: '愛 Doctora • Tickets' })
+    .setFooter({ text: "愛 Doctora • Tickets" })
     .setTimestamp();
 
   const rows: ActionRowBuilder[] = [];

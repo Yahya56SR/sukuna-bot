@@ -5,6 +5,10 @@ import { recordActivity } from '../core/metrics.js';
 import { startLiveLeaderboard } from '../utils/liveLeaderboard.js';
 import { startTicketScheduler } from '../utils/ticketScheduler.js';
 import { startVoiceTracking } from './voiceStateUpdate.js';
+import { initAutomod } from '../handlers/automod.js';
+import { initReactionRoles } from '../handlers/reactionRoles.js';
+import { invalidateStarboardCache, handleStarboardReaction } from '../commands/utility/starboard.js';
+import { checkReminders } from '../commands/utility/remind.js';
 
 export const ready = {
   name: Events.ClientReady as keyof ClientEvents,
@@ -42,12 +46,36 @@ export const ready = {
       client.logger.info('[Sukuna] AI persona disabled');
     }
 
+    // Initialize systems
+    initAutomod();
+    client.logger.info('[AutoMod] Auto-moderation system initialized');
+
+    // Initialize reaction roles for each guild
+    for (const guild of client.guilds.cache.values()) {
+      try {
+        await initReactionRoles(guild);
+      } catch (err) {
+        client.logger.warn({ err, guildId: guild.id }, 'reaction roles init failed');
+      }
+    }
+    client.logger.info('[ReactionRoles] Panels initialized');
+
+    // Initialize starboard cache
+    invalidateStarboardCache('');
+    client.logger.info('[Starboard] Cache initialized');
+
     // XP/level system background work: voice minutes and the self-updating
     // leaderboard. Both are no-ops until a guild configures them.
     startVoiceTracking(client);
     startLiveLeaderboard(client);
     startTicketScheduler(client);
     client.logger.info('[Tickets] Voice tracking, live leaderboard and auto-close scheduler started');
+
+    // Reminder checker (runs every minute)
+    setInterval(() => {
+      checkReminders(client).catch(err => client.logger.warn({ err }, 'reminder check failed'));
+    }, 60_000);
+    client.logger.info('[Reminders] Background checker started');
 
     // When GUILD_ID is set, leave any guild the bot is not meant to run in.
     const allowedGuildId = client.env?.GUILD_ID;
@@ -66,5 +94,10 @@ export const ready = {
         'guild restriction applied',
       );
     }
+
+    recordActivity('system', 'Bot ready', {
+      level: 'success',
+      meta: { guilds: client.guilds.cache.size, users: client.users.cache.size },
+    });
   },
 };

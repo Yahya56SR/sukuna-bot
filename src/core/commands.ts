@@ -4,6 +4,7 @@ import type {
   Guild,
   GuildMember,
   PermissionResolvable,
+  AutocompleteInteraction,
 } from 'discord.js';
 import type { SukunaClient } from './client.js';
 
@@ -30,12 +31,9 @@ export interface Command {
   premiumOnly?: boolean;
   cooldownSeconds?: number;
   execute: (context: CommandContext) => Promise<void>;
+  autocomplete?: (interaction: AutocompleteInteraction<"cached">) => Promise<void>;
 }
 
-/**
- * Commands are registered from a static array rather than a filesystem scan.
- * A dynamic loader would break esbuild's ability to produce a single bundle.
- */
 export function registerCommands(client: SukunaClient, commands: readonly Command[]): void {
   for (const command of commands) {
     const name = command.data.name;

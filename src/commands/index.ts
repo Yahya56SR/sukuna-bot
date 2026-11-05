@@ -12,9 +12,13 @@ import { banCommand } from './moderation/ban.js';
 import { timeoutCommand } from './moderation/timeout.js';
 import { clearCommand } from './moderation/clear.js';
 import { warnCommand } from './moderation/warn.js';
+import { automodCommand } from './moderation/automod.js';
+import { discordautomodCommand } from './moderation/discordautomod.js';
+import { logsCommand } from './moderation/logs.js';
 import { balanceCommand } from './economy/balance.js';
 import { dailyCommand } from './economy/daily.js';
 import { workCommand } from './economy/work.js';
+import { casinoCommand } from './economy/casino.js';
 import { coinflipCommand } from './fun/coinflip.js';
 import { diceCommand } from './fun/dice.js';
 import { rankCommand } from './leveling/rank.js';
@@ -22,6 +26,7 @@ import { leaderboardCommand } from './leveling/leaderboard.js';
 import { levelsCommand } from './leveling/levels.js';
 import { xpCommand } from './leveling/xp.js';
 import { ticketCommand } from './tickets/ticket.js';
+import { musicCommand } from './music/play.js';
 
 // NEW FUN COMMANDS
 import { pollCommand } from './fun/poll';
@@ -34,11 +39,22 @@ import { servercardCommand } from './fun/servercard';
 import { chooseCommand } from './fun/choose';
 import { flipCommand } from './fun/flip';
 import { eightBallEnhancedCommand } from './fun/eightball-enhanced';
+import { petCommand } from './fun/pet.js';
+import { marriageCommand } from './fun/marry.js';
 
 // NEW UTILITY COMMANDS
 import { suggestCommand } from './utility/suggest';
 import { pollCreateCommand } from './utility/poll-create';
 import { pollVoteCommand } from './utility/poll-vote';
+import { reactionroleCommand } from './utility/reactionrole.js';
+import { customcmdCommand } from './utility/customcmd.js';
+import { invitesCommand } from './utility/invites.js';
+import { starboardCommand } from './utility/starboard.js';
+import { remindCommand } from './utility/remind.js';
+import { afkCommand } from './utility/afk.js';
+import { welcomeCommand } from './utility/welcome.js';
+import { notificationsCommand } from './utility/notifications.js';
+import { birthdayCommand } from './utility/birthday.js';
 
 // NEW LEVELING COMMANDS
 import { levelupCommand } from './leveling/levelup';
@@ -76,6 +92,9 @@ export const commands: readonly Command[] = [
   timeoutCommand,
   clearCommand,
   warnCommand,
+  automodCommand,
+  discordautomodCommand,
+  logsCommand,
 
   // Economy
   balanceCommand,
@@ -86,6 +105,7 @@ export const commands: readonly Command[] = [
   inventoryCommand,
   giveCommand,
   richCommand,
+  casinoCommand,
 
   // Fun
   coinflipCommand,
@@ -100,11 +120,25 @@ export const commands: readonly Command[] = [
   chooseCommand,
   flipCommand,
   eightBallEnhancedCommand,
+  petCommand,
+  marriageCommand,
+
+  // Music
+  musicCommand,
 
   // Utility
   suggestCommand,
   pollCreateCommand,
   pollVoteCommand,
+  reactionroleCommand,
+  customcmdCommand,
+  invitesCommand,
+  starboardCommand,
+  remindCommand,
+  afkCommand,
+  welcomeCommand,
+  notificationsCommand,
+  birthdayCommand,
 
   // Leveling
   rankCommand,
