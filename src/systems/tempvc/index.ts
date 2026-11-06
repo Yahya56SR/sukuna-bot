@@ -35,6 +35,12 @@ const PANEL_ACTIONS = [
 export class TempVCSystem {
 	private emptyTimeouts = new Map<string, NodeJS.Timeout>();
 
+	/** Clear pending empty-VC timers (wired into shutdown). */
+	shutdown(): void {
+		for (const t of this.emptyTimeouts.values()) clearTimeout(t);
+		this.emptyTimeouts.clear();
+	}
+
 	async getConfig(guildId: string): Promise<any> {
 		const cfg = await readTempVCConfig(guildId);
 		if (!cfg) return null;
@@ -49,11 +55,32 @@ export class TempVCSystem {
 	}
 
 	async setConfig(guildId: string, data: any): Promise<void> {
+		// Explicit allowlist + clamps. `guildId`/`panel*` are server-owned and
+		// must never be settable through this path.
+		const allowed = new Set(['creatorChannelId', 'categoryId', 'defaultName', 'defaultLimit']);
+		for (const key of Object.keys(data ?? {})) {
+			if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+		}
+		if (!/^\d{5,25}$/.test(guildId)) throw new Error('Invalid guild id');
 		const updates: any = {};
-		if (data.creatorChannelId !== undefined) updates.createChannelId = data.creatorChannelId;
-		if (data.categoryId !== undefined) updates.categoryId = data.categoryId;
-		if (data.defaultName !== undefined) updates.nameTemplate = data.defaultName;
-		if (data.defaultLimit !== undefined) updates.userLimit = data.defaultLimit;
+		if (data.creatorChannelId !== undefined) {
+			if (data.creatorChannelId !== null && !/^\d{5,25}$/.test(String(data.creatorChannelId))) throw new Error('Invalid creator channel id');
+			updates.createChannelId = data.creatorChannelId;
+		}
+		if (data.categoryId !== undefined) {
+			if (data.categoryId !== null && !/^\d{5,25}$/.test(String(data.categoryId))) throw new Error('Invalid category id');
+			updates.categoryId = data.categoryId;
+		}
+		if (data.defaultName !== undefined) {
+			const name = String(data.defaultName).trim().slice(0, 100);
+			if (!name) throw new Error('VC name cannot be empty');
+			updates.nameTemplate = name.replace(/[{}]/g, '').slice(0, 100);
+		}
+		if (data.defaultLimit !== undefined) {
+			const n = Number(data.defaultLimit);
+			if (!Number.isInteger(n) || n < 0 || n > 99) throw new Error('User limit must be 0–99');
+			updates.userLimit = n;
+		}
 		await upsertTempVCConfig(guildId, updates);
 	}
 
@@ -133,6 +160,7 @@ export class TempVCSystem {
 				await this.refreshPanel(guild);
 			}
 		}, 10000);
+		timeoutId.unref?.();
 		this.emptyTimeouts.set(vcId, timeoutId);
 	}
 

@@ -3,6 +3,7 @@ interface CooldownEntry {
 }
 
 const cooldowns = new Map<string, CooldownEntry>();
+const MAX_ENTRIES = 25_000;
 
 /** Rate-limit how often we sweep so a hot command path never pays full scans. */
 const SWEEP_INTERVAL_MS = 60_000;
@@ -40,9 +41,15 @@ export function takeCooldown(
     return entry.expiry - now;
   }
 
+  // Hard cap so a hot guild cannot grow this map without bound.
+  if (cooldowns.size >= MAX_ENTRIES) sweep(now + SWEEP_INTERVAL_MS);
+  if (cooldowns.size >= MAX_ENTRIES) return 0; // fail-open rather than leak
   cooldowns.set(key, { expiry: now + cooldownSeconds * 1000 });
   return 0;
 }
+
+/** For shutdown / tests: drop all cooldown state. */
+export function clearAllCooldowns(): void { cooldowns.clear(); }
 
 /**
  * Give a cooldown back when the command failed before doing its work, so a

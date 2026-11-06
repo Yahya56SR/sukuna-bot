@@ -6,7 +6,7 @@ export const messageSystemsEvent = {
 	name: Events.MessageCreate as keyof import('discord.js').ClientEvents,
 	execute: async (client: any, message: any) => {
 		if (message.author?.bot || !message.guild) return;
-		await autoReply.processMessage(message).catch(() => {});
-		await mediaReactions.processMessage(message).catch(() => {});
+		await autoReply.processMessage(message).catch((err) => client.logger?.warn({ err }, 'autoreply failed'));
+		await mediaReactions.processMessage(message).catch((err) => client.logger?.warn({ err }, 'media reactions failed'));
 	},
 };

@@ -12,6 +12,8 @@ import {
 } from 'discord.js';
 import { PresentationConfig, PresentationApplication } from '../../db/models/Presentation.js';
 import EmbedBuilderUtil from '../../utils/shared-embeds.js';
+import { getTextChannel, isDuplicateKeyError, safeDm, withMutex } from '../../core/safety.js';
+import { recordActivity } from '../../core/metrics.js';
 
 interface PresentationConfigI {
 	categoryId?: string;
@@ -33,10 +35,11 @@ export class PresentationSystem {
 	}
 
 	async getConfig(guildId: string): Promise<PresentationConfigI> {
-		let cfg = await PresentationConfig.findOne({ guildId }).lean();
-		if (!cfg) {
-			cfg = await PresentationConfig.create({ guildId, questions: [] });
-		}
+		const cfg = await PresentationConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, questions: [] } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		return {
 			categoryId: cfg.categoryId ?? undefined,
 			staffChannelId: cfg.staffChannelId ?? undefined,
@@ -95,15 +98,16 @@ export class PresentationSystem {
 
 	async handleApply(interaction: ButtonInteraction): Promise<void> {
 		const userId = interaction.user.id;
-
-		const existing = await PresentationApplication.findOne({ userId, status: 'pending' });
+		const guildId = interaction.guildId!;
+		// Scope the duplicate check to this guild (was global by userId only).
+		const existing = await PresentationApplication.findOne({ guildId, userId, status: 'pending' });
 		if (existing) {
-			void interaction.reply({ content: '❌ You already have a pending application!', flags: 64 });
+			await interaction.reply({ content: '❌ You already have a pending application!', flags: 64 });
 			return;
 		}
 
 		const modal = await this.createApplicationModal();
-		void interaction.showModal(modal);
+		await interaction.showModal(modal);
 	}
 
 	async handleModalSubmit(interaction: ModalSubmitInteraction): Promise<void> {
@@ -113,19 +117,37 @@ export class PresentationSystem {
 
 		for (let i = 0; i < modalQuestions.length; i++) {
 			const answer = interaction.fields.getTextInputValue(`q${i + 1}`) || '';
-			answers.push({ question: modalQuestions[i], answer });
+			answers.push({ question: modalQuestions[i], answer: answer.slice(0, 1000) });
 		}
 
-		await PresentationApplication.create({
-			guildId: interaction.guildId!,
-			userId: interaction.user.id,
-			answers,
-			status: 'pending',
+		// Re-check inside the mutex + partial unique index — the button handler
+		// checked, but the modal submits minutes later (TOCTOU duplicates).
+		const created = await withMutex(`present:${interaction.guildId}:${interaction.user.id}`, async () => {
+			const raced = await PresentationApplication.findOne({ guildId: interaction.guildId!, userId: interaction.user.id, status: 'pending' });
+			if (raced) return raced;
+			try {
+				return await PresentationApplication.create({
+					guildId: interaction.guildId!,
+					userId: interaction.user.id,
+					answers: answers.slice(0, 20),
+					status: 'pending',
+				});
+			} catch (err) {
+				if (isDuplicateKeyError(err)) {
+					return PresentationApplication.findOne({ guildId: interaction.guildId!, userId: interaction.user.id, status: 'pending' });
+				}
+				throw err;
+			}
 		});
+		if (!created) {
+			await interaction.reply({ content: '❌ You already have a pending application!', flags: 64 });
+			return;
+		}
+		recordActivity('command', 'Staff application submitted', { level: 'info', meta: { guildId: interaction.guildId, userId: interaction.user.id } });
 
 		const cfg = await this.getConfig(interaction.guildId!);
 		if (cfg.staffChannelId) {
-			const staffChannel = interaction.client.channels.cache.get(cfg.staffChannelId) as TextChannel;
+			const staffChannel = await getTextChannel(interaction.guild as Guild, cfg.staffChannelId).catch(() => null);
 			if (staffChannel) {
 				const embed = EmbedBuilderUtil.presentation?.({
 					id: 'new',
@@ -146,15 +168,15 @@ export class PresentationSystem {
 					new ButtonBuilder().setCustomId('presentation_changes').setLabel('📝 Request Changes').setStyle(ButtonStyle.Secondary),
 				);
 
-				void staffChannel.send({
+				await staffChannel.send({
 					content: `📝 New staff application from <@${interaction.user.id}>!`,
 					embeds: [embed],
 					components: [row],
-				});
+				}).catch((err) => console.warn('[Presentation] Failed to post application:', (err as Error)?.message ?? err));
 			}
 		}
 
-		void interaction.reply({ content: '✅ Your application has been submitted! Staff will review it shortly.', flags: 64 });
+		await interaction.reply({ content: '✅ Your application has been submitted! Staff will review it shortly.', flags: 64 });
 	}
 
 	async handleReview(interaction: ButtonInteraction, action: string): Promise<void> {
@@ -162,9 +184,13 @@ export class PresentationSystem {
 		const staffRoleId = cfg.staffRoleId;
 		const member = interaction.member as GuildMember | null;
 		if (!member) return;
-		const isStaff = staffRoleId && member.roles.cache.has(staffRoleId);
-		if (!isStaff && !member.permissions.has(PermissionFlagsBits.Administrator)) {
-			void interaction.reply({ content: '❌ Only staff can review applications.', flags: 64 });
+		const isStaff = Boolean(
+			(staffRoleId && member.roles.cache.has(staffRoleId))
+			|| member.permissions?.has(PermissionFlagsBits.Administrator)
+			|| member.permissions?.has(PermissionFlagsBits.ManageGuild),
+		);
+		if (!isStaff) {
+			await interaction.reply({ content: '❌ Only staff can review applications.', flags: 64 });
 			return;
 		}
 
@@ -174,17 +200,11 @@ export class PresentationSystem {
 
 		const footerText = embed.footer?.text || '';
 		const userIdMatch = footerText.match(/User: (\d+)/);
-		if (!userIdMatch) { void interaction.reply({ content: '❌ Could not find applicant.', flags: 64 }); return; }
+		if (!userIdMatch) { await interaction.reply({ content: '❌ Could not find applicant.', flags: 64 }); return; }
 
 		const applicantId = userIdMatch[1];
-		const presentation = await PresentationApplication.findOne({ userId: applicantId, status: 'pending' });
-		if (!presentation) { void interaction.reply({ content: '❌ Application not found.', flags: 64 }); return; }
-
-		const isStaff2 = staffRoleId && member.roles.cache.has(staffRoleId);
-		if (!isStaff2 && !member.permissions.has(PermissionFlagsBits.Administrator)) {
-			void interaction.reply({ content: '❌ Only staff can review applications.', flags: 64 });
-			return;
-		}
+		const presentation = await PresentationApplication.findOne({ guildId: interaction.guildId!, userId: applicantId, status: 'pending' });
+		if (!presentation) { await interaction.reply({ content: '❌ Application not found.', flags: 64 }); return; }
 
 		const reason = action === 'changes' ? 'Changes requested by staff' : null;
 
@@ -205,15 +225,13 @@ export class PresentationSystem {
 				}
 			}
 
-			try {
-				const user = await interaction.client.users.fetch(applicantId);
-				await user.send({ content: '🎉 Congratulations! Your staff application has been **APPROVED**! Welcome to the team!' }).catch(() => {});
-			} catch {}
+			await safeDm(interaction.guild as Guild, applicantId, '🎉 Congratulations! Your staff application has been **APPROVED**! Welcome to the team!');
+			recordActivity('command', 'Staff application approved', { level: 'success', meta: { guildId: interaction.guildId, applicantId, reviewerId: interaction.user.id } });
 
-			void message.edit({
+			await message.edit({
 				embeds: [EmbedBuilderUtil.success?.('Approved', `Application approved by ${interaction.user}`) ?? new EmbedBuilder().setColor(0x57F287).setTitle('Approved').setDescription(`Application approved by ${interaction.user}`)],
 				components: [],
-			});
+			}).catch(() => {});
 		}
 		else if (action === 'deny') {
 			const modal = new ModalBuilder()
@@ -263,20 +281,17 @@ export class PresentationSystem {
 			reviewReason: reason,
 		});
 
-		try {
-			const user = await interaction.client.users.fetch(presentation.userId);
-			await user.send({ content: `❌ Your staff application was **DENIED**.\n**Reason:** ${reason}` }).catch(() => {});
-		} catch {}
+		await safeDm(interaction.guild as Guild, presentation.userId, `❌ Your staff application was **DENIED**.\n**Reason:** ${reason}`.slice(0, 1900));
 
 		const message = interaction.message;
 		if (message) {
-			void message.edit({
+			await message.edit({
 				embeds: [EmbedBuilderUtil.error?.('Denied', `Application denied by ${interaction.user}\nReason: ${reason}`) ?? new EmbedBuilder().setColor(0xED4245).setTitle('Denied').setDescription(`Application denied by ${interaction.user}\nReason: ${reason}`)],
 				components: [],
-			});
+			}).catch(() => {});
 		}
 
-		void interaction.editReply({ content: '✅ Application denied.' });
+		await interaction.editReply({ content: '✅ Application denied.' });
 	}
 
 	async handleChangesModal(interaction: ModalSubmitInteraction, presentationId: string): Promise<void> {
@@ -293,20 +308,17 @@ export class PresentationSystem {
 			reviewReason: reason,
 		});
 
-		try {
-			const user = await interaction.client.users.fetch(presentation.userId);
-			await user.send({ content: `📝 Your staff application needs **CHANGES**.\n**Feedback:** ${reason}\n\nYou can re-apply with the improved answers.` }).catch(() => {});
-		} catch {}
+		await safeDm(interaction.guild as Guild, presentation.userId, `📝 Your staff application needs **CHANGES**.\n**Feedback:** ${reason}\n\nYou can re-apply with the improved answers.`.slice(0, 1900));
 
 		const message = interaction.message;
 		if (message) {
-			void message.edit({
+			await message.edit({
 				embeds: [EmbedBuilderUtil.warning?.('Changes Requested', `Changes requested by ${interaction.user}\nFeedback: ${reason}`) ?? new EmbedBuilder().setColor(0xFEE75C).setTitle('Changes Requested').setDescription(`Changes requested by ${interaction.user}\nFeedback: ${reason}`)],
 				components: [],
-			});
+			}).catch(() => {});
 		}
 
-		void interaction.editReply({ content: '✅ Changes requested.' });
+		await interaction.editReply({ content: '✅ Changes requested.' });
 	}
 }
 

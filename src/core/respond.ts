@@ -59,3 +59,24 @@ export async function replyError(
     /* Interaction already expired or acknowledged elsewhere — nothing left to do. */
   }
 }
+
+/** Ephemeral success/info ack. Never throws; respects deferred/replied state. */
+export async function replyOk(interaction: ErrorTarget, content: string): Promise<void> {
+  const text = content.slice(0, 1900);
+  if ((interaction as any).respond) return;
+  try {
+    if (interaction.deferred && !interaction.replied && interaction.editReply) {
+      await interaction.editReply({ content: text });
+      return;
+    }
+    if (interaction.replied && interaction.followUp) {
+      await interaction.followUp({ content: text, flags: MessageFlags.Ephemeral });
+      return;
+    }
+    if (interaction.reply) {
+      await interaction.reply({ content: text, flags: MessageFlags.Ephemeral });
+      return;
+    }
+    if (interaction.editReply) await interaction.editReply({ content: text });
+  } catch { /* interaction expired */ }
+}

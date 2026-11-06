@@ -24,6 +24,8 @@ import {
   createActiveTempVC,
   deleteActiveTempVC,
 } from '../db/models/TempVC.js';
+import { isDuplicateKeyError, withMutex } from '../core/safety.js';
+import { recordActivity } from '../core/metrics.js';
 
 /** guildId -> userId -> join timestamp (aligned to minute boundaries as XP is awarded). */
 const voiceSessions = new Map<string, Map<string, number>>();
@@ -80,7 +82,7 @@ async function awardVoiceXp(
     }
     return true;
   } catch (err) {
-    console.error(`Failed to award voice XP to ${userId}:`, err);
+    (client as any).logger?.warn({ err, userId }, 'voice XP award failed');
     return false;
   }
 }
@@ -129,10 +131,16 @@ export async function handleVoiceStateUpdate(
   const changedChannel = oldState.channelId !== newState.channelId;
 
   // Temp VC must not abort XP tracking: guard each handler separately.
+  // Serialised per owner so duplicate voice events cannot race two creates.
   try {
-    await handleTempVCJoin(client, newState);
+    const ownerId = newState.member?.user?.id;
+    if (ownerId && newState.guild) {
+      await withMutex(`tempvc:${newState.guild.id}:${ownerId}`, () => handleTempVCJoin(client, newState));
+    } else {
+      await handleTempVCJoin(client, newState);
+    }
   } catch (err) {
-    console.error('[TempVC] join failed:', err);
+    (client as any).logger?.warn({ err }, 'tempVC join failed');
   }
 
   // Temp VC: delete the channel when it becomes empty.
@@ -140,7 +148,7 @@ export async function handleVoiceStateUpdate(
     try {
       await handleTempVCLeave(oldState);
     } catch (err) {
-      console.error('[TempVC] leave failed:', err);
+      (client as any).logger?.warn({ err }, 'tempVC leave failed');
     }
   }
 
@@ -250,7 +258,7 @@ async function handleTempVCJoin(client: Client, newState: VoiceState): Promise<v
       reason: `Temp VC created by ${member.user.tag}`,
     });
   } catch (err) {
-    console.error('[TempVC] Failed to create channel:', err);
+    (client as any).logger?.warn({ err }, 'tempVC create channel failed');
     return;
   }
 
@@ -260,11 +268,23 @@ async function handleTempVCJoin(client: Client, newState: VoiceState): Promise<v
     /* Move failed; the empty temp VC will be cleaned up on leave. */
   }
 
-  await createActiveTempVC({
-    guildId: guild.id,
-    channelId: newChannel.id,
-    ownerId: member.id,
-  });
+  try {
+    await createActiveTempVC({
+      guildId: guild.id,
+      channelId: newChannel.id,
+      ownerId: member.id,
+    });
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      // Another handler already owns a VC for this member.
+      try { await newChannel.delete('Duplicate temp VC'); } catch { /* gone */ }
+      recordActivity('system', 'TempVC duplicate suppressed', { level: 'info', meta: { guildId: guild.id, userId: member.id } });
+      return;
+    }
+    (client as any).logger?.warn({ err }, 'tempVC active row create failed');
+    try { await newChannel.delete('Temp VC setup failed'); } catch { /* gone */ }
+    return;
+  }
   setCachedActiveTempVC(newChannel.id, {
     guildId: guild.id,
     channelId: newChannel.id,
@@ -365,7 +385,7 @@ export async function handleVoiceTick(client: Client): Promise<void> {
       if (byUser.size === 0) voiceSessions.delete(guildId);
     }
   } catch (err) {
-    console.error('Voice XP tick error:', err);
+    (client as any).logger?.warn({ err }, 'voice XP tick error');
   } finally {
     ticking = false;
   }

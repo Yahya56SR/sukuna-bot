@@ -36,6 +36,36 @@ async function main(): Promise<void> {
     stopTicketScheduler();
     stopReminderChecker();
     stopDashboard();
+    // Drain every per-system timer/cache so shutdown cannot leak work past
+    // Mongo disconnect (single guild = no sharding to hide behind).
+    try {
+      const { shutdownAutomod } = require('./handlers/automod.js') as typeof import('./handlers/automod.js');
+      shutdownAutomod();
+    } catch { /* module not loaded */ }
+    try {
+      const { tempvc } = require('./systems/tempvc/index.js') as typeof import('./systems/tempvc/index.js');
+      tempvc.shutdown();
+    } catch { /* module not loaded */ }
+    try {
+      const { levels } = require('./systems/levels/index.js') as typeof import('./systems/levels/index.js');
+      levels.stopAllVoiceSessions();
+    } catch { /* module not loaded */ }
+    try {
+      const { autoReply } = require('./systems/autoreply/index.js') as typeof import('./systems/autoreply/index.js');
+      autoReply.shutdown();
+    } catch { /* module not loaded */ }
+    try {
+      const { mediaReactions } = require('./systems/mediareactions/index.js') as typeof import('./systems/mediareactions/index.js');
+      mediaReactions.shutdown();
+    } catch { /* module not loaded */ }
+    try {
+      const { antinuke } = require('./systems/antinuke/index.js') as typeof import('./systems/antinuke/index.js');
+      antinuke.shutdown();
+    } catch { /* module not loaded */ }
+    try {
+      const { vcVerification } = require('./systems/verification/vc.js') as typeof import('./systems/verification/vc.js');
+      vcVerification.shutdown();
+    } catch { /* module not loaded */ }
   }
 
   async function shutdown(reason: string, exitCode = 0): Promise<void> {

@@ -68657,6 +68657,388 @@ var require_mongoose2 = __commonJS({
   }
 });
 
+// src/db/models/Guild.ts
+async function readGuildConfig(guildId) {
+  return Guild.findOne({ guildId }).lean();
+}
+async function updateGuildConfig(guildId, updates) {
+  return Guild.findOneAndUpdate({ guildId }, updates, { upsert: true, new: true, setDefaultsOnInsert: true }).lean();
+}
+var import_mongoose, liveLeaderboardSchema, guildSchema, Guild;
+var init_Guild = __esm({
+  "src/db/models/Guild.ts"() {
+    "use strict";
+    import_mongoose = __toESM(require_mongoose2());
+    liveLeaderboardSchema = new import_mongoose.Schema(
+      {
+        enabled: { type: Boolean, default: false },
+        channelId: { type: String, default: "" },
+        messageId: { type: String, default: "" },
+        intervalMinutes: { type: Number, default: 10 },
+        rows: { type: Number, default: 25 },
+        title: { type: String, default: "" }
+      },
+      { _id: false }
+    );
+    guildSchema = new import_mongoose.Schema(
+      {
+        guildId: { type: String, required: true, unique: true, index: true },
+        modules: { type: Map, of: Boolean, default: /* @__PURE__ */ new Map() },
+        xpEnabled: { type: Boolean, default: true },
+        xpCooldown: { type: Number, default: 60 },
+        xpMin: { type: Number, default: 15 },
+        xpMax: { type: Number, default: 25 },
+        xpVoiceMin: { type: Number, default: 5 },
+        xpVoiceMax: { type: Number, default: 8 },
+        xpIgnoreBots: { type: Boolean, default: true },
+        xpChannel: { type: String, default: "" },
+        levelUpChannel: { type: String },
+        levelUpMessage: { type: String },
+        disableXpChannels: { type: [String], default: [] },
+        levelRoles: { type: import_mongoose.Schema.Types.Mixed, default: {} },
+        liveLeaderboard: { type: liveLeaderboardSchema, default: /* @__PURE__ */ __name(() => ({}), "default") },
+        sukuna: { type: import_mongoose.Schema.Types.Mixed, default: {} }
+      },
+      { timestamps: true }
+    );
+    Guild = (0, import_mongoose.model)("Guild", guildSchema);
+    __name(readGuildConfig, "readGuildConfig");
+    __name(updateGuildConfig, "updateGuildConfig");
+  }
+});
+
+// src/db/models/User.ts
+async function getUser(userId) {
+  const user = await User.findOneAndUpdate(
+    { userId },
+    { $setOnInsert: { userId } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  return user;
+}
+var import_mongoose3, userSchema, User;
+var init_User = __esm({
+  "src/db/models/User.ts"() {
+    "use strict";
+    import_mongoose3 = __toESM(require_mongoose2());
+    userSchema = new import_mongoose3.Schema(
+      {
+        userId: { type: String, required: true, unique: true, index: true },
+        balance: { type: Number, default: 0 },
+        bank: { type: Number, default: 0 },
+        bankLimit: { type: Number, default: 1e3 },
+        inventory: {
+          type: [
+            {
+              _id: false,
+              itemId: { type: String, required: true },
+              quantity: { type: Number, default: 1, min: 0 }
+            }
+          ],
+          default: []
+        },
+        xp: { type: Number, default: 0 },
+        level: { type: Number, default: 0 },
+        totalXp: { type: Number, default: 0 },
+        lastMessageAt: { type: Date },
+        voiceMinutes: { type: Number, default: 0 },
+        lastDaily: { type: Date },
+        lastWork: { type: Date },
+        dailyStreak: { type: Number, default: 0 },
+        maxDailyStreak: { type: Number, default: 0 },
+        streakFreeze: { type: Boolean, default: false },
+        luckyClover: { type: Boolean, default: false }
+      },
+      { timestamps: true }
+    );
+    userSchema.index({ totalXp: -1 });
+    userSchema.index({ xp: -1 });
+    userSchema.index({ balance: -1 });
+    userSchema.index({ level: -1 });
+    userSchema.index({ createdAt: -1 });
+    User = (0, import_mongoose3.model)("User", userSchema);
+    __name(getUser, "getUser");
+  }
+});
+
+// src/utils/level.ts
+function xpForLevel(level) {
+  return Math.floor(5 * level * level + 50 * level + 100);
+}
+function levelFromXp(totalXp) {
+  const total = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
+  let level = 0;
+  let remaining = total;
+  let iterations = 0;
+  const MAX_ITERATIONS = 1e5;
+  while (remaining >= xpForLevel(level)) {
+    remaining -= xpForLevel(level);
+    level++;
+    iterations++;
+    if (iterations > MAX_ITERATIONS) {
+      console.error("levelFromXp: Max iterations exceeded, breaking loop");
+      break;
+    }
+  }
+  return {
+    level,
+    xpInLevel: remaining,
+    xpForNext: xpForLevel(level),
+    totalXp: total
+  };
+}
+function progressPercent(info) {
+  if (info.xpForNext <= 0) return 100;
+  return Math.min(100, Math.floor(info.xpInLevel / info.xpForNext * 100));
+}
+function progressBar(percent, size = 20) {
+  const clamped = Math.max(0, Math.min(100, percent));
+  const filled = Math.round(clamped / 100 * size);
+  return "\u25B0".repeat(filled) + "\u25B1".repeat(Math.max(0, size - filled));
+}
+function randomXp(min, max, fixed) {
+  const lo = Number.isFinite(min) && min >= 0 ? Math.floor(min) : fixed !== void 0 && Number.isFinite(fixed) ? Math.floor(fixed) : 0;
+  const hi = Number.isFinite(max) && max >= 0 ? Math.floor(max) : lo;
+  if (hi <= lo) return lo;
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
+var init_level = __esm({
+  "src/utils/level.ts"() {
+    "use strict";
+    __name(xpForLevel, "xpForLevel");
+    __name(levelFromXp, "levelFromXp");
+    __name(progressPercent, "progressPercent");
+    __name(progressBar, "progressBar");
+    __name(randomXp, "randomXp");
+  }
+});
+
+// src/db/utils.ts
+function effectiveXp(doc) {
+  const xp = Number.isFinite(doc.xp) ? Math.max(0, Math.floor(doc.xp)) : 0;
+  const totalXp = Number.isFinite(doc.totalXp) ? Math.max(0, Math.floor(doc.totalXp)) : 0;
+  return Math.max(xp, totalXp);
+}
+async function getUserXp(userId) {
+  const doc = await User.findOne({ userId }).lean();
+  if (!doc) return null;
+  const xp = effectiveXp(doc);
+  return {
+    userId: doc.userId,
+    xp,
+    level: levelFromXp(xp).level,
+    lastMessageAt: doc.lastMessageAt ?? void 0
+  };
+}
+async function addXp(userId, amount, source = "message", voiceMinutes = 0) {
+  const granted = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
+  const addedMinutes = Number.isFinite(voiceMinutes) ? Math.max(0, Math.floor(voiceMinutes)) : 0;
+  const now = /* @__PURE__ */ new Date();
+  const updated = await User.findOneAndUpdate(
+    { userId },
+    {
+      $inc: {
+        xp: granted,
+        totalXp: granted,
+        ...addedMinutes > 0 ? { voiceMinutes: addedMinutes } : {}
+      },
+      ...source === "message" ? { $set: { lastMessageAt: now } } : {},
+      // Schema defaults land here on first use, so the row is created with a
+      // real `balance: 0` instead of an absent field.
+      $setOnInsert: { userId }
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  const doc = updated;
+  const totalXp = effectiveXp(doc);
+  const oldLevel = levelFromXp(totalXp - granted).level;
+  const info = levelFromXp(totalXp);
+  if (doc.level !== info.level) {
+    await User.updateOne(
+      { userId, level: { $lt: info.level } },
+      { $set: { level: info.level } }
+    ).catch(() => void 0);
+  }
+  if ((doc.xp ?? 0) !== totalXp || (doc.totalXp ?? 0) !== totalXp) {
+    await User.updateOne(
+      { userId, totalXp: { $lt: totalXp } },
+      { $set: { totalXp, xp: totalXp } }
+    ).catch(() => void 0);
+  }
+  return {
+    leveledUp: info.level > oldLevel,
+    newLevel: info.level,
+    oldLevel,
+    totalXp,
+    info
+  };
+}
+async function setUserXp(userId, totalXp) {
+  const next = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
+  const info = levelFromXp(next);
+  const before = await User.findOne({ userId }).lean();
+  const oldLevel = before ? levelFromXp(effectiveXp(before)).level : 0;
+  await User.updateOne(
+    { userId },
+    {
+      $set: { xp: next, totalXp: next, level: info.level },
+      $setOnInsert: { userId }
+    },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+  return {
+    leveledUp: info.level > oldLevel,
+    newLevel: info.level,
+    oldLevel,
+    totalXp: next,
+    info
+  };
+}
+async function backfillUserXp() {
+  let fixed = 0;
+  let batch = [];
+  const flush = /* @__PURE__ */ __name(async () => {
+    if (!batch.length) return;
+    const result = await User.collection.bulkWrite(batch, { ordered: false });
+    fixed += result.modifiedCount;
+    batch = [];
+  }, "flush");
+  try {
+    const cursor = User.collection.find({
+      $expr: { $gt: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }
+    });
+    for await (const doc of cursor) {
+      batch.push({
+        updateOne: {
+          filter: { _id: doc._id, totalXp: { $lt: doc.xp ?? 0 } },
+          update: { $set: { totalXp: doc.xp ?? 0 } }
+        }
+      });
+      if (batch.length >= 500) await flush();
+    }
+    await flush();
+  } catch (error62) {
+    return -1;
+  }
+  return fixed;
+}
+async function getLeaderboard(limit = 10) {
+  const rows = await User.aggregate([
+    { $addFields: { effectiveXp: { $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] } } },
+    { $match: { effectiveXp: { $gt: 0 } } },
+    { $sort: { effectiveXp: -1, userId: 1 } },
+    { $limit: Math.max(1, limit) }
+  ]).allowDiskUse(true);
+  return rows.map((row) => {
+    const xp = effectiveXp(row);
+    return {
+      user_id: row.userId,
+      xp,
+      level: levelFromXp(xp).level
+    };
+  });
+}
+async function getRankPosition(userId) {
+  const doc = await User.findOne({ userId }).lean();
+  if (!doc) return 0;
+  const xp = effectiveXp(doc);
+  if (xp <= 0) return 0;
+  const higher = await User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, xp] }
+  });
+  return higher + 1;
+}
+async function countRanked() {
+  return User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, 0] }
+  });
+}
+var init_utils = __esm({
+  "src/db/utils.ts"() {
+    "use strict";
+    init_User();
+    init_level();
+    __name(effectiveXp, "effectiveXp");
+    __name(getUserXp, "getUserXp");
+    __name(addXp, "addXp");
+    __name(setUserXp, "setUserXp");
+    __name(backfillUserXp, "backfillUserXp");
+    __name(getLeaderboard, "getLeaderboard");
+    __name(getRankPosition, "getRankPosition");
+    __name(countRanked, "countRanked");
+  }
+});
+
+// src/db/models/AutoModRule.ts
+var import_mongoose4, autoModRuleSchema, AutoModRule;
+var init_AutoModRule = __esm({
+  "src/db/models/AutoModRule.ts"() {
+    "use strict";
+    import_mongoose4 = __toESM(require_mongoose2());
+    autoModRuleSchema = new import_mongoose4.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        name: { type: String, required: true, maxlength: 100 },
+        type: {
+          type: String,
+          enum: ["spam", "links", "invites", "words", "caps", "mentions", "attachments", "newlines", "emojis", "repeated"],
+          required: true
+        },
+        enabled: { type: Boolean, default: true },
+        actions: {
+          type: [String],
+          enum: ["delete", "warn", "timeout", "ban", "log"],
+          default: ["delete", "log"]
+        },
+        timeoutDuration: { type: Number, default: 300 },
+        warnMessage: { type: String, maxlength: 500 },
+        logChannel: { type: String },
+        ignoreChannels: { type: [String], default: [] },
+        ignoreRoles: { type: [String], default: [] },
+        config: {
+          type: import_mongoose4.Schema.Types.Mixed,
+          default: {}
+        }
+      },
+      { timestamps: true }
+    );
+    autoModRuleSchema.index({ guildId: 1, type: 1 });
+    AutoModRule = (0, import_mongoose4.model)("AutoModRule", autoModRuleSchema);
+  }
+});
+
+// src/db/models/Infraction.ts
+var import_mongoose5, infractionSchema, Infraction;
+var init_Infraction = __esm({
+  "src/db/models/Infraction.ts"() {
+    "use strict";
+    import_mongoose5 = __toESM(require_mongoose2());
+    infractionSchema = new import_mongoose5.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        userId: { type: String, required: true, index: true },
+        moderatorId: { type: String, required: true },
+        type: {
+          type: String,
+          enum: ["warn", "timeout", "ban", "kick", "unban", "untimeout", "note"],
+          required: true
+        },
+        reason: { type: String, required: true, maxlength: 1e3 },
+        duration: { type: Number },
+        expiresAt: { type: Date, index: true },
+        active: { type: Boolean, default: true },
+        dmSent: { type: Boolean, default: false },
+        messageId: { type: String },
+        channelId: { type: String }
+      },
+      { timestamps: true }
+    );
+    infractionSchema.index({ guildId: 1, userId: 1, createdAt: -1 });
+    infractionSchema.index({ guildId: 1, active: 1, expiresAt: 1 });
+    Infraction = (0, import_mongoose5.model)("Infraction", infractionSchema);
+  }
+});
+
 // src/db/models/CustomCommand.ts
 var CustomCommand_exports = {};
 __export(CustomCommand_exports, {
@@ -68706,6 +69088,243 @@ var init_CustomCommand = __esm({
     customCommandSchema.index({ guildId: 1, name: 1 }, { unique: true });
     customCommandSchema.index({ guildId: 1, enabled: 1 });
     CustomCommand = (0, import_mongoose7.model)("CustomCommand", customCommandSchema);
+  }
+});
+
+// src/db/models/LogChannel.ts
+var import_mongoose8, logChannelSchema, LogChannel;
+var init_LogChannel = __esm({
+  "src/db/models/LogChannel.ts"() {
+    "use strict";
+    import_mongoose8 = __toESM(require_mongoose2());
+    logChannelSchema = new import_mongoose8.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        event: {
+          type: String,
+          enum: [
+            "messageDelete",
+            "messageEdit",
+            "messageDeleteBulk",
+            "memberJoin",
+            "memberLeave",
+            "memberBanAdd",
+            "memberBanRemove",
+            "memberUpdate",
+            "roleCreate",
+            "roleDelete",
+            "roleUpdate",
+            "channelCreate",
+            "channelDelete",
+            "channelUpdate",
+            "voiceStateUpdate",
+            "inviteCreate",
+            "inviteDelete",
+            "guildUpdate",
+            "emojiCreate",
+            "emojiDelete",
+            "emojiUpdate",
+            "stickerCreate",
+            "stickerDelete",
+            "stickerUpdate",
+            "threadCreate",
+            "threadDelete",
+            "threadUpdate",
+            "moderationWarn",
+            "moderationTimeout",
+            "moderationBan",
+            "moderationKick",
+            "moderationUnban",
+            "moderationNote",
+            "automodTrigger"
+          ],
+          required: true
+        },
+        channelId: { type: String, required: true },
+        includeContent: { type: Boolean, default: true },
+        logBots: { type: Boolean, default: false },
+        ignoredChannels: { type: [String], default: [] },
+        ignoredRoles: { type: [String], default: [] },
+        webhookId: { type: String },
+        webhookToken: { type: String }
+      },
+      { timestamps: true }
+    );
+    logChannelSchema.index({ guildId: 1, event: 1 }, { unique: true });
+    LogChannel = (0, import_mongoose8.model)("LogChannel", logChannelSchema);
+  }
+});
+
+// src/db/models/Antinuke.ts
+var import_mongoose20, antinukeConfigSchema, AntinukeConfig, antinukeIncidentSchema, AntinukeIncident;
+var init_Antinuke = __esm({
+  "src/db/models/Antinuke.ts"() {
+    "use strict";
+    import_mongoose20 = __toESM(require_mongoose2());
+    antinukeConfigSchema = new import_mongoose20.Schema(
+      {
+        guildId: { type: String, required: true, unique: true, index: true },
+        enabled: { type: Boolean, default: false },
+        alertChannelId: { type: String },
+        thresholds: {
+          type: import_mongoose20.Schema.Types.Mixed,
+          default: {
+            ban: 3,
+            kick: 5,
+            channelDelete: 3,
+            channelOverwrite: 8,
+            roleDelete: 3,
+            webhookDelete: 3,
+            bulkDelete: 1,
+            everyoneRole: 1
+          }
+        },
+        windowSec: { type: Number, default: 60 },
+        timeoutMinutes: { type: Number, default: 1440 },
+        autoStrip: { type: Boolean, default: true },
+        exemptRoleIds: { type: [String], default: [] },
+        backup: {
+          type: import_mongoose20.Schema.Types.Mixed,
+          default: { enabled: true, intervalMin: 60, keep: 24 }
+        }
+      },
+      { timestamps: true }
+    );
+    AntinukeConfig = (0, import_mongoose20.model)("AntinukeConfig", antinukeConfigSchema);
+    antinukeIncidentSchema = new import_mongoose20.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        actorId: { type: String, required: true, index: true },
+        actorTag: { type: String },
+        action: { type: String, required: true },
+        count: { type: Number, required: true },
+        windowSec: { type: Number, required: true },
+        strippedRoles: { type: [String], default: [] },
+        timeoutMinutes: { type: Number, default: 0 },
+        status: { type: String, enum: ["locked", "unlocked"], default: "locked", index: true },
+        details: { type: String }
+      },
+      { timestamps: true }
+    );
+    antinukeIncidentSchema.index({ guildId: 1, actorId: 1, status: 1 });
+    AntinukeIncident = (0, import_mongoose20.model)("AntinukeIncident", antinukeIncidentSchema);
+  }
+});
+
+// src/db/models/AutoReply.ts
+var import_mongoose21, autoReplySchema, AutoReply;
+var init_AutoReply = __esm({
+  "src/db/models/AutoReply.ts"() {
+    "use strict";
+    import_mongoose21 = __toESM(require_mongoose2());
+    autoReplySchema = new import_mongoose21.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        triggerType: {
+          type: String,
+          enum: ["keyword", "regex", "exact"],
+          required: true
+        },
+        triggerValue: { type: String, required: true },
+        response: { type: String, required: true },
+        channelId: { type: String },
+        enabled: { type: Boolean, default: true }
+      },
+      { timestamps: true }
+    );
+    autoReplySchema.index({ guildId: 1, enabled: 1, channelId: 1 });
+    AutoReply = (0, import_mongoose21.model)("AutoReply", autoReplySchema);
+  }
+});
+
+// src/db/models/MediaReaction.ts
+var import_mongoose24, mediaChannelConfigSchema, mediaReactionConfigSchema, MediaReactionConfig;
+var init_MediaReaction = __esm({
+  "src/db/models/MediaReaction.ts"() {
+    "use strict";
+    import_mongoose24 = __toESM(require_mongoose2());
+    mediaChannelConfigSchema = new import_mongoose24.Schema(
+      {
+        id: { type: String, required: true },
+        kind: { type: String, enum: ["memes", "images"], required: true },
+        reactions: { type: [String], default: [] },
+        enforce: { type: String, enum: ["off", "warn", "delete"] }
+      },
+      { _id: false }
+    );
+    mediaReactionConfigSchema = new import_mongoose24.Schema(
+      {
+        guildId: { type: String, required: true, unique: true, index: true },
+        enabled: { type: Boolean, default: false },
+        memeChannels: { type: [mediaChannelConfigSchema], default: [] },
+        imageChannels: { type: [mediaChannelConfigSchema], default: [] },
+        memeReactions: { type: [String], default: ["\u2B50", "\u{1F602}"] },
+        imageReactions: { type: [String], default: ["\u{1F4F8}"] },
+        enforceMode: { type: String, enum: ["off", "warn", "delete"], default: "warn" }
+      },
+      { timestamps: true }
+    );
+    MediaReactionConfig = (0, import_mongoose24.model)(
+      "MediaReactionConfig",
+      mediaReactionConfigSchema
+    );
+  }
+});
+
+// src/db/models/Verification.ts
+var import_mongoose25, verificationConfigSchema, VerificationConfig, verificationRequestSchema, VerificationRequest;
+var init_Verification = __esm({
+  "src/db/models/Verification.ts"() {
+    "use strict";
+    import_mongoose25 = __toESM(require_mongoose2());
+    verificationConfigSchema = new import_mongoose25.Schema(
+      {
+        guildId: { type: String, required: true, unique: true, index: true },
+        enabled: { type: Boolean, default: false },
+        unverifiedRoleId: { type: String },
+        verifiedRoleId: { type: String },
+        rulesChannelId: { type: String },
+        panelMessageId: { type: String },
+        autoRoleIds: { type: [String], default: [] },
+        requireApproval: { type: Boolean, default: false },
+        logChannelId: { type: String },
+        minAccountAgeDays: { type: Number, default: 0 },
+        voiceChannelId: { type: String },
+        staffRoleId: { type: String }
+      },
+      { timestamps: true }
+    );
+    VerificationConfig = (0, import_mongoose25.model)(
+      "VerificationConfig",
+      verificationConfigSchema
+    );
+    verificationRequestSchema = new import_mongoose25.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        userId: { type: String, required: true, index: true },
+        status: {
+          type: String,
+          enum: ["pending", "claimed", "approved", "denied", "revoked"],
+          default: "pending",
+          index: true
+        },
+        reason: { type: String },
+        submittedAt: { type: Date, default: Date.now },
+        reviewedBy: { type: String },
+        reviewedAt: { type: Date },
+        claimedBy: { type: String },
+        claimedAt: { type: Date },
+        vcInvitedAt: { type: Date }
+      },
+      { timestamps: true }
+    );
+    verificationRequestSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { status: { $in: ["pending", "claimed"] } } });
+    verificationRequestSchema.index({ guildId: 1, userId: 1, status: 1 });
+    verificationRequestSchema.index({ guildId: 1, claimedBy: 1, status: 1 });
+    VerificationRequest = (0, import_mongoose25.model)(
+      "VerificationRequest",
+      verificationRequestSchema
+    );
   }
 });
 
@@ -127161,7 +127780,7 @@ var require_Channels = __commonJS({
     var getDMChannel = lazy2(() => require_DMChannel());
     var getNewsChannel = lazy2(() => require_NewsChannel());
     var getStageChannel = lazy2(() => require_StageChannel());
-    var getTextChannel = lazy2(() => require_TextChannel());
+    var getTextChannel3 = lazy2(() => require_TextChannel());
     var getThreadChannel = lazy2(() => require_ThreadChannel());
     var getVoiceChannel = lazy2(() => require_VoiceChannel());
     var getDirectoryChannel = lazy2(() => require_DirectoryChannel());
@@ -127181,7 +127800,7 @@ var require_Channels = __commonJS({
         if (guild || allowUnknownGuild) {
           switch (data.type) {
             case ChannelType13.GuildText: {
-              channel = new (getTextChannel())(guild, data, client);
+              channel = new (getTextChannel3())(guild, data, client);
               break;
             }
             case ChannelType13.GuildVoice: {
@@ -174505,6 +175124,594 @@ var init_manager = __esm({
   }
 });
 
+// src/db/models/TempVC.ts
+async function readTempVCConfig(guildId) {
+  return TempVCConfig.findOne({ guildId }).lean();
+}
+async function upsertTempVCConfig(guildId, updates) {
+  return TempVCConfig.findOneAndUpdate(
+    { guildId },
+    { $set: updates },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  ).lean();
+}
+async function deleteTempVCConfig(guildId) {
+  return TempVCConfig.deleteOne({ guildId });
+}
+async function readActiveTempVCByChannel(channelId) {
+  return ActiveTempVC.findOne({ channelId }).lean();
+}
+async function readActiveTempVCByOwner(guildId, ownerId) {
+  return ActiveTempVC.findOne({ guildId, ownerId }).lean();
+}
+async function createActiveTempVC(data) {
+  return ActiveTempVC.create(data);
+}
+async function deleteActiveTempVC(channelId) {
+  return ActiveTempVC.deleteOne({ channelId });
+}
+function getCachedTempVCConfig(guildId) {
+  if (!_configCache.has(guildId)) return void 0;
+  return _configCache.get(guildId) ?? null;
+}
+function setCachedTempVCConfig(guildId, config2) {
+  _configCache.set(guildId, config2);
+}
+function clearTempVCConfigCache(guildId) {
+  if (guildId) _configCache.delete(guildId);
+  else _configCache.clear();
+}
+function getCachedActiveTempVC(channelId) {
+  return _activeCache.get(channelId);
+}
+function setCachedActiveTempVC(channelId, row) {
+  _activeCache.set(channelId, row);
+}
+function deleteCachedActiveTempVC(channelId) {
+  _activeCache.delete(channelId);
+}
+async function warmActiveTempVCCache() {
+  _activeCache.clear();
+  const rows = await ActiveTempVC.find().lean();
+  for (const row of rows) _activeCache.set(row.channelId, row);
+}
+var import_mongoose33, tempVCConfigSchema, TempVCConfig, activeTempVCSchema, ActiveTempVC, _configCache, _activeCache;
+var init_TempVC = __esm({
+  "src/db/models/TempVC.ts"() {
+    "use strict";
+    import_mongoose33 = __toESM(require_mongoose2());
+    tempVCConfigSchema = new import_mongoose33.Schema(
+      {
+        guildId: { type: String, required: true, unique: true, index: true },
+        createChannelId: { type: String },
+        categoryId: { type: String },
+        nameTemplate: {
+          type: String,
+          required: true,
+          default: "{user}'s VC"
+        },
+        bitrate: { type: Number },
+        userLimit: { type: Number }
+      },
+      { timestamps: true }
+    );
+    TempVCConfig = (0, import_mongoose33.model)("TempVCConfig", tempVCConfigSchema);
+    activeTempVCSchema = new import_mongoose33.Schema(
+      {
+        guildId: { type: String, required: true, index: true },
+        channelId: { type: String, required: true, unique: true },
+        ownerId: { type: String, required: true }
+      },
+      { timestamps: true }
+    );
+    activeTempVCSchema.index({ guildId: 1, ownerId: 1 }, { unique: true });
+    ActiveTempVC = (0, import_mongoose33.model)("ActiveTempVC", activeTempVCSchema);
+    __name(readTempVCConfig, "readTempVCConfig");
+    __name(upsertTempVCConfig, "upsertTempVCConfig");
+    __name(deleteTempVCConfig, "deleteTempVCConfig");
+    __name(readActiveTempVCByChannel, "readActiveTempVCByChannel");
+    __name(readActiveTempVCByOwner, "readActiveTempVCByOwner");
+    __name(createActiveTempVC, "createActiveTempVC");
+    __name(deleteActiveTempVC, "deleteActiveTempVC");
+    _configCache = /* @__PURE__ */ new Map();
+    _activeCache = /* @__PURE__ */ new Map();
+    __name(getCachedTempVCConfig, "getCachedTempVCConfig");
+    __name(setCachedTempVCConfig, "setCachedTempVCConfig");
+    __name(clearTempVCConfigCache, "clearTempVCConfigCache");
+    __name(getCachedActiveTempVC, "getCachedActiveTempVC");
+    __name(setCachedActiveTempVC, "setCachedActiveTempVC");
+    __name(deleteCachedActiveTempVC, "deleteCachedActiveTempVC");
+    __name(warmActiveTempVCCache, "warmActiveTempVCCache");
+  }
+});
+
+// src/core/metrics.ts
+function sanitizeMeta(meta3) {
+  if (!meta3) return void 0;
+  const clean = {};
+  for (const [key, value] of Object.entries(meta3)) {
+    if (value === void 0 || value === null) {
+      clean[key] = null;
+      continue;
+    }
+    if (typeof value === "string") {
+      clean[key] = value.length > 200 ? value.slice(0, 200) : value;
+    } else if (typeof value === "number" || typeof value === "boolean") {
+      clean[key] = value;
+    }
+  }
+  return Object.keys(clean).length > 0 ? clean : void 0;
+}
+function recordActivity(kind, message, options = {}) {
+  const event = {
+    id: nextId++,
+    kind,
+    level: options.level ?? "info",
+    message: String(message ?? "").slice(0, 500),
+    meta: sanitizeMeta(options.meta),
+    at: Date.now()
+  };
+  events.unshift(event);
+  if (events.length > MAX_EVENTS) events.length = MAX_EVENTS;
+  return event;
+}
+function getActivity(limit = 100, kind) {
+  const max = Math.min(Math.max(Math.round(limit) || 100, 1), MAX_EVENTS);
+  if (!kind || kind === "all") return events.slice(0, max);
+  return events.filter((event) => event.kind === kind).slice(0, max);
+}
+function bumpCounter(key, by = 1) {
+  counters[key] += by;
+}
+function getCounters() {
+  return { ...counters };
+}
+var import_node_stream4, MAX_EVENTS, events, counters, nextId, PINO_LEVELS, activityLogStream;
+var init_metrics = __esm({
+  "src/core/metrics.ts"() {
+    "use strict";
+    import_node_stream4 = require("node:stream");
+    MAX_EVENTS = 400;
+    events = [];
+    counters = {
+      startedAt: Date.now(),
+      messagesSeen: 0,
+      commandsRun: 0,
+      aiReplies: 0,
+      errors: 0,
+      guildJoins: 0
+    };
+    nextId = 1;
+    __name(sanitizeMeta, "sanitizeMeta");
+    __name(recordActivity, "recordActivity");
+    __name(getActivity, "getActivity");
+    __name(bumpCounter, "bumpCounter");
+    __name(getCounters, "getCounters");
+    PINO_LEVELS = {
+      10: "info",
+      20: "info",
+      30: "info",
+      40: "warn",
+      50: "error",
+      60: "error"
+    };
+    activityLogStream = new import_node_stream4.Writable({
+      write(chunk, _encoding, callback) {
+        try {
+          const raw = chunk.toString().trim();
+          if (!raw) return callback();
+          const line = JSON.parse(raw);
+          const levelNumber = typeof line.level === "number" ? line.level : 30;
+          const level = PINO_LEVELS[levelNumber] ?? "info";
+          const message = typeof line.msg === "string" ? line.msg : "";
+          if (!message) return callback();
+          const isErr = line.err !== void 0 || level === "error";
+          recordActivity(isErr ? "error" : "log", message, {
+            level,
+            meta: {
+              tag: typeof line.tag === "string" ? line.tag : void 0,
+              command: typeof line.command === "string" ? line.command : void 0,
+              guildId: typeof line.guildId === "string" ? line.guildId : void 0,
+              userId: typeof line.userId === "string" ? line.userId : void 0,
+              event: typeof line.event === "string" ? line.event : void 0,
+              errorId: typeof line.errorId === "string" ? line.errorId : void 0
+            }
+          });
+        } catch {
+        }
+        callback();
+      }
+    });
+  }
+});
+
+// src/handlers/automod.ts
+var automod_exports = {};
+__export(automod_exports, {
+  checkAutomod: () => checkAutomod,
+  initAutomod: () => initAutomod,
+  invalidateAutomodCache: () => invalidateAutomodCache,
+  shutdownAutomod: () => shutdownAutomod
+});
+function hasIgnoreRole(member, ignoreRoles) {
+  if (!member || !member.roles) return false;
+  return member.roles.cache.hasAny(...ignoreRoles);
+}
+function isIgnoredChannel(channelId, ignoreChannels) {
+  return ignoreChannels.includes(channelId);
+}
+async function getLogChannel(guild, event) {
+  const logConfig = await LogChannel.findOne({ guildId: guild.id, event }).lean();
+  if (!logConfig) return { channel: null };
+  const channel = guild.channels.cache.get(logConfig.channelId);
+  return { channel: channel ?? null, webhookId: logConfig.webhookId, webhookToken: logConfig.webhookToken };
+}
+async function sendLog(channel, embed, webhook) {
+  try {
+    if (webhook?.id && webhook?.token) {
+      const webhookClient = new import_discord16.WebhookClient({ id: webhook.id, token: webhook.token });
+      await webhookClient.send({ embeds: [embed] });
+    } else {
+      await channel.send({ embeds: [embed] });
+    }
+  } catch (error62) {
+    console.warn("[AutoMod] Failed to send log:", error62);
+  }
+}
+async function createInfraction(guildId, userId, moderatorId, type, reason, duration3) {
+  const expiresAt = duration3 ? new Date(Date.now() + duration3 * 1e3) : void 0;
+  return Infraction.create({
+    guildId,
+    userId,
+    moderatorId,
+    type,
+    reason,
+    duration: duration3,
+    expiresAt,
+    active: !!duration3
+  });
+}
+async function executeActions(ctx, rule, reason) {
+  const { guild, message, user } = ctx;
+  const member = await guild.members.fetch(user.id).catch(() => null);
+  const botMember = guild.members.me;
+  if (!member || !botMember) return;
+  const canModerate = botMember.permissions.has("ModerateMembers");
+  const canBan = botMember.permissions.has("BanMembers");
+  const canKick = botMember.permissions.has("KickMembers");
+  const canManageMessages = botMember.permissions.has("ManageMessages");
+  const canActOnMember = member.roles.highest.position < botMember.roles.highest.position;
+  const logResult = await getLogChannel(guild, "automodTrigger");
+  const logChannel = logResult.channel;
+  const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Red).setTitle("\u{1F6E1}\uFE0F Auto-Mod Triggered").setDescription(`**Rule:** ${rule.name} (${rule.type})`).addFields(
+    { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+    { name: "Channel", value: `<#${message.channelId}>`, inline: true },
+    { name: "Reason", value: reason, inline: false }
+  ).setTimestamp();
+  if (message.content) {
+    embed.addFields({ name: "Message", value: message.content.slice(0, 1e3), inline: false });
+  }
+  for (const action of rule.actions) {
+    try {
+      switch (action) {
+        case "delete": {
+          if (canManageMessages) {
+            const ok = await message.delete().then(() => true).catch(() => false);
+            embed.addFields({ name: "Action", value: ok ? "\u2705 Message deleted" : "\u274C Delete failed (already deleted / missing access)", inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Missing ManageMessages permission", inline: true });
+          }
+          break;
+        }
+        case "warn": {
+          await createInfraction(guild.id, user.id, guild.client.user.id, "warn", reason);
+          embed.addFields({ name: "Action", value: "\u2705 Warning issued", inline: true });
+          const warnMsg = rule.warnMessage || `You were warned in **${guild.name}**: ${reason}`;
+          await user.send(warnMsg.slice(0, 1900)).catch(() => {
+          });
+          break;
+        }
+        case "timeout": {
+          if (canModerate && canActOnMember && rule.timeoutDuration) {
+            const ok = await member.timeout(rule.timeoutDuration * 1e3, reason).then(() => true).catch(() => false);
+            if (ok) await createInfraction(guild.id, user.id, guild.client.user.id, "timeout", reason, rule.timeoutDuration).catch((err) => console.warn("[AutoMod] Infraction write failed:", err?.message ?? err));
+            embed.addFields({ name: "Action", value: ok ? `\u2705 Timed out for ${rule.timeoutDuration}s` : "\u274C Timeout failed (Discord error)", inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Cannot timeout (permissions/hierarchy)", inline: true });
+          }
+          break;
+        }
+        case "ban": {
+          if (canBan && canActOnMember) {
+            const ok = await guild.members.ban(user.id, { reason, deleteMessageSeconds: 0 }).then(() => true).catch(() => false);
+            if (ok) await createInfraction(guild.id, user.id, guild.client.user.id, "ban", reason).catch((err) => console.warn("[AutoMod] Infraction write failed:", err?.message ?? err));
+            embed.addFields({ name: "Action", value: ok ? "\u2705 User banned" : "\u274C Ban failed (Discord error)", inline: true });
+          } else {
+            embed.addFields({ name: "Action", value: "\u274C Cannot ban (permissions/hierarchy)", inline: true });
+          }
+          break;
+        }
+        case "log": {
+          embed.addFields({ name: "Action", value: "\u{1F4DD} Logged", inline: true });
+          break;
+        }
+      }
+    } catch (error62) {
+      console.warn("[AutoMod] Action failed:", error62?.message ?? error62);
+      embed.addFields({ name: `Action (${action})`, value: "\u274C Error \u2014 see bot logs", inline: true });
+    }
+  }
+  if (logChannel) {
+    await sendLog(logChannel, embed, logResult.webhookId && logResult.webhookToken ? { id: logResult.webhookId, token: logResult.webhookToken } : void 0);
+  }
+  recordActivity("command", `AutoMod Triggered: ${rule.name}`, {
+    level: "warn",
+    meta: { guildId: guild.id, userId: user.id, ruleType: rule.type }
+  });
+}
+function recordMessage(message) {
+  const key = `${message.guildId}:${message.channelId}`;
+  const now = Date.now();
+  const entry = { id: message.id, authorId: message.author.id, content: message.content ?? "", at: now };
+  const existing = historyByChannel.get(key) ?? [];
+  const fresh = existing.filter((e) => now - e.at <= HISTORY_WINDOW_MS);
+  fresh.push(entry);
+  if (fresh.length > 20) fresh.splice(0, fresh.length - 20);
+  historyByChannel.set(key, fresh);
+  if (historyByChannel.size > 1e3) {
+    historyByChannel.delete(key);
+    historyByChannel.set(key, fresh);
+  }
+  return fresh;
+}
+function entriesToMessages(entries) {
+  return entries.map((e) => ({ id: e.id, author: { id: e.authorId }, content: e.content, createdTimestamp: e.at }));
+}
+function checkSpam(rule, recentMessages) {
+  const config2 = rule.config;
+  const maxMessages = config2.maxMessages ?? 5;
+  const windowSeconds = config2.windowSeconds ?? 10;
+  if (recentMessages.length >= maxMessages) {
+    const window2 = recentMessages.slice(-maxMessages);
+    const oldest = window2[0];
+    const newest = window2[window2.length - 1];
+    const timeDiff = (newest.createdTimestamp - oldest.createdTimestamp) / 1e3;
+    return timeDiff <= windowSeconds;
+  }
+  return false;
+}
+function checkLinks(rule, content) {
+  const config2 = rule.config;
+  const allowedDomains = config2.allowedDomains ?? [];
+  const urlRegex = /(https?:\/\/[^\s]+)/gi;
+  const urls = content.match(urlRegex) ?? [];
+  for (const url2 of urls) {
+    try {
+      const hostname3 = new URL(url2).hostname.replace("www.", "");
+      if (!allowedDomains.some((d) => hostname3 === d || hostname3.endsWith("." + d))) {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  }
+  const inviteRegex = /(discord\.gg\/|discordapp\.com\/invite\/)[a-zA-Z0-9]+/gi;
+  if (inviteRegex.test(content)) return true;
+  return false;
+}
+function checkWords(rule, content) {
+  const config2 = rule.config;
+  const bannedWords = config2.bannedWords ?? [];
+  const regexPatterns = config2.regexPatterns ?? [];
+  const lowerContent = content.toLowerCase();
+  for (const word of bannedWords) {
+    if (lowerContent.includes(word.toLowerCase())) return true;
+  }
+  for (const pattern of regexPatterns) {
+    if (typeof pattern !== "string" || pattern.length === 0 || pattern.length > 200) continue;
+    try {
+      const regex = new RegExp(pattern, "i");
+      if (regex.test(content)) return true;
+    } catch {
+    }
+  }
+  return false;
+}
+function checkCaps(rule, content) {
+  const config2 = rule.config;
+  const minLength = config2.minLength ?? 10;
+  const maxPercent = config2.maxCapsPercent ?? 70;
+  if (content.length < minLength) return false;
+  const letters = content.match(/[a-zA-Z]/g);
+  if (!letters || letters.length < minLength) return false;
+  const caps = letters.filter((c) => c === c.toUpperCase()).length;
+  const percent = caps / letters.length * 100;
+  return percent > maxPercent;
+}
+function checkMentions(rule, message) {
+  const config2 = rule.config;
+  const maxMentions = config2.maxMentions ?? 5;
+  const mentionCount = message.mentions.users.size + message.mentions.roles.size;
+  return mentionCount > maxMentions;
+}
+function checkAttachments(rule, message) {
+  const config2 = rule.config;
+  const blockedExtensions = config2.blockedExtensions ?? ["exe", "bat", "cmd", "scr", "pif", "com", "jar", "msi"];
+  for (const attachment of message.attachments.values()) {
+    const ext = attachment.name.split(".").pop()?.toLowerCase();
+    if (ext && blockedExtensions.includes(ext)) return true;
+  }
+  return false;
+}
+function checkNewlines(rule, content) {
+  const config2 = rule.config;
+  const maxNewlines = config2.maxNewlines ?? 20;
+  const newlines = (content.match(/\n/g) || []).length;
+  return newlines > maxNewlines;
+}
+function checkEmojis(rule, content) {
+  const config2 = rule.config;
+  const maxEmojis = config2.maxEmojis ?? 20;
+  const customEmojis = (content.match(/<a?:[a-zA-Z0-9_]+:\d+>/g) || []).length;
+  const unicodeEmojis = (content.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
+  return customEmojis + unicodeEmojis > maxEmojis;
+}
+function checkRepeated(rule, recentMessages, currentMessage) {
+  const config2 = rule.config;
+  const maxRepeated = config2.maxRepeated ?? 3;
+  let count = 0;
+  for (const msg of recentMessages) {
+    if (msg.content === currentMessage.content && msg.author.id === currentMessage.author.id) {
+      count++;
+    }
+  }
+  return count >= maxRepeated;
+}
+async function getEnabledRules(guildId) {
+  const now = Date.now();
+  const cached2 = ruleCache.get(guildId);
+  if (cached2 && cached2.expiresAt > now) return cached2.rules;
+  const rules = await AutoModRule.find({ guildId, enabled: true }).lean();
+  ruleCache.set(guildId, { rules, expiresAt: now + RULE_CACHE_TTL_MS });
+  return rules;
+}
+function invalidateAutomodCache(guildId) {
+  if (guildId) ruleCache.delete(guildId);
+  else ruleCache.clear();
+}
+async function checkAutomod(message) {
+  if (!message.guild || !message.channel.isTextBased()) return;
+  if (message.author.bot) return;
+  const guild = message.guild;
+  const member = message.member ?? await guild.members.fetch(message.author.id).catch(() => null);
+  if (!member) return;
+  if (member.permissions.has("Administrator") || member.permissions.has("ManageMessages")) return;
+  const rules = await getEnabledRules(guild.id);
+  if (!rules.length) return;
+  const historyEntries = recordMessage(message);
+  const recentMessages = entriesToMessages(historyEntries.filter((e) => e.id !== message.id));
+  for (const rule of rules) {
+    if (isIgnoredChannel(message.channelId, rule.ignoreChannels)) continue;
+    if (hasIgnoreRole(member, rule.ignoreRoles)) continue;
+    let triggered = false;
+    let reason = "";
+    switch (rule.type) {
+      case "spam": {
+        if (checkSpam(rule, [...recentMessages, { id: message.id, author: { id: message.author.id }, content: message.content, createdTimestamp: message.createdTimestamp }])) {
+          triggered = true;
+          reason = "Message spam detected";
+        }
+        break;
+      }
+      case "links":
+      case "invites": {
+        if (checkLinks(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains unauthorized links/invites";
+        }
+        break;
+      }
+      case "words": {
+        if (checkWords(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains banned words/phrases";
+        }
+        break;
+      }
+      case "caps": {
+        if (checkCaps(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive caps";
+        }
+        break;
+      }
+      case "mentions": {
+        if (checkMentions(rule, message)) {
+          triggered = true;
+          reason = "Message contains excessive mentions";
+        }
+        break;
+      }
+      case "attachments": {
+        if (checkAttachments(rule, message)) {
+          triggered = true;
+          reason = "Message contains blocked file types";
+        }
+        break;
+      }
+      case "newlines": {
+        if (checkNewlines(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive newlines";
+        }
+        break;
+      }
+      case "emojis": {
+        if (checkEmojis(rule, message.content)) {
+          triggered = true;
+          reason = "Message contains excessive emojis";
+        }
+        break;
+      }
+      case "repeated": {
+        if (checkRepeated(rule, recentMessages, message)) {
+          triggered = true;
+          reason = "Repeated messages detected";
+        }
+        break;
+      }
+    }
+    if (triggered) {
+      await executeActions({ guild, message, user: message.author }, rule, reason);
+      break;
+    }
+  }
+}
+function shutdownAutomod() {
+  historyByChannel.clear();
+  ruleCache.clear();
+}
+async function initAutomod() {
+  console.log("[AutoMod] Auto-moderation system initialized");
+}
+var import_discord16, HISTORY_WINDOW_MS, historyByChannel, RULE_CACHE_TTL_MS, ruleCache;
+var init_automod = __esm({
+  "src/handlers/automod.ts"() {
+    "use strict";
+    init_AutoModRule();
+    init_Infraction();
+    init_LogChannel();
+    init_metrics();
+    import_discord16 = __toESM(require_src());
+    __name(hasIgnoreRole, "hasIgnoreRole");
+    __name(isIgnoredChannel, "isIgnoredChannel");
+    __name(getLogChannel, "getLogChannel");
+    __name(sendLog, "sendLog");
+    __name(createInfraction, "createInfraction");
+    __name(executeActions, "executeActions");
+    HISTORY_WINDOW_MS = 3e4;
+    historyByChannel = /* @__PURE__ */ new Map();
+    __name(recordMessage, "recordMessage");
+    __name(entriesToMessages, "entriesToMessages");
+    __name(checkSpam, "checkSpam");
+    __name(checkLinks, "checkLinks");
+    __name(checkWords, "checkWords");
+    __name(checkCaps, "checkCaps");
+    __name(checkMentions, "checkMentions");
+    __name(checkAttachments, "checkAttachments");
+    __name(checkNewlines, "checkNewlines");
+    __name(checkEmojis, "checkEmojis");
+    __name(checkRepeated, "checkRepeated");
+    RULE_CACHE_TTL_MS = 15e3;
+    ruleCache = /* @__PURE__ */ new Map();
+    __name(getEnabledRules, "getEnabledRules");
+    __name(invalidateAutomodCache, "invalidateAutomodCache");
+    __name(checkAutomod, "checkAutomod");
+    __name(shutdownAutomod, "shutdownAutomod");
+    __name(initAutomod, "initAutomod");
+  }
+});
+
 // node_modules/pino-std-serializers/lib/err-helpers.js
 var require_err_helpers = __commonJS({
   "node_modules/pino-std-serializers/lib/err-helpers.js"(exports2, module2) {
@@ -177324,7 +178531,7 @@ var require_transport = __commonJS({
     }
     __name(flush, "flush");
     function transport(fullOptions) {
-      const { pipeline: pipeline3, targets, levels, dedupe, worker = {}, caller = getCallers(), sync = false } = fullOptions;
+      const { pipeline: pipeline3, targets, levels: levels2, dedupe, worker = {}, caller = getCallers(), sync = false } = fullOptions;
       const options = {
         ...fullOptions.options
       };
@@ -177365,8 +178572,8 @@ var require_transport = __commonJS({
           };
         })];
       }
-      if (levels) {
-        options.levels = levels;
+      if (levels2) {
+        options.levels = levels2;
       }
       if (dedupe) {
         options.dedupe = dedupe;
@@ -177876,8 +179083,8 @@ var require_levels = __commonJS({
     }
     __name(setLevel, "setLevel");
     function getLevel(level) {
-      const { levels, levelVal } = this;
-      return levels && levels.labels ? levels.labels[levelVal] : "";
+      const { levels: levels2, levelVal } = this;
+      return levels2 && levels2.labels ? levels2.labels[levelVal] : "";
     }
     __name(getLevel, "getLevel");
     function isLevelEnabled(logLevel) {
@@ -177940,8 +179147,8 @@ var require_levels = __commonJS({
       }
     }
     __name(assertDefaultLevelFound, "assertDefaultLevelFound");
-    function assertNoLevelCollisions(levels, customLevels) {
-      const { labels, values } = levels;
+    function assertNoLevelCollisions(levels2, customLevels) {
+      const { labels, values } = levels2;
       for (const k in customLevels) {
         if (k in values) {
           throw Error("levels cannot be overridden");
@@ -179172,13 +180379,13 @@ var require_pino = __commonJS({
       if (mixin && typeof mixin !== "function") throw Error(`Unknown mixin type "${typeof mixin}" - expected "function"`);
       if (msgPrefix && typeof msgPrefix !== "string") throw Error(`Unknown msgPrefix type "${typeof msgPrefix}" - expected "string"`);
       assertDefaultLevelFound(level, customLevels, useOnlyCustomLevels);
-      const levels = mappings(customLevels, useOnlyCustomLevels);
+      const levels2 = mappings(customLevels, useOnlyCustomLevels);
       if (stream && stream[transportUsesMultistreamSym] === true) {
         let sampleLabel = typeof level === "string" ? level : void 0;
-        if (!sampleLabel || levels[sampleLabel] === void 0) {
-          sampleLabel = Object.keys(levels)[0];
+        if (!sampleLabel || levels2[sampleLabel] === void 0) {
+          sampleLabel = Object.keys(levels2)[0];
         }
-        const sampleNumber = levels[sampleLabel];
+        const sampleNumber = levels2[sampleLabel];
         let ok = false;
         try {
           const formatted = formatters.level(sampleLabel, sampleNumber);
@@ -179194,12 +180401,12 @@ var require_pino = __commonJS({
         }
       }
       if (typeof stream.emit === "function") {
-        stream.emit("message", { code: "PINO_CONFIG", config: { levels, messageKey, errorKey } });
+        stream.emit("message", { code: "PINO_CONFIG", config: { levels: levels2, messageKey, errorKey } });
       }
       assertLevelComparison(levelComparison);
       const levelCompFunc = genLevelComparison(levelComparison);
       Object.assign(instance, {
-        levels,
+        levels: levels2,
         [levelCompSym]: levelCompFunc,
         [useOnlyCustomLevelsSym]: useOnlyCustomLevels,
         [streamSym]: stream,
@@ -179252,52 +180459,2239 @@ var require_pino = __commonJS({
   }
 });
 
+// src/core/safety.ts
+function isDuplicateKeyError(err) {
+  return typeof err === "object" && err !== null && err.code === 11e3;
+}
+function clampInt(value, fallback, min, max) {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(Math.round(n), min), max);
+}
+function isSnowflake(value) {
+  return typeof value === "string" && /^\d{5,25}$/.test(value);
+}
+function cleanIdList(value, max = 100) {
+  if (!Array.isArray(value)) return [];
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const v of value) {
+    if (typeof v !== "string") continue;
+    const t = v.trim();
+    if (!isSnowflake(t) || seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+async function withMutex(key, fn) {
+  const previous = _locks.get(key) ?? Promise.resolve();
+  let release;
+  const next = new Promise((resolve2) => {
+    release = resolve2;
+  });
+  const tail = previous.then(() => next).catch(() => next);
+  _locks.set(key, tail);
+  await previous.catch(() => {
+  });
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (_locks.get(key) === tail) _locks.delete(key);
+  }
+}
+function pruneMap(map2, cap, isExpired) {
+  if (isExpired) {
+    for (const [k, v] of map2) {
+      if (isExpired(v)) map2.delete(k);
+    }
+  }
+  if (map2.size <= cap) return;
+  const excess = map2.size - cap;
+  let removed = 0;
+  for (const k of map2.keys()) {
+    if (removed >= excess) break;
+    map2.delete(k);
+    removed++;
+  }
+}
+async function getTextChannel(guild, id) {
+  if (!id || !isSnowflake(id)) return null;
+  const cached2 = guild.channels.cache.get(id);
+  if (cached2 && cached2.isTextBased() && !cached2.isThread()) return cached2;
+  try {
+    const fetched = await guild.channels.fetch(id);
+    if (!fetched || !fetched.isTextBased() || fetched.isThread()) return null;
+    return fetched;
+  } catch {
+    return null;
+  }
+}
+async function safeDm(guild, userId, content) {
+  if (!isSnowflake(userId) || !content) return;
+  try {
+    const user = await guild.client.users.fetch(userId);
+    await user.send({ content: content.slice(0, 1900) }).catch(() => {
+    });
+  } catch {
+  }
+}
+var _locks;
+var init_safety = __esm({
+  "src/core/safety.ts"() {
+    "use strict";
+    __name(isDuplicateKeyError, "isDuplicateKeyError");
+    __name(clampInt, "clampInt");
+    __name(isSnowflake, "isSnowflake");
+    __name(cleanIdList, "cleanIdList");
+    _locks = /* @__PURE__ */ new Map();
+    __name(withMutex, "withMutex");
+    __name(pruneMap, "pruneMap");
+    __name(getTextChannel, "getTextChannel");
+    __name(safeDm, "safeDm");
+  }
+});
+
+// src/utils/shared-embeds.ts
+var import_discord85, EmbedBuilderUtil;
+var init_shared_embeds = __esm({
+  "src/utils/shared-embeds.ts"() {
+    "use strict";
+    import_discord85 = __toESM(require_src());
+    EmbedBuilderUtil = class {
+      static {
+        __name(this, "EmbedBuilderUtil");
+      }
+      static success(title, description, fields = []) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
+      }
+      static error(title, description, fields = []) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
+      }
+      static warning(title, description, fields = []) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
+      }
+      static info(title, description, fields = []) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
+      }
+      static ticketPanel(title, description, options = []) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
+      }
+      static ticketControl(ticketData) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
+          { name: "\u{1F464} Created by", value: `<@${ticketData.user_id}>`, inline: true },
+          { name: "\u{1F4C2} Type", value: ticketData.type, inline: true },
+          { name: "\u{1F4CA} Status", value: ticketData.status, inline: true },
+          { name: "\u{1F46E} Claimed by", value: ticketData.claimed_by ? `<@${ticketData.claimed_by}>` : "None", inline: true },
+          { name: "\u{1F4C5} Created", value: `<t:${Math.floor(new Date(ticketData.created_at).getTime() / 1e3)}:R>`, inline: true }
+        ).setTimestamp();
+      }
+      static suggestion(suggestion) {
+        const colors = {
+          pending: import_discord85.Colors.Blue,
+          noted: import_discord85.Colors.Yellow,
+          approved: import_discord85.Colors.Green,
+          denied: import_discord85.Colors.Red,
+          under_review: import_discord85.Colors.Orange
+        };
+        return new import_discord85.EmbedBuilder().setColor(colors[suggestion.status] || import_discord85.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
+          { name: "\u{1F464} Author", value: `<@${suggestion.user_id}>`, inline: true },
+          { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
+          { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
+          { name: "\u{1F4CA} Status", value: suggestion.status, inline: true }
+        ).setFooter({ text: `ID: ${suggestion.id} | Thread: ${suggestion.thread_id}` }).setTimestamp();
+      }
+      static suggestionReview(suggestion) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
+          { name: "\u{1F464} Author", value: `<@${suggestion.user_id}> (${suggestion.user_id})`, inline: true },
+          { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
+          { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
+          { name: "\u{1F4CA} Current Status", value: suggestion.status, inline: true }
+        ).setFooter({ text: `Suggestion ID: ${suggestion.id}` }).setTimestamp();
+      }
+      static presentation(presentation) {
+        const questions = typeof presentation.answers === "string" ? JSON.parse(presentation.answers) : presentation.answers;
+        const fields = questions.map((qa, i) => ({
+          name: `Q${i + 1}: ${qa.question}`,
+          value: qa.answer || "*No answer*",
+          inline: false
+        }));
+        const colors = {
+          pending: import_discord85.Colors.Blue,
+          approved: import_discord85.Colors.Green,
+          denied: import_discord85.Colors.Red,
+          changes_requested: import_discord85.Colors.Orange
+        };
+        return new import_discord85.EmbedBuilder().setColor(colors[presentation.status] || import_discord85.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
+      }
+      static serverStatus(server2, status) {
+        const isOnline = status?.online;
+        const proxyOffline = !isOnline && !!status?.motd;
+        return new import_discord85.EmbedBuilder().setColor(isOnline ? import_discord85.Colors.Green : import_discord85.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
+          isOnline ? "Server is online" : status?.error ? `Server is offline \u2014 ${status.error}` : "Server is offline"
+        ).addFields(
+          { name: "\u{1F310} Address", value: `${server2?.host ?? "?"}:${server2?.port ?? "?"}`, inline: true },
+          { name: "\u{1F465} Players", value: isOnline ? `${status.players?.online ?? 0}/${status.players?.max ?? 0}` : "N/A", inline: true },
+          { name: "\u{1F4E6} Version", value: isOnline ? status.version?.name ?? "N/A" : proxyOffline && status.version?.name ? status.version.name : "N/A", inline: true },
+          { name: "\u{1F4DD} MOTD", value: isOnline || proxyOffline ? this.cleanMotd(status.motd) : "N/A", inline: false }
+        ).setTimestamp().setFooter({ text: "Last updated" });
+      }
+      static cleanMotd(motd) {
+        if (!motd) return "N/A";
+        if (typeof motd === "string") return motd.replace(/§[0-9a-fk-or]/gi, "");
+        if (motd.clean) return motd.clean.replace(/§[0-9a-fk-or]/gi, "");
+        if (motd.raw) return motd.raw.replace(/§[0-9a-fk-or]/gi, "");
+        return JSON.stringify(motd).replace(/§[0-9a-fk-or]/gi, "");
+      }
+      static welcome(member, guild, memberCount) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
+          { name: "\u{1F4CB} Read Rules", value: "See the rules channels", inline: true },
+          { name: "\u{1F3AE} Servers", value: "Check server status", inline: true },
+          { name: "\u{1F3AB} Support", value: "Open a ticket", inline: true }
+        ).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
+      }
+      static goodbye(member, guild, memberCount) {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
+      }
+      static modpackTutorial() {
+        return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
+          {
+            name: "\u{1F4BB} PC - SKLauncher 4.0",
+            value: '1. Download SKLauncher 4.0 from [sklauncher.net](https://sklauncher.net)\n2. Install and open the launcher\n3. Go to "Content Hub" tab\n4. Search for our modpack\n5. Click "Install" and then "Play"'
+          },
+          {
+            name: "\u{1F4F1} Mobile - MJLauncher",
+            value: "1. Download MJLauncher from [mojolauncher.com/](https://mojolauncher.com/) or Play Store\n2. Open the app\n3. Create a new modpack instance\n4. Find our modpack\n5. Tap Install and Play"
+          }
+        ).setFooter({ text: "Need help? Create a ticket in #\u{1F691}\u2802\u{1D531}\u{1D522}\u{1D520}\u{1D525}-\u{1D530}\u{1D532}\u{1D52D}\u{1D52D}\u{1D52C}\u{1D52F}\u{1D531}" }).setTimestamp();
+      }
+    };
+  }
+});
+
+// src/systems/verification/index.ts
+var import_discord86, VerificationSystem, verification;
+var init_verification = __esm({
+  "src/systems/verification/index.ts"() {
+    "use strict";
+    import_discord86 = __toESM(require_src());
+    init_Verification();
+    init_shared_embeds();
+    init_safety();
+    init_metrics();
+    VerificationSystem = class {
+      static {
+        __name(this, "VerificationSystem");
+      }
+      async getSettings(guildId) {
+        const row = await VerificationConfig.findOneAndUpdate(
+          { guildId },
+          { $setOnInsert: { guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 } },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        ).lean();
+        const r = row;
+        return {
+          enabled: r.enabled === true,
+          unverifiedRoleId: r.unverifiedRoleId ?? null,
+          verifiedRoleId: r.verifiedRoleId ?? null,
+          rulesChannelId: r.rulesChannelId ?? null,
+          panelMessageId: r.panelMessageId ?? null,
+          autoRoleIds: Array.isArray(r.autoRoleIds) ? r.autoRoleIds : [],
+          requireApproval: r.requireApproval === true,
+          logChannelId: r.logChannelId ?? null,
+          minAccountAgeDays: r.minAccountAgeDays ?? 0,
+          voiceChannelId: r.voiceChannelId ?? null,
+          staffRoleId: r.staffRoleId ?? null
+        };
+      }
+      async setSettings(guildId, data) {
+        if (!/^\d{5,25}$/.test(guildId)) throw new Error("Invalid guild id");
+        const allowedIdFields = ["unverifiedRoleId", "verifiedRoleId", "rulesChannelId", "logChannelId", "voiceChannelId", "staffRoleId", "panelMessageId"];
+        const updates = {};
+        for (const field of allowedIdFields) {
+          if (data[field] !== void 0) {
+            const value = data[field];
+            if (value !== null && !/^\d{5,25}$/.test(String(value))) throw new Error(`Invalid ${field}`);
+            updates[field] = value;
+          }
+        }
+        if (data.enabled !== void 0) updates.enabled = Boolean(data.enabled);
+        if (data.requireApproval !== void 0) updates.requireApproval = Boolean(data.requireApproval);
+        if (data.minAccountAgeDays !== void 0) updates.minAccountAgeDays = clampInt(data.minAccountAgeDays, 0, 0, 365);
+        if (data.autoRoleIds !== void 0) {
+          if (!Array.isArray(data.autoRoleIds)) throw new Error("autoRoleIds must be an array");
+          updates.autoRoleIds = cleanIdList(data.autoRoleIds, 25);
+        }
+        if (Object.keys(updates).length === 0) throw new Error("No settings supplied");
+        await VerificationConfig.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
+      }
+      async setPanelMessage(guildId, messageId) {
+        await this.setSettings(guildId, { panelMessageId: messageId });
+      }
+      async setAutoRoles(guildId, roleIds) {
+        await this.setSettings(guildId, { autoRoleIds: [...new Set(roleIds)] });
+      }
+      async addAutoRole(guildId, roleId) {
+        const settings = await this.getSettings(guildId);
+        if (settings.autoRoleIds.includes(roleId)) return false;
+        await this.setAutoRoles(guildId, [...settings.autoRoleIds, roleId]);
+        return true;
+      }
+      async removeAutoRole(guildId, roleId) {
+        const settings = await this.getSettings(guildId);
+        if (!settings.autoRoleIds.includes(roleId)) return false;
+        await this.setAutoRoles(guildId, settings.autoRoleIds.filter((id) => id !== roleId));
+        return true;
+      }
+      isConfigured(settings) {
+        return !!settings.unverifiedRoleId;
+      }
+      isVerified(member, settings) {
+        if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return true;
+        if (!settings.unverifiedRoleId) return true;
+        return !member.roles.cache.has(settings.unverifiedRoleId);
+      }
+      manageableRoles(member, roleIds) {
+        return roleIds.map((id) => member.guild.roles.cache.get(id)).filter((role) => !!role && role.editable);
+      }
+      async handleMemberAdd(member) {
+        const result = { granted: [], ungranted: [], unverifiedGranted: false };
+        const settings = await this.getSettings(member.guild.id);
+        if (!settings.enabled || !settings.unverifiedRoleId) return result;
+        if (member.user.bot) return result;
+        if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return result;
+        const autoRoles = settings.autoRoleIds.filter(
+          (id) => id !== settings.unverifiedRoleId && id !== settings.verifiedRoleId
+        );
+        const toAdd = this.manageableRoles(member, autoRoles).filter((role) => !member.roles.cache.has(role.id));
+        result.granted = toAdd.map((role) => role.id);
+        result.ungranted = autoRoles.filter((id) => !this.manageableRoles(member, [id]).length);
+        if (toAdd.length) {
+          await member.roles.add(toAdd, "Automatic newbie roles").catch(() => {
+          });
+        }
+        const unverifiedRole = member.guild.roles.cache.get(settings.unverifiedRoleId);
+        if (unverifiedRole?.editable && !member.roles.cache.has(unverifiedRole.id)) {
+          await member.roles.add(unverifiedRole, "Awaiting newbie verification").catch(() => {
+          });
+          result.unverifiedGranted = true;
+        }
+        return result;
+      }
+      missingAutoRoles(member, settings) {
+        return settings.autoRoleIds.filter(
+          (roleId) => roleId !== settings.unverifiedRoleId && roleId !== settings.verifiedRoleId && !member.roles.cache.has(roleId)
+        );
+      }
+      accountAgeBlock(member, settings) {
+        if (settings.minAccountAgeDays <= 0) return null;
+        const ageDays = (Date.now() - member.user.createdTimestamp) / 864e5;
+        if (ageDays >= settings.minAccountAgeDays) return null;
+        const remaining = Math.ceil(settings.minAccountAgeDays - ageDays);
+        return `Your account must be at least **${settings.minAccountAgeDays} day(s)** old \u2014 try again in about **${remaining} day(s)**.`;
+      }
+      buildPanel(guild, settings) {
+        const unverified = guild.roles.cache.get(settings.unverifiedRoleId ?? "");
+        const rulesTarget = settings.rulesChannelId ? `in <#${settings.rulesChannelId}>` : "in the rules channel";
+        const steps = [
+          `1\uFE0F\u20E3 Read the rules ${rulesTarget}.`,
+          "2\uFE0F\u20E3 Press **Verify me** below.",
+          "3\uFE0F\u20E3 A staff member joins you in a short private voice call to confirm you are a real person and agree to the rules.",
+          "4\uFE0F\u20E3 On approval you instantly get access to the rest of the server."
+        ].join("\n");
+        const embed = new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
+          `Before you can chat you need to accept our rules.
+
+${steps}` + (unverified ? `
+
+Right now you have ${unverified}, so you can only see the rules channels.` : "")
+        ).addFields({
+          name: "\u26A0\uFE0F By verifying you agree to",
+          value: "Follow the server rules, stay respectful, and no spam or NSFW content.",
+          inline: false
+        });
+        return embed.setFooter({ text: `Verification \u2022 ${guild.name}` }).setTimestamp();
+      }
+      buildPanelRow(_guild, _settings) {
+        const buttons = [
+          new import_discord86.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord86.ButtonStyle.Success)
+        ];
+        return new import_discord86.ActionRowBuilder().addComponents(buttons);
+      }
+      async postPanel(channel) {
+        const guild = channel.guild;
+        const settings = await this.getSettings(guild.id);
+        if (!settings.unverifiedRoleId) {
+          throw new Error("No unverified role configured. Run `/verify setup` first.");
+        }
+        await guild.roles.fetch().catch(() => {
+        });
+        if (settings.panelMessageId) {
+          const old = await channel.messages.fetch(settings.panelMessageId).catch(() => null);
+          await old?.delete().catch(() => {
+          });
+        }
+        const message = await channel.send({
+          embeds: [this.buildPanel(guild, settings)],
+          components: [this.buildPanelRow(guild, settings)]
+        });
+        await this.setPanelMessage(guild.id, message.id);
+        return message.id;
+      }
+      async handleVerifyButton(interaction) {
+        await interaction.deferReply({ flags: 64 });
+        const guild = interaction.guild;
+        const member = interaction.member;
+        const settings = await this.getSettings(guild.id);
+        if (!settings.enabled) {
+          await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Verification disabled", "Verification is currently disabled.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Verification disabled").setDescription("Verification is currently disabled.")] });
+          return;
+        }
+        if (!settings.unverifiedRoleId) {
+          await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Not configured", "No unverified role is set.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Not configured").setDescription("No unverified role is set.")] });
+          return;
+        }
+        if (this.isVerified(member, settings)) {
+          await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Already verified", "You already have full access.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Already verified").setDescription("You already have full access.")] });
+          return;
+        }
+        const ageBlock = this.accountAgeBlock(member, settings);
+        if (ageBlock) {
+          await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Account too new", ageBlock) ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Account too new").setDescription(ageBlock)] });
+          return;
+        }
+        const retry = this.manageableRoles(member, this.missingAutoRoles(member, settings));
+        if (retry.length) {
+          await member.roles.add(retry, "Automatic newbie roles").catch(() => {
+          });
+        }
+        const live = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
+        if (live) {
+          await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Already requested", "Your request is already waiting for staff review.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Already requested").setDescription("Your request is already waiting for staff review.")] });
+          return;
+        }
+        const request = await withMutex(`verify:${guild.id}:${member.id}`, async () => {
+          const recheck = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
+          if (recheck) return recheck;
+          try {
+            return await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: "pending" });
+          } catch (err) {
+            if (isDuplicateKeyError(err)) {
+              return VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
+            }
+            throw err;
+          }
+        });
+        if (!request) {
+          await interaction.editReply({ content: "\u274C Could not create your request. Try again." });
+          return;
+        }
+        const channelId = settings.logChannelId || settings.rulesChannelId;
+        if (channelId) {
+          const channel = guild.channels.cache.get(channelId);
+          if (channel?.isTextBased() && !channel.isThread()) {
+            const staffRoleId = settings.staffRoleId;
+            await channel.send({
+              content: staffRoleId ? `<@&${staffRoleId}>` : void 0,
+              allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
+              embeds: [this.reviewEmbed(request, member, settings)],
+              components: [this.reviewRow(request.id.toString())]
+            }).catch(() => {
+            });
+          }
+        }
+        try {
+          const user = await guild.client.users.fetch(member.id);
+          await user.send({ content: "\u23F3 Your verification request was sent to the staff team. When a staff member is available they will invite you to a short private voice call to verify you." }).catch(() => {
+          });
+        } catch {
+        }
+        await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Request sent", "A staff member will invite you to a short private voice call to complete verification.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Request sent").setDescription("A staff member will invite you to a short private voice call to complete verification.")] });
+      }
+      async approveMember(member, settings) {
+        const add = [];
+        const remove = [];
+        if (settings.unverifiedRoleId && member.roles.cache.has(settings.unverifiedRoleId)) remove.push(settings.unverifiedRoleId);
+        if (settings.verifiedRoleId) {
+          const role = member.guild.roles.cache.get(settings.verifiedRoleId);
+          if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
+        }
+        if (remove.length) await member.roles.remove(remove, "Verification completed");
+        if (add.length) await member.roles.add(add, "Verification completed");
+      }
+      denyModal(requestId) {
+        return new import_discord86.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
+          new import_discord86.ActionRowBuilder().addComponents(
+            new import_discord86.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord86.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+          )
+        );
+      }
+      hasStaff(interaction, settings) {
+        const member = interaction.member;
+        if (!member) return false;
+        if (member.permissions?.has("ManageGuild")) return true;
+        if (member.permissions?.has("ManageMessages")) return true;
+        if (settings.staffRoleId && member.roles?.cache.has(settings.staffRoleId)) return true;
+        return false;
+      }
+      async handleApprove(interaction, requestId) {
+        const request = await VerificationRequest.findById(requestId);
+        if (!request || request.status !== "pending") {
+          await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
+          return;
+        }
+        const guild = interaction.guild;
+        const settings = await this.getSettings(guild.id);
+        if (!this.hasStaff(interaction, settings)) {
+          await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+          return;
+        }
+        await interaction.deferReply({ flags: 64 });
+        const member = await guild.members.fetch(request.userId).catch(() => null);
+        request.status = "approved";
+        request.reviewedBy = interaction.user.id;
+        request.reviewedAt = /* @__PURE__ */ new Date();
+        await request.save();
+        recordActivity("command", "Verification approved", { level: "success", meta: { guildId: guild.id, userId: request.userId, reviewedBy: interaction.user.id } });
+        if (member) {
+          await this.approveMember(member, settings).catch((err) => {
+            console.warn("[Verification] approveMember role grant failed:", err?.message ?? err);
+          });
+          await safeDm(guild, request.userId, "\u{1F389} Welcome! Your verification was approved.");
+        }
+        await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", member ? `<@${request.userId}> has been verified.` : "Approved.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(member ? `<@${request.userId}> has been verified.` : "Approved.")] });
+        if (interaction.message) {
+          await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {
+          });
+        }
+      }
+      async handleDenyButton(interaction, requestId) {
+        const request = await VerificationRequest.findById(requestId);
+        if (!request || request.status !== "pending") {
+          await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
+          return;
+        }
+        const guild = interaction.guild;
+        const settings = await this.getSettings(guild.id);
+        if (!this.hasStaff(interaction, settings)) {
+          await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+          return;
+        }
+        await interaction.showModal(this.denyModal(requestId));
+      }
+      async handleDenyModal(interaction, requestId) {
+        const guild = interaction.guild;
+        const settings = await this.getSettings(guild.id);
+        if (!this.hasStaff(interaction, settings)) {
+          await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+          return;
+        }
+        await interaction.deferReply({ flags: 64 });
+        const request = await VerificationRequest.findById(requestId);
+        if (!request || request.status !== "pending") {
+          await interaction.editReply({ content: "\u274C This request is no longer pending." });
+          return;
+        }
+        const reason = interaction.fields.getTextInputValue("deny_reason");
+        request.status = "denied";
+        request.reviewedBy = interaction.user.id;
+        request.reviewedAt = /* @__PURE__ */ new Date();
+        request.reason = reason;
+        await request.save();
+        try {
+          await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was denied.
+**Reason:** ${reason}`).catch(() => {
+          }));
+        } catch {
+        }
+        await interaction.editReply({ content: "\u2705 Request denied." });
+        if (interaction.message) {
+          await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}
+**Reason:** ${reason}`)], components: [] }).catch(() => {
+          });
+        }
+      }
+      async reviewUser(member, action, reviewerId, reason) {
+        const guild = member.guild;
+        const settings = await this.getSettings(guild.id);
+        if (action === "approve") {
+          await this.approveMember(member, settings);
+          try {
+            await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F389} Welcome! Your verification was approved.").catch(() => {
+            }));
+          } catch {
+          }
+          return;
+        }
+        const pending = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: "pending" });
+        if (pending) {
+          pending.status = "denied";
+          pending.reviewedBy = reviewerId;
+          pending.reviewedAt = /* @__PURE__ */ new Date();
+          pending.reason = reason ?? void 0;
+          await pending.save();
+        }
+        try {
+          await guild.client.users.fetch(member.id).then((u) => u.send(`\u274C Your verification was denied.
+**Reason:** ${reason || "No reason given"}`).catch(() => {
+          }));
+        } catch {
+        }
+      }
+      async resetMember(member, actorId) {
+        const guild = member.guild;
+        const settings = await this.getSettings(guild.id);
+        await VerificationRequest.deleteMany({ guildId: guild.id, userId: member.id, status: "pending" });
+        const remove = [];
+        const add = [];
+        if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) remove.push(settings.verifiedRoleId);
+        if (settings.unverifiedRoleId) {
+          const role = guild.roles.cache.get(settings.unverifiedRoleId);
+          if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
+        }
+        if (remove.length) await member.roles.remove(remove, "Verification reset");
+        if (add.length) await member.roles.add(add, "Verification reset");
+        try {
+          await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F504} Your verification was reset by the staff team. Please verify again using the panel.").catch(() => {
+          }));
+        } catch {
+        }
+      }
+      pendingRequests(guildId, limit = 25) {
+        return VerificationRequest.find({ guildId, status: { $in: ["pending", "claimed"] } }).sort({ createdAt: -1 }).limit(limit).lean();
+      }
+      pendingCount(guildId) {
+        return VerificationRequest.countDocuments({ guildId, status: "pending" });
+      }
+      reviewEmbed(request, member, _settings) {
+        return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
+          `<@${request.userId}> is waiting to be verified.
+
+Press **Claim & verify** to take this request.`
+        ).addFields(
+          { name: "\u{1F464} Member", value: member ? `<@${member.id}>
+${member.user.username}` : `<@${request.userId}>`, inline: true },
+          { name: "\u23F3 Submitted", value: `<t:${Math.floor(new Date(request.submittedAt ?? request.createdAt).getTime() / 1e3)}:R>`, inline: true }
+        ).setFooter({ text: `Request ID: ${request._id}` }).setTimestamp();
+      }
+      reviewRow(requestId) {
+        return new import_discord86.ActionRowBuilder().addComponents(
+          new import_discord86.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord86.ButtonStyle.Primary)
+        );
+      }
+      async log(guild, settings, embed) {
+        const channel = await getTextChannel(guild, settings.logChannelId ?? settings.rulesChannelId ?? void 0);
+        if (!channel) return;
+        await channel.send({ embeds: [embed] }).catch(() => {
+        });
+      }
+      async dm(guild, userId, content) {
+        try {
+          await guild.client.users.fetch(userId).then((u) => u.send({ content }).catch(() => {
+          }));
+        } catch {
+        }
+      }
+    };
+    verification = new VerificationSystem();
+  }
+});
+
+// src/systems/verification/vc.ts
+var vc_exports = {};
+__export(vc_exports, {
+  VcVerificationSystem: () => VcVerificationSystem,
+  interactionCreateVcVerification: () => interactionCreateVcVerification,
+  vcVerification: () => vcVerification,
+  voiceStateUpdateVerification: () => voiceStateUpdateVerification
+});
+var import_discord92, import_discord93, DM_TIMEOUT_MS, VcVerificationSystem, vcVerification, voiceStateUpdateVerification, interactionCreateVcVerification;
+var init_vc = __esm({
+  "src/systems/verification/vc.ts"() {
+    "use strict";
+    import_discord92 = __toESM(require_src());
+    init_verification();
+    init_shared_embeds();
+    init_Verification();
+    import_discord93 = __toESM(require_src());
+    DM_TIMEOUT_MS = 10 * 6e4;
+    VcVerificationSystem = class {
+      static {
+        __name(this, "VcVerificationSystem");
+      }
+      timers = /* @__PURE__ */ new Map();
+      hasVerificationStaff(member) {
+        if (member.permissions.has(import_discord92.PermissionFlagsBits.Administrator)) return true;
+        if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageGuild)) return true;
+        if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageMessages)) return true;
+        return false;
+      }
+      async handleClaim(interaction, requestId) {
+        const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
+        if (!request || request.status !== "pending") {
+          await interaction.reply({ content: "\u274C This request is no longer waiting.", flags: 64 });
+          return;
+        }
+        const guild = interaction.guild;
+        const claimant = interaction.member;
+        if (!this.hasVerificationStaff(claimant)) {
+          await interaction.reply({ content: "\u274C Only staff can claim a verification.", flags: 64 });
+          return;
+        }
+        await VerificationRequest.updateOne(
+          { _id: request._id, status: "pending" },
+          { status: "claimed", claimedBy: claimant.id, claimedAt: /* @__PURE__ */ new Date() }
+        );
+        const claimedDoc = await VerificationRequest.findById(request._id).lean();
+        if (claimedDoc) Object.assign(request, claimedDoc);
+        await interaction.reply({
+          embeds: [EmbedBuilderUtil.info?.("Verification claimed", `You are now verifying <@${request.userId}>.
+Join the verification VC and talk to them, then press Approve or Deny.`) ?? new import_discord93.EmbedBuilder().setColor(5793266).setTitle("Verification claimed").setDescription(`You are now verifying <@${request.userId}>.`)],
+          components: [this.decisionRow(requestId)],
+          flags: 64
+        });
+        this.armTimeout(guild, request, claimant);
+      }
+      decisionRow(requestId) {
+        return new import_discord92.ActionRowBuilder().addComponents(
+          new import_discord92.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord92.ButtonStyle.Success),
+          new import_discord92.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord92.ButtonStyle.Danger)
+        );
+      }
+      armTimeout(guild, request, _staff) {
+        const existing = this.timers.get(request._id.toString());
+        if (existing) clearTimeout(existing);
+        const timer = setTimeout(async () => {
+          this.timers.delete(request._id.toString());
+          try {
+            const fresh = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r._id.toString() === request._id.toString()));
+            if (!fresh || fresh.status !== "claimed") return;
+            await VerificationRequest.updateOne(
+              { _id: fresh._id, status: "claimed" },
+              { status: "pending", claimedBy: null, claimedAt: null }
+            );
+            try {
+              await guild.client.users.fetch(request.userId).then((u) => u.send("\u23F3 Your verification was put back in the queue.").catch(() => {
+              }));
+            } catch {
+            }
+          } catch {
+          }
+        }, DM_TIMEOUT_MS);
+        timer.unref?.();
+        this.timers.set(request._id.toString(), timer);
+      }
+      async handleVoiceJoin(member) {
+        const guild = member.guild;
+        const settings = await verification.getSettings(guild.id);
+        if (!settings.voiceChannelId || member.voice.channelId !== settings.voiceChannelId) return;
+        if (!this.hasVerificationStaff(member)) return;
+        const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
+        if (!request) return;
+        if (request.vcInvitedAt) return;
+        await VerificationRequest.updateOne(
+          { _id: request._id },
+          { vcInvitedAt: /* @__PURE__ */ new Date() }
+        );
+        const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
+        const link = vc ? `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}` : `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}`;
+        try {
+          await guild.client.users.fetch(request.userId).then((u) => u.send(`\u{1F399}\uFE0F A staff member is ready to verify you. Join: ${link}`).catch(() => {
+          }));
+        } catch {
+        }
+      }
+      async handleVoiceLeave(member, previousChannelId) {
+        const guild = member.guild;
+        const settings = await verification.getSettings(guild.id);
+        const leftFrom = previousChannelId ?? member.voice.channelId;
+        if (!settings.voiceChannelId || leftFrom !== settings.voiceChannelId) return;
+        const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
+        if (request) {
+          await VerificationRequest.updateOne(
+            { _id: request._id, status: "claimed" },
+            { status: "pending", claimedBy: null, claimedAt: null }
+          );
+          const timer = this.timers.get(request._id.toString());
+          if (timer) {
+            clearTimeout(timer);
+            this.timers.delete(request._id.toString());
+          }
+        }
+      }
+      async handleApprove(interaction, requestId) {
+        const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
+        if (!request || request.status !== "claimed") {
+          await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
+          return;
+        }
+        if (request.claimedBy !== interaction.user.id) {
+          await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
+          return;
+        }
+        await interaction.deferReply({ flags: 64 });
+        const guild = interaction.guild;
+        const settings = await verification.getSettings(guild.id);
+        const member = await guild.members.fetch(request.userId).catch(() => null);
+        if (member) await verification.approveMember(member, settings);
+        await VerificationRequest.updateOne(
+          { _id: request._id, status: "claimed" },
+          { status: "approved", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date() }
+        );
+        const timer = this.timers.get(requestId);
+        if (timer) {
+          clearTimeout(timer);
+          this.timers.delete(requestId);
+        }
+        try {
+          await guild.client.users.fetch(request.userId).then((u) => u.send(member ? `\u{1F389} Your voice verification was approved.` : "\u{1F389} Your voice verification was approved.").catch(() => {
+          }));
+        } catch {
+        }
+        await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", "<@" + request.userId + "> is verified and the VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription("<@" + request.userId + "> is verified and the VC has been cleared.")] });
+      }
+      async handleDeny(interaction, requestId) {
+        const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
+        if (!request || request.status !== "claimed") {
+          await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
+          return;
+        }
+        if (request.claimedBy !== interaction.user.id) {
+          await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
+          return;
+        }
+        const modal = new import_discord92.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(new import_discord92.ActionRowBuilder().addComponents(
+          new import_discord92.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason").setStyle(import_discord92.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+        ));
+        await interaction.showModal(modal);
+      }
+      async handleDenyModal(interaction, requestId) {
+        await interaction.deferReply({ flags: 64 });
+        const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
+        if (!request || request.status !== "claimed") {
+          await interaction.editReply({ content: "\u274C This verification is no longer active." });
+          return;
+        }
+        const reason = interaction.fields.getTextInputValue("deny_reason");
+        const guild = interaction.guild;
+        await VerificationRequest.updateOne(
+          { _id: request._id, status: "claimed" },
+          { status: "denied", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date(), reason }
+        );
+        const timer = this.timers.get(requestId);
+        if (timer) {
+          clearTimeout(timer);
+          this.timers.delete(requestId);
+        }
+        try {
+          await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was not approved.
+**Reason:** ${reason}`).catch(() => {
+          }));
+        } catch {
+        }
+        await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Denied", "The VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription("The VC has been cleared.")] });
+      }
+      clearTimer(requestId) {
+        const timer = this.timers.get(requestId);
+        if (timer) {
+          clearTimeout(timer);
+          this.timers.delete(requestId);
+        }
+      }
+      async emptyVc(guild) {
+        const settings = await verification.getSettings(guild.id);
+        if (!settings.voiceChannelId) return;
+        const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
+        if (!vc) return;
+        for (const m of vc.members.values()) await m.voice.disconnect("Voice verification finished").catch(() => {
+        });
+      }
+      shutdown() {
+        for (const timer of this.timers.values()) clearTimeout(timer);
+        this.timers.clear();
+      }
+    };
+    vcVerification = new VcVerificationSystem();
+    voiceStateUpdateVerification = {
+      name: "voiceStateUpdate",
+      execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
+        if (!newState.member || newState.member.user.bot) return;
+        const settings = await verification.getSettings(newState.guild?.id ?? oldState.guild?.id).catch(() => null);
+        const vcId = settings?.voiceChannelId;
+        if (!vcId) return;
+        if (newState.channelId === vcId && oldState.channelId !== vcId) {
+          try {
+            await vcVerification.handleVoiceJoin(newState.member).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (oldState.channelId === vcId && newState.channelId !== vcId) {
+          const member = newState.member ?? oldState.member;
+          if (member) {
+            try {
+              await vcVerification.handleVoiceLeave(member, oldState.channelId).catch(() => {
+              });
+            } catch {
+            }
+          }
+        }
+      }, "execute")
+    };
+    interactionCreateVcVerification = {
+      name: "interactionCreate",
+      execute: /* @__PURE__ */ __name(async (_client, interaction) => {
+        if (!interaction.isButton() && !interaction.isModalSubmit()) return;
+        if (interaction.isButton() && interaction.customId.startsWith("vcverify_claim_")) {
+          const requestId = interaction.customId.replace("vcverify_claim_", "");
+          try {
+            await vcVerification.handleClaim(interaction, requestId).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (interaction.isButton() && interaction.customId.startsWith("vcverify_approve_")) {
+          const requestId = interaction.customId.replace("vcverify_approve_", "");
+          try {
+            await vcVerification.handleApprove(interaction, requestId).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (interaction.isButton() && interaction.customId.startsWith("vcverify_deny_")) {
+          const requestId = interaction.customId.replace("vcverify_deny_", "");
+          try {
+            await vcVerification.handleDeny(interaction, requestId).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (interaction.isModalSubmit() && interaction.customId.startsWith("vcverify_deny_reason_")) {
+          const requestId = interaction.customId.replace("vcverify_deny_reason_", "");
+          try {
+            await vcVerification.handleDenyModal(interaction, requestId).catch(() => {
+            });
+          } catch {
+          }
+        }
+      }, "execute")
+    };
+  }
+});
+
+// src/systems/antinuke/index.ts
+var antinuke_exports = {};
+__export(antinuke_exports, {
+  AntiNukeSystem: () => AntiNukeSystem,
+  antinuke: () => antinuke,
+  guildAuditLogEntryCreate: () => guildAuditLogEntryCreate
+});
+var import_discord94, import_discord95, WATCHED, DANGEROUS_PERMISSIONS, DEFAULT_THRESHOLDS, AntiNukeSystem, antinuke, guildAuditLogEntryCreate;
+var init_antinuke = __esm({
+  "src/systems/antinuke/index.ts"() {
+    "use strict";
+    import_discord94 = __toESM(require_src());
+    init_Antinuke();
+    import_discord95 = __toESM(require_src());
+    WATCHED = {
+      [import_discord94.AuditLogEvent.MemberBanAdd]: "ban",
+      [import_discord94.AuditLogEvent.MemberKick]: "kick",
+      [import_discord94.AuditLogEvent.ChannelDelete]: "channelDelete",
+      [import_discord94.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
+      [import_discord94.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
+      [import_discord94.AuditLogEvent.RoleDelete]: "roleDelete",
+      [import_discord94.AuditLogEvent.WebhookDelete]: "webhookDelete",
+      [import_discord94.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
+    };
+    DANGEROUS_PERMISSIONS = [
+      import_discord94.PermissionFlagsBits.Administrator,
+      import_discord94.PermissionFlagsBits.ManageGuild,
+      import_discord94.PermissionFlagsBits.ManageRoles,
+      import_discord94.PermissionFlagsBits.ManageChannels,
+      import_discord94.PermissionFlagsBits.ManageWebhooks,
+      import_discord94.PermissionFlagsBits.ManageMessages,
+      import_discord94.PermissionFlagsBits.BanMembers,
+      import_discord94.PermissionFlagsBits.KickMembers,
+      import_discord94.PermissionFlagsBits.ManageThreads,
+      import_discord94.PermissionFlagsBits.ManageNicknames,
+      import_discord94.PermissionFlagsBits.MuteMembers,
+      import_discord94.PermissionFlagsBits.ModerateMembers,
+      import_discord94.PermissionFlagsBits.MoveMembers,
+      import_discord94.PermissionFlagsBits.CreateInstantInvite,
+      import_discord94.PermissionFlagsBits.ManageEvents
+    ];
+    DEFAULT_THRESHOLDS = {
+      ban: 3,
+      kick: 5,
+      channelDelete: 3,
+      channelOverwrite: 8,
+      roleDelete: 3,
+      webhookDelete: 3,
+      bulkDelete: 1,
+      everyoneRole: 1
+    };
+    AntiNukeSystem = class {
+      static {
+        __name(this, "AntiNukeSystem");
+      }
+      counters = /* @__PURE__ */ new Map();
+      locked = /* @__PURE__ */ new Set();
+      lockTimers = /* @__PURE__ */ new Map();
+      /** Clear counters + timers (wired into shutdown). */
+      shutdown() {
+        for (const t of this.lockTimers.values()) clearTimeout(t);
+        this.lockTimers.clear();
+        this.counters.clear();
+        this.locked.clear();
+      }
+      async getConfig(guildId) {
+        const cfg = await AntinukeConfig.findOneAndUpdate(
+          { guildId },
+          { $setOnInsert: { guildId, enabled: false } },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        ).lean();
+        const rawThresholds = cfg.thresholds || {};
+        const thresholds = { ...DEFAULT_THRESHOLDS };
+        for (const [key, value] of Object.entries(rawThresholds)) {
+          if (!(key in thresholds)) continue;
+          const n = typeof value === "number" ? value : Number(value);
+          if (Number.isFinite(n) && n >= 1 && n <= 1e4) thresholds[key] = Math.floor(n);
+        }
+        return {
+          enabled: cfg.enabled === true,
+          alertChannelId: /^\d{5,25}$/.test(cfg.alertChannelId ?? "") ? cfg.alertChannelId : null,
+          thresholds,
+          windowSec: Math.min(Math.max(typeof cfg.windowSec === "number" ? cfg.windowSec : 60, 5), 600),
+          timeoutMinutes: Math.min(Math.max(typeof cfg.timeoutMinutes === "number" ? cfg.timeoutMinutes : 1440, 0), 43200),
+          autoStrip: cfg.autoStrip ?? true,
+          exemptRoleIds: Array.isArray(cfg.exemptRoleIds) ? cfg.exemptRoleIds.filter((id) => typeof id === "string" && /^\d{5,25}$/.test(id)) : [],
+          backup: cfg.backup ?? { enabled: false, intervalMin: 60, keep: 24 }
+        };
+      }
+      isEnabled(cfg) {
+        return cfg.enabled === true;
+      }
+      async handleAuditEntry(entry, guild) {
+        const cfg = await this.getConfig(guild.id);
+        if (!this.isEnabled(cfg)) return;
+        const actorId = entry.executorId;
+        if (!actorId) return;
+        if (actorId === guild.ownerId) return;
+        if (actorId === guild.client.user?.id) return;
+        const exempt = cfg.exemptRoleIds || [];
+        if (exempt.length) {
+          const member = await guild.members.fetch(actorId).catch(() => null);
+          if (member && exempt.some((id) => member.roles.cache.has(id))) return;
+        }
+        let action = null;
+        if (WATCHED[entry.action] !== void 0) {
+          action = WATCHED[entry.action];
+        } else if (entry.action === import_discord94.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
+          const key = c.key;
+          const newId = c?.new?.id;
+          return (key === "$" || key === "id") && newId === guild.id;
+        })) {
+          action = "everyoneRole";
+        }
+        if (!action) return;
+        const limit = cfg.thresholds[action];
+        if (!Number.isFinite(limit)) return;
+        const count = this.record(actorId, action, cfg.windowSec);
+        if (count < limit) return;
+        const lockKey = `${guild.id}:${actorId}`;
+        if (this.locked.has(lockKey)) return;
+        this.locked.add(lockKey);
+        await this.lockdown(guild, actorId, action, count, cfg, entry);
+        const existing = this.lockTimers.get(lockKey);
+        if (existing) clearTimeout(existing);
+        const timer = setTimeout(() => {
+          this.locked.delete(lockKey);
+          this.lockTimers.delete(lockKey);
+        }, Math.max(6e4, cfg.windowSec * 1e3 * 4));
+        timer.unref?.();
+        this.lockTimers.set(lockKey, timer);
+      }
+      record(actorId, action, windowSec) {
+        let byAction = this.counters.get(actorId);
+        if (!byAction) {
+          byAction = /* @__PURE__ */ new Map();
+          this.counters.set(actorId, byAction);
+        }
+        const now = Date.now();
+        const cutoff = now - windowSec * 1e3;
+        const stamps = (byAction.get(action) || []).filter((t) => t > cutoff);
+        stamps.push(now);
+        byAction.set(action, stamps);
+        if (byAction.size === 0) this.counters.delete(actorId);
+        return stamps.length;
+      }
+      async lockdown(guild, actorId, action, count, cfg, entry) {
+        console.warn(`[AntiNuke] ${actorId} tripped ${action} (${count} in ${cfg.windowSec}s) in ${guild.id}`);
+        const member = await guild.members.fetch(actorId).catch(() => null);
+        if (!member) {
+          await this.recordIncident(guild.id, actorId, void 0, action, count, cfg, [], 0, "actor left the server before lockdown");
+          return;
+        }
+        const stripped = [];
+        if (cfg.autoStrip) {
+          const me = guild.members.me;
+          for (const role of member.roles.cache.values()) {
+            if (role.id === guild.id) continue;
+            if (role.managed) continue;
+            if (me && role.position >= me.roles.highest.position) continue;
+            if (!DANGEROUS_PERMISSIONS.some((p) => role.permissions.has(p))) continue;
+            const ok = await member.roles.remove(role, "Anti-nuke: destructive action spike").then(() => true).catch(() => false);
+            if (ok) stripped.push(role.id);
+          }
+        }
+        let timedOut = false;
+        if (cfg.timeoutMinutes > 0) {
+          timedOut = await member.timeout(cfg.timeoutMinutes * 6e4, `Anti-nuke: ${count}x ${action} in ${cfg.windowSec}s`).then(() => true).catch(() => false);
+        }
+        const details = [
+          `Audit action ${entry.action} (#${entry.id})`,
+          entry.reason ? `reason: ${entry.reason}` : null,
+          entry.targetId ? `target: ${entry.targetId}` : null
+        ].filter(Boolean).join(" \xB7 ");
+        await this.recordIncident(guild.id, actorId, member.user.tag, action, count, cfg, stripped, timedOut ? cfg.timeoutMinutes : 0, details);
+        await this.alert(guild, member, action, count, cfg, stripped, timedOut, cfg.thresholds[action]);
+      }
+      async recordIncident(guildId, actorId, actorTag, action, count, cfg, stripped, timeoutMinutes, details) {
+        await AntinukeIncident.create({
+          guildId,
+          actorId,
+          actorTag: actorTag ?? void 0,
+          action,
+          count,
+          windowSec: cfg.windowSec,
+          strippedRoles: stripped.slice(0, 50),
+          timeoutMinutes,
+          status: "locked",
+          details: details.slice(0, 1e3)
+        }).catch((err) => console.warn("[AntiNuke] Incident write failed:", err?.message ?? err));
+      }
+      async alert(guild, member, action, count, cfg, stripped, timedOut, limit) {
+        if (!cfg.alertChannelId) return;
+        try {
+          const channel = await guild.channels.fetch(cfg.alertChannelId).catch(() => null);
+          if (!channel || !channel.isTextBased()) return;
+          const embed = new import_discord95.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
+            `<@${member.id}> performed **${count}\xD7** \`${action}\` within ${cfg.windowSec}s (limit: ${limit}).
+Treated as a compromised or malicious account.`
+          ).addFields(
+            { name: "Timeout", value: timedOut ? `\u23F1 ${cfg.timeoutMinutes} minutes` : "\u26A0\uFE0F could not apply", inline: true },
+            { name: "Roles removed", value: stripped.length ? stripped.map((id) => `<@&${id}>`).join(" ") : "None", inline: false }
+          ).setFooter({ text: "The server owner is never restricted. Review, then unlock if it was legitimate." }).setTimestamp();
+          await channel.send({ content: "@here", embeds: [embed] });
+        } catch (error62) {
+          console.error("[AntiNuke] Failed to send alert:", error62?.message || error62);
+        }
+      }
+      async unlock(guild, userId) {
+        const incidents = await AntinukeIncident.find({ guildId: guild.id, actorId: userId, status: "locked" }).sort({ createdAt: 1 });
+        if (!incidents.length) return { restored: [], skipped: [], resolved: 0 };
+        const member = await guild.members.fetch(userId).catch(() => null);
+        const restored = [];
+        const skipped = [];
+        if (member) {
+          await member.timeout(null, "Anti-nuke: reviewed and unlocked").catch(() => {
+          });
+          const me = guild.members.me;
+          const roleIds = /* @__PURE__ */ new Set();
+          for (const inc of incidents) {
+            try {
+              for (const id of inc.strippedRoles ?? []) roleIds.add(id);
+            } catch {
+            }
+          }
+          for (const id of roleIds) {
+            const role = guild.roles.cache.get(id);
+            if (!role) {
+              skipped.push(`${id} (deleted)`);
+              continue;
+            }
+            if (role.managed) {
+              skipped.push(`${role.name} (managed)`);
+              continue;
+            }
+            if (me && role.position >= me.roles.highest.position) {
+              skipped.push(`${role.name} (above my highest role)`);
+              continue;
+            }
+            if (member.roles.cache.has(id)) continue;
+            const ok = await member.roles.add(role, "Anti-nuke: roles restored after review").then(() => true).catch(() => false);
+            (ok ? restored : skipped).push(ok ? role.name : `${role.name} (failed)`);
+          }
+        }
+        await AntinukeIncident.updateMany({ guildId: guild.id, actorId: userId, status: "locked" }, { status: "unlocked" });
+        return { restored, skipped, resolved: incidents.length };
+      }
+    };
+    antinuke = new AntiNukeSystem();
+    guildAuditLogEntryCreate = {
+      name: import_discord94.Events.GuildAuditLogEntryCreate,
+      execute: /* @__PURE__ */ __name(async (_client, entry, guild) => {
+        try {
+          await antinuke.handleAuditEntry(entry, guild).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+  }
+});
+
+// src/systems/autoreply/index.ts
+var autoreply_exports = {};
+__export(autoreply_exports, {
+  AutoReplySystem: () => AutoReplySystem,
+  autoReply: () => autoReply,
+  messageCreateAutoreply: () => messageCreateAutoreply
+});
+var import_discord97, IP_KEYWORDS, STATUS_KEYWORDS, MODPACK_KEYWORDS, AutoReplySystem, autoReply, messageCreateAutoreply;
+var init_autoreply = __esm({
+  "src/systems/autoreply/index.ts"() {
+    "use strict";
+    import_discord97 = __toESM(require_src());
+    init_AutoReply();
+    init_shared_embeds();
+    IP_KEYWORDS = ["ip", "server ip", "address", "connect", "server address", "ip address"];
+    STATUS_KEYWORDS = ["status", "online?", "is the server up", "server status", "server online"];
+    MODPACK_KEYWORDS = [
+      "how to install",
+      "how to download",
+      "install modpack",
+      "download modpack",
+      "modpack install",
+      "modpack download",
+      "how install",
+      "how download",
+      "sklauncher",
+      "mjlauncher",
+      "launcher",
+      "modpack help"
+    ];
+    AutoReplySystem = class {
+      static {
+        __name(this, "AutoReplySystem");
+      }
+      cooldowns = /* @__PURE__ */ new Map();
+      // userId+trigger -> timestamp
+      cooldownMs = 1e4;
+      // 10 seconds per user per trigger
+      /** Clear cooldown state (wired into shutdown). */
+      shutdown() {
+        this.cooldowns.clear();
+      }
+      async getAutoReplies(guildId, channelId) {
+        const query = { guildId, enabled: true };
+        if (channelId) query.$or = [{ channelId }, { channelId: null }, { channelId: { $exists: false } }];
+        return AutoReply.find(query).lean();
+      }
+      async addAutoReply(data) {
+        if (!/^\d{5,25}$/.test(data.guildId)) throw new Error("Invalid guild id");
+        if (!["keyword", "regex", "exact"].includes(data.triggerType)) throw new Error("Invalid trigger type");
+        const trigger = String(data.triggerValue ?? "").trim();
+        const response = String(data.response ?? "").trim();
+        if (!trigger || trigger.length > 200) throw new Error("Trigger must be 1\u2013200 characters");
+        if (!response || response.length > 2e3) throw new Error("Response must be 1\u20132000 characters");
+        if (data.channelId !== void 0 && data.channelId !== null && !/^\d{5,25}$/.test(String(data.channelId))) throw new Error("Invalid channel id");
+        if (data.triggerType === "regex") {
+          if (trigger.length > 200) throw new Error("Regex too long");
+          try {
+            new RegExp(trigger, "i");
+          } catch {
+            throw new Error("Invalid regex");
+          }
+        }
+        return AutoReply.create({ ...data, triggerValue: trigger, response });
+      }
+      async removeAutoReply(guildId, id) {
+        return AutoReply.deleteOne({ _id: id, guildId });
+      }
+      checkCooldown(userId, trigger) {
+        const key = `${userId}:${trigger}`;
+        const now = Date.now();
+        const lastUsed = this.cooldowns.get(key);
+        if (lastUsed && now - lastUsed < this.cooldownMs) {
+          return false;
+        }
+        this.cooldowns.set(key, now);
+        if (this.cooldowns.size > 1e3) {
+          for (const [k, v] of this.cooldowns.entries()) {
+            if (now - v > this.cooldownMs * 2) this.cooldowns.delete(k);
+          }
+        }
+        if (this.cooldowns.size > 5e3) {
+          let removed = 0;
+          for (const k of this.cooldowns.keys()) {
+            if (removed >= this.cooldowns.size - 1e3) break;
+            this.cooldowns.delete(k);
+            removed++;
+          }
+        }
+        return true;
+      }
+      async processMessage(message) {
+        if (message.author.bot || !message.guild || !message.content) return false;
+        const content = message.content.toLowerCase();
+        const channelId = message.channel.id;
+        const userId = message.author.id;
+        const ipReply = await this.checkServerIP(content, channelId);
+        if (ipReply && this.checkCooldown(userId, `ip:${channelId}`)) {
+          await message.reply({ embeds: [ipReply], allowedMentions: { repliedUser: false } });
+          return true;
+        }
+        const statusReply = await this.checkServerStatus(content, channelId);
+        if (statusReply && this.checkCooldown(userId, `status:${channelId}`)) {
+          await message.reply({ embeds: [statusReply], allowedMentions: { repliedUser: false } });
+          return true;
+        }
+        const modpackReply = this.checkModpackHelp(content);
+        if (modpackReply && this.checkCooldown(userId, "modpack")) {
+          await message.reply({ embeds: [modpackReply], allowedMentions: { repliedUser: false } });
+          return true;
+        }
+        const dbReply = await this.checkDatabaseReplies(message.guild.id, content, channelId);
+        if (dbReply && this.checkCooldown(userId, `db:${dbReply.id}`)) {
+          await message.reply({ content: dbReply.response, allowedMentions: { repliedUser: false } });
+          return true;
+        }
+        return false;
+      }
+      async checkServerIP(content, channelId) {
+        const matched = IP_KEYWORDS.some((kw) => content.includes(kw));
+        if (!matched) return null;
+        const replies = await this.getAutoReplies("", channelId);
+        for (const reply of replies) {
+          if (reply.channelId && reply.channelId !== channelId) continue;
+          if (reply.triggerType === "keyword" && reply.triggerValue.toLowerCase() === "ip") {
+            return EmbedBuilderUtil.info(
+              "\u{1F310} Server IP",
+              `**Server IP:** \`${reply.response.replace("Server IP: ", "").replace(/`/g, "")}\`
+
+Use this IP to connect to the server!`,
+              [{ name: "\u{1F4CB} Copy", value: reply.response, inline: false }]
+            );
+          }
+        }
+        return null;
+      }
+      async checkServerStatus(content, channelId) {
+        const matched = STATUS_KEYWORDS.some((kw) => content.includes(kw));
+        if (!matched) return null;
+        return EmbedBuilderUtil.info(
+          "\u{1F4CA} Server Status",
+          "Use `/serverstatus [server]` to check the status of a specific server.",
+          [{ name: "\u{1F4A1} Tip", value: "Each server has its own status channel with live updates!", inline: false }]
+        );
+      }
+      checkModpackHelp(content) {
+        const matched = MODPACK_KEYWORDS.some((kw) => content.includes(kw));
+        if (!matched) return null;
+        return EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
+          "\u{1F4E6} Modpack Help",
+          "Use a launcher like SKLauncher or MJLauncher to install modpacks."
+        );
+      }
+      async checkDatabaseReplies(guildId, content, channelId) {
+        const replies = await this.getAutoReplies(guildId, channelId);
+        for (const reply of replies) {
+          if (reply.channelId && reply.channelId !== channelId) continue;
+          let matched = false;
+          switch (reply.triggerType) {
+            case "keyword":
+              matched = content.includes(reply.triggerValue.toLowerCase());
+              break;
+            case "regex":
+              try {
+                const regex = new RegExp(reply.triggerValue, "i");
+                matched = regex.test(content);
+              } catch (e) {
+                continue;
+              }
+              break;
+            case "exact":
+              matched = content === reply.triggerValue.toLowerCase();
+              break;
+          }
+          if (matched) {
+            return reply;
+          }
+        }
+        return null;
+      }
+      // For ticket auto-reply
+      async getTicketAutoReply(content) {
+        const matched = MODPACK_KEYWORDS.some((kw) => content.toLowerCase().includes(kw));
+        if (!matched) return null;
+        return {
+          embed: EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
+            "\u{1F4E6} Modpack Help",
+            "Use a launcher like SKLauncher or MJLauncher to install modpacks."
+          ),
+          buttons: [
+            { customId: "ticket_modpack_helped_yes", label: "\u2705 Yes, it helped!", style: 3 },
+            { customId: "ticket_modpack_helped_no", label: "\u274C No, need staff", style: 4 }
+          ]
+        };
+      }
+    };
+    autoReply = new AutoReplySystem();
+    messageCreateAutoreply = {
+      name: import_discord97.Events.MessageCreate,
+      execute: /* @__PURE__ */ __name(async (_client, message) => {
+        try {
+          await autoReply.processMessage(message).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+  }
+});
+
+// src/systems/mediareactions/index.ts
+var mediareactions_exports = {};
+__export(mediareactions_exports, {
+  MediaReactionSystem: () => MediaReactionSystem,
+  mediaReactions: () => mediaReactions,
+  messageCreateMediaReactions: () => messageCreateMediaReactions
+});
+var import_discord98, IMAGE_EXT, VIDEO_EXT, DEFAULT_CONFIG, MediaReactionSystem, mediaReactions, messageCreateMediaReactions;
+var init_mediareactions = __esm({
+  "src/systems/mediareactions/index.ts"() {
+    "use strict";
+    import_discord98 = __toESM(require_src());
+    init_MediaReaction();
+    IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|heic|heif|tiff?)$/i;
+    VIDEO_EXT = /\.(mp4|mov|webm|mkv|avi|m4v|flac)$/i;
+    DEFAULT_CONFIG = {
+      enabled: false,
+      memeChannels: [],
+      imageChannels: [],
+      memeReactions: ["\u2B50", "\u{1F602}"],
+      imageReactions: ["\u{1F4F8}"],
+      enforceMode: "warn"
+    };
+    MediaReactionSystem = class _MediaReactionSystem {
+      static {
+        __name(this, "MediaReactionSystem");
+      }
+      handled = /* @__PURE__ */ new Map();
+      // messageId -> timestamp
+      /** Clear dedup state (wired into shutdown). */
+      shutdown() {
+        this.handled.clear();
+      }
+      async getConfig(guildId) {
+        const cfg = await MediaReactionConfig.findOneAndUpdate(
+          { guildId },
+          { $setOnInsert: { guildId, enabled: false, memeChannels: [], imageChannels: [], memeReactions: ["\u2B50", "\u{1F602}"], imageReactions: ["\u{1F4F8}"], enforceMode: "warn" } },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        ).lean();
+        return {
+          ...DEFAULT_CONFIG,
+          ...cfg,
+          memeChannels: Array.isArray(cfg?.memeChannels) ? cfg.memeChannels : [],
+          imageChannels: Array.isArray(cfg?.imageChannels) ? cfg.imageChannels : [],
+          memeReactions: Array.isArray(cfg?.memeReactions) && cfg.memeReactions.length ? cfg.memeReactions : DEFAULT_CONFIG.memeReactions,
+          imageReactions: Array.isArray(cfg?.imageReactions) && cfg.imageReactions.length ? cfg.imageReactions : DEFAULT_CONFIG.imageReactions
+        };
+      }
+      isEnabled(cfg) {
+        return cfg.enabled === true;
+      }
+      matchChannel(channelId, cfg) {
+        const meme = cfg.memeChannels?.find((c) => c.id === channelId);
+        if (meme) return { kind: "memes", reactions: meme.reactions ?? cfg.memeReactions, enforce: meme.enforce ?? cfg.enforceMode };
+        const img = cfg.imageChannels?.find((c) => c.id === channelId);
+        if (img) return { kind: "images", reactions: img.reactions ?? cfg.imageReactions, enforce: img.enforce ?? cfg.enforceMode };
+        return null;
+      }
+      static hasMedia(message) {
+        let isImage = false;
+        let isVideo = false;
+        for (const att of message.attachments.values()) {
+          const type = (att.contentType || "").toLowerCase();
+          const name = att.name || "";
+          if (type.startsWith("image/")) {
+            isImage = true;
+            continue;
+          }
+          if (type.startsWith("video/")) {
+            isVideo = true;
+            continue;
+          }
+          if (IMAGE_EXT.test(name)) {
+            isImage = true;
+            continue;
+          }
+          if (VIDEO_EXT.test(name)) {
+            isVideo = true;
+            continue;
+          }
+        }
+        if (message.stickers.size) isImage = true;
+        for (const embed of message.embeds) {
+          if (embed.image || embed.thumbnail) {
+            isImage = true;
+            break;
+          }
+          if (embed.video) {
+            isVideo = true;
+            break;
+          }
+        }
+        return { has: isImage || isVideo, isImage, isVideo };
+      }
+      async processMessage(message) {
+        if (!message.guild) return;
+        const cfg = await this.getConfig(message.guild.id);
+        if (!this.isEnabled(cfg)) return;
+        const channel = this.matchChannel(message.channelId, cfg);
+        if (!channel) return;
+        if (this.handled.has(message.id)) return;
+        const now = Date.now();
+        for (const [id, at] of this.handled) {
+          if (now - at > 36e5) this.handled.delete(id);
+        }
+        if (this.handled.size > 5e3) {
+          let removed = 0;
+          for (const id of this.handled.keys()) {
+            if (removed >= this.handled.size - 5e3) break;
+            this.handled.delete(id);
+            removed++;
+          }
+        }
+        this.handled.set(message.id, now);
+        const media = _MediaReactionSystem.hasMedia(message);
+        if (media.has) {
+          await this.applyReactions(message, channel, media.isVideo);
+          return;
+        }
+        await this.enforceMediaOnly(message, channel);
+      }
+      async applyReactions(message, channel, _isVideo) {
+        const reactions = channel.reactions?.length ? channel.reactions : [];
+        if (!reactions.length) return;
+        for (const emoji3 of reactions) {
+          await message.react(emoji3).catch(() => {
+          });
+        }
+      }
+      async enforceMediaOnly(message, channel) {
+        const mode = channel.enforce ?? "warn";
+        if (mode === "off") return;
+        const notice = "\u{1F4CE} This channel only accepts images and videos.";
+        if (mode === "warn") {
+          await message.reply({ content: notice, flags: import_discord98.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
+          }), 4e3).unref?.()).catch(() => {
+          });
+          return;
+        }
+        await message.delete().catch(() => {
+        });
+        await message.author.send({ content: `Your message in <#${message.channelId}> was removed: ${notice}
+This channel is for images and videos only.` }).catch(() => {
+        });
+      }
+      status(guildId) {
+        return this.getConfig(guildId).then((cfg) => ({
+          cfg,
+          known: (cfg.memeChannels?.length ?? 0) + (cfg.imageChannels?.length ?? 0)
+        }));
+      }
+    };
+    mediaReactions = new MediaReactionSystem();
+    messageCreateMediaReactions = {
+      name: import_discord98.Events.MessageCreate,
+      execute: /* @__PURE__ */ __name(async (_client, message) => {
+        try {
+          await mediaReactions.processMessage(message).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+  }
+});
+
+// src/systems/tempvc/index.ts
+var tempvc_exports = {};
+__export(tempvc_exports, {
+  TempVCSystem: () => TempVCSystem,
+  interactionCreateTempvc: () => interactionCreateTempvc,
+  tempvc: () => tempvc,
+  voiceStateUpdateTempvc: () => voiceStateUpdateTempvc
+});
+var import_discord105, PANEL_ACTIONS, TempVCSystem, tempvc, voiceStateUpdateTempvc, interactionCreateTempvc;
+var init_tempvc = __esm({
+  "src/systems/tempvc/index.ts"() {
+    "use strict";
+    import_discord105 = __toESM(require_src());
+    init_TempVC();
+    PANEL_ACTIONS = [
+      "rename",
+      "limit",
+      "lock",
+      "unlock",
+      "hide",
+      "show",
+      "trust",
+      "untrust",
+      "invite",
+      "kick",
+      "block",
+      "unblock",
+      "transfer",
+      "claim",
+      "delete",
+      "trust_all",
+      "untrust_all",
+      "info"
+    ];
+    TempVCSystem = class {
+      static {
+        __name(this, "TempVCSystem");
+      }
+      emptyTimeouts = /* @__PURE__ */ new Map();
+      /** Clear pending empty-VC timers (wired into shutdown). */
+      shutdown() {
+        for (const t of this.emptyTimeouts.values()) clearTimeout(t);
+        this.emptyTimeouts.clear();
+      }
+      async getConfig(guildId) {
+        const cfg = await readTempVCConfig(guildId);
+        if (!cfg) return null;
+        return {
+          creatorChannelId: cfg.createChannelId,
+          categoryId: cfg.categoryId,
+          defaultName: cfg.nameTemplate,
+          defaultLimit: cfg.userLimit ?? 0,
+          panelChannelId: void 0,
+          panelMessageId: void 0
+        };
+      }
+      async setConfig(guildId, data) {
+        const allowed = /* @__PURE__ */ new Set(["creatorChannelId", "categoryId", "defaultName", "defaultLimit"]);
+        for (const key of Object.keys(data ?? {})) {
+          if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+        }
+        if (!/^\d{5,25}$/.test(guildId)) throw new Error("Invalid guild id");
+        const updates = {};
+        if (data.creatorChannelId !== void 0) {
+          if (data.creatorChannelId !== null && !/^\d{5,25}$/.test(String(data.creatorChannelId))) throw new Error("Invalid creator channel id");
+          updates.createChannelId = data.creatorChannelId;
+        }
+        if (data.categoryId !== void 0) {
+          if (data.categoryId !== null && !/^\d{5,25}$/.test(String(data.categoryId))) throw new Error("Invalid category id");
+          updates.categoryId = data.categoryId;
+        }
+        if (data.defaultName !== void 0) {
+          const name = String(data.defaultName).trim().slice(0, 100);
+          if (!name) throw new Error("VC name cannot be empty");
+          updates.nameTemplate = name.replace(/[{}]/g, "").slice(0, 100);
+        }
+        if (data.defaultLimit !== void 0) {
+          const n = Number(data.defaultLimit);
+          if (!Number.isInteger(n) || n < 0 || n > 99) throw new Error("User limit must be 0\u201399");
+          updates.userLimit = n;
+        }
+        await upsertTempVCConfig(guildId, updates);
+      }
+      async handleVoiceStateUpdate(oldState, newState) {
+        try {
+          const guild = newState.guild;
+          if (!guild) return;
+          const cfg = await this.getConfig(guild.id);
+          if (!cfg) return;
+          const creatorChannelId = cfg.creatorChannelId;
+          if (!oldState.channelId && newState.channelId === creatorChannelId && newState.member) {
+            await this.createTempVC(newState.member, guild, cfg);
+          }
+          if (oldState.channelId && !newState.channelId) {
+            const active = await readActiveTempVCByChannel(oldState.channelId);
+            if (active) {
+              await this.handleEmptyVC(guild, active.channelId);
+            }
+          }
+        } catch (error62) {
+          console.error("[TempVC] Voice state error:", error62);
+        }
+      }
+      async createTempVC(member, guild, cfg) {
+        const user = member.user;
+        if (!user) return;
+        const voiceName = (cfg.defaultName || "{user}'s VC").replace("{user}", user.username).slice(0, 100);
+        const userLimit = cfg.defaultLimit ?? 0;
+        const vcCategory = cfg.categoryId ? guild.channels.cache.get(cfg.categoryId) : void 0;
+        const voiceChannel = await guild.channels.create({
+          name: voiceName,
+          type: import_discord105.ChannelType.GuildVoice,
+          parent: vcCategory?.id,
+          userLimit,
+          permissionOverwrites: [
+            { id: user.id, allow: ["ManageChannels", "ManageRoles", "MuteMembers", "DeafenMembers", "MoveMembers", "Connect", "Speak", "UseSoundboard"] },
+            { id: guild.id, deny: ["ViewChannel"] }
+          ]
+        });
+        await createActiveTempVC({ guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
+        setCachedActiveTempVC(voiceChannel.id, { guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
+        await member.voice.setChannel(voiceChannel.id).catch((e) => console.log("[TempVC] Could not move user to new VC:", e?.message || e));
+        await this.refreshPanel(guild);
+      }
+      async handleEmptyVC(guild, vcId) {
+        const active = await readActiveTempVCByChannel(vcId);
+        if (!active) return;
+        const voiceChannel = guild.channels.cache.get(active.channelId);
+        if (!voiceChannel) return;
+        if (voiceChannel.members.size > 0) return;
+        const existingTimeout = this.emptyTimeouts.get(vcId);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+          this.emptyTimeouts.delete(vcId);
+        }
+        const timeoutId = setTimeout(async () => {
+          this.emptyTimeouts.delete(vcId);
+          const currentVC = guild.channels.cache.get(vcId);
+          if (currentVC && currentVC.members.size === 0) {
+            await currentVC.delete().catch(() => {
+            });
+            await deleteActiveTempVC(vcId);
+            deleteCachedActiveTempVC(vcId);
+            await this.refreshPanel(guild);
+          }
+        }, 1e4);
+        timeoutId.unref?.();
+        this.emptyTimeouts.set(vcId, timeoutId);
+      }
+      async handleButton(interaction) {
+        const customId = interaction.customId;
+        const panelAction = PANEL_ACTIONS.find((a) => customId === `tempvc_${a}`);
+        if (panelAction) {
+          await this.handlePanelButton(interaction, panelAction);
+          return;
+        }
+        const match = customId.match(/tempvc_(\w+)_([\w-]+)/);
+        if (!match) return;
+        const [, action, vcId] = match;
+        await this.runAction(interaction, action, vcId);
+      }
+      panelChannelId(_guild) {
+        return null;
+      }
+      async handlePanelButton(interaction, action) {
+        const guild = interaction.guild;
+        if (!guild) {
+          await interaction.reply({ content: "\u274C This can only be used in a server.", flags: 64 });
+          return;
+        }
+        if (action === "info") {
+          await interaction.reply({ content: "\u{1F3AE} **Temp VC help**\nJoin the creator voice channel to get your own temp VC.", flags: 64 });
+          return;
+        }
+        if (action === "claim") {
+          const member = await guild.members.fetch(interaction.user.id).catch(() => null);
+          const inVcId = member?.voice.channelId;
+          await interaction.reply({ content: "\u274C Claim not yet supported in this port.", flags: 64 });
+          return;
+        }
+        await interaction.reply({ content: "\u274C You do not own a temp VC. Join the creator voice channel to get one!", flags: 64 });
+      }
+      async runAction(interaction, action, vcId) {
+        const active = await readActiveTempVCByChannel(vcId);
+        if (!active) {
+          await interaction.reply({ content: "\u274C This VC session has expired.", flags: 64 });
+          return;
+        }
+        if (interaction.user.id !== active.ownerId && action !== "claim") {
+          await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
+          return;
+        }
+        const guild = interaction.guild;
+        const voiceChannel = guild?.channels.cache.get(vcId);
+        if (!voiceChannel) {
+          await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
+          return;
+        }
+        const everyoneId = guild.id;
+        try {
+          switch (action) {
+            case "lock": {
+              if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: false });
+              await interaction.reply({ content: "\u{1F512} VC **locked**!", flags: 64 });
+              break;
+            }
+            case "unlock": {
+              if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: true });
+              await interaction.reply({ content: "\u{1F513} VC **unlocked**!", flags: 64 });
+              break;
+            }
+            case "limit": {
+              const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_limit_${vcId}`).setTitle("\u{1F465} Set User Limit");
+              const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_limit_input").setLabel("User limit (0 = unlimited, max 99)").setStyle(import_discord105.TextInputStyle.Short).setValue("0").setRequired(true);
+              modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
+              await interaction.showModal(modal);
+              break;
+            }
+            case "rename": {
+              const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_rename_${vcId}`).setTitle("\u270F\uFE0F Rename VC");
+              const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_rename_input").setLabel("New VC name (max 100 chars)").setStyle(import_discord105.TextInputStyle.Short).setValue(voiceChannel.name).setMaxLength(100).setRequired(true);
+              modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
+              await interaction.showModal(modal);
+              break;
+            }
+            case "hide": {
+              if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: false });
+              await interaction.reply({ content: "\u{1F441}\uFE0F VC **hidden**", flags: 64 });
+              break;
+            }
+            case "show": {
+              if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: true });
+              await interaction.reply({ content: "\u{1F440} VC **shown**", flags: 64 });
+              break;
+            }
+            case "delete": {
+              await voiceChannel.delete().catch(() => {
+              });
+              await deleteActiveTempVC(vcId);
+              deleteCachedActiveTempVC(vcId);
+              await interaction.reply({ content: "\u274C VC deleted.", flags: 64 });
+              break;
+            }
+            default: {
+              await interaction.reply({ content: `\u274C Action "${action}" not yet implemented in this port.`, flags: 64 });
+            }
+          }
+        } catch (error62) {
+          console.error("[TempVC] runAction error:", error62);
+          if (!interaction.replied) {
+            await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
+            });
+          }
+        }
+      }
+      async handleModal(interaction) {
+        const customId = interaction.customId;
+        const match = customId.match(/tempvc_(rename|limit)_([\w-]+)/);
+        if (!match) return;
+        const [, action, vcId] = match;
+        const active = await readActiveTempVCByChannel(vcId);
+        if (!active || interaction.user.id !== active.ownerId) {
+          await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
+          return;
+        }
+        const guild = interaction.guild;
+        const voiceChannel = guild?.channels.cache.get(vcId);
+        if (!voiceChannel) {
+          await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
+          return;
+        }
+        try {
+          if (action === "rename") {
+            const name = interaction.fields.getTextInputValue("tempvc_rename_input")?.trim();
+            if (!name) {
+              await interaction.reply({ content: "\u274C Name cannot be empty.", flags: 64 });
+              return;
+            }
+            await voiceChannel.setName(name.slice(0, 100));
+            await interaction.reply({ content: `\u270F\uFE0F VC renamed to **${name}**!`, flags: 64 });
+          } else if (action === "limit") {
+            const raw = interaction.fields.getTextInputValue("tempvc_limit_input")?.trim();
+            const limit = Number.parseInt(raw, 10);
+            if (Number.isNaN(limit) || limit < 0 || limit > 99) {
+              await interaction.reply({ content: "\u274C Invalid limit (0-99).", flags: 64 });
+              return;
+            }
+            await voiceChannel.setUserLimit(limit);
+            await interaction.reply({ content: `\u{1F465} User limit set to **${limit === 0 ? "\u221E" : limit}**!`, flags: 64 });
+          }
+        } catch (error62) {
+          await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
+          });
+        }
+      }
+      async handleSelect(interaction) {
+        const customId = interaction.customId;
+        const match = customId.match(/tempvc_(\w+)_select_([\w-]+)/);
+        if (!match) return;
+        const [, action, vcId] = match;
+        await this.runAction(interaction, action, vcId);
+      }
+      panelEmbed(_guild, _activeCount) {
+        return new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AE} Temp VC Control Panel").setDescription("Join the creator voice channel to get your own temporary voice channel!").setTimestamp();
+      }
+      panelRows() {
+        const row1 = new import_discord105.ActionRowBuilder().addComponents(
+          this.btn("tempvc_rename", "\u270F\uFE0F Rename", import_discord105.ButtonStyle.Secondary),
+          this.btn("tempvc_limit", "\u{1F465} Limit", import_discord105.ButtonStyle.Secondary),
+          this.btn("tempvc_lock", "\u{1F512} Lock", import_discord105.ButtonStyle.Primary),
+          this.btn("tempvc_unlock", "\u{1F513} Unlock", import_discord105.ButtonStyle.Secondary),
+          this.btn("tempvc_hide", "\u{1F441}\uFE0F Hide", import_discord105.ButtonStyle.Secondary)
+        );
+        return [row1];
+      }
+      liveVcCount(_guild) {
+        return 0;
+      }
+      async postPanel(_guild, channel) {
+        await channel.send({ embeds: [this.panelEmbed(_guild, 0)], components: this.panelRows() });
+      }
+      async refreshPanel(guild) {
+        try {
+        } catch {
+        }
+      }
+      btn(customId, label, style) {
+        return new import_discord105.ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style);
+      }
+      async setOverwrite(channel, id, options) {
+        const existing = channel.permissionOverwrites.cache.get(id);
+        if (existing) await channel.permissionOverwrites.edit(id, options);
+        else await channel.permissionOverwrites.create(id, options);
+      }
+    };
+    tempvc = new TempVCSystem();
+    voiceStateUpdateTempvc = {
+      name: "voiceStateUpdate",
+      execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
+        try {
+          await tempvc.handleVoiceStateUpdate(oldState, newState).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+    interactionCreateTempvc = {
+      name: "interactionCreate",
+      execute: /* @__PURE__ */ __name(async (_client, interaction) => {
+        if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return;
+        if (interaction.isButton() && interaction.customId.startsWith("tempvc_")) {
+          try {
+            await tempvc.handleButton(interaction).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (interaction.isStringSelectMenu() && interaction.customId.startsWith("tempvc_")) {
+          try {
+            await tempvc.handleSelect(interaction).catch(() => {
+            });
+          } catch {
+          }
+        }
+        if (interaction.isModalSubmit() && interaction.customId.startsWith("tempvc_")) {
+          try {
+            await tempvc.handleModal(interaction).catch(() => {
+            });
+          } catch {
+          }
+        }
+      }, "execute")
+    };
+  }
+});
+
+// src/systems/levels/index.ts
+var levels_exports = {};
+__export(levels_exports, {
+  LevelingSystem: () => LevelingSystem,
+  levelFromTotalXp: () => levelFromTotalXp,
+  levels: () => levels,
+  messageCreateLevels: () => messageCreateLevels,
+  voiceStateUpdateLevels: () => voiceStateUpdateLevels,
+  xpForNextLevel: () => xpForNextLevel
+});
+function xpForNextLevel(level) {
+  return 5 * level * level + 50 * level + 100;
+}
+function levelFromTotalXp(xp) {
+  let level = 0;
+  let remaining = Math.max(0, Math.floor(xp));
+  while (level < 1e4) {
+    const needed = xpForNextLevel(level);
+    if (remaining < needed) break;
+    remaining -= needed;
+    level++;
+  }
+  return { level, xpIntoLevel: remaining, xpNeeded: xpForNextLevel(level) };
+}
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+var LevelingSystem, levels, messageCreateLevels, voiceStateUpdateLevels;
+var init_levels = __esm({
+  "src/systems/levels/index.ts"() {
+    "use strict";
+    init_User();
+    init_Guild();
+    init_utils();
+    init_safety();
+    __name(xpForNextLevel, "xpForNextLevel");
+    __name(levelFromTotalXp, "levelFromTotalXp");
+    __name(randomInt, "randomInt");
+    LevelingSystem = class {
+      static {
+        __name(this, "LevelingSystem");
+      }
+      async getSettings(guildId) {
+        const row = await Guild.findOneAndUpdate(
+          { guildId },
+          { $setOnInsert: { guildId, xpEnabled: true, xpCooldown: 60, xpMin: 15, xpMax: 25 } },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        ).lean();
+        const r = row;
+        return {
+          enabled: r.xpEnabled !== false,
+          announce_enabled: true,
+          announce_channel_id: r.levelUpChannel ?? null,
+          announce_message: r.levelUpMessage ?? "\u{1F389} Congratulations {user}, you have reached **level {level}**!",
+          xp_min: r.xpMin ?? 15,
+          xp_max: r.xpMax ?? 25,
+          xp_multiplier: 1,
+          cooldown_seconds: r.xpCooldown ?? 60,
+          stack_roles: true,
+          ignored_channels: Array.isArray(r.disableXpChannels) ? r.disableXpChannels : [],
+          vc_enabled: false,
+          vc_interval_seconds: 300,
+          vc_xp_amount: 10,
+          ignored_voice_channels: []
+        };
+      }
+      isSilent(member) {
+        const v = member.voice;
+        if (!v) return true;
+        return !!v.selfMute || !!v.serverMute || !!v.selfDeaf || !!v.serverDeaf || !!v.suppress;
+      }
+      /** guildId:userId -> interval handle awarding unmuted-time XP. */
+      voiceSessions = /* @__PURE__ */ new Map();
+      async handleVoiceChange(member, channelId) {
+        const guild = member.guild;
+        const key = `${guild.id}:${member.id}`;
+        const settings = await this.getSettings(guild.id);
+        if (!channelId || member.user.bot || !settings.enabled || !settings.vc_enabled) {
+          const existing = this.voiceSessions.get(key);
+          if (existing) {
+            clearInterval(existing);
+            this.voiceSessions.delete(key);
+          }
+          return;
+        }
+        if (settings.ignored_voice_channels.includes(channelId)) return;
+        if (this.voiceSessions.has(key)) return;
+        const intervalMs = Math.max(30, settings.vc_interval_seconds) * 1e3;
+        const startedAt = Date.now();
+        const timer = setInterval(() => {
+          void this.tickVoiceSession(member, key, channelId, startedAt, settings, intervalMs);
+        }, intervalMs);
+        timer.unref();
+        this.voiceSessions.set(key, timer);
+      }
+      async tickVoiceSession(member, key, channelId, startedAt, settings, intervalMs) {
+        try {
+          if (member.voice.channelId !== channelId || !settings.enabled || !settings.vc_enabled) {
+            const timer = this.voiceSessions.get(key);
+            if (timer) clearInterval(timer);
+            this.voiceSessions.delete(key);
+            return;
+          }
+          if (settings.ignored_voice_channels.includes(channelId)) return;
+          if (this.isSilent(member)) return;
+          const connectedMs = Date.now() - startedAt;
+          const ticks = Math.floor(connectedMs / intervalMs);
+          const gain = Math.max(1, Math.round(settings.vc_xp_amount * Math.max(1, ticks)));
+          await this.grantXp(member, gain, settings);
+        } catch (error62) {
+          console.error("[Levels] Voice XP tick failed:", error62);
+        }
+      }
+      async grantXp(member, gain, settings) {
+        const result = await addXp(member.id, gain, "voice");
+        if (result.leveledUp) {
+          await this.onLevelUpForMember(member, result.newLevel, settings);
+        }
+        return true;
+      }
+      stopAllVoiceSessions() {
+        for (const timer of this.voiceSessions.values()) clearInterval(timer);
+        this.voiceSessions.clear();
+      }
+      async setSettings(guildId, data) {
+        if (!/^\d{5,25}$/.test(guildId)) throw new Error("Invalid guild id");
+        const updates = {};
+        if (data.enabled !== void 0) updates.xpEnabled = Boolean(data.enabled);
+        if (data.cooldown_seconds !== void 0) {
+          updates.xpCooldown = clampInt(data.cooldown_seconds, 60, 0, 86400);
+        }
+        if (data.xp_min !== void 0) updates.xpMin = clampInt(data.xp_min, 15, 0, 1e4);
+        if (data.xp_max !== void 0) updates.xpMax = clampInt(data.xp_max, 25, 0, 1e4);
+        if (updates.xpMin !== void 0 && updates.xpMax !== void 0 && updates.xpMin > updates.xpMax) {
+          throw new Error("Minimum XP cannot exceed maximum XP");
+        }
+        if (data.announce_channel_id !== void 0) {
+          if (data.announce_channel_id !== null && !/^\d{5,25}$/.test(String(data.announce_channel_id))) throw new Error("Invalid announce channel id");
+          updates.levelUpChannel = data.announce_channel_id;
+        }
+        if (data.announce_message !== void 0) {
+          const msg = String(data.announce_message).slice(0, 2e3);
+          updates.levelUpMessage = msg;
+        }
+        if (Object.keys(updates).length === 0) throw new Error("No settings supplied");
+        await Guild.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
+      }
+      async processMessage(message) {
+        try {
+          if (!message.guild || message.author.bot || !message.content) return false;
+          const settings = await this.getSettings(message.guild.id);
+          if (!settings.enabled) return false;
+          if (settings.ignored_channels.includes(message.channel.id)) return false;
+          const now = Date.now();
+          const user = await User.findOne({ userId: message.author.id }).lean();
+          if (user?.lastMessageAt) {
+            const last = user.lastMessageAt.getTime();
+            if (now - last < settings.cooldown_seconds * 1e3) {
+              return false;
+            }
+          }
+          const min = Math.min(settings.xp_min, settings.xp_max);
+          const max = Math.max(settings.xp_min, settings.xp_max);
+          const gain = Math.max(1, Math.round(randomInt(min, max) * settings.xp_multiplier));
+          const result = await addXp(message.author.id, gain, "message");
+          if (result.leveledUp) {
+            let member = message.member;
+            if (!member) {
+              member = await message.guild.members.fetch(message.author.id).catch(() => null);
+            }
+            if (member) await this.onLevelUp(message, member, result.newLevel, settings);
+          }
+          return true;
+        } catch (error62) {
+          console.error("[Levels] Failed to process message XP:", error62);
+          return false;
+        }
+      }
+      async getRankData(guildId, userId) {
+        const user = await User.findOne({ userId });
+        const progress = levelFromTotalXp(user?.xp ?? 0);
+        const totalRanked = await User.countDocuments({ xp: { $gt: 0 } });
+        const rank = user && (user.xp ?? 0) > 0 ? await User.countDocuments({ xp: { $gt: user.xp ?? 0 } }) + 1 : null;
+        return {
+          xp: user?.xp ?? 0,
+          total_messages: 0,
+          level: progress.level,
+          xp_into_level: progress.xpIntoLevel,
+          xp_needed: progress.xpNeeded,
+          rank,
+          total_ranked: totalRanked,
+          has_data: !!user
+        };
+      }
+      getLeaderboard(guildId, limit = 10) {
+        return User.find({ xp: { $gt: 0 } }).sort({ xp: -1, level: -1 }).limit(limit).lean().then((rows) => rows.map((row) => {
+          const progress = levelFromTotalXp(row.xp ?? 0);
+          return {
+            user_id: row.userId,
+            xp: row.xp ?? 0,
+            level: progress.level,
+            xp_into_level: progress.xpIntoLevel,
+            xp_needed: progress.xpNeeded,
+            total_messages: 0
+          };
+        }));
+      }
+      async applyRoleRewards(member, level, settings) {
+        try {
+          const cfg = settings ?? await this.getSettings(member.guild.id);
+          const levelRoles = member.guild.levelRoles ?? {};
+          const roleEntries = Object.entries(levelRoles).map(([levelStr, roleId]) => ({ level: parseInt(levelStr, 10), roleId }));
+          const manageable = roleEntries.filter((reward) => {
+            const role = member.guild.roles.cache.get(reward.roleId);
+            return role && role.editable;
+          });
+          if (!manageable.length) return;
+          const eligible = manageable.filter((reward) => reward.level <= level).sort((a, b) => b.level - a.level);
+          const keep = cfg.stack_roles ? eligible : eligible.slice(0, 1);
+          const keepIds = new Set(keep.map((reward) => reward.roleId));
+          const toAdd = [...keepIds].filter((roleId) => !member.roles.cache.has(roleId));
+          const toRemove = manageable.map((reward) => reward.roleId).filter((roleId) => !keepIds.has(roleId) && member.roles.cache.has(roleId));
+          if (toAdd.length) await member.roles.add(toAdd, "Level reward");
+          if (toRemove.length) await member.roles.remove(toRemove, "Level reward no longer earned");
+        } catch (error62) {
+          console.warn("[Levels] Failed to apply role rewards:", error62?.message ?? error62);
+        }
+      }
+      async onLevelUpForMember(member, level, settings) {
+        const guild = member.guild;
+        await this.applyRoleRewards(member, level, settings);
+        if (!settings.announce_enabled || !settings.announce_message) return;
+        let channel = null;
+        if (settings.announce_channel_id) {
+          channel = guild.channels.cache.get(settings.announce_channel_id) ?? await guild.channels.fetch(settings.announce_channel_id).catch(() => null);
+        }
+        if (!channel || typeof channel.send !== "function") return;
+        const content = settings.announce_message.replace(/\{user\}/g, `<@${member.id}>`).replace(/\{username\}/g, member.user.username).replace(/\{level\}/g, String(level)).replace(/\{server\}/g, guild.name).replace(/\{channel\}/g, member.voice.channelId ? `<#${member.voice.channelId}>` : "voice");
+        try {
+          await channel.send({ content, allowedMentions: { users: [member.id] } });
+        } catch (error62) {
+          console.warn("[Levels] Failed to send level-up message:", error62?.message ?? error62);
+        }
+      }
+      async onLevelUp(message, member, level, settings) {
+        const guild = message.guild;
+        if (!guild) return;
+        if (member) {
+          await this.applyRoleRewards(member, level, settings);
+        }
+        if (!settings.announce_enabled || !settings.announce_message) return;
+        let channel = message.channel;
+        if (settings.announce_channel_id && settings.announce_channel_id !== message.channel.id) {
+          channel = guild.channels.cache.get(settings.announce_channel_id) ?? await guild.channels.fetch(settings.announce_channel_id).catch(() => null);
+        }
+        if (!channel || typeof channel.send !== "function") return;
+        const content = settings.announce_message.replace(/\{user\}/g, `<@${message.author.id}>`).replace(/\{username\}/g, message.author.username).replace(/\{level\}/g, String(level)).replace(/\{server\}/g, guild.name).replace(/\{channel\}/g, `<#${message.channel.id}>`);
+        try {
+          await channel.send({ content, allowedMentions: { users: [message.author.id] } });
+        } catch (error62) {
+          console.warn("[Levels] Failed to send level-up message:", error62?.message ?? error62);
+        }
+      }
+    };
+    levels = new LevelingSystem();
+    messageCreateLevels = {
+      name: "messageCreate",
+      execute: /* @__PURE__ */ __name(async (_client, message) => {
+        try {
+          await levels.processMessage(message).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+    voiceStateUpdateLevels = {
+      name: "voiceStateUpdate",
+      execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
+        if (!newState.member || newState.member.user.bot) return;
+        try {
+          await levels.handleVoiceChange(newState.member, newState.channelId ?? null).catch(() => {
+          });
+        } catch {
+        }
+        try {
+          await levels.handleVoiceChange(oldState.member, oldState.channelId ?? null).catch(() => {
+          });
+        } catch {
+        }
+      }, "execute")
+    };
+  }
+});
+
 // src/db/index.ts
 var import_mongoose30 = __toESM(require_mongoose2());
-
-// src/db/models/Guild.ts
-var import_mongoose = __toESM(require_mongoose2());
-var liveLeaderboardSchema = new import_mongoose.Schema(
-  {
-    enabled: { type: Boolean, default: false },
-    channelId: { type: String, default: "" },
-    messageId: { type: String, default: "" },
-    intervalMinutes: { type: Number, default: 10 },
-    rows: { type: Number, default: 25 },
-    title: { type: String, default: "" }
-  },
-  { _id: false }
-);
-var guildSchema = new import_mongoose.Schema(
-  {
-    guildId: { type: String, required: true, unique: true, index: true },
-    modules: { type: Map, of: Boolean, default: /* @__PURE__ */ new Map() },
-    xpEnabled: { type: Boolean, default: true },
-    xpCooldown: { type: Number, default: 60 },
-    xpMin: { type: Number, default: 15 },
-    xpMax: { type: Number, default: 25 },
-    xpVoiceMin: { type: Number, default: 5 },
-    xpVoiceMax: { type: Number, default: 8 },
-    xpIgnoreBots: { type: Boolean, default: true },
-    xpChannel: { type: String, default: "" },
-    levelUpChannel: { type: String },
-    levelUpMessage: { type: String },
-    disableXpChannels: { type: [String], default: [] },
-    levelRoles: { type: import_mongoose.Schema.Types.Mixed, default: {} },
-    liveLeaderboard: { type: liveLeaderboardSchema, default: /* @__PURE__ */ __name(() => ({}), "default") },
-    sukuna: { type: import_mongoose.Schema.Types.Mixed, default: {} }
-  },
-  { timestamps: true }
-);
-var Guild = (0, import_mongoose.model)("Guild", guildSchema);
-async function readGuildConfig(guildId) {
-  return Guild.findOne({ guildId }).lean();
-}
-__name(readGuildConfig, "readGuildConfig");
-async function updateGuildConfig(guildId, updates) {
-  return Guild.findOneAndUpdate({ guildId }, updates, { upsert: true, new: true, setDefaultsOnInsert: true }).lean();
-}
-__name(updateGuildConfig, "updateGuildConfig");
+init_Guild();
 
 // src/db/models/Ticket.ts
 var import_mongoose2 = __toESM(require_mongoose2());
@@ -179359,6 +182753,7 @@ var openTicketSchema = new import_mongoose2.Schema(
   },
   { timestamps: true }
 );
+openTicketSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { closedAt: null } });
 openTicketSchema.index({ guildId: 1, userId: 1, closedAt: 1 });
 openTicketSchema.index({ closedAt: 1 }, { partialFilterExpression: { closedAt: null } });
 openTicketSchema.index({ guildId: 1 }, { partialFilterExpression: { closedAt: null } });
@@ -179396,307 +182791,11 @@ function defaultTicketConfig(guildId) {
 }
 __name(defaultTicketConfig, "defaultTicketConfig");
 
-// src/db/models/User.ts
-var import_mongoose3 = __toESM(require_mongoose2());
-var userSchema = new import_mongoose3.Schema(
-  {
-    userId: { type: String, required: true, unique: true, index: true },
-    balance: { type: Number, default: 0 },
-    bank: { type: Number, default: 0 },
-    bankLimit: { type: Number, default: 1e3 },
-    inventory: {
-      type: [
-        {
-          _id: false,
-          itemId: { type: String, required: true },
-          quantity: { type: Number, default: 1, min: 0 }
-        }
-      ],
-      default: []
-    },
-    xp: { type: Number, default: 0 },
-    level: { type: Number, default: 0 },
-    totalXp: { type: Number, default: 0 },
-    lastMessageAt: { type: Date },
-    voiceMinutes: { type: Number, default: 0 },
-    lastDaily: { type: Date },
-    lastWork: { type: Date },
-    dailyStreak: { type: Number, default: 0 },
-    maxDailyStreak: { type: Number, default: 0 },
-    streakFreeze: { type: Boolean, default: false },
-    luckyClover: { type: Boolean, default: false }
-  },
-  { timestamps: true }
-);
-userSchema.index({ totalXp: -1 });
-userSchema.index({ xp: -1 });
-userSchema.index({ balance: -1 });
-userSchema.index({ level: -1 });
-userSchema.index({ createdAt: -1 });
-var User = (0, import_mongoose3.model)("User", userSchema);
-async function getUser(userId) {
-  const user = await User.findOneAndUpdate(
-    { userId },
-    { $setOnInsert: { userId } },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
-  return user;
-}
-__name(getUser, "getUser");
-
-// src/utils/level.ts
-function xpForLevel(level) {
-  return Math.floor(5 * level * level + 50 * level + 100);
-}
-__name(xpForLevel, "xpForLevel");
-function levelFromXp(totalXp) {
-  const total = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
-  let level = 0;
-  let remaining = total;
-  let iterations = 0;
-  const MAX_ITERATIONS = 1e5;
-  while (remaining >= xpForLevel(level)) {
-    remaining -= xpForLevel(level);
-    level++;
-    iterations++;
-    if (iterations > MAX_ITERATIONS) {
-      console.error("levelFromXp: Max iterations exceeded, breaking loop");
-      break;
-    }
-  }
-  return {
-    level,
-    xpInLevel: remaining,
-    xpForNext: xpForLevel(level),
-    totalXp: total
-  };
-}
-__name(levelFromXp, "levelFromXp");
-function progressPercent(info) {
-  if (info.xpForNext <= 0) return 100;
-  return Math.min(100, Math.floor(info.xpInLevel / info.xpForNext * 100));
-}
-__name(progressPercent, "progressPercent");
-function progressBar(percent, size = 20) {
-  const clamped = Math.max(0, Math.min(100, percent));
-  const filled = Math.round(clamped / 100 * size);
-  return "\u25B0".repeat(filled) + "\u25B1".repeat(Math.max(0, size - filled));
-}
-__name(progressBar, "progressBar");
-function randomXp(min, max, fixed) {
-  const lo = Number.isFinite(min) && min >= 0 ? Math.floor(min) : fixed !== void 0 && Number.isFinite(fixed) ? Math.floor(fixed) : 0;
-  const hi = Number.isFinite(max) && max >= 0 ? Math.floor(max) : lo;
-  if (hi <= lo) return lo;
-  return lo + Math.floor(Math.random() * (hi - lo + 1));
-}
-__name(randomXp, "randomXp");
-
-// src/db/utils.ts
-function effectiveXp(doc) {
-  const xp = Number.isFinite(doc.xp) ? Math.max(0, Math.floor(doc.xp)) : 0;
-  const totalXp = Number.isFinite(doc.totalXp) ? Math.max(0, Math.floor(doc.totalXp)) : 0;
-  return Math.max(xp, totalXp);
-}
-__name(effectiveXp, "effectiveXp");
-async function getUserXp(userId) {
-  const doc = await User.findOne({ userId }).lean();
-  if (!doc) return null;
-  const xp = effectiveXp(doc);
-  return {
-    userId: doc.userId,
-    xp,
-    level: levelFromXp(xp).level,
-    lastMessageAt: doc.lastMessageAt ?? void 0
-  };
-}
-__name(getUserXp, "getUserXp");
-async function addXp(userId, amount, source = "message", voiceMinutes = 0) {
-  const granted = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
-  const addedMinutes = Number.isFinite(voiceMinutes) ? Math.max(0, Math.floor(voiceMinutes)) : 0;
-  const now = /* @__PURE__ */ new Date();
-  const updated = await User.findOneAndUpdate(
-    { userId },
-    {
-      $inc: {
-        xp: granted,
-        totalXp: granted,
-        ...addedMinutes > 0 ? { voiceMinutes: addedMinutes } : {}
-      },
-      ...source === "message" ? { $set: { lastMessageAt: now } } : {},
-      // Schema defaults land here on first use, so the row is created with a
-      // real `balance: 0` instead of an absent field.
-      $setOnInsert: { userId }
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
-  const doc = updated;
-  const totalXp = effectiveXp(doc);
-  const oldLevel = levelFromXp(totalXp - granted).level;
-  const info = levelFromXp(totalXp);
-  if (doc.level !== info.level) {
-    await User.updateOne(
-      { userId, level: { $lt: info.level } },
-      { $set: { level: info.level } }
-    ).catch(() => void 0);
-  }
-  if ((doc.xp ?? 0) !== totalXp || (doc.totalXp ?? 0) !== totalXp) {
-    await User.updateOne(
-      { userId, totalXp: { $lt: totalXp } },
-      { $set: { totalXp, xp: totalXp } }
-    ).catch(() => void 0);
-  }
-  return {
-    leveledUp: info.level > oldLevel,
-    newLevel: info.level,
-    oldLevel,
-    totalXp,
-    info
-  };
-}
-__name(addXp, "addXp");
-async function setUserXp(userId, totalXp) {
-  const next = Number.isFinite(totalXp) ? Math.max(0, Math.floor(totalXp)) : 0;
-  const info = levelFromXp(next);
-  const before = await User.findOne({ userId }).lean();
-  const oldLevel = before ? levelFromXp(effectiveXp(before)).level : 0;
-  await User.updateOne(
-    { userId },
-    {
-      $set: { xp: next, totalXp: next, level: info.level },
-      $setOnInsert: { userId }
-    },
-    { upsert: true, setDefaultsOnInsert: true }
-  );
-  return {
-    leveledUp: info.level > oldLevel,
-    newLevel: info.level,
-    oldLevel,
-    totalXp: next,
-    info
-  };
-}
-__name(setUserXp, "setUserXp");
-async function backfillUserXp() {
-  let fixed = 0;
-  let batch = [];
-  const flush = /* @__PURE__ */ __name(async () => {
-    if (!batch.length) return;
-    const result = await User.collection.bulkWrite(batch, { ordered: false });
-    fixed += result.modifiedCount;
-    batch = [];
-  }, "flush");
-  try {
-    const cursor = User.collection.find({
-      $expr: { $gt: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }
-    });
-    for await (const doc of cursor) {
-      batch.push({
-        updateOne: {
-          filter: { _id: doc._id, totalXp: { $lt: doc.xp ?? 0 } },
-          update: { $set: { totalXp: doc.xp ?? 0 } }
-        }
-      });
-      if (batch.length >= 500) await flush();
-    }
-    await flush();
-  } catch (error62) {
-    return -1;
-  }
-  return fixed;
-}
-__name(backfillUserXp, "backfillUserXp");
-async function getLeaderboard(limit = 10) {
-  const rows = await User.aggregate([
-    { $addFields: { effectiveXp: { $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] } } },
-    { $match: { effectiveXp: { $gt: 0 } } },
-    { $sort: { effectiveXp: -1, userId: 1 } },
-    { $limit: Math.max(1, limit) }
-  ]).allowDiskUse(true);
-  return rows.map((row) => {
-    const xp = effectiveXp(row);
-    return {
-      user_id: row.userId,
-      xp,
-      level: levelFromXp(xp).level
-    };
-  });
-}
-__name(getLeaderboard, "getLeaderboard");
-async function getRankPosition(userId) {
-  const doc = await User.findOne({ userId }).lean();
-  if (!doc) return 0;
-  const xp = effectiveXp(doc);
-  if (xp <= 0) return 0;
-  const higher = await User.countDocuments({
-    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, xp] }
-  });
-  return higher + 1;
-}
-__name(getRankPosition, "getRankPosition");
-async function countRanked() {
-  return User.countDocuments({
-    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, 0] }
-  });
-}
-__name(countRanked, "countRanked");
-
-// src/db/models/AutoModRule.ts
-var import_mongoose4 = __toESM(require_mongoose2());
-var autoModRuleSchema = new import_mongoose4.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    name: { type: String, required: true, maxlength: 100 },
-    type: {
-      type: String,
-      enum: ["spam", "links", "invites", "words", "caps", "mentions", "attachments", "newlines", "emojis", "repeated"],
-      required: true
-    },
-    enabled: { type: Boolean, default: true },
-    actions: {
-      type: [String],
-      enum: ["delete", "warn", "timeout", "ban", "log"],
-      default: ["delete", "log"]
-    },
-    timeoutDuration: { type: Number, default: 300 },
-    warnMessage: { type: String, maxlength: 500 },
-    logChannel: { type: String },
-    ignoreChannels: { type: [String], default: [] },
-    ignoreRoles: { type: [String], default: [] },
-    config: {
-      type: import_mongoose4.Schema.Types.Mixed,
-      default: {}
-    }
-  },
-  { timestamps: true }
-);
-autoModRuleSchema.index({ guildId: 1, type: 1 });
-var AutoModRule = (0, import_mongoose4.model)("AutoModRule", autoModRuleSchema);
-
-// src/db/models/Infraction.ts
-var import_mongoose5 = __toESM(require_mongoose2());
-var infractionSchema = new import_mongoose5.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    userId: { type: String, required: true, index: true },
-    moderatorId: { type: String, required: true },
-    type: {
-      type: String,
-      enum: ["warn", "timeout", "ban", "kick", "unban", "untimeout", "note"],
-      required: true
-    },
-    reason: { type: String, required: true, maxlength: 1e3 },
-    duration: { type: Number },
-    expiresAt: { type: Date, index: true },
-    active: { type: Boolean, default: true },
-    dmSent: { type: Boolean, default: false },
-    messageId: { type: String },
-    channelId: { type: String }
-  },
-  { timestamps: true }
-);
-infractionSchema.index({ guildId: 1, userId: 1, createdAt: -1 });
-infractionSchema.index({ guildId: 1, active: 1, expiresAt: 1 });
-var Infraction = (0, import_mongoose5.model)("Infraction", infractionSchema);
+// src/db/index.ts
+init_User();
+init_utils();
+init_AutoModRule();
+init_Infraction();
 
 // src/db/models/ReactionRolePanel.ts
 var import_mongoose6 = __toESM(require_mongoose2());
@@ -179743,64 +182842,7 @@ var ReactionRolePanel = (0, import_mongoose6.model)("ReactionRolePanel", reactio
 
 // src/db/index.ts
 init_CustomCommand();
-
-// src/db/models/LogChannel.ts
-var import_mongoose8 = __toESM(require_mongoose2());
-var logChannelSchema = new import_mongoose8.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    event: {
-      type: String,
-      enum: [
-        "messageDelete",
-        "messageEdit",
-        "messageDeleteBulk",
-        "memberJoin",
-        "memberLeave",
-        "memberBanAdd",
-        "memberBanRemove",
-        "memberUpdate",
-        "roleCreate",
-        "roleDelete",
-        "roleUpdate",
-        "channelCreate",
-        "channelDelete",
-        "channelUpdate",
-        "voiceStateUpdate",
-        "inviteCreate",
-        "inviteDelete",
-        "guildUpdate",
-        "emojiCreate",
-        "emojiDelete",
-        "emojiUpdate",
-        "stickerCreate",
-        "stickerDelete",
-        "stickerUpdate",
-        "threadCreate",
-        "threadDelete",
-        "threadUpdate",
-        "moderationWarn",
-        "moderationTimeout",
-        "moderationBan",
-        "moderationKick",
-        "moderationUnban",
-        "moderationNote",
-        "automodTrigger"
-      ],
-      required: true
-    },
-    channelId: { type: String, required: true },
-    includeContent: { type: Boolean, default: true },
-    logBots: { type: Boolean, default: false },
-    ignoredChannels: { type: [String], default: [] },
-    ignoredRoles: { type: [String], default: [] },
-    webhookId: { type: String },
-    webhookToken: { type: String }
-  },
-  { timestamps: true }
-);
-logChannelSchema.index({ guildId: 1, event: 1 }, { unique: true });
-var LogChannel = (0, import_mongoose8.model)("LogChannel", logChannelSchema);
+init_LogChannel();
 
 // src/db/models/InviteTracker.ts
 var import_mongoose9 = __toESM(require_mongoose2());
@@ -180131,75 +183173,10 @@ var welcomerConfigSchema = new import_mongoose19.Schema(
 );
 var WelcomerConfig = (0, import_mongoose19.model)("WelcomerConfig", welcomerConfigSchema);
 
-// src/db/models/Antinuke.ts
-var import_mongoose20 = __toESM(require_mongoose2());
-var antinukeConfigSchema = new import_mongoose20.Schema(
-  {
-    guildId: { type: String, required: true, unique: true, index: true },
-    enabled: { type: Boolean, default: false },
-    alertChannelId: { type: String },
-    thresholds: {
-      type: import_mongoose20.Schema.Types.Mixed,
-      default: {
-        ban: 3,
-        kick: 5,
-        channelDelete: 3,
-        channelOverwrite: 8,
-        roleDelete: 3,
-        webhookDelete: 3,
-        bulkDelete: 1,
-        everyoneRole: 1
-      }
-    },
-    windowSec: { type: Number, default: 60 },
-    timeoutMinutes: { type: Number, default: 1440 },
-    autoStrip: { type: Boolean, default: true },
-    exemptRoleIds: { type: [String], default: [] },
-    backup: {
-      type: import_mongoose20.Schema.Types.Mixed,
-      default: { enabled: true, intervalMin: 60, keep: 24 }
-    }
-  },
-  { timestamps: true }
-);
-var AntinukeConfig = (0, import_mongoose20.model)("AntinukeConfig", antinukeConfigSchema);
-var antinukeIncidentSchema = new import_mongoose20.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    actorId: { type: String, required: true, index: true },
-    actorTag: { type: String },
-    action: { type: String, required: true },
-    count: { type: Number, required: true },
-    windowSec: { type: Number, required: true },
-    strippedRoles: { type: [String], default: [] },
-    timeoutMinutes: { type: Number, default: 0 },
-    status: { type: String, enum: ["locked", "unlocked"], default: "locked", index: true },
-    details: { type: String }
-  },
-  { timestamps: true }
-);
-antinukeIncidentSchema.index({ guildId: 1, actorId: 1, status: 1 });
-var AntinukeIncident = (0, import_mongoose20.model)("AntinukeIncident", antinukeIncidentSchema);
-
-// src/db/models/AutoReply.ts
-var import_mongoose21 = __toESM(require_mongoose2());
-var autoReplySchema = new import_mongoose21.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    triggerType: {
-      type: String,
-      enum: ["keyword", "regex", "exact"],
-      required: true
-    },
-    triggerValue: { type: String, required: true },
-    response: { type: String, required: true },
-    channelId: { type: String },
-    enabled: { type: Boolean, default: true }
-  },
-  { timestamps: true }
-);
-autoReplySchema.index({ guildId: 1, enabled: 1, channelId: 1 });
-var AutoReply = (0, import_mongoose21.model)("AutoReply", autoReplySchema);
+// src/db/index.ts
+init_Antinuke();
+init_Antinuke();
+init_AutoReply();
 
 // src/db/models/BoosterConfig.ts
 var import_mongoose22 = __toESM(require_mongoose2());
@@ -180245,89 +183222,16 @@ var presentationApplicationSchema = new import_mongoose23.Schema(
   },
   { timestamps: true }
 );
+presentationApplicationSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { status: "pending" } });
 presentationApplicationSchema.index({ guildId: 1, userId: 1, status: 1 });
 var PresentationApplication = (0, import_mongoose23.model)(
   "PresentationApplication",
   presentationApplicationSchema
 );
 
-// src/db/models/MediaReaction.ts
-var import_mongoose24 = __toESM(require_mongoose2());
-var mediaChannelConfigSchema = new import_mongoose24.Schema(
-  {
-    id: { type: String, required: true },
-    kind: { type: String, enum: ["memes", "images"], required: true },
-    reactions: { type: [String], default: [] },
-    enforce: { type: String, enum: ["off", "warn", "delete"] }
-  },
-  { _id: false }
-);
-var mediaReactionConfigSchema = new import_mongoose24.Schema(
-  {
-    guildId: { type: String, required: true, unique: true, index: true },
-    enabled: { type: Boolean, default: false },
-    memeChannels: { type: [mediaChannelConfigSchema], default: [] },
-    imageChannels: { type: [mediaChannelConfigSchema], default: [] },
-    memeReactions: { type: [String], default: ["\u2B50", "\u{1F602}"] },
-    imageReactions: { type: [String], default: ["\u{1F4F8}"] },
-    enforceMode: { type: String, enum: ["off", "warn", "delete"], default: "warn" }
-  },
-  { timestamps: true }
-);
-var MediaReactionConfig = (0, import_mongoose24.model)(
-  "MediaReactionConfig",
-  mediaReactionConfigSchema
-);
-
-// src/db/models/Verification.ts
-var import_mongoose25 = __toESM(require_mongoose2());
-var verificationConfigSchema = new import_mongoose25.Schema(
-  {
-    guildId: { type: String, required: true, unique: true, index: true },
-    enabled: { type: Boolean, default: false },
-    unverifiedRoleId: { type: String },
-    verifiedRoleId: { type: String },
-    rulesChannelId: { type: String },
-    panelMessageId: { type: String },
-    autoRoleIds: { type: [String], default: [] },
-    requireApproval: { type: Boolean, default: false },
-    logChannelId: { type: String },
-    minAccountAgeDays: { type: Number, default: 0 },
-    voiceChannelId: { type: String },
-    staffRoleId: { type: String }
-  },
-  { timestamps: true }
-);
-var VerificationConfig = (0, import_mongoose25.model)(
-  "VerificationConfig",
-  verificationConfigSchema
-);
-var verificationRequestSchema = new import_mongoose25.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    userId: { type: String, required: true, index: true },
-    status: {
-      type: String,
-      enum: ["pending", "claimed", "approved", "denied", "revoked"],
-      default: "pending",
-      index: true
-    },
-    reason: { type: String },
-    submittedAt: { type: Date, default: Date.now },
-    reviewedBy: { type: String },
-    reviewedAt: { type: Date },
-    claimedBy: { type: String },
-    claimedAt: { type: Date },
-    vcInvitedAt: { type: Date }
-  },
-  { timestamps: true }
-);
-verificationRequestSchema.index({ guildId: 1, userId: 1, status: 1 });
-verificationRequestSchema.index({ guildId: 1, claimedBy: 1, status: 1 });
-var VerificationRequest = (0, import_mongoose25.model)(
-  "VerificationRequest",
-  verificationRequestSchema
-);
+// src/db/index.ts
+init_MediaReaction();
+init_Verification();
 
 // src/db/models/NotificationFeed.ts
 var import_mongoose26 = __toESM(require_mongoose2());
@@ -180510,6 +183414,9 @@ async function disconnectDatabase() {
   }
 }
 __name(disconnectDatabase, "disconnectDatabase");
+
+// src/index.ts
+init_utils();
 
 // src/commands/core/ping.ts
 var import_discord2 = __toESM(require_src());
@@ -181038,103 +183945,7 @@ __name(handleRemove, "handleRemove");
 
 // src/commands/core/tempvc.ts
 var import_discord7 = __toESM(require_src());
-
-// src/db/models/TempVC.ts
-var import_mongoose33 = __toESM(require_mongoose2());
-var tempVCConfigSchema = new import_mongoose33.Schema(
-  {
-    guildId: { type: String, required: true, unique: true, index: true },
-    createChannelId: { type: String },
-    categoryId: { type: String },
-    nameTemplate: {
-      type: String,
-      required: true,
-      default: "{user}'s VC"
-    },
-    bitrate: { type: Number },
-    userLimit: { type: Number }
-  },
-  { timestamps: true }
-);
-var TempVCConfig = (0, import_mongoose33.model)("TempVCConfig", tempVCConfigSchema);
-var activeTempVCSchema = new import_mongoose33.Schema(
-  {
-    guildId: { type: String, required: true, index: true },
-    channelId: { type: String, required: true, unique: true },
-    ownerId: { type: String, required: true }
-  },
-  { timestamps: true }
-);
-activeTempVCSchema.index({ guildId: 1, ownerId: 1 });
-var ActiveTempVC = (0, import_mongoose33.model)("ActiveTempVC", activeTempVCSchema);
-async function readTempVCConfig(guildId) {
-  return TempVCConfig.findOne({ guildId }).lean();
-}
-__name(readTempVCConfig, "readTempVCConfig");
-async function upsertTempVCConfig(guildId, updates) {
-  return TempVCConfig.findOneAndUpdate(
-    { guildId },
-    { $set: updates },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  ).lean();
-}
-__name(upsertTempVCConfig, "upsertTempVCConfig");
-async function deleteTempVCConfig(guildId) {
-  return TempVCConfig.deleteOne({ guildId });
-}
-__name(deleteTempVCConfig, "deleteTempVCConfig");
-async function readActiveTempVCByChannel(channelId) {
-  return ActiveTempVC.findOne({ channelId }).lean();
-}
-__name(readActiveTempVCByChannel, "readActiveTempVCByChannel");
-async function readActiveTempVCByOwner(guildId, ownerId) {
-  return ActiveTempVC.findOne({ guildId, ownerId }).lean();
-}
-__name(readActiveTempVCByOwner, "readActiveTempVCByOwner");
-async function createActiveTempVC(data) {
-  return ActiveTempVC.create(data);
-}
-__name(createActiveTempVC, "createActiveTempVC");
-async function deleteActiveTempVC(channelId) {
-  return ActiveTempVC.deleteOne({ channelId });
-}
-__name(deleteActiveTempVC, "deleteActiveTempVC");
-var _configCache = /* @__PURE__ */ new Map();
-var _activeCache = /* @__PURE__ */ new Map();
-function getCachedTempVCConfig(guildId) {
-  if (_configCache.has(guildId)) return _configCache.get(guildId) ?? null;
-  return null;
-}
-__name(getCachedTempVCConfig, "getCachedTempVCConfig");
-function setCachedTempVCConfig(guildId, config2) {
-  _configCache.set(guildId, config2);
-}
-__name(setCachedTempVCConfig, "setCachedTempVCConfig");
-function clearTempVCConfigCache(guildId) {
-  if (guildId) _configCache.delete(guildId);
-  else _configCache.clear();
-}
-__name(clearTempVCConfigCache, "clearTempVCConfigCache");
-function getCachedActiveTempVC(channelId) {
-  return _activeCache.get(channelId);
-}
-__name(getCachedActiveTempVC, "getCachedActiveTempVC");
-function setCachedActiveTempVC(channelId, row) {
-  _activeCache.set(channelId, row);
-}
-__name(setCachedActiveTempVC, "setCachedActiveTempVC");
-function deleteCachedActiveTempVC(channelId) {
-  _activeCache.delete(channelId);
-}
-__name(deleteCachedActiveTempVC, "deleteCachedActiveTempVC");
-async function warmActiveTempVCCache() {
-  _activeCache.clear();
-  const rows = await ActiveTempVC.find().lean();
-  for (const row of rows) _activeCache.set(row.channelId, row);
-}
-__name(warmActiveTempVCCache, "warmActiveTempVCCache");
-
-// src/commands/core/tempvc.ts
+init_TempVC();
 var tempvcCommand = {
   data: new import_discord7.SlashCommandBuilder().setName("tempvc").setDescription("Join-to-create temporary voice channels.").setDMPermission(false).setDefaultMemberPermissions(import_discord7.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription(
@@ -181334,6 +184145,7 @@ __name(handleSet, "handleSet");
 
 // src/commands/core/userinfo.ts
 var import_discord8 = __toESM(require_src());
+init_level();
 var userinfoCommand = {
   data: new import_discord8.SlashCommandBuilder().setName("userinfo").setDescription("View a member's profile: XP, level, balance, and account info.").addUserOption(
     (option) => option.setName("user").setDescription("The member to check").setRequired(false)
@@ -181431,6 +184243,7 @@ var serverinfoCommand = {
 
 // src/commands/core/setup.ts
 var import_discord10 = __toESM(require_src());
+init_Guild();
 
 // src/core/owner.ts
 function ownerIds() {
@@ -181507,6 +184320,7 @@ var setupCommand = {
 
 // src/commands/moderation/kick.ts
 var import_discord11 = __toESM(require_src());
+init_Infraction();
 var kickCommand = {
   data: new import_discord11.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").setDMPermission(false).addUserOption(
     (option) => option.setName("user").setDescription("The member to kick").setRequired(true)
@@ -181593,6 +184407,7 @@ __name(errorEmbed, "errorEmbed");
 
 // src/commands/moderation/ban.ts
 var import_discord12 = __toESM(require_src());
+init_Infraction();
 var banCommand = {
   data: new import_discord12.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").setDMPermission(false).addUserOption(
     (option) => option.setName("user").setDescription("The member to ban").setRequired(true)
@@ -181674,6 +184489,7 @@ __name(errorEmbed2, "errorEmbed");
 
 // src/commands/moderation/timeout.ts
 var import_discord13 = __toESM(require_src());
+init_Infraction();
 var timeoutCommand = {
   data: new import_discord13.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").setDMPermission(false).addUserOption(
     (option) => option.setName("user").setDescription("The member to timeout").setRequired(true)
@@ -181798,6 +184614,7 @@ var clearCommand = {
 
 // src/commands/moderation/warn.ts
 var import_discord15 = __toESM(require_src());
+init_Infraction();
 var warnCommand = {
   data: new import_discord15.SlashCommandBuilder().setName("warn").setDescription("Warn a member and record the infraction.").setDMPermission(false).addUserOption(
     (option) => option.setName("user").setDescription("The member to warn").setRequired(true)
@@ -181868,412 +184685,9 @@ __name(errorEmbed4, "errorEmbed");
 
 // src/commands/moderation/automod.ts
 var import_discord17 = __toESM(require_src());
-
-// src/core/metrics.ts
-var import_node_stream4 = require("node:stream");
-var MAX_EVENTS = 400;
-var events = [];
-var counters = {
-  startedAt: Date.now(),
-  messagesSeen: 0,
-  commandsRun: 0,
-  aiReplies: 0,
-  errors: 0,
-  guildJoins: 0
-};
-var nextId = 1;
-function sanitizeMeta(meta3) {
-  if (!meta3) return void 0;
-  const clean = {};
-  for (const [key, value] of Object.entries(meta3)) {
-    if (value === void 0 || value === null) {
-      clean[key] = null;
-      continue;
-    }
-    if (typeof value === "string") {
-      clean[key] = value.length > 200 ? value.slice(0, 200) : value;
-    } else if (typeof value === "number" || typeof value === "boolean") {
-      clean[key] = value;
-    }
-  }
-  return Object.keys(clean).length > 0 ? clean : void 0;
-}
-__name(sanitizeMeta, "sanitizeMeta");
-function recordActivity(kind, message, options = {}) {
-  const event = {
-    id: nextId++,
-    kind,
-    level: options.level ?? "info",
-    message: String(message ?? "").slice(0, 500),
-    meta: sanitizeMeta(options.meta),
-    at: Date.now()
-  };
-  events.unshift(event);
-  if (events.length > MAX_EVENTS) events.length = MAX_EVENTS;
-  return event;
-}
-__name(recordActivity, "recordActivity");
-function getActivity(limit = 100, kind) {
-  const max = Math.min(Math.max(Math.round(limit) || 100, 1), MAX_EVENTS);
-  if (!kind || kind === "all") return events.slice(0, max);
-  return events.filter((event) => event.kind === kind).slice(0, max);
-}
-__name(getActivity, "getActivity");
-function bumpCounter(key, by = 1) {
-  counters[key] += by;
-}
-__name(bumpCounter, "bumpCounter");
-function getCounters() {
-  return { ...counters };
-}
-__name(getCounters, "getCounters");
-var PINO_LEVELS = {
-  10: "info",
-  20: "info",
-  30: "info",
-  40: "warn",
-  50: "error",
-  60: "error"
-};
-var activityLogStream = new import_node_stream4.Writable({
-  write(chunk, _encoding, callback) {
-    try {
-      const raw = chunk.toString().trim();
-      if (!raw) return callback();
-      const line = JSON.parse(raw);
-      const levelNumber = typeof line.level === "number" ? line.level : 30;
-      const level = PINO_LEVELS[levelNumber] ?? "info";
-      const message = typeof line.msg === "string" ? line.msg : "";
-      if (!message) return callback();
-      const isErr = line.err !== void 0 || level === "error";
-      recordActivity(isErr ? "error" : "log", message, {
-        level,
-        meta: {
-          tag: typeof line.tag === "string" ? line.tag : void 0,
-          command: typeof line.command === "string" ? line.command : void 0,
-          guildId: typeof line.guildId === "string" ? line.guildId : void 0,
-          userId: typeof line.userId === "string" ? line.userId : void 0,
-          event: typeof line.event === "string" ? line.event : void 0,
-          errorId: typeof line.errorId === "string" ? line.errorId : void 0
-        }
-      });
-    } catch {
-    }
-    callback();
-  }
-});
-
-// src/handlers/automod.ts
-var import_discord16 = __toESM(require_src());
-function hasIgnoreRole(member, ignoreRoles) {
-  if (!member || !member.roles) return false;
-  return member.roles.cache.hasAny(...ignoreRoles);
-}
-__name(hasIgnoreRole, "hasIgnoreRole");
-function isIgnoredChannel(channelId, ignoreChannels) {
-  return ignoreChannels.includes(channelId);
-}
-__name(isIgnoredChannel, "isIgnoredChannel");
-async function getLogChannel(guild, event) {
-  const logConfig = await LogChannel.findOne({ guildId: guild.id, event }).lean();
-  if (!logConfig) return { channel: null };
-  const channel = guild.channels.cache.get(logConfig.channelId);
-  return { channel: channel ?? null, webhookId: logConfig.webhookId, webhookToken: logConfig.webhookToken };
-}
-__name(getLogChannel, "getLogChannel");
-async function sendLog(channel, embed, webhook) {
-  try {
-    if (webhook?.id && webhook?.token) {
-      const webhookClient = new import_discord16.WebhookClient({ id: webhook.id, token: webhook.token });
-      await webhookClient.send({ embeds: [embed] });
-    } else {
-      await channel.send({ embeds: [embed] });
-    }
-  } catch (error62) {
-    console.warn("[AutoMod] Failed to send log:", error62);
-  }
-}
-__name(sendLog, "sendLog");
-async function createInfraction(guildId, userId, moderatorId, type, reason, duration3) {
-  const expiresAt = duration3 ? new Date(Date.now() + duration3 * 1e3) : void 0;
-  return Infraction.create({
-    guildId,
-    userId,
-    moderatorId,
-    type,
-    reason,
-    duration: duration3,
-    expiresAt,
-    active: !!duration3
-  });
-}
-__name(createInfraction, "createInfraction");
-async function executeActions(ctx, rule, reason) {
-  const { guild, message, user } = ctx;
-  const member = await guild.members.fetch(user.id).catch(() => null);
-  const botMember = guild.members.me;
-  if (!member || !botMember) return;
-  const canModerate = botMember.permissions.has("ModerateMembers");
-  const canBan = botMember.permissions.has("BanMembers");
-  const canKick = botMember.permissions.has("KickMembers");
-  const canManageMessages = botMember.permissions.has("ManageMessages");
-  const canActOnMember = member.roles.highest.position < botMember.roles.highest.position;
-  const logResult = await getLogChannel(guild, "automodTrigger");
-  const logChannel = logResult.channel;
-  const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Red).setTitle("\u{1F6E1}\uFE0F Auto-Mod Triggered").setDescription(`**Rule:** ${rule.name} (${rule.type})`).addFields(
-    { name: "User", value: `${user.tag} (${user.id})`, inline: true },
-    { name: "Channel", value: `<#${message.channelId}>`, inline: true },
-    { name: "Reason", value: reason, inline: false }
-  ).setTimestamp();
-  if (message.content) {
-    embed.addFields({ name: "Message", value: message.content.slice(0, 1e3), inline: false });
-  }
-  for (const action of rule.actions) {
-    try {
-      switch (action) {
-        case "delete": {
-          if (canManageMessages) {
-            await message.delete().catch(() => {
-            });
-            embed.addFields({ name: "Action", value: "\u2705 Message deleted", inline: true });
-          } else {
-            embed.addFields({ name: "Action", value: "\u274C Missing ManageMessages permission", inline: true });
-          }
-          break;
-        }
-        case "warn": {
-          await createInfraction(guild.id, user.id, guild.client.user.id, "warn", reason);
-          embed.addFields({ name: "Action", value: "\u2705 Warning issued", inline: true });
-          const warnMsg = rule.warnMessage || `You were warned in **${guild.name}**: ${reason}`;
-          await user.send(warnMsg).catch(() => {
-          });
-          break;
-        }
-        case "timeout": {
-          if (canModerate && canActOnMember && rule.timeoutDuration) {
-            await member.timeout(rule.timeoutDuration * 1e3, reason).catch(() => {
-            });
-            await createInfraction(guild.id, user.id, guild.client.user.id, "timeout", reason, rule.timeoutDuration);
-            embed.addFields({ name: "Action", value: `\u2705 Timed out for ${rule.timeoutDuration}s`, inline: true });
-          } else {
-            embed.addFields({ name: "Action", value: "\u274C Cannot timeout (permissions/hierarchy)", inline: true });
-          }
-          break;
-        }
-        case "ban": {
-          if (canBan && canActOnMember) {
-            await guild.members.ban(user.id, { reason, deleteMessageSeconds: 0 }).catch(() => {
-            });
-            await createInfraction(guild.id, user.id, guild.client.user.id, "ban", reason);
-            embed.addFields({ name: "Action", value: "\u2705 User banned", inline: true });
-          } else {
-            embed.addFields({ name: "Action", value: "\u274C Cannot ban (permissions/hierarchy)", inline: true });
-          }
-          break;
-        }
-        case "log": {
-          embed.addFields({ name: "Action", value: "\u{1F4DD} Logged", inline: true });
-          break;
-        }
-      }
-    } catch (error62) {
-      console.error("[AutoMod] Action failed:", error62);
-      embed.addFields({ name: `Action (${action})`, value: `\u274C Error: ${error62}`, inline: true });
-    }
-  }
-  if (logChannel) {
-    await sendLog(logChannel, embed, logResult.webhookId && logResult.webhookToken ? { id: logResult.webhookId, token: logResult.webhookToken } : void 0);
-  }
-  recordActivity("command", `AutoMod Triggered: ${rule.name}`, {
-    level: "warn",
-    meta: { guildId: guild.id, userId: user.id, ruleType: rule.type }
-  });
-}
-__name(executeActions, "executeActions");
-function checkLinks(rule, content) {
-  const config2 = rule.config;
-  const allowedDomains = config2.allowedDomains ?? [];
-  const urlRegex = /(https?:\/\/[^\s]+)/gi;
-  const urls = content.match(urlRegex) ?? [];
-  for (const url2 of urls) {
-    try {
-      const hostname3 = new URL(url2).hostname.replace("www.", "");
-      if (!allowedDomains.some((d) => hostname3 === d || hostname3.endsWith("." + d))) {
-        return true;
-      }
-    } catch {
-      return true;
-    }
-  }
-  const inviteRegex = /(discord\.gg\/|discordapp\.com\/invite\/)[a-zA-Z0-9]+/gi;
-  if (inviteRegex.test(content)) return true;
-  return false;
-}
-__name(checkLinks, "checkLinks");
-function checkWords(rule, content) {
-  const config2 = rule.config;
-  const bannedWords = config2.bannedWords ?? [];
-  const regexPatterns = config2.regexPatterns ?? [];
-  const lowerContent = content.toLowerCase();
-  for (const word of bannedWords) {
-    if (lowerContent.includes(word.toLowerCase())) return true;
-  }
-  for (const pattern of regexPatterns) {
-    try {
-      const regex = new RegExp(pattern, "gi");
-      if (regex.test(content)) return true;
-    } catch {
-    }
-  }
-  return false;
-}
-__name(checkWords, "checkWords");
-function checkCaps(rule, content) {
-  const config2 = rule.config;
-  const minLength = config2.minLength ?? 10;
-  const maxPercent = config2.maxCapsPercent ?? 70;
-  if (content.length < minLength) return false;
-  const letters = content.match(/[a-zA-Z]/g);
-  if (!letters || letters.length < minLength) return false;
-  const caps = letters.filter((c) => c === c.toUpperCase()).length;
-  const percent = caps / letters.length * 100;
-  return percent > maxPercent;
-}
-__name(checkCaps, "checkCaps");
-function checkMentions(rule, message) {
-  const config2 = rule.config;
-  const maxMentions = config2.maxMentions ?? 5;
-  const mentionCount = message.mentions.users.size + message.mentions.roles.size;
-  return mentionCount > maxMentions;
-}
-__name(checkMentions, "checkMentions");
-function checkAttachments(rule, message) {
-  const config2 = rule.config;
-  const blockedExtensions = config2.blockedExtensions ?? ["exe", "bat", "cmd", "scr", "pif", "com", "jar", "msi"];
-  for (const attachment of message.attachments.values()) {
-    const ext = attachment.name.split(".").pop()?.toLowerCase();
-    if (ext && blockedExtensions.includes(ext)) return true;
-  }
-  return false;
-}
-__name(checkAttachments, "checkAttachments");
-function checkNewlines(rule, content) {
-  const config2 = rule.config;
-  const maxNewlines = config2.maxNewlines ?? 20;
-  const newlines = (content.match(/\n/g) || []).length;
-  return newlines > maxNewlines;
-}
-__name(checkNewlines, "checkNewlines");
-function checkEmojis(rule, content) {
-  const config2 = rule.config;
-  const maxEmojis = config2.maxEmojis ?? 20;
-  const customEmojis = (content.match(/<a?:[a-zA-Z0-9_]+:\d+>/g) || []).length;
-  const unicodeEmojis = (content.match(/[\u{1F300}-\u{1FAFF}]/gu) || []).length;
-  return customEmojis + unicodeEmojis > maxEmojis;
-}
-__name(checkEmojis, "checkEmojis");
-var RULE_CACHE_TTL_MS = 15e3;
-var ruleCache = /* @__PURE__ */ new Map();
-async function getEnabledRules(guildId) {
-  const now = Date.now();
-  const cached2 = ruleCache.get(guildId);
-  if (cached2 && cached2.expiresAt > now) return cached2.rules;
-  const rules = await AutoModRule.find({ guildId, enabled: true }).lean();
-  ruleCache.set(guildId, { rules, expiresAt: now + RULE_CACHE_TTL_MS });
-  return rules;
-}
-__name(getEnabledRules, "getEnabledRules");
-function invalidateAutomodCache(guildId) {
-  if (guildId) ruleCache.delete(guildId);
-  else ruleCache.clear();
-}
-__name(invalidateAutomodCache, "invalidateAutomodCache");
-async function checkAutomod(message) {
-  if (!message.guild || !message.channel.isTextBased()) return;
-  if (message.author.bot) return;
-  const guild = message.guild;
-  const member = message.member ?? await guild.members.fetch(message.author.id).catch(() => null);
-  if (!member) return;
-  if (member.permissions.has("Administrator") || member.permissions.has("ManageMessages")) return;
-  const rules = await getEnabledRules(guild.id);
-  if (!rules.length) return;
-  const recentMessages = [];
-  for (const rule of rules) {
-    if (isIgnoredChannel(message.channelId, rule.ignoreChannels)) continue;
-    if (hasIgnoreRole(member, rule.ignoreRoles)) continue;
-    let triggered = false;
-    let reason = "";
-    switch (rule.type) {
-      case "spam": {
-        break;
-      }
-      case "links":
-      case "invites": {
-        if (checkLinks(rule, message.content)) {
-          triggered = true;
-          reason = "Message contains unauthorized links/invites";
-        }
-        break;
-      }
-      case "words": {
-        if (checkWords(rule, message.content)) {
-          triggered = true;
-          reason = "Message contains banned words/phrases";
-        }
-        break;
-      }
-      case "caps": {
-        if (checkCaps(rule, message.content)) {
-          triggered = true;
-          reason = "Message contains excessive caps";
-        }
-        break;
-      }
-      case "mentions": {
-        if (checkMentions(rule, message)) {
-          triggered = true;
-          reason = "Message contains excessive mentions";
-        }
-        break;
-      }
-      case "attachments": {
-        if (checkAttachments(rule, message)) {
-          triggered = true;
-          reason = "Message contains blocked file types";
-        }
-        break;
-      }
-      case "newlines": {
-        if (checkNewlines(rule, message.content)) {
-          triggered = true;
-          reason = "Message contains excessive newlines";
-        }
-        break;
-      }
-      case "emojis": {
-        if (checkEmojis(rule, message.content)) {
-          triggered = true;
-          reason = "Message contains excessive emojis";
-        }
-        break;
-      }
-      case "repeated": {
-        break;
-      }
-    }
-    if (triggered) {
-      await executeActions({ guild, message, user: message.author }, rule, reason);
-      break;
-    }
-  }
-}
-__name(checkAutomod, "checkAutomod");
-async function initAutomod() {
-  console.log("[AutoMod] Auto-moderation system initialized");
-}
-__name(initAutomod, "initAutomod");
-
-// src/commands/moderation/automod.ts
+init_AutoModRule();
+init_automod();
+init_metrics();
 var automodTypes = [
   { name: "Spam", value: "spam", description: "Limit messages per time window" },
   { name: "Links/Invites", value: "links", description: "Block unauthorized links and Discord invites" },
@@ -182616,6 +185030,7 @@ __name(handleTagEmbedModal, "handleTagEmbedModal");
 
 // src/commands/moderation/discordautomod.ts
 var import_discord18 = __toESM(require_src());
+init_metrics();
 var discordautomodCommand = {
   data: new import_discord18.SlashCommandBuilder().setName("discordautomod").setDescription("Manage Discord native AutoMod rules").addSubcommand(
     (sub) => sub.setName("list").setDescription("List all Discord AutoMod rules")
@@ -182861,6 +185276,8 @@ Status: ${r.enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} | Exempt: ${r.
 
 // src/commands/moderation/logs.ts
 var import_discord19 = __toESM(require_src());
+init_LogChannel();
+init_metrics();
 var logEvents = [
   { name: "Message Delete", value: "messageDelete", description: "When a message is deleted" },
   { name: "Message Edit", value: "messageEdit", description: "When a message is edited" },
@@ -183080,6 +185497,7 @@ var logsCommand = {
 var import_discord20 = __toESM(require_src());
 
 // src/utils/economy.ts
+init_User();
 function formatCoins(amount) {
   const safe = Number.isFinite(amount) ? Math.max(0, Math.floor(amount)) : 0;
   return safe.toLocaleString();
@@ -183222,6 +185640,8 @@ ${lines.join("\n")}`);
 
 // src/commands/economy/daily.ts
 var import_discord21 = __toESM(require_src());
+init_User();
+init_metrics();
 var DAY_MS = 864e5;
 var BASE_REWARD = 500;
 var STREAK_BONUS_PER_DAY = 50;
@@ -183309,6 +185729,8 @@ Wallet: **${formatCoins(claimed.balance)}**`
 
 // src/commands/economy/work.ts
 var import_discord22 = __toESM(require_src());
+init_User();
+init_metrics();
 var WORK_COOLDOWN_MS = 36e5;
 var JOBS = [
   { name: "Pizza delivery", emoji: "\u{1F355}", min: 120, max: 380, failureRate: 0.08 },
@@ -183386,6 +185808,8 @@ Wallet: **${formatCoins(updated.balance)}**`;
 
 // src/commands/economy/casino.ts
 var import_discord23 = __toESM(require_src());
+init_User();
+init_metrics();
 var MAX_BET = 1e4;
 var MIN_CRASH_TARGET = 1.2;
 var MAX_CRASH_TARGET = 50;
@@ -183814,9 +186238,11 @@ var diceCommand = {
 
 // src/commands/leveling/rank.ts
 var import_discord27 = __toESM(require_src());
+init_level();
 
 // src/utils/rankEmbeds.ts
 var import_discord26 = __toESM(require_src());
+init_level();
 function buildRankCard(opts) {
   const { user, info } = opts;
   const percent = progressPercent(info);
@@ -184592,6 +187018,7 @@ var rankCommand = {
 
 // src/commands/leveling/leaderboard.ts
 var import_discord28 = __toESM(require_src());
+init_level();
 var leaderboardCommand = {
   data: new import_discord28.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many members to show (1-25)").setMinValue(1).setMaxValue(25)
@@ -184675,6 +187102,9 @@ __name(canAssignRole, "canAssignRole");
 
 // src/utils/liveLeaderboard.ts
 var import_discord30 = __toESM(require_src());
+init_utils();
+init_Guild();
+init_level();
 
 // src/utils/levelSettings.ts
 var DEFAULT_LEVEL_UP_MESSAGE = "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
@@ -185009,6 +187439,7 @@ function stopLiveLeaderboard() {
 __name(stopLiveLeaderboard, "stopLiveLeaderboard");
 
 // src/commands/leveling/shared.ts
+init_Guild();
 async function loadLevelSettings(context) {
   const row = await readGuildConfig(context.guild.id).catch(() => null);
   return readLevelSettings(row ?? context.settings ?? {});
@@ -186092,6 +188523,7 @@ __name(handleStats, "handleStats");
 
 // src/commands/music/play.ts
 var import_discord35 = __toESM(require_src());
+init_metrics();
 var musicCommand = {
   data: new import_discord35.SlashCommandBuilder().setName("music").setDescription("Music player system").addSubcommand(
     (sub) => sub.setName("play").setDescription("Play a song or search for music").addStringOption(
@@ -186703,6 +189135,7 @@ var eightBallEnhancedCommand = {
 
 // src/commands/fun/pet.ts
 var import_discord46 = __toESM(require_src());
+init_metrics();
 var petTypes = {
   dog: { emoji: "\u{1F415}", color: import_discord46.Colors.Blurple },
   cat: { emoji: "\u{1F431}", color: import_discord46.Colors.Purple },
@@ -186895,6 +189328,7 @@ Winner: **${winnerUser.tag}**!`).addFields(
 
 // src/commands/fun/marry.ts
 var import_discord47 = __toESM(require_src());
+init_metrics();
 var marriageCommand = {
   data: new import_discord47.SlashCommandBuilder().setName("marry").setDescription("Marriage system").addSubcommand(
     (sub) => sub.setName("propose").setDescription("Propose marriage to someone").addUserOption(
@@ -187016,6 +189450,7 @@ var marriageCommand = {
 
 // src/commands/utility/suggest.ts
 var import_discord48 = __toESM(require_src());
+init_metrics();
 var suggestCommand = {
   data: new import_discord48.SlashCommandBuilder().setName("suggest").setDescription("Suggestion system").addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a suggestion").addStringOption(
@@ -187351,6 +189786,7 @@ var pollVoteCommand = {
 var import_discord52 = __toESM(require_src());
 
 // src/handlers/reactionRoles.ts
+init_metrics();
 var import_discord51 = __toESM(require_src());
 function buildPanelEmbed(panel) {
   const embed = new import_discord51.EmbedBuilder().setTitle(panel.title).setDescription(panel.description || "Click buttons below to get roles!").setColor(panel.color || import_discord51.Colors.Blurple).setTimestamp();
@@ -187645,6 +190081,7 @@ async function initReactionRoles(guild) {
 __name(initReactionRoles, "initReactionRoles");
 
 // src/commands/utility/reactionrole.ts
+init_metrics();
 var modes = [
   { name: "Unique (one role at a time)", value: "unique" },
   { name: "Verify (one-time button)", value: "verify" },
@@ -187931,6 +190368,7 @@ __name(isValidEmoji, "isValidEmoji");
 // src/commands/utility/customcmd.ts
 var import_discord53 = __toESM(require_src());
 init_CustomCommand();
+init_metrics();
 var customcmdCommand = {
   data: new import_discord53.SlashCommandBuilder().setName("tag").setDescription("Custom commands (tags)").addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a custom command").addStringOption(
@@ -188192,6 +190630,7 @@ __name(executeCustomCommand, "executeCustomCommand");
 
 // src/commands/utility/invites.ts
 var import_discord54 = __toESM(require_src());
+init_metrics();
 var invitesCommand = {
   data: new import_discord54.SlashCommandBuilder().setName("invites").setDescription("Invite tracking system").addSubcommand(
     (sub) => sub.setName("leaderboard").setDescription("Show top inviters").addIntegerOption(
@@ -188731,6 +191170,7 @@ __name(invalidateStarboardCache, "invalidateStarboardCache");
 
 // src/commands/utility/remind.ts
 var import_discord56 = __toESM(require_src());
+init_metrics();
 var import_ms2 = __toESM(require_ms());
 var remindCommand = {
   data: new import_discord56.SlashCommandBuilder().setName("remind").setDescription("Reminder system").addSubcommand(
@@ -188916,6 +191356,7 @@ __name(checkReminders, "checkReminders");
 
 // src/commands/utility/afk.ts
 var import_discord57 = __toESM(require_src());
+init_metrics();
 var afkCommand = {
   data: new import_discord57.SlashCommandBuilder().setName("afk").setDescription("AFK system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set your AFK status").addStringOption(
@@ -189041,6 +191482,7 @@ __name(handleAfkMessage, "handleAfkMessage");
 
 // src/commands/utility/welcome.ts
 var import_discord58 = __toESM(require_src());
+init_metrics();
 var welcomeCommand = {
   data: new import_discord58.SlashCommandBuilder().setName("welcome").setDescription("Welcome and greetings system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set welcome channel and message").addChannelOption(
@@ -189314,6 +191756,7 @@ var notificationsCommand = {
 
 // src/commands/utility/birthday.ts
 var import_discord60 = __toESM(require_src());
+init_metrics();
 var birthdayCommand = {
   data: new import_discord60.SlashCommandBuilder().setName("birthday").setDescription("Birthday system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set your birthday").addIntegerOption(
@@ -189451,6 +191894,9 @@ var levelupCommand = {
 var import_discord63 = __toESM(require_src());
 
 // src/handlers/levelUp.ts
+init_level();
+init_utils();
+init_Guild();
 function resolveLevelRoles(levelRoles, level) {
   const tiers = Object.entries(levelRoles).filter(([key, roleId]) => /^\d+$/.test(key) && typeof roleId === "string" && roleId !== "").map(([key, roleId]) => ({ level: Number.parseInt(key, 10), roleId })).filter((tier) => tier.level <= level).sort((a, b) => a.level - b.level);
   const best = tiers[tiers.length - 1];
@@ -189640,6 +192086,7 @@ var resetXpCommand = {
 
 // src/commands/economy/economy.ts
 var import_discord65 = __toESM(require_src());
+init_User();
 
 // src/utils/shop.ts
 var SHOP_ITEMS = [
@@ -189781,6 +192228,7 @@ ${lines.join("\n\n")}`
 
 // src/commands/economy/buy.ts
 var import_discord67 = __toESM(require_src());
+init_metrics();
 var buyCommand = {
   data: new import_discord67.SlashCommandBuilder().setName("buy").setDescription("Buy an item from the shop.").addStringOption(
     (option) => option.setName("item").setDescription("The item to buy").setRequired(true).addChoices(...shopItemChoices())
@@ -189826,6 +192274,9 @@ var buyCommand = {
 
 // src/commands/economy/use.ts
 var import_discord68 = __toESM(require_src());
+init_User();
+init_utils();
+init_metrics();
 var COIN_POUCH_MIN = 500;
 var COIN_POUCH_MAX = 1200;
 var XP_POTION_XP = 1e3;
@@ -189962,6 +192413,8 @@ __name(consumeOne, "consumeOne");
 
 // src/commands/economy/bank.ts
 var import_discord69 = __toESM(require_src());
+init_User();
+init_metrics();
 var LIMIT_STEP = 1e4;
 var LIMIT_UPGRADE_COST = 5e3;
 var MAX_LIMIT = 1e6;
@@ -190140,6 +192593,7 @@ var inventoryCommand = {
 
 // src/commands/economy/give.ts
 var import_discord71 = __toESM(require_src());
+init_metrics();
 var MAX_TRANSFER = 1e6;
 var giveCommand = {
   data: new import_discord71.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
@@ -190184,6 +192638,7 @@ var giveCommand = {
 
 // src/commands/economy/rich.ts
 var import_discord72 = __toESM(require_src());
+init_User();
 var MAX_LEADERBOARD = 10;
 var richCommand = {
   data: new import_discord72.SlashCommandBuilder().setName("rich").setDescription("See who holds the most coins.").addIntegerOption(
@@ -190357,7 +192812,6 @@ var SukunaClient = class extends import_discord74.Client {
   logger;
   db = null;
   settingsCache = /* @__PURE__ */ new Map();
-  premiumCache = /* @__PURE__ */ new Map();
   xpCooldowns = /* @__PURE__ */ new Map();
   constructor() {
     super({
@@ -190379,9 +192833,17 @@ var SukunaClient = class extends import_discord74.Client {
   }
   async getConfig(guildId) {
     const cached2 = this.settingsCache.get(guildId);
-    if (cached2) return cached2.config;
+    if (cached2 && Date.now() - cached2.updatedAt < 6e4) return cached2.config;
+    if (cached2) this.settingsCache.delete(guildId);
     const config2 = await this.loadConfig(guildId);
     return config2;
+  }
+  evictGuildCache(guildId) {
+    this.settingsCache.delete(guildId);
+    const prefix = `xp_${guildId}_`;
+    for (const key of this.xpCooldowns.keys()) {
+      if (key.startsWith(prefix)) this.xpCooldowns.delete(key);
+    }
   }
   async loadConfig(guildId) {
     try {
@@ -190454,6 +192916,7 @@ __name(registerEvents, "registerEvents");
 
 // src/core/logger.ts
 var import_pino = __toESM(require_pino());
+init_metrics();
 var logger = (0, import_pino.default)({
   level: process.env.LOG_LEVEL || "info"
 });
@@ -190471,6 +192934,7 @@ var import_discord75 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
+var MAX_ENTRIES = 25e3;
 var SWEEP_INTERVAL_MS = 6e4;
 var lastSweep = 0;
 function sweep(now) {
@@ -190489,6 +192953,8 @@ function takeCooldown(guildId, userId, commandName, cooldownSeconds) {
   if (entry && now < entry.expiry) {
     return entry.expiry - now;
   }
+  if (cooldowns.size >= MAX_ENTRIES) sweep(now + SWEEP_INTERVAL_MS);
+  if (cooldowns.size >= MAX_ENTRIES) return 0;
   cooldowns.set(key, { expiry: now + cooldownSeconds * 1e3 });
   return 0;
 }
@@ -190514,6 +192980,8 @@ function newErrorId() {
 __name(newErrorId, "newErrorId");
 
 // src/events/interactionCreate.ts
+init_metrics();
+init_safety();
 var import_mongoose34 = __toESM(require_mongoose2());
 init_manager();
 var ticketCreateCooldowns = /* @__PURE__ */ new Map();
@@ -190591,12 +193059,12 @@ var interactionCreate = {
           return;
         }
       }
-      const remaining = takeCooldown(
+      const remaining = (command.cooldownSeconds ?? 0) > 0 ? takeCooldown(
         guildId,
         interaction.user.id,
         command.data.name,
-        command.cooldownSeconds ?? 1
-      );
+        command.cooldownSeconds
+      ) : 0;
       if (remaining > 0) {
         await replyError(interaction, `Slow down - try again in ${(remaining / 1e3).toFixed(1)}s.`);
         return;
@@ -190717,6 +193185,13 @@ async function handleSelectMenuInteraction2(client, interaction) {
 }
 __name(handleSelectMenuInteraction2, "handleSelectMenuInteraction");
 async function handleTicketCreate(client, interaction) {
+  await withMutex(
+    `ticket:${interaction.guildId}:${interaction.user.id}`,
+    () => handleTicketCreateInner(client, interaction)
+  );
+}
+__name(handleTicketCreate, "handleTicketCreate");
+async function handleTicketCreateInner(client, interaction) {
   await interaction.deferReply({ flags: 64 });
   const guild = interaction.guild;
   const user = interaction.user;
@@ -190826,6 +193301,7 @@ async function handleTicketCreate(client, interaction) {
     });
     ticketCreated = true;
     if (cooldownSeconds > 0) {
+      pruneMap(ticketCreateCooldowns, 5e3, (v) => Date.now() - v > 864e5);
       ticketCreateCooldowns.set(`${guild.id}:${user.id}`, Date.now());
     }
     const closeButton = new import_discord75.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord75.ButtonStyle.Danger).setEmoji("\u{1F512}");
@@ -190841,6 +193317,18 @@ async function handleTicketCreate(client, interaction) {
       content: `\u2705 Ticket created: ${channel} (${department.name}).`
     });
   } catch (error62) {
+    if (isDuplicateKeyError(error62)) {
+      const existingTicket = await OpenTicket.findOne({ guildId: guild.id, userId: user.id, closedAt: null }).lean().catch(() => null);
+      if (channel) {
+        try {
+          await channel.delete();
+        } catch {
+        }
+      }
+      const existingChannel = existingTicket ? `<#${existingTicket.channelId}>` : "a channel";
+      await interaction.editReply({ content: `\u274C You already have an open ticket: ${existingChannel}.` });
+      return;
+    }
     if (channel) {
       try {
         await channel.delete();
@@ -190859,7 +193347,7 @@ async function handleTicketCreate(client, interaction) {
     });
   }
 }
-__name(handleTicketCreate, "handleTicketCreate");
+__name(handleTicketCreateInner, "handleTicketCreateInner");
 async function handleTicketCloseButton(interaction) {
   const guild = interaction.guild;
   if (!guild) {
@@ -190956,6 +193444,9 @@ var import_node_path2 = __toESM(require("node:path"));
 var import_node_crypto = __toESM(require("node:crypto"));
 init_zod();
 init_config();
+init_Guild();
+init_User();
+init_utils();
 
 // src/db/models/SukunaMemory.ts
 var import_mongoose35 = __toESM(require_mongoose2());
@@ -191163,6 +193654,7 @@ init_sukuna();
 
 // src/core/gemini-live.ts
 var import_genai3 = require("@google/genai");
+init_metrics();
 var DEFAULT_REQUEST_TIMEOUT_MS = 2e4;
 var CONNECT_TIMEOUT_MS = 12e3;
 var MAX_RECONNECT_ATTEMPTS = 4;
@@ -192106,6 +194598,9 @@ Decide now. Call exactly one of \`${SEND_MESSAGE_TOOL}\`, \`${SEND_STICKER_TOOL}
 __name(generateLiveText, "generateLiveText");
 
 // dashboard/server.ts
+init_metrics();
+init_AutoModRule();
+init_automod();
 init_CustomCommand();
 var DASHBOARD_HOST = "0.0.0.0";
 var DEFAULT_PORT = 3001;
@@ -192830,18 +195325,18 @@ async function updateTicketConfig(guild, req, res) {
       throw new HttpError(400, `Staff role ${roleId} does not exist in this guild`);
     }
   }
-  let config2 = await TicketConfig.findOne({ guildId: guild.id });
-  if (!config2) {
-    config2 = await TicketConfig.create(defaultTicketConfig(guild.id));
-  }
-  if (data.maxTicketsPerUser !== void 0) config2.maxTicketsPerUser = data.maxTicketsPerUser;
-  if (data.cooldownSeconds !== void 0) config2.cooldownSeconds = data.cooldownSeconds;
-  if (data.dmTranscript !== void 0) config2.dmTranscript = data.dmTranscript;
-  if (data.transcriptChannelId !== void 0)
-    config2.transcriptChannelId = data.transcriptChannelId ?? void 0;
-  if (data.autoCloseMinutes !== void 0) config2.autoCloseMinutes = data.autoCloseMinutes;
-  if (data.staffRoleIds !== void 0) config2.staffRoleIds = data.staffRoleIds;
-  await config2.save();
+  const updates = {};
+  if (data.maxTicketsPerUser !== void 0) updates.maxTicketsPerUser = data.maxTicketsPerUser;
+  if (data.cooldownSeconds !== void 0) updates.cooldownSeconds = data.cooldownSeconds;
+  if (data.dmTranscript !== void 0) updates.dmTranscript = data.dmTranscript;
+  if (data.transcriptChannelId !== void 0) updates.transcriptChannelId = data.transcriptChannelId ?? void 0;
+  if (data.autoCloseMinutes !== void 0) updates.autoCloseMinutes = data.autoCloseMinutes;
+  if (data.staffRoleIds !== void 0) updates.staffRoleIds = data.staffRoleIds;
+  const config2 = await TicketConfig.findOneAndUpdate(
+    { guildId: guild.id },
+    { $set: updates, $setOnInsert: defaultTicketConfig(guild.id) },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
   sendJson(res, 200, {
     config: {
       maxTicketsPerUser: config2.maxTicketsPerUser,
@@ -193955,10 +196450,16 @@ __name(toPlainObject, "toPlainObject");
 
 // src/events/ready.ts
 init_config();
+init_metrics();
 
 // src/events/voiceStateUpdate.ts
 var import_discord76 = __toESM(require_src());
+init_utils();
+init_level();
 init_manager();
+init_TempVC();
+init_safety();
+init_metrics();
 var voiceSessions = /* @__PURE__ */ new Map();
 var tickInterval = null;
 var ticking = false;
@@ -193990,7 +196491,7 @@ async function awardVoiceXp(client, userId, minutes, guild, user, settings, voic
     }
     return true;
   } catch (err) {
-    console.error(`Failed to award voice XP to ${userId}:`, err);
+    client.logger?.warn({ err, userId }, "voice XP award failed");
     return false;
   }
 }
@@ -194029,15 +196530,20 @@ async function handleVoiceStateUpdate(client, oldState, newState) {
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
   try {
-    await handleTempVCJoin(client, newState);
+    const ownerId = newState.member?.user?.id;
+    if (ownerId && newState.guild) {
+      await withMutex(`tempvc:${newState.guild.id}:${ownerId}`, () => handleTempVCJoin(client, newState));
+    } else {
+      await handleTempVCJoin(client, newState);
+    }
   } catch (err) {
-    console.error("[TempVC] join failed:", err);
+    client.logger?.warn({ err }, "tempVC join failed");
   }
   if (oldState.channelId && changedChannel) {
     try {
       await handleTempVCLeave(oldState);
     } catch (err) {
-      console.error("[TempVC] leave failed:", err);
+      client.logger?.warn({ err }, "tempVC leave failed");
     }
   }
   const selfId = client.user?.id;
@@ -194111,18 +196617,35 @@ async function handleTempVCJoin(client, newState) {
       reason: `Temp VC created by ${member.user.tag}`
     });
   } catch (err) {
-    console.error("[TempVC] Failed to create channel:", err);
+    client.logger?.warn({ err }, "tempVC create channel failed");
     return;
   }
   try {
     await member.voice.setChannel(newChannel, "Joined create channel");
   } catch {
   }
-  await createActiveTempVC({
-    guildId: guild.id,
-    channelId: newChannel.id,
-    ownerId: member.id
-  });
+  try {
+    await createActiveTempVC({
+      guildId: guild.id,
+      channelId: newChannel.id,
+      ownerId: member.id
+    });
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      try {
+        await newChannel.delete("Duplicate temp VC");
+      } catch {
+      }
+      recordActivity("system", "TempVC duplicate suppressed", { level: "info", meta: { guildId: guild.id, userId: member.id } });
+      return;
+    }
+    client.logger?.warn({ err }, "tempVC active row create failed");
+    try {
+      await newChannel.delete("Temp VC setup failed");
+    } catch {
+    }
+    return;
+  }
   setCachedActiveTempVC(newChannel.id, {
     guildId: guild.id,
     channelId: newChannel.id,
@@ -194198,7 +196721,7 @@ async function handleVoiceTick(client) {
       if (byUser.size === 0) voiceSessions.delete(guildId);
     }
   } catch (err) {
-    console.error("Voice XP tick error:", err);
+    client.logger?.warn({ err }, "voice XP tick error");
   } finally {
     ticking = false;
   }
@@ -194244,6 +196767,8 @@ var voiceStateUpdate = {
 };
 
 // src/events/ready.ts
+init_TempVC();
+init_automod();
 var reminderInterval = null;
 function stopReminderChecker() {
   if (reminderInterval) clearInterval(reminderInterval);
@@ -194327,6 +196852,9 @@ var ready2 = {
 
 // src/events/messageCreate.ts
 var import_discord80 = __toESM(require_src());
+init_metrics();
+init_utils();
+init_level();
 
 // src/utils/sukuna.ts
 var import_discord79 = __toESM(require_src());
@@ -194517,7 +197045,7 @@ async function handleTool(name, args, context) {
       };
     }
     case "get_recent_messages": {
-      const limit = clampInt(args.limit, 1, 25, 10);
+      const limit = clampInt2(args.limit, 1, 25, 10);
       const messages = await channel.messages.fetch({ limit }).catch(() => null);
       if (!messages) return { ok: false, error: "Could not read channel history." };
       return {
@@ -194534,7 +197062,7 @@ async function handleTool(name, args, context) {
     case "search_discord_messages": {
       const query = typeof args.query === "string" ? args.query.trim().toLowerCase() : "";
       if (!query) return { ok: false, error: "A search query is required." };
-      const limit = clampInt(args.limit, 1, 100, 50);
+      const limit = clampInt2(args.limit, 1, 100, 50);
       const messages = await channel.messages.fetch({ limit }).catch(() => null);
       if (!messages) return { ok: false, error: "Could not read channel history." };
       const matches = [...messages.values()].filter((m) => m.content.toLowerCase().includes(query)).slice(0, 10).map((m) => ({
@@ -194639,7 +197167,7 @@ async function handleTool(name, args, context) {
         return { ok: false, error: "Memory is stored per server, and this DM has no shared server." };
       }
       const query = typeof args.query === "string" ? args.query.trim() : "";
-      const limit = clampInt(args.limit, 1, 100, 10);
+      const limit = clampInt2(args.limit, 1, 100, 10);
       const memories = await searchMemories(guild.id, query, limit);
       return {
         ok: true,
@@ -194709,12 +197237,15 @@ async function resolveMember(guild, query) {
   return results?.first() ?? null;
 }
 __name(resolveMember, "resolveMember");
-function clampInt(value, min, max, fallback) {
+function clampInt2(value, min, max, fallback) {
   const parsed = Math.floor(Number(value ?? fallback));
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(Math.max(parsed, min), max);
 }
-__name(clampInt, "clampInt");
+__name(clampInt2, "clampInt");
+
+// src/utils/sukuna.ts
+init_metrics();
 
 // src/utils/sukuna-media.ts
 var MAX_MEDIA_PER_MESSAGE = 3;
@@ -195195,6 +197726,7 @@ function addHistoryEntry(channelId, entry) {
 __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
+init_automod();
 var messageCreate = {
   name: import_discord80.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
@@ -195320,6 +197852,8 @@ __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
 var import_discord81 = __toESM(require_src());
+init_utils();
+init_level();
 var guildMemberAdd = {
   name: import_discord81.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
@@ -195338,6 +197872,7 @@ var guildMemberAdd = {
 
 // src/events/channelDelete.ts
 var import_discord82 = __toESM(require_src());
+init_TempVC();
 var channelDelete = {
   name: import_discord82.Events.ChannelDelete,
   execute: /* @__PURE__ */ __name(async (client, channel) => {
@@ -195369,6 +197904,7 @@ var channelDelete = {
 
 // src/events/guildDelete.ts
 var import_discord83 = __toESM(require_src());
+init_TempVC();
 var guildDelete = {
   name: import_discord83.Events.GuildDelete,
   execute: /* @__PURE__ */ __name(async (client, guild) => {
@@ -195384,6 +197920,22 @@ var guildDelete = {
       await ActiveTempVC.deleteMany({ guildId: guild.id });
     } catch (error62) {
       client.logger?.warn({ err: error62, guildId: guild.id }, "guildDelete temp VC cleanup failed");
+    }
+    try {
+      client.evictGuildCache?.(guild.id);
+    } catch (error62) {
+      client.logger?.warn({ err: error62, guildId: guild.id }, "guildDelete settings cache evict failed");
+    }
+    try {
+      clearTempVCConfigCache(guild.id);
+    } catch (error62) {
+      client.logger?.warn({ err: error62, guildId: guild.id }, "guildDelete tempVC cache evict failed");
+    }
+    try {
+      const { invalidateAutomodCache: invalidateAutomodCache2 } = await Promise.resolve().then(() => (init_automod(), automod_exports));
+      invalidateAutomodCache2(guild.id);
+    } catch (error62) {
+      client.logger?.warn({ err: error62, guildId: guild.id }, "guildDelete automod cache evict failed");
     }
   }, "execute")
 };
@@ -195444,512 +197996,23 @@ var guildMemberRemove = {
 
 // src/events/welcomeEvents.ts
 var import_discord88 = __toESM(require_src());
-
-// src/systems/verification/index.ts
-var import_discord86 = __toESM(require_src());
-
-// src/utils/shared-embeds.ts
-var import_discord85 = __toESM(require_src());
-var EmbedBuilderUtil = class {
-  static {
-    __name(this, "EmbedBuilderUtil");
-  }
-  static success(title, description, fields = []) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static error(title, description, fields = []) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static warning(title, description, fields = []) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static info(title, description, fields = []) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static ticketPanel(title, description, options = []) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
-  }
-  static ticketControl(ticketData) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
-      { name: "\u{1F464} Created by", value: `<@${ticketData.user_id}>`, inline: true },
-      { name: "\u{1F4C2} Type", value: ticketData.type, inline: true },
-      { name: "\u{1F4CA} Status", value: ticketData.status, inline: true },
-      { name: "\u{1F46E} Claimed by", value: ticketData.claimed_by ? `<@${ticketData.claimed_by}>` : "None", inline: true },
-      { name: "\u{1F4C5} Created", value: `<t:${Math.floor(new Date(ticketData.created_at).getTime() / 1e3)}:R>`, inline: true }
-    ).setTimestamp();
-  }
-  static suggestion(suggestion) {
-    const colors = {
-      pending: import_discord85.Colors.Blue,
-      noted: import_discord85.Colors.Yellow,
-      approved: import_discord85.Colors.Green,
-      denied: import_discord85.Colors.Red,
-      under_review: import_discord85.Colors.Orange
-    };
-    return new import_discord85.EmbedBuilder().setColor(colors[suggestion.status] || import_discord85.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
-      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}>`, inline: true },
-      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
-      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
-      { name: "\u{1F4CA} Status", value: suggestion.status, inline: true }
-    ).setFooter({ text: `ID: ${suggestion.id} | Thread: ${suggestion.thread_id}` }).setTimestamp();
-  }
-  static suggestionReview(suggestion) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
-      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}> (${suggestion.user_id})`, inline: true },
-      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
-      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
-      { name: "\u{1F4CA} Current Status", value: suggestion.status, inline: true }
-    ).setFooter({ text: `Suggestion ID: ${suggestion.id}` }).setTimestamp();
-  }
-  static presentation(presentation) {
-    const questions = typeof presentation.answers === "string" ? JSON.parse(presentation.answers) : presentation.answers;
-    const fields = questions.map((qa, i) => ({
-      name: `Q${i + 1}: ${qa.question}`,
-      value: qa.answer || "*No answer*",
-      inline: false
-    }));
-    const colors = {
-      pending: import_discord85.Colors.Blue,
-      approved: import_discord85.Colors.Green,
-      denied: import_discord85.Colors.Red,
-      changes_requested: import_discord85.Colors.Orange
-    };
-    return new import_discord85.EmbedBuilder().setColor(colors[presentation.status] || import_discord85.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
-  }
-  static serverStatus(server2, status) {
-    const isOnline = status?.online;
-    const proxyOffline = !isOnline && !!status?.motd;
-    return new import_discord85.EmbedBuilder().setColor(isOnline ? import_discord85.Colors.Green : import_discord85.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
-      isOnline ? "Server is online" : status?.error ? `Server is offline \u2014 ${status.error}` : "Server is offline"
-    ).addFields(
-      { name: "\u{1F310} Address", value: `${server2?.host ?? "?"}:${server2?.port ?? "?"}`, inline: true },
-      { name: "\u{1F465} Players", value: isOnline ? `${status.players?.online ?? 0}/${status.players?.max ?? 0}` : "N/A", inline: true },
-      { name: "\u{1F4E6} Version", value: isOnline ? status.version?.name ?? "N/A" : proxyOffline && status.version?.name ? status.version.name : "N/A", inline: true },
-      { name: "\u{1F4DD} MOTD", value: isOnline || proxyOffline ? this.cleanMotd(status.motd) : "N/A", inline: false }
-    ).setTimestamp().setFooter({ text: "Last updated" });
-  }
-  static cleanMotd(motd) {
-    if (!motd) return "N/A";
-    if (typeof motd === "string") return motd.replace(/§[0-9a-fk-or]/gi, "");
-    if (motd.clean) return motd.clean.replace(/§[0-9a-fk-or]/gi, "");
-    if (motd.raw) return motd.raw.replace(/§[0-9a-fk-or]/gi, "");
-    return JSON.stringify(motd).replace(/§[0-9a-fk-or]/gi, "");
-  }
-  static welcome(member, guild, memberCount) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
-      { name: "\u{1F4CB} Read Rules", value: "See the rules channels", inline: true },
-      { name: "\u{1F3AE} Servers", value: "Check server status", inline: true },
-      { name: "\u{1F3AB} Support", value: "Open a ticket", inline: true }
-    ).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
-  }
-  static goodbye(member, guild, memberCount) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
-  }
-  static modpackTutorial() {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
-      {
-        name: "\u{1F4BB} PC - SKLauncher 4.0",
-        value: '1. Download SKLauncher 4.0 from [sklauncher.net](https://sklauncher.net)\n2. Install and open the launcher\n3. Go to "Content Hub" tab\n4. Search for our modpack\n5. Click "Install" and then "Play"'
-      },
-      {
-        name: "\u{1F4F1} Mobile - MJLauncher",
-        value: "1. Download MJLauncher from [mojolauncher.com/](https://mojolauncher.com/) or Play Store\n2. Open the app\n3. Create a new modpack instance\n4. Find our modpack\n5. Tap Install and Play"
-      }
-    ).setFooter({ text: "Need help? Create a ticket in #\u{1F691}\u2802\u{1D531}\u{1D522}\u{1D520}\u{1D525}-\u{1D530}\u{1D532}\u{1D52D}\u{1D52D}\u{1D52C}\u{1D52F}\u{1D531}" }).setTimestamp();
-  }
-};
-
-// src/systems/verification/index.ts
-var VerificationSystem = class {
-  static {
-    __name(this, "VerificationSystem");
-  }
-  async getSettings(guildId) {
-    let row = await VerificationConfig.findOne({ guildId }).lean();
-    if (!row) {
-      row = await VerificationConfig.create({ guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 });
-    }
-    const r = row;
-    return {
-      enabled: r.enabled === true,
-      unverifiedRoleId: r.unverifiedRoleId ?? null,
-      verifiedRoleId: r.verifiedRoleId ?? null,
-      rulesChannelId: r.rulesChannelId ?? null,
-      panelMessageId: r.panelMessageId ?? null,
-      autoRoleIds: Array.isArray(r.autoRoleIds) ? r.autoRoleIds : [],
-      requireApproval: r.requireApproval === true,
-      logChannelId: r.logChannelId ?? null,
-      minAccountAgeDays: r.minAccountAgeDays ?? 0,
-      voiceChannelId: r.voiceChannelId ?? null,
-      staffRoleId: r.staffRoleId ?? null
-    };
-  }
-  async setSettings(guildId, data) {
-    await VerificationConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  }
-  async setPanelMessage(guildId, messageId) {
-    await this.setSettings(guildId, { panelMessageId: messageId });
-  }
-  async setAutoRoles(guildId, roleIds) {
-    await this.setSettings(guildId, { autoRoleIds: [...new Set(roleIds)] });
-  }
-  async addAutoRole(guildId, roleId) {
-    const settings = await this.getSettings(guildId);
-    if (settings.autoRoleIds.includes(roleId)) return false;
-    await this.setAutoRoles(guildId, [...settings.autoRoleIds, roleId]);
-    return true;
-  }
-  async removeAutoRole(guildId, roleId) {
-    const settings = await this.getSettings(guildId);
-    if (!settings.autoRoleIds.includes(roleId)) return false;
-    await this.setAutoRoles(guildId, settings.autoRoleIds.filter((id) => id !== roleId));
-    return true;
-  }
-  isConfigured(settings) {
-    return !!settings.unverifiedRoleId;
-  }
-  isVerified(member, settings) {
-    if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return true;
-    if (!settings.unverifiedRoleId) return true;
-    return !member.roles.cache.has(settings.unverifiedRoleId);
-  }
-  manageableRoles(member, roleIds) {
-    return roleIds.map((id) => member.guild.roles.cache.get(id)).filter((role) => !!role && role.editable);
-  }
-  async handleMemberAdd(member) {
-    const result = { granted: [], ungranted: [], unverifiedGranted: false };
-    const settings = await this.getSettings(member.guild.id);
-    if (!settings.enabled || !settings.unverifiedRoleId) return result;
-    if (member.user.bot) return result;
-    if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return result;
-    const autoRoles = settings.autoRoleIds.filter(
-      (id) => id !== settings.unverifiedRoleId && id !== settings.verifiedRoleId
-    );
-    const toAdd = this.manageableRoles(member, autoRoles).filter((role) => !member.roles.cache.has(role.id));
-    result.granted = toAdd.map((role) => role.id);
-    result.ungranted = autoRoles.filter((id) => !this.manageableRoles(member, [id]).length);
-    if (toAdd.length) {
-      await member.roles.add(toAdd, "Automatic newbie roles").catch(() => {
-      });
-    }
-    const unverifiedRole = member.guild.roles.cache.get(settings.unverifiedRoleId);
-    if (unverifiedRole?.editable && !member.roles.cache.has(unverifiedRole.id)) {
-      await member.roles.add(unverifiedRole, "Awaiting newbie verification").catch(() => {
-      });
-      result.unverifiedGranted = true;
-    }
-    return result;
-  }
-  missingAutoRoles(member, settings) {
-    return settings.autoRoleIds.filter(
-      (roleId) => roleId !== settings.unverifiedRoleId && roleId !== settings.verifiedRoleId && !member.roles.cache.has(roleId)
-    );
-  }
-  accountAgeBlock(member, settings) {
-    if (settings.minAccountAgeDays <= 0) return null;
-    const ageDays = (Date.now() - member.user.createdTimestamp) / 864e5;
-    if (ageDays >= settings.minAccountAgeDays) return null;
-    const remaining = Math.ceil(settings.minAccountAgeDays - ageDays);
-    return `Your account must be at least **${settings.minAccountAgeDays} day(s)** old \u2014 try again in about **${remaining} day(s)**.`;
-  }
-  buildPanel(guild, settings) {
-    const unverified = guild.roles.cache.get(settings.unverifiedRoleId ?? "");
-    const rulesTarget = settings.rulesChannelId ? `in <#${settings.rulesChannelId}>` : "in the rules channel";
-    const steps = [
-      `1\uFE0F\u20E3 Read the rules ${rulesTarget}.`,
-      "2\uFE0F\u20E3 Press **Verify me** below.",
-      "3\uFE0F\u20E3 A staff member joins you in a short private voice call to confirm you are a real person and agree to the rules.",
-      "4\uFE0F\u20E3 On approval you instantly get access to the rest of the server."
-    ].join("\n");
-    const embed = new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
-      `Before you can chat you need to accept our rules.
-
-${steps}` + (unverified ? `
-
-Right now you have ${unverified}, so you can only see the rules channels.` : "")
-    ).addFields({
-      name: "\u26A0\uFE0F By verifying you agree to",
-      value: "Follow the server rules, stay respectful, and no spam or NSFW content.",
-      inline: false
-    });
-    return embed.setFooter({ text: `Verification \u2022 ${guild.name}` }).setTimestamp();
-  }
-  buildPanelRow(_guild, _settings) {
-    const buttons = [
-      new import_discord86.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord86.ButtonStyle.Success)
-    ];
-    return new import_discord86.ActionRowBuilder().addComponents(buttons);
-  }
-  async postPanel(channel) {
-    const guild = channel.guild;
-    const settings = await this.getSettings(guild.id);
-    if (!settings.unverifiedRoleId) {
-      throw new Error("No unverified role configured. Run `/verify setup` first.");
-    }
-    await guild.roles.fetch().catch(() => {
-    });
-    if (settings.panelMessageId) {
-      const old = await channel.messages.fetch(settings.panelMessageId).catch(() => null);
-      await old?.delete().catch(() => {
-      });
-    }
-    const message = await channel.send({
-      embeds: [this.buildPanel(guild, settings)],
-      components: [this.buildPanelRow(guild, settings)]
-    });
-    await this.setPanelMessage(guild.id, message.id);
-    return message.id;
-  }
-  async handleVerifyButton(interaction) {
-    await interaction.deferReply({ flags: 64 });
-    const guild = interaction.guild;
-    const member = interaction.member;
-    const settings = await this.getSettings(guild.id);
-    if (!settings.enabled) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Verification disabled", "Verification is currently disabled.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Verification disabled").setDescription("Verification is currently disabled.")] });
-      return;
-    }
-    if (!settings.unverifiedRoleId) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Not configured", "No unverified role is set.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Not configured").setDescription("No unverified role is set.")] });
-      return;
-    }
-    if (this.isVerified(member, settings)) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Already verified", "You already have full access.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Already verified").setDescription("You already have full access.")] });
-      return;
-    }
-    const ageBlock = this.accountAgeBlock(member, settings);
-    if (ageBlock) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Account too new", ageBlock) ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Account too new").setDescription(ageBlock)] });
-      return;
-    }
-    const retry = this.manageableRoles(member, this.missingAutoRoles(member, settings));
-    if (retry.length) {
-      await member.roles.add(retry, "Automatic newbie roles").catch(() => {
-      });
-    }
-    const live = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
-    if (live) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Already requested", "Your request is already waiting for staff review.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Already requested").setDescription("Your request is already waiting for staff review.")] });
-      return;
-    }
-    const request = await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: "pending" });
-    const channelId = settings.logChannelId || settings.rulesChannelId;
-    if (channelId) {
-      const channel = guild.channels.cache.get(channelId);
-      if (channel?.isTextBased() && !channel.isThread()) {
-        const staffRoleId = settings.staffRoleId;
-        await channel.send({
-          content: staffRoleId ? `<@&${staffRoleId}>` : void 0,
-          allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
-          embeds: [this.reviewEmbed(request, member, settings)],
-          components: [this.reviewRow(request.id.toString())]
-        }).catch(() => {
-        });
-      }
-    }
-    try {
-      const user = await guild.client.users.fetch(member.id);
-      await user.send({ content: "\u23F3 Your verification request was sent to the staff team. When a staff member is available they will invite you to a short private voice call to verify you." }).catch(() => {
-      });
-    } catch {
-    }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Request sent", "A staff member will invite you to a short private voice call to complete verification.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Request sent").setDescription("A staff member will invite you to a short private voice call to complete verification.")] });
-  }
-  async approveMember(member, settings) {
-    const add = [];
-    const remove = [];
-    if (settings.unverifiedRoleId && member.roles.cache.has(settings.unverifiedRoleId)) remove.push(settings.unverifiedRoleId);
-    if (settings.verifiedRoleId) {
-      const role = member.guild.roles.cache.get(settings.verifiedRoleId);
-      if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
-    }
-    if (remove.length) await member.roles.remove(remove, "Verification completed");
-    if (add.length) await member.roles.add(add, "Verification completed");
-  }
-  denyModal(requestId) {
-    return new import_discord86.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
-      new import_discord86.ActionRowBuilder().addComponents(
-        new import_discord86.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord86.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
-      )
-    );
-  }
-  hasStaff(interaction, settings) {
-    const member = interaction.member;
-    if (!member) return false;
-    if (member.permissions?.has("ManageGuild")) return true;
-    if (member.permissions?.has("ManageMessages")) return true;
-    if (settings.staffRoleId && member.roles?.cache.has(settings.staffRoleId)) return true;
-    return false;
-  }
-  async handleApprove(interaction, requestId) {
-    const request = await VerificationRequest.findById(requestId);
-    if (!request || request.status !== "pending") {
-      await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
-      return;
-    }
-    const guild = interaction.guild;
-    const settings = await this.getSettings(guild.id);
-    if (!this.hasStaff(interaction, settings)) {
-      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
-      return;
-    }
-    await interaction.deferReply({ flags: 64 });
-    const member = await guild.members.fetch(request.userId).catch(() => null);
-    if (member) {
-      await this.approveMember(member, settings);
-      try {
-        await guild.client.users.fetch(request.userId).then((u) => u.send("\u{1F389} Welcome! Your verification was approved.").catch(() => {
-        }));
-      } catch {
-      }
-    }
-    request.status = "approved";
-    request.reviewedBy = interaction.user.id;
-    request.reviewedAt = /* @__PURE__ */ new Date();
-    await request.save();
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", member ? `<@${request.userId}> has been verified.` : "Approved.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(member ? `<@${request.userId}> has been verified.` : "Approved.")] });
-    if (interaction.message) {
-      await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {
-      });
-    }
-  }
-  async handleDenyButton(interaction, requestId) {
-    const request = await VerificationRequest.findById(requestId);
-    if (!request || request.status !== "pending") {
-      await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
-      return;
-    }
-    const guild = interaction.guild;
-    const settings = await this.getSettings(guild.id);
-    if (!this.hasStaff(interaction, settings)) {
-      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
-      return;
-    }
-    await interaction.showModal(this.denyModal(requestId));
-  }
-  async handleDenyModal(interaction, requestId) {
-    const guild = interaction.guild;
-    const settings = await this.getSettings(guild.id);
-    if (!this.hasStaff(interaction, settings)) {
-      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
-      return;
-    }
-    await interaction.deferReply({ flags: 64 });
-    const request = await VerificationRequest.findById(requestId);
-    if (!request || request.status !== "pending") {
-      await interaction.editReply({ content: "\u274C This request is no longer pending." });
-      return;
-    }
-    const reason = interaction.fields.getTextInputValue("deny_reason");
-    request.status = "denied";
-    request.reviewedBy = interaction.user.id;
-    request.reviewedAt = /* @__PURE__ */ new Date();
-    request.reason = reason;
-    await request.save();
-    try {
-      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was denied.
-**Reason:** ${reason}`).catch(() => {
-      }));
-    } catch {
-    }
-    await interaction.editReply({ content: "\u2705 Request denied." });
-    if (interaction.message) {
-      await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}
-**Reason:** ${reason}`)], components: [] }).catch(() => {
-      });
-    }
-  }
-  async reviewUser(member, action, reviewerId, reason) {
-    const guild = member.guild;
-    const settings = await this.getSettings(guild.id);
-    if (action === "approve") {
-      await this.approveMember(member, settings);
-      try {
-        await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F389} Welcome! Your verification was approved.").catch(() => {
-        }));
-      } catch {
-      }
-      return;
-    }
-    const pending = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: "pending" });
-    if (pending) {
-      pending.status = "denied";
-      pending.reviewedBy = reviewerId;
-      pending.reviewedAt = /* @__PURE__ */ new Date();
-      pending.reason = reason ?? void 0;
-      await pending.save();
-    }
-    try {
-      await guild.client.users.fetch(member.id).then((u) => u.send(`\u274C Your verification was denied.
-**Reason:** ${reason || "No reason given"}`).catch(() => {
-      }));
-    } catch {
-    }
-  }
-  async resetMember(member, actorId) {
-    const guild = member.guild;
-    const settings = await this.getSettings(guild.id);
-    await VerificationRequest.deleteMany({ guildId: guild.id, userId: member.id, status: "pending" });
-    const remove = [];
-    const add = [];
-    if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) remove.push(settings.verifiedRoleId);
-    if (settings.unverifiedRoleId) {
-      const role = guild.roles.cache.get(settings.unverifiedRoleId);
-      if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
-    }
-    if (remove.length) await member.roles.remove(remove, "Verification reset");
-    if (add.length) await member.roles.add(add, "Verification reset");
-    try {
-      await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F504} Your verification was reset by the staff team. Please verify again using the panel.").catch(() => {
-      }));
-    } catch {
-    }
-  }
-  pendingRequests(guildId, limit = 25) {
-    return VerificationRequest.find({ guildId, status: { $in: ["pending", "claimed"] } }).sort({ createdAt: -1 }).limit(limit).lean();
-  }
-  pendingCount(guildId) {
-    return VerificationRequest.countDocuments({ guildId, status: "pending" });
-  }
-  reviewEmbed(request, member, _settings) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
-      `<@${request.userId}> is waiting to be verified.
-
-Press **Claim & verify** to take this request.`
-    ).addFields(
-      { name: "\u{1F464} Member", value: member ? `<@${member.id}>
-${member.user.username}` : `<@${request.userId}>`, inline: true },
-      { name: "\u23F3 Submitted", value: `<t:${Math.floor(new Date(request.submittedAt ?? request.createdAt).getTime() / 1e3)}:R>`, inline: true }
-    ).setFooter({ text: `Request ID: ${request._id}` }).setTimestamp();
-  }
-  reviewRow(requestId) {
-    return new import_discord86.ActionRowBuilder().addComponents(
-      new import_discord86.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord86.ButtonStyle.Primary)
-    );
-  }
-  async log(guild, _settings, embed) {
-  }
-  async dm(guild, userId, content) {
-    try {
-      await guild.client.users.fetch(userId).then((u) => u.send({ content }).catch(() => {
-      }));
-    } catch {
-    }
-  }
-};
-var verification = new VerificationSystem();
+init_verification();
 
 // src/systems/welcomer/index.ts
 var import_discord87 = __toESM(require_src());
+init_shared_embeds();
+init_safety();
+init_metrics();
 var WelcomerSystem = class {
   static {
     __name(this, "WelcomerSystem");
   }
   async getConfig(guildId) {
-    let row = await WelcomerConfig.findOne({ guildId }).lean();
-    if (!row) {
-      row = await WelcomerConfig.create({ guildId, welcomeImageEnabled: true, goodbyeImageEnabled: true });
-    }
+    const row = await WelcomerConfig.findOneAndUpdate(
+      { guildId },
+      { $setOnInsert: { guildId, welcomeImageEnabled: true, goodbyeImageEnabled: true } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
     const r = row;
     return {
       welcomeChannelId: r.welcomeChannelId ?? null,
@@ -195963,7 +198026,17 @@ var WelcomerSystem = class {
     };
   }
   async setConfig(guildId, data) {
-    await WelcomerConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    if (!/^\d{5,25}$/.test(guildId)) throw new Error("Invalid guild id");
+    const allowed = /* @__PURE__ */ new Set(["welcomeChannelId", "goodbyeChannelId", "welcomeMessage", "goodbyeMessage", "welcomeImageEnabled", "goodbyeImageEnabled", "backgroundImagePath", "goodbyeBackgroundImagePath"]);
+    const updates = {};
+    for (const [key, value] of Object.entries(data ?? {})) {
+      if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+      if (key.endsWith("ChannelId") && value !== null && value !== void 0 && !/^\d{5,25}$/.test(String(value))) throw new Error(`Invalid ${key}`);
+      if ((key === "welcomeMessage" || key === "goodbyeMessage") && typeof value === "string" && value.length > 2e3) throw new Error(`${key} too long`);
+      updates[key] = value;
+    }
+    if (Object.keys(updates).length === 0) throw new Error("No settings supplied");
+    await WelcomerConfig.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
   }
   renderMessage(template, member, guild, memberCount) {
     const raw = template?.trim();
@@ -195974,44 +198047,39 @@ var WelcomerSystem = class {
     const guild = member.guild;
     const cfg = await this.getConfig(guild.id);
     if (!cfg.welcomeChannelId) return;
-    const channel = guild.channels.cache.get(cfg.welcomeChannelId);
+    const channel = await getTextChannel(guild, cfg.welcomeChannelId);
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.welcomeMessage, member, guild, memberCount);
     const embed = EmbedBuilderUtil.welcome?.(member, guild, memberCount) ?? new import_discord87.EmbedBuilder().setColor("#5865F2").setTitle("Welcome!").setDescription(`Welcome to ${guild.name}, ${member}!`).setTimestamp();
-    await channel.send({ content: content ?? void 0, embeds: [embed] });
+    await channel.send({ content: content ? content.slice(0, 1900) : void 0, embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {
+    });
+    recordActivity("system", "Welcome sent", { level: "info", meta: { guildId: guild.id, userId: member.id } });
   }
   async sendGoodbye(member) {
     const guild = member.guild;
     const cfg = await this.getConfig(guild.id);
     if (!cfg.goodbyeChannelId) return;
-    const channel = guild.channels.cache.get(cfg.goodbyeChannelId);
+    const channel = await getTextChannel(guild, cfg.goodbyeChannelId);
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.goodbyeMessage, member, guild, memberCount);
     const embed = EmbedBuilderUtil.goodbye?.(member, guild, memberCount) ?? new import_discord87.EmbedBuilder().setColor("#ED4245").setTitle("Goodbye").setDescription(`${member.user.tag} left ${guild.name}.`).setTimestamp();
-    await channel.send({ content: content ?? void 0, embeds: [embed] });
+    await channel.send({ content: content ? content.slice(0, 1900) : void 0, embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {
+    });
   }
 };
 var welcomer = new WelcomerSystem();
 var guildMemberAddWelcomer = {
   name: import_discord87.Events.GuildMemberAdd,
-  execute: /* @__PURE__ */ __name(async (_client, member) => {
-    try {
-      await welcomer.sendWelcome(member).catch(() => {
-      });
-    } catch {
-    }
+  execute: /* @__PURE__ */ __name(async (client, member) => {
+    await welcomer.sendWelcome(member).catch((err) => client.logger?.warn({ err, userId: member.id }, "welcomer welcome failed"));
   }, "execute")
 };
 var guildMemberRemoveWelcomer = {
   name: import_discord87.Events.GuildMemberRemove,
-  execute: /* @__PURE__ */ __name(async (_client, member) => {
-    try {
-      await welcomer.sendGoodbye(member).catch(() => {
-      });
-    } catch {
-    }
+  execute: /* @__PURE__ */ __name(async (client, member) => {
+    await welcomer.sendGoodbye(member).catch((err) => client.logger?.warn({ err, userId: member.id }, "welcomer goodbye failed"));
   }, "execute")
 };
 
@@ -196020,18 +198088,15 @@ var welcomeMemberAddEvent = {
   name: import_discord88.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
-    await verification.handleMemberAdd(member).catch(() => {
-    });
-    await welcomer.sendWelcome(member).catch(() => {
-    });
+    await verification.handleMemberAdd(member).catch((err) => client.logger?.warn({ err, userId: member.id }, "verification join roles failed"));
+    await welcomer.sendWelcome(member).catch((err) => client.logger?.warn({ err, userId: member.id }, "welcomer failed"));
   }, "execute")
 };
 var welcomeMemberRemoveEvent = {
   name: import_discord88.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
-    await welcomer.sendGoodbye(member).catch(() => {
-    });
+    await welcomer.sendGoodbye(member).catch((err) => client.logger?.warn({ err, userId: member.id }, "welcomer goodbye failed"));
   }, "execute")
 };
 
@@ -196046,11 +198111,11 @@ var BoosterSystem = class {
     __name(this, "BoosterSystem");
   }
   async getConfig(guildId) {
-    let cfg = await BoosterConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await BoosterConfig.create({ guildId, enabled: false });
-    }
-    return cfg;
+    return BoosterConfig.findOneAndUpdate(
+      { guildId },
+      { $setOnInsert: { guildId, enabled: false } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
   }
   async handleMemberUpdate(oldMember, newMember) {
     const cfg = await this.getConfig(newMember.guild.id);
@@ -196127,463 +198192,12 @@ var boosterMemberUpdateEvent = {
   }, "execute")
 };
 
-// src/systems/verification/vc.ts
-var import_discord92 = __toESM(require_src());
-var import_discord93 = __toESM(require_src());
-var DM_TIMEOUT_MS = 10 * 6e4;
-var VcVerificationSystem = class {
-  static {
-    __name(this, "VcVerificationSystem");
-  }
-  timers = /* @__PURE__ */ new Map();
-  hasVerificationStaff(member) {
-    if (member.permissions.has(import_discord92.PermissionFlagsBits.Administrator)) return true;
-    if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageGuild)) return true;
-    if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageMessages)) return true;
-    return false;
-  }
-  async handleClaim(interaction, requestId) {
-    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
-    if (!request || request.status !== "pending") {
-      await interaction.reply({ content: "\u274C This request is no longer waiting.", flags: 64 });
-      return;
-    }
-    const guild = interaction.guild;
-    const claimant = interaction.member;
-    if (!this.hasVerificationStaff(claimant)) {
-      await interaction.reply({ content: "\u274C Only staff can claim a verification.", flags: 64 });
-      return;
-    }
-    await VerificationRequest.updateOne(
-      { _id: request._id, status: "pending" },
-      { status: "claimed", claimedBy: claimant.id, claimedAt: /* @__PURE__ */ new Date() }
-    );
-    const claimedDoc = await VerificationRequest.findById(request._id).lean();
-    if (claimedDoc) Object.assign(request, claimedDoc);
-    await interaction.reply({
-      embeds: [EmbedBuilderUtil.info?.("Verification claimed", `You are now verifying <@${request.userId}>.
-Join the verification VC and talk to them, then press Approve or Deny.`) ?? new import_discord93.EmbedBuilder().setColor(5793266).setTitle("Verification claimed").setDescription(`You are now verifying <@${request.userId}>.`)],
-      components: [this.decisionRow(requestId)],
-      flags: 64
-    });
-    this.armTimeout(guild, request, claimant);
-  }
-  decisionRow(requestId) {
-    return new import_discord92.ActionRowBuilder().addComponents(
-      new import_discord92.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord92.ButtonStyle.Success),
-      new import_discord92.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord92.ButtonStyle.Danger)
-    );
-  }
-  armTimeout(guild, request, _staff) {
-    const existing = this.timers.get(request._id.toString());
-    if (existing) clearTimeout(existing);
-    const timer = setTimeout(async () => {
-      this.timers.delete(request._id.toString());
-      try {
-        const fresh = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r._id.toString() === request._id.toString()));
-        if (!fresh || fresh.status !== "claimed") return;
-        await VerificationRequest.updateOne(
-          { _id: fresh._id, status: "claimed" },
-          { status: "pending", claimedBy: null, claimedAt: null }
-        );
-        try {
-          await guild.client.users.fetch(request.userId).then((u) => u.send("\u23F3 Your verification was put back in the queue.").catch(() => {
-          }));
-        } catch {
-        }
-      } catch {
-      }
-    }, DM_TIMEOUT_MS);
-    timer.unref?.();
-    this.timers.set(request._id.toString(), timer);
-  }
-  async handleVoiceJoin(member) {
-    const guild = member.guild;
-    const settings = await verification.getSettings(guild.id);
-    if (!settings.voiceChannelId || member.voice.channelId !== settings.voiceChannelId) return;
-    if (!this.hasVerificationStaff(member)) return;
-    const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
-    if (!request) return;
-    if (request.vcInvitedAt) return;
-    await VerificationRequest.updateOne(
-      { _id: request._id },
-      { vcInvitedAt: /* @__PURE__ */ new Date() }
-    );
-    const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
-    const link = vc ? `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}` : `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}`;
-    try {
-      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u{1F399}\uFE0F A staff member is ready to verify you. Join: ${link}`).catch(() => {
-      }));
-    } catch {
-    }
-  }
-  async handleVoiceLeave(member, previousChannelId) {
-    const guild = member.guild;
-    const settings = await verification.getSettings(guild.id);
-    const leftFrom = previousChannelId ?? member.voice.channelId;
-    if (!settings.voiceChannelId || leftFrom !== settings.voiceChannelId) return;
-    const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
-    if (request) {
-      await VerificationRequest.updateOne(
-        { _id: request._id, status: "claimed" },
-        { status: "pending", claimedBy: null, claimedAt: null }
-      );
-      const timer = this.timers.get(request._id.toString());
-      if (timer) {
-        clearTimeout(timer);
-        this.timers.delete(request._id.toString());
-      }
-    }
-  }
-  async handleApprove(interaction, requestId) {
-    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
-    if (!request || request.status !== "claimed") {
-      await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
-      return;
-    }
-    if (request.claimedBy !== interaction.user.id) {
-      await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
-      return;
-    }
-    await interaction.deferReply({ flags: 64 });
-    const guild = interaction.guild;
-    const settings = await verification.getSettings(guild.id);
-    const member = await guild.members.fetch(request.userId).catch(() => null);
-    if (member) await verification.approveMember(member, settings);
-    await VerificationRequest.updateOne(
-      { _id: request._id, status: "claimed" },
-      { status: "approved", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date() }
-    );
-    const timer = this.timers.get(requestId);
-    if (timer) {
-      clearTimeout(timer);
-      this.timers.delete(requestId);
-    }
-    try {
-      await guild.client.users.fetch(request.userId).then((u) => u.send(member ? `\u{1F389} Your voice verification was approved.` : "\u{1F389} Your voice verification was approved.").catch(() => {
-      }));
-    } catch {
-    }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", "<@" + request.userId + "> is verified and the VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription("<@" + request.userId + "> is verified and the VC has been cleared.")] });
-  }
-  async handleDeny(interaction, requestId) {
-    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
-    if (!request || request.status !== "claimed") {
-      await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
-      return;
-    }
-    if (request.claimedBy !== interaction.user.id) {
-      await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
-      return;
-    }
-    const modal = new import_discord92.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(new import_discord92.ActionRowBuilder().addComponents(
-      new import_discord92.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason").setStyle(import_discord92.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
-    ));
-    await interaction.showModal(modal);
-  }
-  async handleDenyModal(interaction, requestId) {
-    await interaction.deferReply({ flags: 64 });
-    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
-    if (!request || request.status !== "claimed") {
-      await interaction.editReply({ content: "\u274C This verification is no longer active." });
-      return;
-    }
-    const reason = interaction.fields.getTextInputValue("deny_reason");
-    const guild = interaction.guild;
-    await VerificationRequest.updateOne(
-      { _id: request._id, status: "claimed" },
-      { status: "denied", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date(), reason }
-    );
-    const timer = this.timers.get(requestId);
-    if (timer) {
-      clearTimeout(timer);
-      this.timers.delete(requestId);
-    }
-    try {
-      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was not approved.
-**Reason:** ${reason}`).catch(() => {
-      }));
-    } catch {
-    }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Denied", "The VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription("The VC has been cleared.")] });
-  }
-  clearTimer(requestId) {
-    const timer = this.timers.get(requestId);
-    if (timer) {
-      clearTimeout(timer);
-      this.timers.delete(requestId);
-    }
-  }
-  async emptyVc(guild) {
-    const settings = await verification.getSettings(guild.id);
-    if (!settings.voiceChannelId) return;
-    const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
-    if (!vc) return;
-    for (const m of vc.members.values()) await m.voice.disconnect("Voice verification finished").catch(() => {
-    });
-  }
-  shutdown() {
-    for (const timer of this.timers.values()) clearTimeout(timer);
-    this.timers.clear();
-  }
-};
-var vcVerification = new VcVerificationSystem();
-var voiceStateUpdateVerification = {
-  name: "voiceStateUpdate",
-  execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
-    if (!newState.member || newState.member.user.bot) return;
-    const settings = await verification.getSettings(newState.guild?.id ?? oldState.guild?.id).catch(() => null);
-    const vcId = settings?.voiceChannelId;
-    if (!vcId) return;
-    if (newState.channelId === vcId && oldState.channelId !== vcId) {
-      try {
-        await vcVerification.handleVoiceJoin(newState.member).catch(() => {
-        });
-      } catch {
-      }
-    }
-    if (oldState.channelId === vcId && newState.channelId !== vcId) {
-      const member = newState.member ?? oldState.member;
-      if (member) {
-        try {
-          await vcVerification.handleVoiceLeave(member, oldState.channelId).catch(() => {
-          });
-        } catch {
-        }
-      }
-    }
-  }, "execute")
-};
+// src/events/verificationVoiceEvents.ts
+init_vc();
 
 // src/events/antinukeEvents.ts
 var import_discord96 = __toESM(require_src());
-
-// src/systems/antinuke/index.ts
-var import_discord94 = __toESM(require_src());
-var import_discord95 = __toESM(require_src());
-var WATCHED = {
-  [import_discord94.AuditLogEvent.MemberBanAdd]: "ban",
-  [import_discord94.AuditLogEvent.MemberKick]: "kick",
-  [import_discord94.AuditLogEvent.ChannelDelete]: "channelDelete",
-  [import_discord94.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
-  [import_discord94.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
-  [import_discord94.AuditLogEvent.RoleDelete]: "roleDelete",
-  [import_discord94.AuditLogEvent.WebhookDelete]: "webhookDelete",
-  [import_discord94.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
-};
-var DANGEROUS_PERMISSIONS = [
-  import_discord94.PermissionFlagsBits.Administrator,
-  import_discord94.PermissionFlagsBits.ManageGuild,
-  import_discord94.PermissionFlagsBits.ManageRoles,
-  import_discord94.PermissionFlagsBits.ManageChannels,
-  import_discord94.PermissionFlagsBits.ManageWebhooks,
-  import_discord94.PermissionFlagsBits.ManageMessages,
-  import_discord94.PermissionFlagsBits.BanMembers,
-  import_discord94.PermissionFlagsBits.KickMembers,
-  import_discord94.PermissionFlagsBits.ManageThreads,
-  import_discord94.PermissionFlagsBits.ManageNicknames,
-  import_discord94.PermissionFlagsBits.MuteMembers,
-  import_discord94.PermissionFlagsBits.ModerateMembers,
-  import_discord94.PermissionFlagsBits.MoveMembers,
-  import_discord94.PermissionFlagsBits.CreateInstantInvite,
-  import_discord94.PermissionFlagsBits.ManageEvents
-];
-var DEFAULT_THRESHOLDS = {
-  ban: 3,
-  kick: 5,
-  channelDelete: 3,
-  channelOverwrite: 8,
-  roleDelete: 3,
-  webhookDelete: 3,
-  bulkDelete: 1,
-  everyoneRole: 1
-};
-var AntiNukeSystem = class {
-  static {
-    __name(this, "AntiNukeSystem");
-  }
-  counters = /* @__PURE__ */ new Map();
-  locked = /* @__PURE__ */ new Set();
-  async getConfig(guildId) {
-    let cfg = await AntinukeConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await AntinukeConfig.create({ guildId, enabled: false });
-    }
-    return {
-      enabled: cfg.enabled === true,
-      alertChannelId: cfg.alertChannelId ?? null,
-      thresholds: { ...DEFAULT_THRESHOLDS, ...cfg.thresholds || {} },
-      windowSec: cfg.windowSec ?? 60,
-      timeoutMinutes: cfg.timeoutMinutes ?? 1440,
-      autoStrip: cfg.autoStrip ?? true,
-      exemptRoleIds: cfg.exemptRoleIds ?? [],
-      backup: cfg.backup ?? { enabled: false, intervalMin: 60, keep: 24 }
-    };
-  }
-  isEnabled(cfg) {
-    return cfg.enabled === true;
-  }
-  async handleAuditEntry(entry, guild) {
-    const cfg = await this.getConfig(guild.id);
-    if (!this.isEnabled(cfg)) return;
-    const actorId = entry.executorId;
-    if (!actorId) return;
-    if (actorId === guild.ownerId) return;
-    if (actorId === guild.client.user?.id) return;
-    const exempt = cfg.exemptRoleIds || [];
-    if (exempt.length) {
-      const member = await guild.members.fetch(actorId).catch(() => null);
-      if (member && exempt.some((id) => member.roles.cache.has(id))) return;
-    }
-    let action = null;
-    if (WATCHED[entry.action] !== void 0) {
-      action = WATCHED[entry.action];
-    } else if (entry.action === import_discord94.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
-      const key = c.key;
-      const newId = c?.new?.id;
-      return (key === "$" || key === "id") && newId === guild.id;
-    })) {
-      action = "everyoneRole";
-    }
-    if (!action) return;
-    const limit = cfg.thresholds[action];
-    if (!Number.isFinite(limit)) return;
-    const count = this.record(actorId, action, cfg.windowSec);
-    if (count < limit) return;
-    const lockKey = `${guild.id}:${actorId}`;
-    if (this.locked.has(lockKey)) return;
-    this.locked.add(lockKey);
-    await this.lockdown(guild, actorId, action, count, cfg, entry);
-    setTimeout(() => this.locked.delete(lockKey), Math.max(6e4, cfg.windowSec * 1e3 * 4)).unref?.();
-  }
-  record(actorId, action, windowSec) {
-    let byAction = this.counters.get(actorId);
-    if (!byAction) {
-      byAction = /* @__PURE__ */ new Map();
-      this.counters.set(actorId, byAction);
-    }
-    const now = Date.now();
-    const cutoff = now - windowSec * 1e3;
-    const stamps = (byAction.get(action) || []).filter((t) => t > cutoff);
-    stamps.push(now);
-    byAction.set(action, stamps);
-    return stamps.length;
-  }
-  async lockdown(guild, actorId, action, count, cfg, entry) {
-    console.warn(`[AntiNuke] ${actorId} tripped ${action} (${count} in ${cfg.windowSec}s) in ${guild.id}`);
-    const member = await guild.members.fetch(actorId).catch(() => null);
-    if (!member) {
-      await this.recordIncident(guild.id, actorId, void 0, action, count, cfg, [], 0, "actor left the server before lockdown");
-      return;
-    }
-    const stripped = [];
-    if (cfg.autoStrip) {
-      const me = guild.members.me;
-      for (const role of member.roles.cache.values()) {
-        if (role.id === guild.id) continue;
-        if (role.managed) continue;
-        if (me && role.position >= me.roles.highest.position) continue;
-        if (!DANGEROUS_PERMISSIONS.some((p) => role.permissions.has(p))) continue;
-        const ok = await member.roles.remove(role, "Anti-nuke: destructive action spike").then(() => true).catch(() => false);
-        if (ok) stripped.push(role.id);
-      }
-    }
-    let timedOut = false;
-    if (cfg.timeoutMinutes > 0) {
-      timedOut = await member.timeout(cfg.timeoutMinutes * 6e4, `Anti-nuke: ${count}x ${action} in ${cfg.windowSec}s`).then(() => true).catch(() => false);
-    }
-    const details = [
-      `Audit action ${entry.action} (#${entry.id})`,
-      entry.reason ? `reason: ${entry.reason}` : null,
-      entry.targetId ? `target: ${entry.targetId}` : null
-    ].filter(Boolean).join(" \xB7 ");
-    await this.recordIncident(guild.id, actorId, member.user.tag, action, count, cfg, stripped, timedOut ? cfg.timeoutMinutes : 0, details);
-    await this.alert(guild, member, action, count, cfg, stripped, timedOut, cfg.thresholds[action]);
-  }
-  async recordIncident(guildId, actorId, actorTag, action, count, cfg, stripped, timeoutMinutes, details) {
-    await AntinukeIncident.create({
-      guildId,
-      actorId,
-      actorTag: actorTag ?? void 0,
-      action,
-      count,
-      windowSec: cfg.windowSec,
-      strippedRoles: stripped,
-      timeoutMinutes,
-      status: "locked",
-      details
-    });
-  }
-  async alert(guild, member, action, count, cfg, stripped, timedOut, limit) {
-    if (!cfg.alertChannelId) return;
-    try {
-      const channel = await guild.channels.fetch(cfg.alertChannelId).catch(() => null);
-      if (!channel || !channel.isTextBased()) return;
-      const embed = new import_discord95.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
-        `<@${member.id}> performed **${count}\xD7** \`${action}\` within ${cfg.windowSec}s (limit: ${limit}).
-Treated as a compromised or malicious account.`
-      ).addFields(
-        { name: "Timeout", value: timedOut ? `\u23F1 ${cfg.timeoutMinutes} minutes` : "\u26A0\uFE0F could not apply", inline: true },
-        { name: "Roles removed", value: stripped.length ? stripped.map((id) => `<@&${id}>`).join(" ") : "None", inline: false }
-      ).setFooter({ text: "The server owner is never restricted. Review, then unlock if it was legitimate." }).setTimestamp();
-      await channel.send({ content: "@here", embeds: [embed] });
-    } catch (error62) {
-      console.error("[AntiNuke] Failed to send alert:", error62?.message || error62);
-    }
-  }
-  async unlock(guild, userId) {
-    const incidents = await AntinukeIncident.find({ guildId: guild.id, actorId: userId, status: "locked" }).sort({ createdAt: 1 });
-    if (!incidents.length) return { restored: [], skipped: [], resolved: 0 };
-    const member = await guild.members.fetch(userId).catch(() => null);
-    const restored = [];
-    const skipped = [];
-    if (member) {
-      await member.timeout(null, "Anti-nuke: reviewed and unlocked").catch(() => {
-      });
-      const me = guild.members.me;
-      const roleIds = /* @__PURE__ */ new Set();
-      for (const inc of incidents) {
-        try {
-          for (const id of inc.strippedRoles ?? []) roleIds.add(id);
-        } catch {
-        }
-      }
-      for (const id of roleIds) {
-        const role = guild.roles.cache.get(id);
-        if (!role) {
-          skipped.push(`${id} (deleted)`);
-          continue;
-        }
-        if (role.managed) {
-          skipped.push(`${role.name} (managed)`);
-          continue;
-        }
-        if (me && role.position >= me.roles.highest.position) {
-          skipped.push(`${role.name} (above my highest role)`);
-          continue;
-        }
-        if (member.roles.cache.has(id)) continue;
-        const ok = await member.roles.add(role, "Anti-nuke: roles restored after review").then(() => true).catch(() => false);
-        (ok ? restored : skipped).push(ok ? role.name : `${role.name} (failed)`);
-      }
-    }
-    await AntinukeIncident.updateMany({ guildId: guild.id, actorId: userId, status: "locked" }, { status: "unlocked" });
-    return { restored, skipped, resolved: incidents.length };
-  }
-};
-var antinuke = new AntiNukeSystem();
-var guildAuditLogEntryCreate = {
-  name: import_discord94.Events.GuildAuditLogEntryCreate,
-  execute: /* @__PURE__ */ __name(async (_client, entry, guild) => {
-    try {
-      await antinuke.handleAuditEntry(entry, guild).catch(() => {
-      });
-    } catch {
-    }
-  }, "execute")
-};
-
-// src/events/antinukeEvents.ts
+init_antinuke();
 var antinukeAuditLogEvent = {
   name: import_discord96.Events.GuildAuditLogEntryCreate,
   execute: /* @__PURE__ */ __name(async (client, entry, guild) => {
@@ -196594,332 +198208,14 @@ var antinukeAuditLogEvent = {
 
 // src/events/messageSystemsEvent.ts
 var import_discord99 = __toESM(require_src());
-
-// src/systems/autoreply/index.ts
-var import_discord97 = __toESM(require_src());
-var IP_KEYWORDS = ["ip", "server ip", "address", "connect", "server address", "ip address"];
-var STATUS_KEYWORDS = ["status", "online?", "is the server up", "server status", "server online"];
-var MODPACK_KEYWORDS = [
-  "how to install",
-  "how to download",
-  "install modpack",
-  "download modpack",
-  "modpack install",
-  "modpack download",
-  "how install",
-  "how download",
-  "sklauncher",
-  "mjlauncher",
-  "launcher",
-  "modpack help"
-];
-var AutoReplySystem = class {
-  static {
-    __name(this, "AutoReplySystem");
-  }
-  cooldowns = /* @__PURE__ */ new Map();
-  // userId+trigger -> timestamp
-  cooldownMs = 1e4;
-  // 10 seconds per user per trigger
-  async getAutoReplies(guildId, channelId) {
-    const query = { guildId, enabled: true };
-    if (channelId) query.$or = [{ channelId }, { channelId: null }, { channelId: { $exists: false } }];
-    return AutoReply.find(query).lean();
-  }
-  async addAutoReply(data) {
-    return AutoReply.create(data);
-  }
-  async removeAutoReply(guildId, id) {
-    return AutoReply.deleteOne({ _id: id, guildId });
-  }
-  checkCooldown(userId, trigger) {
-    const key = `${userId}:${trigger}`;
-    const now = Date.now();
-    const lastUsed = this.cooldowns.get(key);
-    if (lastUsed && now - lastUsed < this.cooldownMs) {
-      return false;
-    }
-    this.cooldowns.set(key, now);
-    if (this.cooldowns.size > 1e3) {
-      for (const [k, v] of this.cooldowns.entries()) {
-        if (now - v > this.cooldownMs * 2) {
-          this.cooldowns.delete(k);
-        }
-      }
-    }
-    return true;
-  }
-  async processMessage(message) {
-    if (message.author.bot || !message.guild || !message.content) return false;
-    const content = message.content.toLowerCase();
-    const channelId = message.channel.id;
-    const userId = message.author.id;
-    const ipReply = await this.checkServerIP(content, channelId);
-    if (ipReply && this.checkCooldown(userId, `ip:${channelId}`)) {
-      await message.reply({ embeds: [ipReply], allowedMentions: { repliedUser: false } });
-      return true;
-    }
-    const statusReply = await this.checkServerStatus(content, channelId);
-    if (statusReply && this.checkCooldown(userId, `status:${channelId}`)) {
-      await message.reply({ embeds: [statusReply], allowedMentions: { repliedUser: false } });
-      return true;
-    }
-    const modpackReply = this.checkModpackHelp(content);
-    if (modpackReply && this.checkCooldown(userId, "modpack")) {
-      await message.reply({ embeds: [modpackReply], allowedMentions: { repliedUser: false } });
-      return true;
-    }
-    const dbReply = await this.checkDatabaseReplies(message.guild.id, content, channelId);
-    if (dbReply && this.checkCooldown(userId, `db:${dbReply.id}`)) {
-      await message.reply({ content: dbReply.response, allowedMentions: { repliedUser: false } });
-      return true;
-    }
-    return false;
-  }
-  async checkServerIP(content, channelId) {
-    const matched = IP_KEYWORDS.some((kw) => content.includes(kw));
-    if (!matched) return null;
-    const replies = await this.getAutoReplies("", channelId);
-    for (const reply of replies) {
-      if (reply.channelId && reply.channelId !== channelId) continue;
-      if (reply.triggerType === "keyword" && reply.triggerValue.toLowerCase() === "ip") {
-        return EmbedBuilderUtil.info(
-          "\u{1F310} Server IP",
-          `**Server IP:** \`${reply.response.replace("Server IP: ", "").replace(/`/g, "")}\`
-
-Use this IP to connect to the server!`,
-          [{ name: "\u{1F4CB} Copy", value: reply.response, inline: false }]
-        );
-      }
-    }
-    return null;
-  }
-  async checkServerStatus(content, channelId) {
-    const matched = STATUS_KEYWORDS.some((kw) => content.includes(kw));
-    if (!matched) return null;
-    return EmbedBuilderUtil.info(
-      "\u{1F4CA} Server Status",
-      "Use `/serverstatus [server]` to check the status of a specific server.",
-      [{ name: "\u{1F4A1} Tip", value: "Each server has its own status channel with live updates!", inline: false }]
-    );
-  }
-  checkModpackHelp(content) {
-    const matched = MODPACK_KEYWORDS.some((kw) => content.includes(kw));
-    if (!matched) return null;
-    return EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
-      "\u{1F4E6} Modpack Help",
-      "Use a launcher like SKLauncher or MJLauncher to install modpacks."
-    );
-  }
-  async checkDatabaseReplies(guildId, content, channelId) {
-    const replies = await this.getAutoReplies(guildId, channelId);
-    for (const reply of replies) {
-      if (reply.channelId && reply.channelId !== channelId) continue;
-      let matched = false;
-      switch (reply.triggerType) {
-        case "keyword":
-          matched = content.includes(reply.triggerValue.toLowerCase());
-          break;
-        case "regex":
-          try {
-            const regex = new RegExp(reply.triggerValue, "i");
-            matched = regex.test(content);
-          } catch (e) {
-            continue;
-          }
-          break;
-        case "exact":
-          matched = content === reply.triggerValue.toLowerCase();
-          break;
-      }
-      if (matched) {
-        return reply;
-      }
-    }
-    return null;
-  }
-  // For ticket auto-reply
-  async getTicketAutoReply(content) {
-    const matched = MODPACK_KEYWORDS.some((kw) => content.toLowerCase().includes(kw));
-    if (!matched) return null;
-    return {
-      embed: EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
-        "\u{1F4E6} Modpack Help",
-        "Use a launcher like SKLauncher or MJLauncher to install modpacks."
-      ),
-      buttons: [
-        { customId: "ticket_modpack_helped_yes", label: "\u2705 Yes, it helped!", style: 3 },
-        { customId: "ticket_modpack_helped_no", label: "\u274C No, need staff", style: 4 }
-      ]
-    };
-  }
-};
-var autoReply = new AutoReplySystem();
-var messageCreateAutoreply = {
-  name: import_discord97.Events.MessageCreate,
-  execute: /* @__PURE__ */ __name(async (_client, message) => {
-    try {
-      await autoReply.processMessage(message).catch(() => {
-      });
-    } catch {
-    }
-  }, "execute")
-};
-
-// src/systems/mediareactions/index.ts
-var import_discord98 = __toESM(require_src());
-var IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|heic|heif|tiff?)$/i;
-var VIDEO_EXT = /\.(mp4|mov|webm|mkv|avi|m4v|flac)$/i;
-var DEFAULT_CONFIG = {
-  enabled: false,
-  memeChannels: [],
-  imageChannels: [],
-  memeReactions: ["\u2B50", "\u{1F602}"],
-  imageReactions: ["\u{1F4F8}"],
-  enforceMode: "warn"
-};
-var MediaReactionSystem = class _MediaReactionSystem {
-  static {
-    __name(this, "MediaReactionSystem");
-  }
-  handled = /* @__PURE__ */ new Set();
-  // messageId -> true
-  async getConfig(guildId) {
-    let cfg = await MediaReactionConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await MediaReactionConfig.create({
-        guildId,
-        enabled: false,
-        memeChannels: [],
-        imageChannels: [],
-        memeReactions: ["\u2B50", "\u{1F602}"],
-        imageReactions: ["\u{1F4F8}"],
-        enforceMode: "warn"
-      });
-    }
-    return {
-      ...DEFAULT_CONFIG,
-      ...cfg,
-      memeChannels: Array.isArray(cfg?.memeChannels) ? cfg.memeChannels : [],
-      imageChannels: Array.isArray(cfg?.imageChannels) ? cfg.imageChannels : [],
-      memeReactions: Array.isArray(cfg?.memeReactions) && cfg.memeReactions.length ? cfg.memeReactions : DEFAULT_CONFIG.memeReactions,
-      imageReactions: Array.isArray(cfg?.imageReactions) && cfg.imageReactions.length ? cfg.imageReactions : DEFAULT_CONFIG.imageReactions
-    };
-  }
-  isEnabled(cfg) {
-    return cfg.enabled === true;
-  }
-  matchChannel(channelId, cfg) {
-    const meme = cfg.memeChannels?.find((c) => c.id === channelId);
-    if (meme) return { kind: "memes", reactions: meme.reactions ?? cfg.memeReactions, enforce: meme.enforce ?? cfg.enforceMode };
-    const img = cfg.imageChannels?.find((c) => c.id === channelId);
-    if (img) return { kind: "images", reactions: img.reactions ?? cfg.imageReactions, enforce: img.enforce ?? cfg.enforceMode };
-    return null;
-  }
-  static hasMedia(message) {
-    let isImage = false;
-    let isVideo = false;
-    for (const att of message.attachments.values()) {
-      const type = (att.contentType || "").toLowerCase();
-      const name = att.name || "";
-      if (type.startsWith("image/")) {
-        isImage = true;
-        continue;
-      }
-      if (type.startsWith("video/")) {
-        isVideo = true;
-        continue;
-      }
-      if (IMAGE_EXT.test(name)) {
-        isImage = true;
-        continue;
-      }
-      if (VIDEO_EXT.test(name)) {
-        isVideo = true;
-        continue;
-      }
-    }
-    if (message.stickers.size) isImage = true;
-    for (const embed of message.embeds) {
-      if (embed.image || embed.thumbnail) {
-        isImage = true;
-        break;
-      }
-      if (embed.video) {
-        isVideo = true;
-        break;
-      }
-    }
-    return { has: isImage || isVideo, isImage, isVideo };
-  }
-  async processMessage(message) {
-    if (!message.guild) return;
-    const cfg = await this.getConfig(message.guild.id);
-    if (!this.isEnabled(cfg)) return;
-    const channel = this.matchChannel(message.channelId, cfg);
-    if (!channel) return;
-    if (this.handled.has(message.id)) return;
-    this.handled.add(message.id);
-    if (this.handled.size > 5e3) this.handled.clear();
-    const media = _MediaReactionSystem.hasMedia(message);
-    if (media.has) {
-      await this.applyReactions(message, channel, media.isVideo);
-      return;
-    }
-    await this.enforceMediaOnly(message, channel);
-  }
-  async applyReactions(message, channel, _isVideo) {
-    const reactions = channel.reactions?.length ? channel.reactions : [];
-    if (!reactions.length) return;
-    for (const emoji3 of reactions) {
-      await message.react(emoji3).catch(() => {
-      });
-    }
-  }
-  async enforceMediaOnly(message, channel) {
-    const mode = channel.enforce ?? "warn";
-    if (mode === "off") return;
-    const notice = "\u{1F4CE} This channel only accepts images and videos.";
-    if (mode === "warn") {
-      await message.reply({ content: notice, flags: import_discord98.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
-      }), 4e3).unref?.()).catch(() => {
-      });
-      return;
-    }
-    await message.delete().catch(() => {
-    });
-    await message.author.send({ content: `Your message in <#${message.channelId}> was removed: ${notice}
-This channel is for images and videos only.` }).catch(() => {
-    });
-  }
-  status(guildId) {
-    return this.getConfig(guildId).then((cfg) => ({
-      cfg,
-      known: (cfg.memeChannels?.length ?? 0) + (cfg.imageChannels?.length ?? 0)
-    }));
-  }
-};
-var mediaReactions = new MediaReactionSystem();
-var messageCreateMediaReactions = {
-  name: import_discord98.Events.MessageCreate,
-  execute: /* @__PURE__ */ __name(async (_client, message) => {
-    try {
-      await mediaReactions.processMessage(message).catch(() => {
-      });
-    } catch {
-    }
-  }, "execute")
-};
-
-// src/events/messageSystemsEvent.ts
+init_autoreply();
+init_mediareactions();
 var messageSystemsEvent = {
   name: import_discord99.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     if (message.author?.bot || !message.guild) return;
-    await autoReply.processMessage(message).catch(() => {
-    });
-    await mediaReactions.processMessage(message).catch(() => {
-    });
+    await autoReply.processMessage(message).catch((err) => client.logger?.warn({ err }, "autoreply failed"));
+    await mediaReactions.processMessage(message).catch((err) => client.logger?.warn({ err }, "media reactions failed"));
   }, "execute")
 };
 
@@ -196928,6 +198224,9 @@ var import_discord101 = __toESM(require_src());
 
 // src/systems/presentations/index.ts
 var import_discord100 = __toESM(require_src());
+init_shared_embeds();
+init_safety();
+init_metrics();
 var PresentationSystem = class {
   static {
     __name(this, "PresentationSystem");
@@ -196943,10 +198242,11 @@ var PresentationSystem = class {
     ];
   }
   async getConfig(guildId) {
-    let cfg = await PresentationConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await PresentationConfig.create({ guildId, questions: [] });
-    }
+    const cfg = await PresentationConfig.findOneAndUpdate(
+      { guildId },
+      { $setOnInsert: { guildId, questions: [] } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
     return {
       categoryId: cfg.categoryId ?? void 0,
       staffChannelId: cfg.staffChannelId ?? void 0,
@@ -196974,13 +198274,14 @@ var PresentationSystem = class {
   }
   async handleApply(interaction) {
     const userId = interaction.user.id;
-    const existing = await PresentationApplication.findOne({ userId, status: "pending" });
+    const guildId = interaction.guildId;
+    const existing = await PresentationApplication.findOne({ guildId, userId, status: "pending" });
     if (existing) {
-      void interaction.reply({ content: "\u274C You already have a pending application!", flags: 64 });
+      await interaction.reply({ content: "\u274C You already have a pending application!", flags: 64 });
       return;
     }
     const modal = await this.createApplicationModal();
-    void interaction.showModal(modal);
+    await interaction.showModal(modal);
   }
   async handleModalSubmit(interaction) {
     const answers = [];
@@ -196988,17 +198289,33 @@ var PresentationSystem = class {
     const modalQuestions = questions.slice(0, 5);
     for (let i = 0; i < modalQuestions.length; i++) {
       const answer = interaction.fields.getTextInputValue(`q${i + 1}`) || "";
-      answers.push({ question: modalQuestions[i], answer });
+      answers.push({ question: modalQuestions[i], answer: answer.slice(0, 1e3) });
     }
-    await PresentationApplication.create({
-      guildId: interaction.guildId,
-      userId: interaction.user.id,
-      answers,
-      status: "pending"
+    const created = await withMutex(`present:${interaction.guildId}:${interaction.user.id}`, async () => {
+      const raced = await PresentationApplication.findOne({ guildId: interaction.guildId, userId: interaction.user.id, status: "pending" });
+      if (raced) return raced;
+      try {
+        return await PresentationApplication.create({
+          guildId: interaction.guildId,
+          userId: interaction.user.id,
+          answers: answers.slice(0, 20),
+          status: "pending"
+        });
+      } catch (err) {
+        if (isDuplicateKeyError(err)) {
+          return PresentationApplication.findOne({ guildId: interaction.guildId, userId: interaction.user.id, status: "pending" });
+        }
+        throw err;
+      }
     });
+    if (!created) {
+      await interaction.reply({ content: "\u274C You already have a pending application!", flags: 64 });
+      return;
+    }
+    recordActivity("command", "Staff application submitted", { level: "info", meta: { guildId: interaction.guildId, userId: interaction.user.id } });
     const cfg = await this.getConfig(interaction.guildId);
     if (cfg.staffChannelId) {
-      const staffChannel = interaction.client.channels.cache.get(cfg.staffChannelId);
+      const staffChannel = await getTextChannel(interaction.guild, cfg.staffChannelId).catch(() => null);
       if (staffChannel) {
         const embed = EmbedBuilderUtil.presentation?.({
           id: "new",
@@ -197012,23 +198329,25 @@ var PresentationSystem = class {
           new import_discord100.ButtonBuilder().setCustomId("presentation_deny").setLabel("\u274C Deny").setStyle(import_discord100.ButtonStyle.Danger),
           new import_discord100.ButtonBuilder().setCustomId("presentation_changes").setLabel("\u{1F4DD} Request Changes").setStyle(import_discord100.ButtonStyle.Secondary)
         );
-        void staffChannel.send({
+        await staffChannel.send({
           content: `\u{1F4DD} New staff application from <@${interaction.user.id}>!`,
           embeds: [embed],
           components: [row]
-        });
+        }).catch((err) => console.warn("[Presentation] Failed to post application:", err?.message ?? err));
       }
     }
-    void interaction.reply({ content: "\u2705 Your application has been submitted! Staff will review it shortly.", flags: 64 });
+    await interaction.reply({ content: "\u2705 Your application has been submitted! Staff will review it shortly.", flags: 64 });
   }
   async handleReview(interaction, action) {
     const cfg = await this.getConfig(interaction.guildId);
     const staffRoleId = cfg.staffRoleId;
     const member = interaction.member;
     if (!member) return;
-    const isStaff = staffRoleId && member.roles.cache.has(staffRoleId);
-    if (!isStaff && !member.permissions.has(import_discord100.PermissionFlagsBits.Administrator)) {
-      void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+    const isStaff = Boolean(
+      staffRoleId && member.roles.cache.has(staffRoleId) || member.permissions?.has(import_discord100.PermissionFlagsBits.Administrator) || member.permissions?.has(import_discord100.PermissionFlagsBits.ManageGuild)
+    );
+    if (!isStaff) {
+      await interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
       return;
     }
     const message = interaction.message;
@@ -197037,18 +198356,13 @@ var PresentationSystem = class {
     const footerText = embed.footer?.text || "";
     const userIdMatch = footerText.match(/User: (\d+)/);
     if (!userIdMatch) {
-      void interaction.reply({ content: "\u274C Could not find applicant.", flags: 64 });
+      await interaction.reply({ content: "\u274C Could not find applicant.", flags: 64 });
       return;
     }
     const applicantId = userIdMatch[1];
-    const presentation = await PresentationApplication.findOne({ userId: applicantId, status: "pending" });
+    const presentation = await PresentationApplication.findOne({ guildId: interaction.guildId, userId: applicantId, status: "pending" });
     if (!presentation) {
-      void interaction.reply({ content: "\u274C Application not found.", flags: 64 });
-      return;
-    }
-    const isStaff2 = staffRoleId && member.roles.cache.has(staffRoleId);
-    if (!isStaff2 && !member.permissions.has(import_discord100.PermissionFlagsBits.Administrator)) {
-      void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+      await interaction.reply({ content: "\u274C Application not found.", flags: 64 });
       return;
     }
     const reason = action === "changes" ? "Changes requested by staff" : null;
@@ -197067,15 +198381,12 @@ var PresentationSystem = class {
           console.error("[Presentation] Error assigning role:", e);
         }
       }
-      try {
-        const user = await interaction.client.users.fetch(applicantId);
-        await user.send({ content: "\u{1F389} Congratulations! Your staff application has been **APPROVED**! Welcome to the team!" }).catch(() => {
-        });
-      } catch {
-      }
-      void message.edit({
+      await safeDm(interaction.guild, applicantId, "\u{1F389} Congratulations! Your staff application has been **APPROVED**! Welcome to the team!");
+      recordActivity("command", "Staff application approved", { level: "success", meta: { guildId: interaction.guildId, applicantId, reviewerId: interaction.user.id } });
+      await message.edit({
         embeds: [EmbedBuilderUtil.success?.("Approved", `Application approved by ${interaction.user}`) ?? new import_discord100.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(`Application approved by ${interaction.user}`)],
         components: []
+      }).catch(() => {
       });
     } else if (action === "deny") {
       const modal = new import_discord100.ModalBuilder().setCustomId(`presentation_deny_reason_${presentation.id}`).setTitle("Deny Application - Reason").addComponents(
@@ -197104,23 +198415,19 @@ var PresentationSystem = class {
       reviewedAt: /* @__PURE__ */ new Date(),
       reviewReason: reason
     });
-    try {
-      const user = await interaction.client.users.fetch(presentation.userId);
-      await user.send({ content: `\u274C Your staff application was **DENIED**.
-**Reason:** ${reason}` }).catch(() => {
-      });
-    } catch {
-    }
+    await safeDm(interaction.guild, presentation.userId, `\u274C Your staff application was **DENIED**.
+**Reason:** ${reason}`.slice(0, 1900));
     const message = interaction.message;
     if (message) {
-      void message.edit({
+      await message.edit({
         embeds: [EmbedBuilderUtil.error?.("Denied", `Application denied by ${interaction.user}
 Reason: ${reason}`) ?? new import_discord100.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription(`Application denied by ${interaction.user}
 Reason: ${reason}`)],
         components: []
+      }).catch(() => {
       });
     }
-    void interaction.editReply({ content: "\u2705 Application denied." });
+    await interaction.editReply({ content: "\u2705 Application denied." });
   }
   async handleChangesModal(interaction, presentationId) {
     await interaction.deferReply({ flags: 64 });
@@ -197133,121 +198440,100 @@ Reason: ${reason}`)],
       reviewedAt: /* @__PURE__ */ new Date(),
       reviewReason: reason
     });
-    try {
-      const user = await interaction.client.users.fetch(presentation.userId);
-      await user.send({ content: `\u{1F4DD} Your staff application needs **CHANGES**.
+    await safeDm(interaction.guild, presentation.userId, `\u{1F4DD} Your staff application needs **CHANGES**.
 **Feedback:** ${reason}
 
-You can re-apply with the improved answers.` }).catch(() => {
-      });
-    } catch {
-    }
+You can re-apply with the improved answers.`.slice(0, 1900));
     const message = interaction.message;
     if (message) {
-      void message.edit({
+      await message.edit({
         embeds: [EmbedBuilderUtil.warning?.("Changes Requested", `Changes requested by ${interaction.user}
 Feedback: ${reason}`) ?? new import_discord100.EmbedBuilder().setColor(16705372).setTitle("Changes Requested").setDescription(`Changes requested by ${interaction.user}
 Feedback: ${reason}`)],
         components: []
+      }).catch(() => {
       });
     }
-    void interaction.editReply({ content: "\u2705 Changes requested." });
+    await interaction.editReply({ content: "\u2705 Changes requested." });
   }
 };
 var presentations = new PresentationSystem();
 
 // src/events/systemsInteractionEvent.ts
+init_verification();
+init_vc();
+init_metrics();
 var systemsInteractionEvent = {
   name: import_discord101.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
     const { customId } = interaction;
+    const errorId = newErrorId();
     if (customId.startsWith("presentation_")) {
       try {
         if (customId === "presentation_apply_button") {
-          await presentations.handleApply(interaction).catch(() => {
-          });
+          await presentations.handleApply(interaction);
         } else if (customId === "presentation_apply") {
-          await presentations.handleModalSubmit(interaction).catch(() => {
-          });
+          await presentations.handleModalSubmit(interaction);
         } else if (customId === "presentation_approve") {
-          await presentations.handleReview(interaction, "approve").catch(() => {
-          });
+          await presentations.handleReview(interaction, "approve");
         } else if (customId === "presentation_deny") {
-          await presentations.handleReview(interaction, "deny").catch(() => {
-          });
+          await presentations.handleReview(interaction, "deny");
         } else if (customId === "presentation_changes") {
-          await presentations.handleReview(interaction, "changes").catch(() => {
-          });
+          await presentations.handleReview(interaction, "changes");
         } else if (customId.startsWith("presentation_deny_reason_")) {
           const id = customId.replace("presentation_deny_reason_", "");
-          await presentations.handleDenyModal(interaction, id).catch(() => {
-          });
+          await presentations.handleDenyModal(interaction, id);
         } else if (customId.startsWith("presentation_changes_reason_")) {
           const id = customId.replace("presentation_changes_reason_", "");
-          await presentations.handleChangesModal(interaction, id).catch(() => {
-          });
+          await presentations.handleChangesModal(interaction, id);
         }
       } catch (error62) {
-        console.error("[Systems] Presentation interaction error:", error62);
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: "An error occurred!", flags: 64 });
-        } else {
-          await interaction.reply({ content: "An error occurred!", flags: 64 });
-        }
+        bumpCounter("errors");
+        recordActivity("error", "Presentation interaction failed", { level: "error", meta: { customId, errorId, guildId: interaction.guildId } });
+        client.logger?.error({ err: error62, errorId, customId }, "presentation interaction failed");
+        await replyError(interaction, "Something went wrong while handling that.", errorId);
       }
       return;
     }
     if (customId.startsWith("verification_")) {
       try {
         if (customId === "verification_agree") {
-          await verification.handleVerifyButton(interaction).catch(() => {
-          });
+          await verification.handleVerifyButton(interaction);
         } else if (customId.startsWith("verification_approve_")) {
           const id = customId.replace("verification_approve_", "");
-          await verification.handleApprove(interaction, id).catch(() => {
-          });
+          await verification.handleApprove(interaction, id);
         } else if (customId.startsWith("verification_deny_")) {
           const id = customId.replace("verification_deny_", "");
-          await verification.handleDenyButton(interaction, id).catch(() => {
-          });
+          await verification.handleDenyButton(interaction, id);
         } else if (customId.startsWith("verification_deny_reason_")) {
           const id = customId.replace("verification_deny_reason_", "");
-          await verification.handleDenyModal(interaction, id).catch(() => {
-          });
+          await verification.handleDenyModal(interaction, id);
         }
       } catch (error62) {
-        console.error("[Systems] Verification interaction error:", error62);
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: "An error occurred!", flags: 64 });
-        } else {
-          await interaction.reply({ content: "An error occurred!", flags: 64 });
-        }
+        bumpCounter("errors");
+        recordActivity("error", "Verification interaction failed", { level: "error", meta: { customId, errorId, guildId: interaction.guildId } });
+        client.logger?.error({ err: error62, errorId, customId }, "verification interaction failed");
+        await replyError(interaction, "Something went wrong while handling that.", errorId);
       }
       return;
     }
     if (customId.startsWith("vcverify_")) {
       try {
         if (customId.startsWith("vcverify_claim_")) {
-          await vcVerification.handleClaim(interaction, customId.replace("vcverify_claim_", "")).catch(() => {
-          });
+          await vcVerification.handleClaim(interaction, customId.replace("vcverify_claim_", ""));
         } else if (customId.startsWith("vcverify_approve_")) {
-          await vcVerification.handleApprove(interaction, customId.replace("vcverify_approve_", "")).catch(() => {
-          });
+          await vcVerification.handleApprove(interaction, customId.replace("vcverify_approve_", ""));
         } else if (customId.startsWith("vcverify_deny_")) {
-          await vcVerification.handleDeny(interaction, customId.replace("vcverify_deny_", "")).catch(() => {
-          });
+          await vcVerification.handleDeny(interaction, customId.replace("vcverify_deny_", ""));
         } else if (customId.startsWith("vcverify_deny_reason_")) {
-          await vcVerification.handleDenyModal(interaction, customId.replace("vcverify_deny_reason_", "")).catch(() => {
-          });
+          await vcVerification.handleDenyModal(interaction, customId.replace("vcverify_deny_reason_", ""));
         }
       } catch (error62) {
-        console.error("[Systems] VC verification interaction error:", error62);
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: "An error occurred!", flags: 64 });
-        } else {
-          await interaction.reply({ content: "An error occurred!", flags: 64 });
-        }
+        bumpCounter("errors");
+        recordActivity("error", "VC verification interaction failed", { level: "error", meta: { customId, errorId, guildId: interaction.guildId } });
+        client.logger?.error({ err: error62, errorId, customId }, "vc verification interaction failed");
+        await replyError(interaction, "Something went wrong while handling that.", errorId);
       }
       return;
     }
@@ -197416,20 +198702,47 @@ var presentationPresenceUpdate = {
 // src/systems/suggestions/index.ts
 var import_discord103 = __toESM(require_src());
 var import_discord104 = __toESM(require_src());
+init_shared_embeds();
+init_safety();
+init_Guild();
 var SuggestionSystem = class {
   static {
     __name(this, "SuggestionSystem");
   }
   async getConfig(guildId) {
+    const row = await Guild.findOneAndUpdate(
+      { guildId },
+      { $setOnInsert: { guildId } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    const stored = row?.sukuna?.suggestions ?? {};
     return {
-      forumChannelId: void 0,
-      staffChannelId: void 0,
-      reactionThreshold: 5,
-      approvedTagId: void 0,
-      deniedTagId: void 0,
-      notedTagId: void 0,
-      staffRoleId: void 0
+      forumChannelId: typeof stored.forumChannelId === "string" && /^\d{5,25}$/.test(stored.forumChannelId) ? stored.forumChannelId : void 0,
+      staffChannelId: typeof stored.staffChannelId === "string" && /^\d{5,25}$/.test(stored.staffChannelId) ? stored.staffChannelId : void 0,
+      reactionThreshold: clampInt(stored.reactionThreshold, 5, 1, 1e3),
+      approvedTagId: typeof stored.approvedTagId === "string" && /^\d{5,25}$/.test(stored.approvedTagId) ? stored.approvedTagId : void 0,
+      deniedTagId: typeof stored.deniedTagId === "string" && /^\d{5,25}$/.test(stored.deniedTagId) ? stored.deniedTagId : void 0,
+      notedTagId: typeof stored.notedTagId === "string" && /^\d{5,25}$/.test(stored.notedTagId) ? stored.notedTagId : void 0,
+      staffRoleId: typeof stored.staffRoleId === "string" && /^\d{5,25}$/.test(stored.staffRoleId) ? stored.staffRoleId : void 0
     };
+  }
+  async setConfig(guildId, data) {
+    if (!/^\d{5,25}$/.test(guildId)) throw new Error("Invalid guild id");
+    const allowed = /* @__PURE__ */ new Set(["forumChannelId", "staffChannelId", "approvedTagId", "deniedTagId", "notedTagId", "staffRoleId", "reactionThreshold"]);
+    const patch = {};
+    for (const [key, value] of Object.entries(data ?? {})) {
+      if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+      if (key === "reactionThreshold") patch[key] = clampInt(value, 5, 1, 1e3);
+      else if (value === null || value === void 0) patch[key] = null;
+      else if (/^\d{5,25}$/.test(String(value))) patch[key] = String(value);
+      else throw new Error(`Invalid ${key}`);
+    }
+    if (Object.keys(patch).length === 0) throw new Error("No settings supplied");
+    await Guild.findOneAndUpdate(
+      { guildId },
+      { $set: { "sukuna.suggestions": patch } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
   }
   async handleThreadCreate(thread) {
     const cfg = await this.getConfig(thread.guild.id);
@@ -197474,12 +198787,15 @@ var SuggestionSystem = class {
     const suggestion = await Suggestion.findOne({ channelId: thread.id });
     if (!suggestion) return;
     if (suggestion.status !== "pending") return;
-    const upvotes = (reaction.count ?? 1) - 1;
-    suggestion.upvotes = suggestion.upvotes.filter((id) => id !== user.id);
-    suggestion.upvotes.push(user.id);
-    await suggestion.save();
+    const updated = await Suggestion.findOneAndUpdate(
+      { _id: suggestion._id, status: "pending" },
+      { $addToSet: { upvotes: user.id } },
+      { new: true }
+    );
+    if (!updated) return;
+    const upvotes = updated.upvotes?.length ?? 0;
     if (upvotes >= cfg.reactionThreshold) {
-      await this.markAsNoted(thread, suggestion, cfg);
+      await this.markAsNoted(thread, updated, cfg);
     }
   }
   async markAsNoted(thread, suggestion, cfg) {
@@ -197528,6 +198844,7 @@ var SuggestionSystem = class {
     const idMatch = footerText.match(/Suggestion ID: ([a-zA-Z0-9]+)/);
     if (!idMatch) return interaction.reply({ content: "\u274C Could not find suggestion ID.", flags: 64 });
     const suggestionId = idMatch[1];
+    if (!/^[a-f\d]{24}$/i.test(suggestionId)) return interaction.reply({ content: "\u274C Invalid suggestion ID.", flags: 64 });
     const suggestion = await Suggestion.findById(suggestionId);
     if (!suggestion) return interaction.reply({ content: "\u274C Suggestion not found.", flags: 64 });
     const thread = interaction.client.channels.cache.get(suggestion.channelId);
@@ -197626,345 +198943,13 @@ var interactionCreateSuggestions = {
   }, "execute")
 };
 
-// src/systems/tempvc/index.ts
-var import_discord105 = __toESM(require_src());
-var PANEL_ACTIONS = [
-  "rename",
-  "limit",
-  "lock",
-  "unlock",
-  "hide",
-  "show",
-  "trust",
-  "untrust",
-  "invite",
-  "kick",
-  "block",
-  "unblock",
-  "transfer",
-  "claim",
-  "delete",
-  "trust_all",
-  "untrust_all",
-  "info"
-];
-var TempVCSystem = class {
-  static {
-    __name(this, "TempVCSystem");
-  }
-  emptyTimeouts = /* @__PURE__ */ new Map();
-  async getConfig(guildId) {
-    const cfg = await readTempVCConfig(guildId);
-    if (!cfg) return null;
-    return {
-      creatorChannelId: cfg.createChannelId,
-      categoryId: cfg.categoryId,
-      defaultName: cfg.nameTemplate,
-      defaultLimit: cfg.userLimit ?? 0,
-      panelChannelId: void 0,
-      panelMessageId: void 0
-    };
-  }
-  async setConfig(guildId, data) {
-    const updates = {};
-    if (data.creatorChannelId !== void 0) updates.createChannelId = data.creatorChannelId;
-    if (data.categoryId !== void 0) updates.categoryId = data.categoryId;
-    if (data.defaultName !== void 0) updates.nameTemplate = data.defaultName;
-    if (data.defaultLimit !== void 0) updates.userLimit = data.defaultLimit;
-    await upsertTempVCConfig(guildId, updates);
-  }
-  async handleVoiceStateUpdate(oldState, newState) {
-    try {
-      const guild = newState.guild;
-      if (!guild) return;
-      const cfg = await this.getConfig(guild.id);
-      if (!cfg) return;
-      const creatorChannelId = cfg.creatorChannelId;
-      if (!oldState.channelId && newState.channelId === creatorChannelId && newState.member) {
-        await this.createTempVC(newState.member, guild, cfg);
-      }
-      if (oldState.channelId && !newState.channelId) {
-        const active = await readActiveTempVCByChannel(oldState.channelId);
-        if (active) {
-          await this.handleEmptyVC(guild, active.channelId);
-        }
-      }
-    } catch (error62) {
-      console.error("[TempVC] Voice state error:", error62);
-    }
-  }
-  async createTempVC(member, guild, cfg) {
-    const user = member.user;
-    if (!user) return;
-    const voiceName = (cfg.defaultName || "{user}'s VC").replace("{user}", user.username).slice(0, 100);
-    const userLimit = cfg.defaultLimit ?? 0;
-    const vcCategory = cfg.categoryId ? guild.channels.cache.get(cfg.categoryId) : void 0;
-    const voiceChannel = await guild.channels.create({
-      name: voiceName,
-      type: import_discord105.ChannelType.GuildVoice,
-      parent: vcCategory?.id,
-      userLimit,
-      permissionOverwrites: [
-        { id: user.id, allow: ["ManageChannels", "ManageRoles", "MuteMembers", "DeafenMembers", "MoveMembers", "Connect", "Speak", "UseSoundboard"] },
-        { id: guild.id, deny: ["ViewChannel"] }
-      ]
-    });
-    await createActiveTempVC({ guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
-    setCachedActiveTempVC(voiceChannel.id, { guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
-    await member.voice.setChannel(voiceChannel.id).catch((e) => console.log("[TempVC] Could not move user to new VC:", e?.message || e));
-    await this.refreshPanel(guild);
-  }
-  async handleEmptyVC(guild, vcId) {
-    const active = await readActiveTempVCByChannel(vcId);
-    if (!active) return;
-    const voiceChannel = guild.channels.cache.get(active.channelId);
-    if (!voiceChannel) return;
-    if (voiceChannel.members.size > 0) return;
-    const existingTimeout = this.emptyTimeouts.get(vcId);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-      this.emptyTimeouts.delete(vcId);
-    }
-    const timeoutId = setTimeout(async () => {
-      this.emptyTimeouts.delete(vcId);
-      const currentVC = guild.channels.cache.get(vcId);
-      if (currentVC && currentVC.members.size === 0) {
-        await currentVC.delete().catch(() => {
-        });
-        await deleteActiveTempVC(vcId);
-        deleteCachedActiveTempVC(vcId);
-        await this.refreshPanel(guild);
-      }
-    }, 1e4);
-    this.emptyTimeouts.set(vcId, timeoutId);
-  }
-  async handleButton(interaction) {
-    const customId = interaction.customId;
-    const panelAction = PANEL_ACTIONS.find((a) => customId === `tempvc_${a}`);
-    if (panelAction) {
-      await this.handlePanelButton(interaction, panelAction);
-      return;
-    }
-    const match = customId.match(/tempvc_(\w+)_([\w-]+)/);
-    if (!match) return;
-    const [, action, vcId] = match;
-    await this.runAction(interaction, action, vcId);
-  }
-  panelChannelId(_guild) {
-    return null;
-  }
-  async handlePanelButton(interaction, action) {
-    const guild = interaction.guild;
-    if (!guild) {
-      await interaction.reply({ content: "\u274C This can only be used in a server.", flags: 64 });
-      return;
-    }
-    if (action === "info") {
-      await interaction.reply({ content: "\u{1F3AE} **Temp VC help**\nJoin the creator voice channel to get your own temp VC.", flags: 64 });
-      return;
-    }
-    if (action === "claim") {
-      const member = await guild.members.fetch(interaction.user.id).catch(() => null);
-      const inVcId = member?.voice.channelId;
-      await interaction.reply({ content: "\u274C Claim not yet supported in this port.", flags: 64 });
-      return;
-    }
-    await interaction.reply({ content: "\u274C You do not own a temp VC. Join the creator voice channel to get one!", flags: 64 });
-  }
-  async runAction(interaction, action, vcId) {
-    const active = await readActiveTempVCByChannel(vcId);
-    if (!active) {
-      await interaction.reply({ content: "\u274C This VC session has expired.", flags: 64 });
-      return;
-    }
-    if (interaction.user.id !== active.ownerId && action !== "claim") {
-      await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
-      return;
-    }
-    const guild = interaction.guild;
-    const voiceChannel = guild?.channels.cache.get(vcId);
-    if (!voiceChannel) {
-      await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
-      return;
-    }
-    const everyoneId = guild.id;
-    try {
-      switch (action) {
-        case "lock": {
-          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: false });
-          await interaction.reply({ content: "\u{1F512} VC **locked**!", flags: 64 });
-          break;
-        }
-        case "unlock": {
-          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: true });
-          await interaction.reply({ content: "\u{1F513} VC **unlocked**!", flags: 64 });
-          break;
-        }
-        case "limit": {
-          const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_limit_${vcId}`).setTitle("\u{1F465} Set User Limit");
-          const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_limit_input").setLabel("User limit (0 = unlimited, max 99)").setStyle(import_discord105.TextInputStyle.Short).setValue("0").setRequired(true);
-          modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
-          await interaction.showModal(modal);
-          break;
-        }
-        case "rename": {
-          const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_rename_${vcId}`).setTitle("\u270F\uFE0F Rename VC");
-          const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_rename_input").setLabel("New VC name (max 100 chars)").setStyle(import_discord105.TextInputStyle.Short).setValue(voiceChannel.name).setMaxLength(100).setRequired(true);
-          modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
-          await interaction.showModal(modal);
-          break;
-        }
-        case "hide": {
-          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: false });
-          await interaction.reply({ content: "\u{1F441}\uFE0F VC **hidden**", flags: 64 });
-          break;
-        }
-        case "show": {
-          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: true });
-          await interaction.reply({ content: "\u{1F440} VC **shown**", flags: 64 });
-          break;
-        }
-        case "delete": {
-          await voiceChannel.delete().catch(() => {
-          });
-          await deleteActiveTempVC(vcId);
-          deleteCachedActiveTempVC(vcId);
-          await interaction.reply({ content: "\u274C VC deleted.", flags: 64 });
-          break;
-        }
-        default: {
-          await interaction.reply({ content: `\u274C Action "${action}" not yet implemented in this port.`, flags: 64 });
-        }
-      }
-    } catch (error62) {
-      console.error("[TempVC] runAction error:", error62);
-      if (!interaction.replied) {
-        await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
-        });
-      }
-    }
-  }
-  async handleModal(interaction) {
-    const customId = interaction.customId;
-    const match = customId.match(/tempvc_(rename|limit)_([\w-]+)/);
-    if (!match) return;
-    const [, action, vcId] = match;
-    const active = await readActiveTempVCByChannel(vcId);
-    if (!active || interaction.user.id !== active.ownerId) {
-      await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
-      return;
-    }
-    const guild = interaction.guild;
-    const voiceChannel = guild?.channels.cache.get(vcId);
-    if (!voiceChannel) {
-      await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
-      return;
-    }
-    try {
-      if (action === "rename") {
-        const name = interaction.fields.getTextInputValue("tempvc_rename_input")?.trim();
-        if (!name) {
-          await interaction.reply({ content: "\u274C Name cannot be empty.", flags: 64 });
-          return;
-        }
-        await voiceChannel.setName(name.slice(0, 100));
-        await interaction.reply({ content: `\u270F\uFE0F VC renamed to **${name}**!`, flags: 64 });
-      } else if (action === "limit") {
-        const raw = interaction.fields.getTextInputValue("tempvc_limit_input")?.trim();
-        const limit = Number.parseInt(raw, 10);
-        if (Number.isNaN(limit) || limit < 0 || limit > 99) {
-          await interaction.reply({ content: "\u274C Invalid limit (0-99).", flags: 64 });
-          return;
-        }
-        await voiceChannel.setUserLimit(limit);
-        await interaction.reply({ content: `\u{1F465} User limit set to **${limit === 0 ? "\u221E" : limit}**!`, flags: 64 });
-      }
-    } catch (error62) {
-      await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
-      });
-    }
-  }
-  async handleSelect(interaction) {
-    const customId = interaction.customId;
-    const match = customId.match(/tempvc_(\w+)_select_([\w-]+)/);
-    if (!match) return;
-    const [, action, vcId] = match;
-    await this.runAction(interaction, action, vcId);
-  }
-  panelEmbed(_guild, _activeCount) {
-    return new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AE} Temp VC Control Panel").setDescription("Join the creator voice channel to get your own temporary voice channel!").setTimestamp();
-  }
-  panelRows() {
-    const row1 = new import_discord105.ActionRowBuilder().addComponents(
-      this.btn("tempvc_rename", "\u270F\uFE0F Rename", import_discord105.ButtonStyle.Secondary),
-      this.btn("tempvc_limit", "\u{1F465} Limit", import_discord105.ButtonStyle.Secondary),
-      this.btn("tempvc_lock", "\u{1F512} Lock", import_discord105.ButtonStyle.Primary),
-      this.btn("tempvc_unlock", "\u{1F513} Unlock", import_discord105.ButtonStyle.Secondary),
-      this.btn("tempvc_hide", "\u{1F441}\uFE0F Hide", import_discord105.ButtonStyle.Secondary)
-    );
-    return [row1];
-  }
-  liveVcCount(_guild) {
-    return 0;
-  }
-  async postPanel(_guild, channel) {
-    await channel.send({ embeds: [this.panelEmbed(_guild, 0)], components: this.panelRows() });
-  }
-  async refreshPanel(guild) {
-    try {
-    } catch {
-    }
-  }
-  btn(customId, label, style) {
-    return new import_discord105.ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style);
-  }
-  async setOverwrite(channel, id, options) {
-    const existing = channel.permissionOverwrites.cache.get(id);
-    if (existing) await channel.permissionOverwrites.edit(id, options);
-    else await channel.permissionOverwrites.create(id, options);
-  }
-};
-var tempvc = new TempVCSystem();
-var voiceStateUpdateTempvc = {
-  name: "voiceStateUpdate",
-  execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
-    try {
-      await tempvc.handleVoiceStateUpdate(oldState, newState).catch(() => {
-      });
-    } catch {
-    }
-  }, "execute")
-};
-var interactionCreateTempvc = {
-  name: "interactionCreate",
-  execute: /* @__PURE__ */ __name(async (_client, interaction) => {
-    if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return;
-    if (interaction.isButton() && interaction.customId.startsWith("tempvc_")) {
-      try {
-        await tempvc.handleButton(interaction).catch(() => {
-        });
-      } catch {
-      }
-    }
-    if (interaction.isStringSelectMenu() && interaction.customId.startsWith("tempvc_")) {
-      try {
-        await tempvc.handleSelect(interaction).catch(() => {
-        });
-      } catch {
-      }
-    }
-    if (interaction.isModalSubmit() && interaction.customId.startsWith("tempvc_")) {
-      try {
-        await tempvc.handleModal(interaction).catch(() => {
-        });
-      } catch {
-      }
-    }
-  }, "execute")
-};
+// src/events/index.ts
+init_tempvc();
 
 // src/systems/tickets/index.ts
 var import_discord106 = __toESM(require_src());
+init_safety();
+init_metrics();
 var TicketSystem = class {
   static {
     __name(this, "TicketSystem");
@@ -197976,10 +198961,11 @@ var TicketSystem = class {
     { id: "other", label: "Other", emoji: "\u2753", description: "Anything else" }
   ];
   async getConfig(guildId) {
-    let cfg = await TicketConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await TicketConfig.create({ guildId });
-    }
+    const cfg = await TicketConfig.findOneAndUpdate(
+      { guildId },
+      { $setOnInsert: { guildId, maxTicketsPerUser: 3, cooldownSeconds: 60, autoCloseMinutes: 0, dmTranscript: true, staffRoleIds: [] } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
     return {
       categoryId: void 0,
       staffRoleId: cfg.staffRoleIds?.[0] ?? void 0,
@@ -197999,11 +198985,10 @@ var TicketSystem = class {
   async createTicket(interaction, type) {
     const guild = interaction.guild;
     const user = interaction.user;
-    const member = interaction.member;
     const cfg = await this.getConfig(guild.id);
     const categoryId = cfg.categoryId;
     if (!categoryId) {
-      return interaction.reply({ content: "\u274C Ticket system not configured. Contact admin.", flags: 64 });
+      return interaction.reply({ content: "\u274C This legacy ticket panel is retired \u2014 please use the department buttons (\u{1F3AB}) to open a ticket. If none exist, ask an admin to run /ticket setup.", flags: 64 });
     }
     const existingOpen = await OpenTicket.find({ guildId: guild.id, userId: user.id, closedAt: null });
     if (existingOpen.length > 0) {
@@ -198030,13 +199015,23 @@ var TicketSystem = class {
       permissionOverwrites: overwrites,
       topic: `Ticket #${ticketId} | Type: ${type} | Owner: ${user.id}`
     });
-    await OpenTicket.create({
-      guildId: guild.id,
-      channelId: ticketChannel.id,
-      userId: user.id,
-      departmentId: type,
-      departmentName: this.getTypeLabel(type)
-    });
+    try {
+      await OpenTicket.create({
+        guildId: guild.id,
+        channelId: ticketChannel.id,
+        userId: user.id,
+        departmentId: type,
+        departmentName: this.getTypeLabel(type)
+      });
+    } catch (err) {
+      await ticketChannel.delete("Ticket setup failed").catch(() => {
+      });
+      if (isDuplicateKeyError(err)) {
+        const existing = await OpenTicket.findOne({ guildId: guild.id, userId: user.id, closedAt: null }).lean();
+        return interaction.reply({ content: `\u274C You already have an open ticket: <#${existing?.channelId ?? "?"}>`, flags: 64 });
+      }
+      throw err;
+    }
     const ticketEmbed = new import_discord106.EmbedBuilder().setColor("#5865F2").setTitle(`\u{1F3AB} Ticket #${ticketId} - ${this.getTypeLabel(type)}`).setDescription(`**Created by:** ${user}
 **Type:** ${this.getTypeLabel(type)}
 
@@ -198096,15 +199091,21 @@ Please describe your issue. Staff will be with you shortly.`).setFooter({ text: 
     if (!ticket) return interaction.reply({ content: "\u274C Ticket not found in database.", flags: 64 });
     const cfg = await this.getConfig(interaction.guild.id);
     const staffRoleId = cfg.staffRoleId;
-    const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
+    const member = interaction.member;
+    const isStaff = Boolean(
+      staffRoleId && member.roles?.cache.has(staffRoleId) || member.permissions?.has(import_discord106.PermissionFlagsBits.ManageGuild) || member.permissions?.has(import_discord106.PermissionFlagsBits.Administrator)
+    );
     switch (customId) {
       case "ticket_claim": {
         if (!isStaff) return interaction.reply({ content: "\u274C Only staff can claim tickets.", flags: 64 });
-        if (ticket.claimedBy) return interaction.reply({ content: `\u274C Already claimed by <@${ticket.claimedBy}>.`, flags: 64 });
-        ticket.claimedBy = user.id;
-        ticket.claimedAt = /* @__PURE__ */ new Date();
-        await ticket.save();
+        const claimed = await OpenTicket.findOneAndUpdate(
+          { _id: ticket._id, closedAt: null, $or: [{ claimedBy: null }, { claimedBy: { $exists: false } }] },
+          { $set: { claimedBy: user.id, claimedAt: /* @__PURE__ */ new Date() } },
+          { new: true }
+        );
+        if (!claimed) return interaction.reply({ content: `\u274C Already claimed by <@${ticket.claimedBy ?? "another staff member"}>.`, flags: 64 });
         await channel.send({ content: `\u{1F46E} **${user}** claimed this ticket!` });
+        recordActivity("command", "Ticket claimed", { level: "info", meta: { guildId: interaction.guild.id, ticketId: ticket._id.toString(), claimedBy: user.id } });
         await interaction.reply({ content: "\u2705 Ticket claimed!", flags: 64 });
         break;
       }
@@ -198177,28 +199178,39 @@ Please describe your issue. Staff will be with you shortly.`).setFooter({ text: 
   async closeTicket(ticketId, channel, closer, reason) {
     const cfg = await this.getConfig(channel.guild.id);
     const logChannelId = cfg.logChannelId || "";
-    const messages = await channel.messages.fetch({ limit: 100 });
-    const transcript = messages.reverse().map((m) => `[${m.createdAt.toLocaleString()}] ${m.author.tag}: ${m.content}${m.attachments.size > 0 ? ` [${m.attachments.size} attachment(s)]` : ""}`).join("\n");
+    const ticket = await OpenTicket.findOneAndUpdate(
+      { _id: ticketId, closedAt: null },
+      { $set: { closedAt: /* @__PURE__ */ new Date(), closedBy: closer.id, closeReason: reason } },
+      { new: true }
+    );
+    if (!ticket) {
+      await channel.delete(`Ticket closed by ${closer.tag}: ${reason}`).catch(() => {
+      });
+      return;
+    }
+    recordActivity("command", "Ticket closed", { level: "info", meta: { guildId: channel.guild.id, ticketId, closedBy: closer.id } });
     if (logChannelId) {
-      const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
-      if (transcriptChannel && transcriptChannel.isTextBased()) {
-        const embed = new import_discord106.EmbedBuilder().setTitle(`\u{1F4DD} Ticket Transcript - #${ticketId}`).setColor("#ED4245").addFields(
-          { name: "Closed by", value: closer.tag, inline: true },
-          { name: "Reason", value: reason, inline: true },
-          { name: "Messages", value: messages.size.toString(), inline: true }
-        ).setTimestamp();
-        const attachment = new import_discord106.AttachmentBuilder(Buffer.from(transcript), { name: `ticket-${ticketId}.txt` });
-        await transcriptChannel.send({ embeds: [embed], files: [attachment] });
+      try {
+        const messages = await channel.messages.fetch({ limit: 100 }).catch(() => null);
+        if (messages) {
+          const transcript = messages.reverse().map((m) => `[${m.createdAt.toLocaleString()}] ${m.author?.tag ?? m.author?.id ?? "unknown"}: ${(m.content ?? "").slice(0, 1e3)}${m.attachments?.size > 0 ? ` [${m.attachments.size} attachment(s)]` : ""}`).join("\n");
+          const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
+          if (transcriptChannel && transcriptChannel.isTextBased()) {
+            const embed = new import_discord106.EmbedBuilder().setTitle(`\u{1F4DD} Ticket Transcript - #${ticketId}`).setColor("#ED4245").addFields(
+              { name: "Closed by", value: closer.tag ?? closer.id, inline: true },
+              { name: "Reason", value: reason.slice(0, 200) || "\u2014", inline: true },
+              { name: "Messages", value: messages.size.toString(), inline: true }
+            ).setTimestamp();
+            const attachment = new import_discord106.AttachmentBuilder(Buffer.from(transcript.slice(0, 5e5)), { name: `ticket-${ticketId}.txt` });
+            await transcriptChannel.send({ embeds: [embed], files: [attachment] });
+          }
+        }
+      } catch (err) {
+        console.warn("[Tickets] Transcript failed:", err?.message ?? err);
       }
     }
-    const ticket = await OpenTicket.findById(ticketId);
-    if (ticket) {
-      ticket.closedAt = /* @__PURE__ */ new Date();
-      ticket.closedBy = closer.id;
-      ticket.closeReason = reason;
-      await ticket.save();
-    }
-    await channel.delete(`Ticket closed by ${closer.tag}: ${reason}`);
+    await channel.delete(`Ticket closed by ${closer.tag ?? closer.id}: ${reason}`.slice(0, 300)).catch(() => {
+    });
   }
 };
 var tickets = new TicketSystem();
@@ -198208,25 +199220,13 @@ var interactionCreateTickets = {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
     if (interaction.isButton() && interaction.customId.startsWith("ticket_create_")) {
       const type = interaction.customId.replace("ticket_create_", "");
-      try {
-        await tickets.createTicket(interaction, type).catch(() => {
-        });
-      } catch {
-      }
+      await tickets.createTicket(interaction, type).catch((err) => console.warn("[Tickets] create failed:", err?.message ?? err));
     }
     if (interaction.isButton() && interaction.customId.startsWith("ticket_")) {
-      try {
-        await tickets.handleButton(interaction).catch(() => {
-        });
-      } catch {
-      }
+      await tickets.handleButton(interaction).catch((err) => console.warn("[Tickets] handleButton failed:", err?.message ?? err));
     }
     if (interaction.isModalSubmit() && interaction.customId.startsWith("ticket_")) {
-      try {
-        await tickets.handleModal(interaction).catch(() => {
-        });
-      } catch {
-      }
+      await tickets.handleModal(interaction).catch((err) => console.warn("[Tickets] handleModal failed:", err?.message ?? err));
     }
   }, "execute")
 };
@@ -198247,7 +199247,6 @@ var events2 = [
   reactionRemove,
   voiceStateUpdate,
   voiceStateUpdateVerification,
-  voiceStateUpdateTempvc,
   channelDelete,
   guildDelete,
   antinukeAuditLogEvent,
@@ -198274,6 +199273,41 @@ async function main() {
     stopTicketScheduler();
     stopReminderChecker();
     stopDashboard();
+    try {
+      const { shutdownAutomod: shutdownAutomod2 } = (init_automod(), __toCommonJS(automod_exports));
+      shutdownAutomod2();
+    } catch {
+    }
+    try {
+      const { tempvc: tempvc2 } = (init_tempvc(), __toCommonJS(tempvc_exports));
+      tempvc2.shutdown();
+    } catch {
+    }
+    try {
+      const { levels: levels2 } = (init_levels(), __toCommonJS(levels_exports));
+      levels2.stopAllVoiceSessions();
+    } catch {
+    }
+    try {
+      const { autoReply: autoReply2 } = (init_autoreply(), __toCommonJS(autoreply_exports));
+      autoReply2.shutdown();
+    } catch {
+    }
+    try {
+      const { mediaReactions: mediaReactions2 } = (init_mediareactions(), __toCommonJS(mediareactions_exports));
+      mediaReactions2.shutdown();
+    } catch {
+    }
+    try {
+      const { antinuke: antinuke2 } = (init_antinuke(), __toCommonJS(antinuke_exports));
+      antinuke2.shutdown();
+    } catch {
+    }
+    try {
+      const { vcVerification: vcVerification2 } = (init_vc(), __toCommonJS(vc_exports));
+      vcVerification2.shutdown();
+    } catch {
+    }
   }
   __name(stopBackgroundWork, "stopBackgroundWork");
   async function shutdown(reason, exitCode = 0) {

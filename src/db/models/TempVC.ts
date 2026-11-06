@@ -53,7 +53,8 @@ const activeTempVCSchema = new Schema<IActiveTempVC>(
   { timestamps: true },
 );
 
-activeTempVCSchema.index({ guildId: 1, ownerId: 1 });
+// One active temp VC per owner — DB-guard against duplicate handlers.
+activeTempVCSchema.index({ guildId: 1, ownerId: 1 }, { unique: true });
 
 export const ActiveTempVC = model<IActiveTempVC>('ActiveTempVC', activeTempVCSchema);
 
@@ -117,9 +118,14 @@ const _configCache = new Map<string, ITempVCConfig | null>();
 /** channelId -> active temp VC row. */
 const _activeCache = new Map<string, IActiveTempVC>();
 
-export function getCachedTempVCConfig(guildId: string): ITempVCConfig | null {
-  if (_configCache.has(guildId)) return _configCache.get(guildId) ?? null;
-  return null;
+/**
+ * undefined = cache miss (caller must read DB then warm).
+ * null = not configured. Older code returned null for both, which made the
+ * DB fallback in voiceStateUpdate unreachable.
+ */
+export function getCachedTempVCConfig(guildId: string): ITempVCConfig | null | undefined {
+  if (!_configCache.has(guildId)) return undefined;
+  return _configCache.get(guildId) ?? null;
 }
 
 export function setCachedTempVCConfig(guildId: string, config: ITempVCConfig | null): void {

@@ -10,7 +10,8 @@ import {
 import { clearCooldown, takeCooldown } from '../core/cooldowns.js';
 import { newErrorId, UserFacingError } from '../core/errors.js';
 import { bumpCounter, recordActivity } from '../core/metrics.js';
-import { replyError } from '../core/respond.js';
+import { replyError, replyOk } from '../core/respond.js';
+import { isDuplicateKeyError, pruneMap, withMutex } from '../core/safety.js';
 import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
 import { getTicketByChannel, closeTicket, startTicketScheduler, stopTicketScheduler } from '../utils/ticketScheduler.js';
 import { Types } from 'mongoose';
@@ -118,12 +119,16 @@ export const interactionCreate = {
         }
       }
 
-      const remaining = takeCooldown(
-        guildId,
-        interaction.user.id,
-        command.data.name,
-        command.cooldownSeconds ?? 1,
-      );
+      // Only commands that declare a cooldown get one. Previously every
+      // command silently got a 1s window even when none was configured.
+      const remaining = (command.cooldownSeconds ?? 0) > 0
+        ? takeCooldown(
+            guildId,
+            interaction.user.id,
+            command.data.name,
+            command.cooldownSeconds!,
+          )
+        : 0;
       if (remaining > 0) {
         await replyError(interaction, `Slow down - try again in ${(remaining / 1000).toFixed(1)}s.`);
         return;
@@ -297,6 +302,13 @@ async function handleSelectMenuInteraction(client: any, interaction: any): Promi
 /* -------------------------------------------------------------------------- */
 
 async function handleTicketCreate(client: any, interaction: any): Promise<void> {
+  // Serialise per user so a double-click cannot create two channels.
+  await withMutex(`ticket:${interaction.guildId}:${interaction.user.id}`, () =>
+    handleTicketCreateInner(client, interaction),
+  );
+}
+
+async function handleTicketCreateInner(client: any, interaction: any): Promise<void> {
   await interaction.deferReply({ flags: 64 });
 
   const guild = interaction.guild;
@@ -434,7 +446,9 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     ticketCreated = true;
 
     // Record the cooldown timestamp only after a successful create.
+    // Bounded + pruned so this map cannot leak forever.
     if (cooldownSeconds > 0) {
+      pruneMap(ticketCreateCooldowns, 5000, (v) => Date.now() - v > 86_400_000);
       ticketCreateCooldowns.set(`${guild.id}:${user.id}`, Date.now());
     }
 
@@ -466,6 +480,17 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
       content: `✅ Ticket created: ${channel} (${department.name}).`,
     });
   } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      // Lost the race despite the mutex (e.g. another process): point at the
+      // existing ticket instead of claiming a generic failure.
+      const existingTicket = await OpenTicket.findOne({ guildId: guild.id, userId: user.id, closedAt: null }).lean().catch(() => null);
+      if (channel) {
+        try { await (channel as any).delete(); } catch { /* already gone */ }
+      }
+      const existingChannel = existingTicket ? `<#${existingTicket.channelId}>` : 'a channel';
+      await interaction.editReply({ content: `❌ You already have an open ticket: ${existingChannel}.` });
+      return;
+    }
     if (channel) {
       try {
         await (channel as any).delete();

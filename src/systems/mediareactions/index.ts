@@ -19,21 +19,17 @@ const DEFAULT_CONFIG: any = {
 };
 
 export class MediaReactionSystem {
-	private handled = new Set<string>(); // messageId -> true
+	private handled = new Map<string, number>(); // messageId -> timestamp
+
+	/** Clear dedup state (wired into shutdown). */
+	shutdown(): void { this.handled.clear(); }
 
 	async getConfig(guildId: string) {
-		let cfg = await MediaReactionConfig.findOne({ guildId }).lean();
-		if (!cfg) {
-			cfg = await MediaReactionConfig.create({
-				guildId,
-				enabled: false,
-				memeChannels: [],
-				imageChannels: [],
-				memeReactions: ['⭐', '😂'],
-				imageReactions: ['📸'],
-				enforceMode: 'warn',
-			});
-		}
+		const cfg = await MediaReactionConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, enabled: false, memeChannels: [], imageChannels: [], memeReactions: ['⭐', '😂'], imageReactions: ['📸'], enforceMode: 'warn' } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		return {
 			...DEFAULT_CONFIG,
 			...cfg,
@@ -82,8 +78,20 @@ export class MediaReactionSystem {
 		const channel = this.matchChannel(message.channelId, cfg);
 		if (!channel) return;
 		if (this.handled.has(message.id)) return;
-		this.handled.add(message.id);
-		if (this.handled.size > 5000) this.handled.clear();
+		// FIFO prune by age instead of `clear()` (which lost all dedup at 5000).
+		const now = Date.now();
+		for (const [id, at] of this.handled) {
+			if (now - at > 3_600_000) this.handled.delete(id);
+		}
+		if (this.handled.size > 5000) {
+			let removed = 0;
+			for (const id of this.handled.keys()) {
+				if (removed >= this.handled.size - 5000) break;
+				this.handled.delete(id);
+				removed++;
+			}
+		}
+		this.handled.set(message.id, now);
 
 		const media = MediaReactionSystem.hasMedia(message);
 		if (media.has) {

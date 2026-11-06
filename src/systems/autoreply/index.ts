@@ -20,6 +20,9 @@ export class AutoReplySystem {
 	private cooldowns = new Map<string, number>(); // userId+trigger -> timestamp
 	private cooldownMs = 10_000; // 10 seconds per user per trigger
 
+	/** Clear cooldown state (wired into shutdown). */
+	shutdown(): void { this.cooldowns.clear(); }
+
 	async getAutoReplies(guildId: string, channelId?: string) {
 		const query: any = { guildId, enabled: true };
 		if (channelId) query.$or = [{ channelId }, { channelId: null }, { channelId: { $exists: false } }];
@@ -29,7 +32,19 @@ export class AutoReplySystem {
 	async addAutoReply(data: {
 		guildId: string; triggerType: 'keyword' | 'regex' | 'exact'; triggerValue: string; response: string; channelId?: string;
 	}): Promise<any> {
-		return AutoReply.create(data);
+		// Validate at write time so a bad regex can never execute per-message.
+		if (!/^\d{5,25}$/.test(data.guildId)) throw new Error('Invalid guild id');
+		if (!['keyword', 'regex', 'exact'].includes(data.triggerType)) throw new Error('Invalid trigger type');
+		const trigger = String(data.triggerValue ?? '').trim();
+		const response = String(data.response ?? '').trim();
+		if (!trigger || trigger.length > 200) throw new Error('Trigger must be 1–200 characters');
+		if (!response || response.length > 2000) throw new Error('Response must be 1–2000 characters');
+		if (data.channelId !== undefined && data.channelId !== null && !/^\d{5,25}$/.test(String(data.channelId))) throw new Error('Invalid channel id');
+		if (data.triggerType === 'regex') {
+			if (trigger.length > 200) throw new Error('Regex too long');
+			try { new RegExp(trigger, 'i'); } catch { throw new Error('Invalid regex'); }
+		}
+		return AutoReply.create({ ...data, triggerValue: trigger, response });
 	}
 
 	async removeAutoReply(guildId: string, id: string): Promise<any> {
@@ -46,11 +61,18 @@ export class AutoReplySystem {
 		}
 
 		this.cooldowns.set(key, now);
+		// Prune every call over 1000; hard cap so the map cannot grow unbounded.
 		if (this.cooldowns.size > 1000) {
 			for (const [k, v] of this.cooldowns.entries()) {
-				if (now - v > this.cooldownMs * 2) {
-					this.cooldowns.delete(k);
-				}
+				if (now - v > this.cooldownMs * 2) this.cooldowns.delete(k);
+			}
+		}
+		if (this.cooldowns.size > 5000) {
+			let removed = 0;
+			for (const k of this.cooldowns.keys()) {
+				if (removed >= this.cooldowns.size - 1000) break;
+				this.cooldowns.delete(k);
+				removed++;
 			}
 		}
 		return true;

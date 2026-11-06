@@ -3,6 +3,8 @@ import { Events, EmbedBuilder } from 'discord.js';
 import { AttachmentBuilder } from 'discord.js';
 import { WelcomerConfig } from '../../db/models/WelcomerConfig.js';
 import EmbedBuilderUtil from '../../utils/shared-embeds.js';
+import { getTextChannel } from '../../core/safety.js';
+import { recordActivity } from '../../core/metrics.js';
 
 /**
  * Welcomer system (ported from astralcraft).
@@ -23,10 +25,11 @@ export interface WelcomerConfigI {
 
 export class WelcomerSystem {
 	async getConfig(guildId: string): Promise<WelcomerConfigI> {
-		let row = await WelcomerConfig.findOne({ guildId }).lean();
-		if (!row) {
-			row = await WelcomerConfig.create({ guildId, welcomeImageEnabled: true, goodbyeImageEnabled: true });
-		}
+		const row = await WelcomerConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, welcomeImageEnabled: true, goodbyeImageEnabled: true } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		const r = row as any;
 		return {
 			welcomeChannelId: r.welcomeChannelId ?? null,
@@ -41,7 +44,18 @@ export class WelcomerSystem {
 	}
 
 	async setConfig(guildId: string, data: Partial<WelcomerConfigI>): Promise<void> {
-		await WelcomerConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
+		if (!/^\d{5,25}$/.test(guildId)) throw new Error('Invalid guild id');
+		// Explicit allowlist — `$set: data` previously let callers overwrite `guildId`.
+		const allowed = new Set(['welcomeChannelId', 'goodbyeChannelId', 'welcomeMessage', 'goodbyeMessage', 'welcomeImageEnabled', 'goodbyeImageEnabled', 'backgroundImagePath', 'goodbyeBackgroundImagePath']);
+		const updates: Record<string, unknown> = {};
+		for (const [key, value] of Object.entries(data ?? {})) {
+			if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+			if (key.endsWith('ChannelId') && value !== null && value !== undefined && !/^\d{5,25}$/.test(String(value))) throw new Error(`Invalid ${key}`);
+			if ((key === 'welcomeMessage' || key === 'goodbyeMessage') && typeof value === 'string' && value.length > 2000) throw new Error(`${key} too long`);
+			updates[key] = value;
+		}
+		if (Object.keys(updates).length === 0) throw new Error('No settings supplied');
+		await WelcomerConfig.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
 	}
 
 	renderMessage(template: string | null | undefined, member: GuildMember, guild: Guild, memberCount: number): string {
@@ -60,7 +74,9 @@ export class WelcomerSystem {
 		const cfg = await this.getConfig(guild.id);
 		if (!cfg.welcomeChannelId) return;
 
-		const channel = guild.channels.cache.get(cfg.welcomeChannelId) as TextChannel;
+		// Cache-then-fetch: `channels.cache` alone silently dropped welcomes on
+		// a cold cache.
+		const channel = await getTextChannel(guild, cfg.welcomeChannelId);
 		if (!channel) return;
 
 		const memberCount = guild.memberCount;
@@ -72,7 +88,8 @@ export class WelcomerSystem {
 			.setDescription(`Welcome to ${guild.name}, ${member}!`)
 			.setTimestamp();
 
-		await channel.send({ content: content ?? undefined, embeds: [embed] });
+		await channel.send({ content: content ? content.slice(0, 1900) : undefined, embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
+		recordActivity('system', 'Welcome sent', { level: 'info', meta: { guildId: guild.id, userId: member.id } });
 	}
 
 	async sendGoodbye(member: GuildMember): Promise<void> {
@@ -80,7 +97,7 @@ export class WelcomerSystem {
 		const cfg = await this.getConfig(guild.id);
 		if (!cfg.goodbyeChannelId) return;
 
-		const channel = guild.channels.cache.get(cfg.goodbyeChannelId) as TextChannel;
+		const channel = await getTextChannel(guild, cfg.goodbyeChannelId);
 		if (!channel) return;
 
 		const memberCount = guild.memberCount;
@@ -92,7 +109,7 @@ export class WelcomerSystem {
 			.setDescription(`${member.user.tag} left ${guild.name}.`)
 			.setTimestamp();
 
-		await channel.send({ content: content ?? undefined, embeds: [embed] });
+		await channel.send({ content: content ? content.slice(0, 1900) : undefined, embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
 	}
 }
 
@@ -100,14 +117,14 @@ export const welcomer = new WelcomerSystem();
 
 export const guildMemberAddWelcomer = {
 	name: Events.GuildMemberAdd as keyof import('discord.js').ClientEvents,
-	execute: async (_client: any, member: GuildMember) => {
-		try { await welcomer.sendWelcome(member).catch(() => {}); } catch {}
+	execute: async (client: any, member: GuildMember) => {
+		await welcomer.sendWelcome(member).catch((err) => client.logger?.warn({ err, userId: member.id }, 'welcomer welcome failed'));
 	},
 };
 
 export const guildMemberRemoveWelcomer = {
 	name: Events.GuildMemberRemove as keyof import('discord.js').ClientEvents,
-	execute: async (_client: any, member: GuildMember) => {
-		try { await welcomer.sendGoodbye(member).catch(() => {}); } catch {}
+	execute: async (client: any, member: GuildMember) => {
+		await welcomer.sendGoodbye(member).catch((err) => client.logger?.warn({ err, userId: member.id }, 'welcomer goodbye failed'));
 	},
 };

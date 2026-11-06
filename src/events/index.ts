@@ -16,7 +16,10 @@ import { systemsInteractionEvent } from './systemsInteractionEvent.js';
 // New systems ported from astralcraft
 import { presentationPresenceUpdate } from '../systems/presentations/autostatus.js';
 import { threadCreateSuggestions, messageReactionAddSuggestions, interactionCreateSuggestions } from '../systems/suggestions/index.js';
-import { voiceStateUpdateTempvc, interactionCreateTempvc } from '../systems/tempvc/index.js';
+// Voice-state is owned solely by events/voiceStateUpdate.ts (which has the
+// self-heal + XP integration). systems/tempvc handles panel buttons/modals only —
+// registering its voice handler too created a second channel per join.
+import { interactionCreateTempvc } from '../systems/tempvc/index.js';
 import { interactionCreateTickets } from '../systems/tickets/index.js';
 
 export const events = [
@@ -34,7 +37,6 @@ export const events = [
 	reactionRemove,
 	voiceStateUpdate,
 	voiceStateUpdateVerification,
-	voiceStateUpdateTempvc,
 	channelDelete,
 	guildDelete,
 	antinukeAuditLogEvent,

@@ -10,6 +10,8 @@ import {
 } from 'discord.js';
 import { Suggestion } from '../../db/models/Suggestion.js';
 import EmbedBuilderUtil from '../../utils/shared-embeds.js';
+import { clampInt, getTextChannel } from '../../core/safety.js';
+import { Guild } from '../../db/models/Guild.js';
 
 interface SuggestionConfig {
 	forumChannelId?: string;
@@ -23,17 +25,43 @@ interface SuggestionConfig {
 
 export class SuggestionSystem {
 	async getConfig(guildId: string): Promise<SuggestionConfig> {
-		// Sukuna does not store suggestion config in a dedicated model yet;
-		// fall back to empty config so the system loads without crashing.
+		// Stored on the guild row under `sukuna.suggestions` so the forum
+		// system is actually configurable instead of permanently dead.
+		// Atomic upsert keeps first-use race-free.
+		const row = await Guild.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
+		const stored = (row as any)?.sukuna?.suggestions ?? {};
 		return {
-			forumChannelId: undefined,
-			staffChannelId: undefined,
-			reactionThreshold: 5,
-			approvedTagId: undefined,
-			deniedTagId: undefined,
-			notedTagId: undefined,
-			staffRoleId: undefined,
+			forumChannelId: typeof stored.forumChannelId === 'string' && /^\d{5,25}$/.test(stored.forumChannelId) ? stored.forumChannelId : undefined,
+			staffChannelId: typeof stored.staffChannelId === 'string' && /^\d{5,25}$/.test(stored.staffChannelId) ? stored.staffChannelId : undefined,
+			reactionThreshold: clampInt(stored.reactionThreshold, 5, 1, 1000),
+			approvedTagId: typeof stored.approvedTagId === 'string' && /^\d{5,25}$/.test(stored.approvedTagId) ? stored.approvedTagId : undefined,
+			deniedTagId: typeof stored.deniedTagId === 'string' && /^\d{5,25}$/.test(stored.deniedTagId) ? stored.deniedTagId : undefined,
+			notedTagId: typeof stored.notedTagId === 'string' && /^\d{5,25}$/.test(stored.notedTagId) ? stored.notedTagId : undefined,
+			staffRoleId: typeof stored.staffRoleId === 'string' && /^\d{5,25}$/.test(stored.staffRoleId) ? stored.staffRoleId : undefined,
 		};
+	}
+
+	async setConfig(guildId: string, data: Partial<SuggestionConfig>): Promise<void> {
+		if (!/^\d{5,25}$/.test(guildId)) throw new Error('Invalid guild id');
+		const allowed = new Set(['forumChannelId', 'staffChannelId', 'approvedTagId', 'deniedTagId', 'notedTagId', 'staffRoleId', 'reactionThreshold']);
+		const patch: Record<string, unknown> = {};
+		for (const [key, value] of Object.entries(data ?? {})) {
+			if (!allowed.has(key)) throw new Error(`Unknown setting: ${key}`);
+			if (key === 'reactionThreshold') patch[key] = clampInt(value, 5, 1, 1000);
+			else if (value === null || value === undefined) patch[key] = null;
+			else if (/^\d{5,25}$/.test(String(value))) patch[key] = String(value);
+			else throw new Error(`Invalid ${key}`);
+		}
+		if (Object.keys(patch).length === 0) throw new Error('No settings supplied');
+		await Guild.findOneAndUpdate(
+			{ guildId },
+			{ $set: { 'sukuna.suggestions': patch } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		);
 	}
 
 	async handleThreadCreate(thread: ThreadChannel): Promise<void> {
@@ -92,13 +120,19 @@ export class SuggestionSystem {
 
 		if (suggestion.status !== 'pending') return;
 
-		const upvotes = (reaction.count ?? 1) - 1;
-		suggestion.upvotes = suggestion.upvotes.filter((id) => id !== user.id);
-		suggestion.upvotes.push(user.id);
-		await suggestion.save();
+		// Atomic add-to-set: concurrent reactions cannot lose each other, and
+		// the bot's own seeded 👍 is not counted as a vote.
+		const updated = await Suggestion.findOneAndUpdate(
+			{ _id: suggestion._id, status: 'pending' },
+			{ $addToSet: { upvotes: user.id } },
+			{ new: true },
+		);
+		if (!updated) return;
+		// Note: never trust `reaction.count` (bot seed + removes race it).
+		const upvotes = updated.upvotes?.length ?? 0;
 
 		if (upvotes >= cfg.reactionThreshold) {
-			await this.markAsNoted(thread, suggestion, cfg);
+			await this.markAsNoted(thread, updated, cfg);
 		}
 	}
 
@@ -158,6 +192,8 @@ export class SuggestionSystem {
 		if (!idMatch) return interaction.reply({ content: '❌ Could not find suggestion ID.', flags: 64 });
 
 		const suggestionId = idMatch[1];
+		// Validate ObjectId before the cast — findById(invalid) throws CastError.
+		if (!/^[a-f\d]{24}$/i.test(suggestionId)) return interaction.reply({ content: '❌ Invalid suggestion ID.', flags: 64 });
 		const suggestion = await Suggestion.findById(suggestionId);
 		if (!suggestion) return interaction.reply({ content: '❌ Suggestion not found.', flags: 64 });
 

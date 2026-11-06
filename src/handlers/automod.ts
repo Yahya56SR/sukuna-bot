@@ -109,8 +109,10 @@ async function executeActions(
       switch (action) {
         case 'delete': {
           if (canManageMessages) {
-            await message.delete().catch(() => {});
-            embed.addFields({ name: 'Action', value: '✅ Message deleted', inline: true });
+            // Check the real result — older code swallowed the error then
+            // reported ✅ regardless.
+            const ok = await message.delete().then(() => true).catch(() => false);
+            embed.addFields({ name: 'Action', value: ok ? '✅ Message deleted' : '❌ Delete failed (already deleted / missing access)', inline: true });
           } else {
             embed.addFields({ name: 'Action', value: '❌ Missing ManageMessages permission', inline: true });
           }
@@ -123,16 +125,16 @@ async function executeActions(
 
           // DM user
           const warnMsg = rule.warnMessage || `You were warned in **${guild.name}**: ${reason}`;
-          await user.send(warnMsg).catch(() => {});
+          await user.send(warnMsg.slice(0, 1900)).catch(() => {});
 
           break;
         }
 
         case 'timeout': {
           if (canModerate && canActOnMember && rule.timeoutDuration) {
-            await member.timeout(rule.timeoutDuration * 1000, reason).catch(() => {});
-            await createInfraction(guild.id, user.id, guild.client.user!.id, 'timeout', reason, rule.timeoutDuration);
-            embed.addFields({ name: 'Action', value: `✅ Timed out for ${rule.timeoutDuration}s`, inline: true });
+            const ok = await member.timeout(rule.timeoutDuration * 1000, reason).then(() => true).catch(() => false);
+            if (ok) await createInfraction(guild.id, user.id, guild.client.user!.id, 'timeout', reason, rule.timeoutDuration).catch((err) => console.warn('[AutoMod] Infraction write failed:', (err as Error)?.message ?? err));
+            embed.addFields({ name: 'Action', value: ok ? `✅ Timed out for ${rule.timeoutDuration}s` : '❌ Timeout failed (Discord error)', inline: true });
           } else {
             embed.addFields({ name: 'Action', value: '❌ Cannot timeout (permissions/hierarchy)', inline: true });
           }
@@ -141,9 +143,9 @@ async function executeActions(
 
         case 'ban': {
           if (canBan && canActOnMember) {
-            await guild.members.ban(user.id, { reason, deleteMessageSeconds: 0 }).catch(() => {});
-            await createInfraction(guild.id, user.id, guild.client.user!.id, 'ban', reason);
-            embed.addFields({ name: 'Action', value: '✅ User banned', inline: true });
+            const ok = await guild.members.ban(user.id, { reason, deleteMessageSeconds: 0 }).then(() => true).catch(() => false);
+            if (ok) await createInfraction(guild.id, user.id, guild.client.user!.id, 'ban', reason).catch((err) => console.warn('[AutoMod] Infraction write failed:', (err as Error)?.message ?? err));
+            embed.addFields({ name: 'Action', value: ok ? '✅ User banned' : '❌ Ban failed (Discord error)', inline: true });
           } else {
             embed.addFields({ name: 'Action', value: '❌ Cannot ban (permissions/hierarchy)', inline: true });
           }
@@ -156,8 +158,8 @@ async function executeActions(
         }
       }
     } catch (error) {
-      console.error('[AutoMod] Action failed:', error);
-      embed.addFields({ name: `Action (${action})`, value: `❌ Error: ${error}`, inline: true });
+      console.warn('[AutoMod] Action failed:', (error as Error)?.message ?? error);
+      embed.addFields({ name: `Action (${action})`, value: '❌ Error — see bot logs', inline: true });
     }
   }
 
@@ -173,15 +175,54 @@ async function executeActions(
   });
 }
 
+/**
+ * Bounded per-channel message ring (last 20 messages, 30s window) so the
+ * spam / repeated rules actually fire. The old code always passed an empty
+ * array, making both rule types permanently dead.
+ */
+interface RecentEntry { id: string; authorId: string; content: string; at: number }
+const HISTORY_WINDOW_MS = 30_000;
+const historyByChannel = new Map<string, RecentEntry[]>();
+
+function recordMessage(message: Message): RecentEntry[] {
+  const key = `${message.guildId}:${message.channelId}`;
+  const now = Date.now();
+  const entry: RecentEntry = { id: message.id, authorId: message.author.id, content: message.content ?? '', at: now };
+  const existing = historyByChannel.get(key) ?? [];
+  // Cheap prune of expired entries on every write (list is small).
+  const fresh = existing.filter((e) => now - e.at <= HISTORY_WINDOW_MS);
+  fresh.push(entry);
+  if (fresh.length > 20) fresh.splice(0, fresh.length - 20);
+  historyByChannel.set(key, fresh);
+  // Hard cap by channel count so a huge guild cannot leak maps.
+  if (historyByChannel.size > 1000) {
+    historyByChannel.delete(key);
+    historyByChannel.set(key, fresh);
+  }
+  return fresh;
+}
+
+function recentFor(message: Message): RecentEntry[] {
+  return historyByChannel.get(`${message.guildId}:${message.channelId}`) ?? [];
+}
+
+/** Simple entry shape the pure checkers consume. */
+type RecentLike = { id: string; authorId: string; content: string; at: number };
+function entriesToMessages(entries: RecentLike[]): Array<{ id: string; author: { id: string }; content: string; createdTimestamp: number }> {
+  return entries.map((e) => ({ id: e.id, author: { id: e.authorId }, content: e.content, createdTimestamp: e.at }));
+}
+
 /** Check spam rule */
-function checkSpam(rule: IAutoModRule, recentMessages: Message[]): boolean {
+function checkSpam(rule: IAutoModRule, recentMessages: Array<{ id: string; author: { id: string }; content: string; createdTimestamp: number }>): boolean {
   const config = rule.config;
   const maxMessages = config.maxMessages ?? 5;
   const windowSeconds = config.windowSeconds ?? 10;
 
   if (recentMessages.length >= maxMessages) {
-    const oldest = recentMessages[recentMessages.length - maxMessages];
-    const timeDiff = (Date.now() - oldest.createdTimestamp) / 1000;
+    const window = recentMessages.slice(-maxMessages);
+    const oldest = window[0];
+    const newest = window[window.length - 1];
+    const timeDiff = (newest.createdTimestamp - oldest.createdTimestamp) / 1000;
     return timeDiff <= windowSeconds;
   }
   return false;
@@ -225,8 +266,10 @@ function checkWords(rule: IAutoModRule, content: string): boolean {
   }
 
   for (const pattern of regexPatterns) {
+    // Guard untrusted patterns: length cap prevents pathological ReDoS.
+    if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > 200) continue;
     try {
-      const regex = new RegExp(pattern, 'gi');
+      const regex = new RegExp(pattern, 'i');
       if (regex.test(content)) return true;
     } catch {
       // Invalid regex, skip
@@ -296,7 +339,7 @@ function checkEmojis(rule: IAutoModRule, content: string): boolean {
 }
 
 /** Check repeated messages rule */
-function checkRepeated(rule: IAutoModRule, recentMessages: Message[], currentMessage: Message): boolean {
+function checkRepeated(rule: IAutoModRule, recentMessages: Array<{ id: string; author: { id: string }; content: string; createdTimestamp: number }>, currentMessage: { author: { id: string }; content: string }): boolean {
   const config = rule.config;
   const maxRepeated = config.maxRepeated ?? 3;
 
@@ -350,10 +393,10 @@ export async function checkAutomod(message: Message): Promise<void> {
 
   if (!rules.length) return;
 
-  // Get recent messages for spam/repeated checks (last 30 seconds)
-  const recentMessages: Message[] = [];
-  // In a real implementation, you'd maintain a cache per channel
-  // For now, we'll skip the cache-based checks
+  // Recent-message window (last 30s, bounded ring) for spam / repeated rules.
+  // Previously always empty, so both rule types could never trigger.
+  const historyEntries = recordMessage(message);
+  const recentMessages = entriesToMessages(historyEntries.filter((e) => e.id !== message.id));
 
   for (const rule of rules) {
     // Check ignore channels
@@ -367,7 +410,10 @@ export async function checkAutomod(message: Message): Promise<void> {
 
     switch (rule.type) {
       case 'spam': {
-        // Would need message cache
+        if (checkSpam(rule, [...recentMessages, { id: message.id, author: { id: message.author.id }, content: message.content, createdTimestamp: message.createdTimestamp }])) {
+          triggered = true;
+          reason = 'Message spam detected';
+        }
         break;
       }
       case 'links':
@@ -421,7 +467,10 @@ export async function checkAutomod(message: Message): Promise<void> {
         break;
       }
       case 'repeated': {
-        // Would need message cache
+        if (checkRepeated(rule, recentMessages, message)) {
+          triggered = true;
+          reason = 'Repeated messages detected';
+        }
         break;
       }
     }
@@ -431,6 +480,12 @@ export async function checkAutomod(message: Message): Promise<void> {
       break; // Only trigger first matching rule
     }
   }
+}
+
+/** Release the spam ring cache (wired into shutdown). */
+export function shutdownAutomod(): void {
+  historyByChannel.clear();
+  ruleCache.clear();
 }
 
 /** Initialize automod (call on ready) */

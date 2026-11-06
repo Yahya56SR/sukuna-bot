@@ -46,20 +46,39 @@ const DEFAULT_THRESHOLDS = {
 export class AntiNukeSystem {
 	private counters = new Map<string, Map<string, number[]>>();
 	private locked = new Set<string>();
+	private lockTimers = new Map<string, NodeJS.Timeout>();
+
+	/** Clear counters + timers (wired into shutdown). */
+	shutdown(): void {
+		for (const t of this.lockTimers.values()) clearTimeout(t);
+		this.lockTimers.clear();
+		this.counters.clear();
+		this.locked.clear();
+	}
 
 	async getConfig(guildId: string) {
-		let cfg = await AntinukeConfig.findOne({ guildId }).lean();
-		if (!cfg) {
-			cfg = await AntinukeConfig.create({ guildId, enabled: false });
+		const cfg = await AntinukeConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, enabled: false } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
+		// Validate thresholds/window — a stored 0/negative would lockdown on
+		// the first action or never fire at all.
+		const rawThresholds = (cfg.thresholds || {}) as Record<string, number>;
+		const thresholds: Record<string, number> = { ...DEFAULT_THRESHOLDS };
+		for (const [key, value] of Object.entries(rawThresholds)) {
+			if (!(key in thresholds)) continue;
+			const n = typeof value === 'number' ? value : Number(value);
+			if (Number.isFinite(n) && n >= 1 && n <= 10_000) thresholds[key] = Math.floor(n);
 		}
 		return {
 			enabled: cfg.enabled === true,
-			alertChannelId: cfg.alertChannelId ?? null,
-			thresholds: { ...DEFAULT_THRESHOLDS, ...(cfg.thresholds || {}) },
-			windowSec: cfg.windowSec ?? 60,
-			timeoutMinutes: cfg.timeoutMinutes ?? 1440,
+			alertChannelId: /^\d{5,25}$/.test(cfg.alertChannelId ?? '') ? cfg.alertChannelId! : null,
+			thresholds,
+			windowSec: Math.min(Math.max(typeof cfg.windowSec === 'number' ? cfg.windowSec : 60, 5), 600),
+			timeoutMinutes: Math.min(Math.max(typeof cfg.timeoutMinutes === 'number' ? cfg.timeoutMinutes : 1440, 0), 43200),
 			autoStrip: cfg.autoStrip ?? true,
-			exemptRoleIds: cfg.exemptRoleIds ?? [],
+			exemptRoleIds: Array.isArray(cfg.exemptRoleIds) ? cfg.exemptRoleIds.filter((id: unknown) => typeof id === 'string' && /^\d{5,25}$/.test(id)) : [],
 			backup: cfg.backup ?? { enabled: false, intervalMin: 60, keep: 24 },
 		};
 	}
@@ -109,7 +128,11 @@ export class AntiNukeSystem {
 		this.locked.add(lockKey);
 
 		await this.lockdown(guild, actorId, action, count, cfg, entry);
-		setTimeout(() => this.locked.delete(lockKey), Math.max(60_000, cfg.windowSec * 1000 * 4)).unref?.();
+		const existing = this.lockTimers.get(lockKey);
+		if (existing) clearTimeout(existing);
+		const timer = setTimeout(() => { this.locked.delete(lockKey); this.lockTimers.delete(lockKey); }, Math.max(60_000, cfg.windowSec * 1000 * 4));
+		timer.unref?.();
+		this.lockTimers.set(lockKey, timer);
 	}
 
 	private record(actorId: string, action: string, windowSec: number): number {
@@ -123,6 +146,8 @@ export class AntiNukeSystem {
 		const stamps = (byAction.get(action) || []).filter((t) => t > cutoff);
 		stamps.push(now);
 		byAction.set(action, stamps);
+		// Prune empty actors so the map cannot grow forever.
+		if (byAction.size === 0) this.counters.delete(actorId);
 		return stamps.length;
 	}
 
@@ -188,11 +213,11 @@ export class AntiNukeSystem {
 			action,
 			count,
 			windowSec: cfg.windowSec,
-			strippedRoles: stripped,
+			strippedRoles: stripped.slice(0, 50),
 			timeoutMinutes: timeoutMinutes,
 			status: 'locked',
-			details,
-		});
+			details: details.slice(0, 1000),
+		}).catch((err) => console.warn('[AntiNuke] Incident write failed:', (err as Error)?.message ?? err));
 	}
 
 	private async alert(

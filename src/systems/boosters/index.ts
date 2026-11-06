@@ -9,11 +9,11 @@ import { BoosterConfig } from '../../db/models/BoosterConfig.js';
  */
 export class BoosterSystem {
 	async getConfig(guildId: string) {
-		let cfg = await BoosterConfig.findOne({ guildId }).lean();
-		if (!cfg) {
-			cfg = await BoosterConfig.create({ guildId, enabled: false });
-		}
-		return cfg;
+		return BoosterConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, enabled: false } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 	}
 
 	async handleMemberUpdate(oldMember: GuildMember, newMember: GuildMember): Promise<void> {

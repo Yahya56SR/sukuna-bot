@@ -128,6 +128,9 @@ const openTicketSchema = new Schema<IOpenTicket>(
   { timestamps: true },
 );
 
+// One open ticket per user per guild (partial unique on open rows only).
+// This is the DMCA-grade guard against double-click / duplicate event fan-out.
+openTicketSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { closedAt: null } });
 openTicketSchema.index({ guildId: 1, userId: 1, closedAt: 1 });
 // Partial indexes: only open (non-closed) tickets are queried hot-path, so
 // index only those rows to keep writes cheap and lookups indexed (no COLLSCAN).

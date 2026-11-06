@@ -53,6 +53,8 @@ const presentationApplicationSchema = new Schema<IPresentationApplication>(
   { timestamps: true },
 );
 
+// Only one pending application per user per guild.
+presentationApplicationSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
 presentationApplicationSchema.index({ guildId: 1, userId: 1, status: 1 });
 
 export const PresentationApplication = model<IPresentationApplication>(

@@ -11,6 +11,8 @@ import {
 } from 'discord.js';
 import { VerificationConfig, VerificationRequest } from '../../db/models/Verification.js';
 import EmbedBuilderUtil from '../../utils/shared-embeds.js';
+import { clampInt, cleanIdList, getTextChannel, isDuplicateKeyError, safeDm, withMutex } from '../../core/safety.js';
+import { recordActivity } from '../../core/metrics.js';
 
 export interface VerificationSettings {
 	enabled: boolean;
@@ -45,10 +47,11 @@ function parseRoleIds(raw: string | null | undefined): string[] {
 
 export class VerificationSystem {
 	async getSettings(guildId: string): Promise<VerificationSettings> {
-		let row = await VerificationConfig.findOne({ guildId }).lean();
-		if (!row) {
-			row = await VerificationConfig.create({ guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 });
-		}
+		const row = await VerificationConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		const r = row as any;
 		return {
 			enabled: r.enabled === true,
@@ -66,7 +69,27 @@ export class VerificationSystem {
 	}
 
 	async setSettings(guildId: string, data: Partial<any>): Promise<void> {
-		await VerificationConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
+		if (!/^\d{5,25}$/.test(guildId)) throw new Error('Invalid guild id');
+		// Allowlist — the old `{$set: data}` permitted arbitrary field injection
+		// (e.g. overwriting `guildId` or future reserved fields).
+		const allowedIdFields = ['unverifiedRoleId', 'verifiedRoleId', 'rulesChannelId', 'logChannelId', 'voiceChannelId', 'staffRoleId', 'panelMessageId'] as const;
+		const updates: Record<string, unknown> = {};
+		for (const field of allowedIdFields) {
+			if ((data as Record<string, unknown>)[field] !== undefined) {
+				const value = (data as Record<string, unknown>)[field];
+				if (value !== null && !/^\d{5,25}$/.test(String(value))) throw new Error(`Invalid ${field}`);
+				updates[field] = value;
+			}
+		}
+		if (data.enabled !== undefined) updates.enabled = Boolean(data.enabled);
+		if (data.requireApproval !== undefined) updates.requireApproval = Boolean(data.requireApproval);
+		if (data.minAccountAgeDays !== undefined) updates.minAccountAgeDays = clampInt(data.minAccountAgeDays, 0, 0, 365);
+		if (data.autoRoleIds !== undefined) {
+			if (!Array.isArray(data.autoRoleIds)) throw new Error('autoRoleIds must be an array');
+			updates.autoRoleIds = cleanIdList(data.autoRoleIds, 25);
+		}
+		if (Object.keys(updates).length === 0) throw new Error('No settings supplied');
+		await VerificationConfig.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
 	}
 
 	async setPanelMessage(guildId: string, messageId: string | null): Promise<void> {
@@ -248,7 +271,24 @@ export class VerificationSystem {
 			return;
 		}
 
-		const request = await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: 'pending' });
+		// Double-click safe: serialise per user, then rely on the partial
+		// unique index as the final guard.
+		const request = await withMutex(`verify:${guild.id}:${member.id}`, async () => {
+			const recheck = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ['pending', 'claimed'] } });
+			if (recheck) return recheck;
+			try {
+				return await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: 'pending' });
+			} catch (err) {
+				if (isDuplicateKeyError(err)) {
+					return VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ['pending', 'claimed'] } });
+				}
+				throw err;
+			}
+		});
+		if (!request) {
+			await interaction.editReply({ content: '❌ Could not create your request. Try again.' });
+			return;
+		}
 
 		// Send to staff log channel
 		const channelId = settings.logChannelId || settings.rulesChannelId;
@@ -325,15 +365,22 @@ export class VerificationSystem {
 		await interaction.deferReply({ flags: 64 });
 		const member = await guild.members.fetch(request.userId).catch(() => null);
 
-		if (member) {
-			await this.approveMember(member, settings);
-			try { await guild.client.users.fetch(request.userId).then((u) => u.send('🎉 Welcome! Your verification was approved.').catch(() => {})); } catch {}
-		}
-
+		// DB first, roles second. The old order granted roles before the save —
+		// a save failure left the member verified but the request still pending
+		// (double-approve). Persist the decision, then apply roles; a role
+		// failure is logged but does not roll the decision back.
 		request.status = 'approved';
 		request.reviewedBy = interaction.user.id;
 		request.reviewedAt = new Date();
 		await request.save();
+		recordActivity('command', 'Verification approved', { level: 'success', meta: { guildId: guild.id, userId: request.userId, reviewedBy: interaction.user.id } });
+
+		if (member) {
+			await this.approveMember(member, settings).catch((err) => {
+				console.warn('[Verification] approveMember role grant failed:', (err as Error)?.message ?? err);
+			});
+			await safeDm(guild, request.userId, '🎉 Welcome! Your verification was approved.');
+		}
 
 		await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.('Approved', member ? `<@${request.userId}> has been verified.` : 'Approved.') ?? new EmbedBuilder().setColor(0x57F287).setTitle('Approved').setDescription(member ? `<@${request.userId}> has been verified.` : 'Approved.')] });
 		if (interaction.message) {
@@ -455,8 +502,10 @@ export class VerificationSystem {
 		);
 	}
 
-	async log(guild: Guild, _settings: VerificationSettings, embed: EmbedBuilder): Promise<void> {
-		// Best-effort log to log channel if configured elsewhere; no-op here.
+	async log(guild: Guild, settings: VerificationSettings, embed: EmbedBuilder): Promise<void> {
+		const channel = await getTextChannel(guild, settings.logChannelId ?? settings.rulesChannelId ?? undefined);
+		if (!channel) return;
+		await channel.send({ embeds: [embed] }).catch(() => {});
 	}
 
 	async dm(guild: Guild, userId: string, content: string): Promise<void> {
@@ -480,9 +529,11 @@ export const interactionCreateVerification = {
 		if (interaction.isButton() && interaction.customId === 'verification_agree') {
 			try { await verification.handleVerifyButton(interaction).catch(() => {}); } catch {}
 		}
+		// NOTE: vcverify_claim_* is owned by vcVerification (systems/verification/vc.ts)
+		// via systemsInteractionEvent. Do NOT route it to handleApprove here — that
+		// previously double-fired and approved without a claim.
 		if (interaction.isButton() && interaction.customId.startsWith('vcverify_claim_')) {
-			const requestId = interaction.customId.replace('vcverify_claim_', '');
-			try { await verification.handleApprove(interaction, requestId).catch(() => {}); } catch {}
+			return;
 		}
 		if (interaction.isButton() && interaction.customId.startsWith('vcverify_approve_')) {
 			const requestId = interaction.customId.replace('vcverify_approve_', '');

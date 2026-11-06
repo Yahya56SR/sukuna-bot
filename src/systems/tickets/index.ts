@@ -12,7 +12,8 @@ import {
 	AttachmentBuilder,
 } from 'discord.js';
 import { OpenTicket, TicketConfig } from '../../db/models/Ticket.js';
-import EmbedBuilderUtil from '../../utils/shared-embeds.js';
+import { isDuplicateKeyError, withMutex } from '../../core/safety.js';
+import { recordActivity } from '../../core/metrics.js';
 
 interface TicketType {
 	id: string;
@@ -45,10 +46,11 @@ export class TicketSystem {
 	];
 
 	async getConfig(guildId: string): Promise<TicketConfigI> {
-		let cfg = await TicketConfig.findOne({ guildId }).lean();
-		if (!cfg) {
-			cfg = await TicketConfig.create({ guildId });
-		}
+		const cfg = await TicketConfig.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, maxTicketsPerUser: 3, cooldownSeconds: 60, autoCloseMinutes: 0, dmTranscript: true, staffRoleIds: [] } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		return {
 			categoryId: undefined,
 			staffRoleId: (cfg as any).staffRoleIds?.[0] ?? undefined,
@@ -74,15 +76,18 @@ export class TicketSystem {
 	}
 
 	async createTicket(interaction: any, type: string): Promise<void> {
+		// Legacy panel path. The modern department flow (interactionCreate)
+		// is canonical; this path only exists for the old `ticket_create_*`
+		// buttons and has no category field in TicketConfig — fail closed with
+		// an actionable message instead of a misleading "not configured".
 		const guild = interaction.guild as Guild;
 		const user = interaction.user as User;
-		const member = interaction.member as GuildMember;
 
 		const cfg: TicketConfigI = await this.getConfig(guild.id);
 		const categoryId = cfg.categoryId;
 
 		if (!categoryId) {
-			return interaction.reply({ content: '❌ Ticket system not configured. Contact admin.', flags: 64 });
+			return interaction.reply({ content: '❌ This legacy ticket panel is retired — please use the department buttons (🎫) to open a ticket. If none exist, ask an admin to run /ticket setup.', flags: 64 });
 		}
 
 		const existingOpen = await OpenTicket.find({ guildId: guild.id, userId: user.id, closedAt: null });
@@ -117,13 +122,23 @@ export class TicketSystem {
 			topic: `Ticket #${ticketId} | Type: ${type} | Owner: ${user.id}`,
 		});
 
-		await OpenTicket.create({
-			guildId: guild.id,
-			channelId: ticketChannel.id,
-			userId: user.id,
-			departmentId: type,
-			departmentName: this.getTypeLabel(type),
-		});
+		try {
+			await OpenTicket.create({
+				guildId: guild.id,
+				channelId: ticketChannel.id,
+				userId: user.id,
+				departmentId: type,
+				departmentName: this.getTypeLabel(type),
+			});
+		} catch (err) {
+			// Never orphan a channel without a ticket row (locks the user out).
+			await ticketChannel.delete('Ticket setup failed').catch(() => {});
+			if (isDuplicateKeyError(err)) {
+				const existing = await OpenTicket.findOne({ guildId: guild.id, userId: user.id, closedAt: null }).lean();
+				return interaction.reply({ content: `❌ You already have an open ticket: <#${existing?.channelId ?? '?'}>`, flags: 64 });
+			}
+			throw err;
+		}
 
 		const ticketEmbed = new EmbedBuilder()
 			.setColor('#5865F2')
@@ -197,16 +212,25 @@ export class TicketSystem {
 
 		const cfg: TicketConfigI = await this.getConfig(interaction.guild.id);
 		const staffRoleId = cfg.staffRoleId;
-		const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
+		const member = interaction.member as GuildMember;
+		const isStaff = Boolean(
+			(staffRoleId && member.roles?.cache.has(staffRoleId))
+			|| member.permissions?.has(PermissionFlagsBits.ManageGuild)
+			|| member.permissions?.has(PermissionFlagsBits.Administrator),
+		);
 
 		switch (customId) {
 		case 'ticket_claim': {
 			if (!isStaff) return interaction.reply({ content: '❌ Only staff can claim tickets.', flags: 64 });
-			if (ticket.claimedBy) return interaction.reply({ content: `❌ Already claimed by <@${ticket.claimedBy}>.`, flags: 64 });
-			ticket.claimedBy = user.id;
-			ticket.claimedAt = new Date();
-			await ticket.save();
+			// Atomic claim: only one staff member wins the race.
+			const claimed = await OpenTicket.findOneAndUpdate(
+				{ _id: ticket._id, closedAt: null, $or: [{ claimedBy: null }, { claimedBy: { $exists: false } }] },
+				{ $set: { claimedBy: user.id, claimedAt: new Date() } },
+				{ new: true },
+			);
+			if (!claimed) return interaction.reply({ content: `❌ Already claimed by <@${ticket.claimedBy ?? 'another staff member'}>.`, flags: 64 });
 			await channel.send({ content: `👮 **${user}** claimed this ticket!` });
+			recordActivity('command', 'Ticket claimed', { level: 'info', meta: { guildId: interaction.guild.id, ticketId: ticket._id.toString(), claimedBy: user.id } });
 			await interaction.reply({ content: '✅ Ticket claimed!', flags: 64 });
 			break;
 		}
@@ -311,38 +335,49 @@ export class TicketSystem {
 		const cfg: TicketConfigI = await this.getConfig(channel.guild.id);
 		const logChannelId = cfg.logChannelId || '';
 
-		const messages = await channel.messages.fetch({ limit: 100 });
-		const transcript = messages
-			.reverse()
-			.map((m) => `[${m.createdAt.toLocaleString()}] ${m.author.tag}: ${m.content}${m.attachments.size > 0 ? ` [${m.attachments.size} attachment(s)]` : ''}`)
-			.join('\n');
+		// Mark closed FIRST so a transcript send failure can never leave the
+		// ticket open. Idempotent: a second close is a no-op.
+		const ticket = await OpenTicket.findOneAndUpdate(
+			{ _id: ticketId, closedAt: null },
+			{ $set: { closedAt: new Date(), closedBy: closer.id, closeReason: reason } },
+			{ new: true },
+		);
+		if (!ticket) {
+			await channel.delete(`Ticket closed by ${closer.tag}: ${reason}`).catch(() => {});
+			return;
+		}
+		recordActivity('command', 'Ticket closed', { level: 'info', meta: { guildId: channel.guild.id, ticketId, closedBy: closer.id } });
 
 		if (logChannelId) {
-			const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
-			if (transcriptChannel && transcriptChannel.isTextBased()) {
-				const embed = new EmbedBuilder()
-					.setTitle(`📝 Ticket Transcript - #${ticketId}`)
-					.setColor('#ED4245')
-					.addFields(
-						{ name: 'Closed by', value: closer.tag, inline: true },
-						{ name: 'Reason', value: reason, inline: true },
-						{ name: 'Messages', value: messages.size.toString(), inline: true },
-					)
-					.setTimestamp();
-				const attachment = new AttachmentBuilder(Buffer.from(transcript), { name: `ticket-${ticketId}.txt` });
-				await transcriptChannel.send({ embeds: [embed], files: [attachment] });
+			try {
+				const messages = await channel.messages.fetch({ limit: 100 }).catch(() => null);
+				if (messages) {
+					const transcript = messages
+						.reverse()
+						.map((m: any) => `[${m.createdAt.toLocaleString()}] ${m.author?.tag ?? m.author?.id ?? 'unknown'}: ${(m.content ?? '').slice(0, 1000)}${m.attachments?.size > 0 ? ` [${m.attachments.size} attachment(s)]` : ''}`)
+						.join('\n');
+					const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
+					if (transcriptChannel && transcriptChannel.isTextBased()) {
+						const embed = new EmbedBuilder()
+							.setTitle(`📝 Ticket Transcript - #${ticketId}`)
+							.setColor('#ED4245')
+							.addFields(
+								{ name: 'Closed by', value: closer.tag ?? closer.id, inline: true },
+								{ name: 'Reason', value: reason.slice(0, 200) || '—', inline: true },
+								{ name: 'Messages', value: messages.size.toString(), inline: true },
+							)
+							.setTimestamp();
+						const attachment = new AttachmentBuilder(Buffer.from(transcript.slice(0, 500_000)), { name: `ticket-${ticketId}.txt` });
+						await transcriptChannel.send({ embeds: [embed], files: [attachment] });
+					}
+				}
+			} catch (err) {
+				// Transcript is best-effort — the ticket is already closed.
+				console.warn('[Tickets] Transcript failed:', (err as Error)?.message ?? err);
 			}
 		}
 
-		const ticket = await OpenTicket.findById(ticketId);
-		if (ticket) {
-			ticket.closedAt = new Date();
-			ticket.closedBy = closer.id;
-			ticket.closeReason = reason;
-			await ticket.save();
-		}
-
-		await channel.delete(`Ticket closed by ${closer.tag}: ${reason}`);
+		await channel.delete(`Ticket closed by ${closer.tag ?? closer.id}: ${reason}`.slice(0, 300)).catch(() => {});
 	}
 }
 
@@ -354,13 +389,13 @@ export const interactionCreateTickets = {
 		if (!interaction.isButton() && !interaction.isModalSubmit()) return;
 		if (interaction.isButton() && interaction.customId.startsWith('ticket_create_')) {
 			const type = interaction.customId.replace('ticket_create_', '');
-			try { await tickets.createTicket(interaction, type).catch(() => {}); } catch {}
+			await tickets.createTicket(interaction, type).catch((err) => console.warn('[Tickets] create failed:', (err as Error)?.message ?? err));
 		}
 		if (interaction.isButton() && interaction.customId.startsWith('ticket_')) {
-			try { await tickets.handleButton(interaction).catch(() => {}); } catch {}
+			await tickets.handleButton(interaction).catch((err) => console.warn('[Tickets] handleButton failed:', (err as Error)?.message ?? err));
 		}
 		if (interaction.isModalSubmit() && interaction.customId.startsWith('ticket_')) {
-			try { await tickets.handleModal(interaction).catch(() => {}); } catch {}
+			await tickets.handleModal(interaction).catch((err) => console.warn('[Tickets] handleModal failed:', (err as Error)?.message ?? err));
 		}
 	},
 };

@@ -76,6 +76,9 @@ const verificationRequestSchema = new Schema<IVerificationRequest>(
   { timestamps: true },
 );
 
+// Only one pending/claimed request per user — partial unique makes the
+// double-click safe at the DB level (app code also serialises per user).
+verificationRequestSchema.index({ guildId: 1, userId: 1 }, { unique: true, partialFilterExpression: { status: { $in: ['pending', 'claimed'] } } });
 verificationRequestSchema.index({ guildId: 1, userId: 1, status: 1 });
 verificationRequestSchema.index({ guildId: 1, claimedBy: 1, status: 1 });
 

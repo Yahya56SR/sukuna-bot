@@ -1,6 +1,8 @@
-import type { GuildMember, Message, TextChannel } from 'discord.js';
+import type { GuildMember, Message } from 'discord.js';
 import { User } from '../../db/models/User.js';
 import { Guild } from '../../db/models/Guild.js';
+import { addXp } from '../../db/utils.js';
+import { clampInt, pruneMap } from '../../core/safety.js';
 
 export interface LevelSettings {
 	enabled: boolean;
@@ -65,10 +67,12 @@ function randomInt(min: number, max: number): number {
 
 export class LevelingSystem {
 	async getSettings(guildId: string): Promise<LevelSettings> {
-		let row = await Guild.findOne({ guildId }).lean();
-		if (!row) {
-			row = await Guild.create({ guildId, xpEnabled: true, xpCooldown: 60, xpMin: 15, xpMax: 25 });
-		}
+		// Atomic upsert: concurrent first-use rows cannot throw duplicate-key.
+		const row = await Guild.findOneAndUpdate(
+			{ guildId },
+			{ $setOnInsert: { guildId, xpEnabled: true, xpCooldown: 60, xpMin: 15, xpMax: 25 } },
+			{ upsert: true, new: true, setDefaultsOnInsert: true },
+		).lean();
 		const r = row as any;
 
 		return {
@@ -153,23 +157,11 @@ export class LevelingSystem {
 	}
 
 	private async grantXp(member: GuildMember, gain: number, settings: LevelSettings): Promise<boolean> {
-		let user = await User.findOne({ userId: member.id });
-		if (!user) {
-			user = await User.create({ userId: member.id, xp: 0, level: 0, totalXp: 0 });
-		}
-
-		const totalXp = (user.xp ?? 0) + gain;
-		const previousLevel = user.level ?? 0;
-		const progress = levelFromTotalXp(totalXp);
-
-		user.xp = totalXp;
-		user.level = progress.level;
-		user.totalXp = totalXp;
-		user.lastMessageAt = new Date();
-		await user.save();
-
-		if (progress.level > previousLevel) {
-			await this.onLevelUpForMember(member, progress.level, settings);
+		// Atomic $inc via addXp — the old read-modify-save lost awards under
+		// concurrent message+voice XP (last writer won).
+		const result = await addXp(member.id, gain, 'voice');
+		if (result.leveledUp) {
+			await this.onLevelUpForMember(member, result.newLevel, settings);
 		}
 		return true;
 	}
@@ -180,13 +172,26 @@ export class LevelingSystem {
 	}
 
 	async setSettings(guildId: string, data: any): Promise<void> {
+		if (!/^\d{5,25}$/.test(guildId)) throw new Error('Invalid guild id');
 		const updates: any = {};
-		if (data.enabled !== undefined) updates.xpEnabled = data.enabled;
-		if (data.cooldown_seconds !== undefined) updates.xpCooldown = data.cooldown_seconds;
-		if (data.xp_min !== undefined) updates.xpMin = data.xp_min;
-		if (data.xp_max !== undefined) updates.xpMax = data.xp_max;
-		if (data.announce_channel_id !== undefined) updates.levelUpChannel = data.announce_channel_id;
-		if (data.announce_message !== undefined) updates.levelUpMessage = data.announce_message;
+		if (data.enabled !== undefined) updates.xpEnabled = Boolean(data.enabled);
+		if (data.cooldown_seconds !== undefined) {
+			updates.xpCooldown = clampInt(data.cooldown_seconds, 60, 0, 86400);
+		}
+		if (data.xp_min !== undefined) updates.xpMin = clampInt(data.xp_min, 15, 0, 10000);
+		if (data.xp_max !== undefined) updates.xpMax = clampInt(data.xp_max, 25, 0, 10000);
+		if (updates.xpMin !== undefined && updates.xpMax !== undefined && updates.xpMin > updates.xpMax) {
+			throw new Error('Minimum XP cannot exceed maximum XP');
+		}
+		if (data.announce_channel_id !== undefined) {
+			if (data.announce_channel_id !== null && !/^\d{5,25}$/.test(String(data.announce_channel_id))) throw new Error('Invalid announce channel id');
+			updates.levelUpChannel = data.announce_channel_id;
+		}
+		if (data.announce_message !== undefined) {
+			const msg = String(data.announce_message).slice(0, 2000);
+			updates.levelUpMessage = msg;
+		}
+		if (Object.keys(updates).length === 0) throw new Error('No settings supplied');
 		await Guild.findOneAndUpdate({ guildId }, { $set: updates }, { upsert: true, new: true, setDefaultsOnInsert: true });
 	}
 
@@ -199,12 +204,8 @@ export class LevelingSystem {
 			if (settings.ignored_channels.includes(message.channel.id)) return false;
 
 			const now = Date.now();
-			let user = await User.findOne({ userId: message.author.id });
-			if (!user) {
-				user = await User.create({ userId: message.author.id, xp: 0, level: 0, totalXp: 0 });
-			}
-
-			if (user.lastMessageAt) {
+			const user = await User.findOne({ userId: message.author.id }).lean();
+			if (user?.lastMessageAt) {
 				const last = user.lastMessageAt.getTime();
 				if (now - last < settings.cooldown_seconds * 1000) {
 					return false;
@@ -215,22 +216,14 @@ export class LevelingSystem {
 			const max = Math.max(settings.xp_min, settings.xp_max);
 			const gain = Math.max(1, Math.round(randomInt(min, max) * settings.xp_multiplier));
 
-			const totalXp = (user.xp ?? 0) + gain;
-			const previousLevel = user.level ?? 0;
-			const progress = levelFromTotalXp(totalXp);
-
-			user.xp = totalXp;
-			user.level = progress.level;
-			user.totalXp = totalXp;
-			user.lastMessageAt = new Date(now);
-			await user.save();
-
-			if (progress.level > previousLevel) {
+			// Atomic award — never read-modify-save here (see grantXp note).
+			const result = await addXp(message.author.id, gain, 'message');
+			if (result.leveledUp) {
 				let member = message.member;
 				if (!member) {
 					member = await message.guild.members.fetch(message.author.id).catch(() => null as any);
 				}
-				if (member) await this.onLevelUp(message, member, progress.level, settings);
+				if (member) await this.onLevelUp(message, member, result.newLevel, settings);
 			}
 
 			return true;
@@ -305,7 +298,7 @@ export class LevelingSystem {
 			if (toAdd.length) await member.roles.add(toAdd, 'Level reward');
 			if (toRemove.length) await member.roles.remove(toRemove, 'Level reward no longer earned');
 		} catch (error) {
-			console.error('[Levels] Failed to apply role rewards:', error);
+			console.warn('[Levels] Failed to apply role rewards:', (error as Error)?.message ?? error);
 		}
 	}
 
@@ -329,7 +322,7 @@ export class LevelingSystem {
 			.replace(/\{channel\}/g, member.voice.channelId ? `<#${member.voice.channelId}>` : 'voice');
 
 		try { await channel.send({ content, allowedMentions: { users: [member.id] } }); } catch (error) {
-			console.error('[Levels] Failed to send level-up message:', error);
+			console.warn('[Levels] Failed to send level-up message:', (error as Error)?.message ?? error);
 		}
 	}
 
@@ -357,7 +350,7 @@ export class LevelingSystem {
 			.replace(/\{channel\}/g, `<#${message.channel.id}>`);
 
 		try { await channel.send({ content, allowedMentions: { users: [message.author.id] } }); } catch (error) {
-			console.error('[Levels] Failed to send level-up message:', error);
+			console.warn('[Levels] Failed to send level-up message:', (error as Error)?.message ?? error);
 		}
 	}
 }

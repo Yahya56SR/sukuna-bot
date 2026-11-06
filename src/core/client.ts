@@ -20,7 +20,6 @@ export class SukunaClient extends Client {
   logger!: Logger;
   db: Database | null = null;
   settingsCache = new Map<string, CachedSettings>();
-  private readonly premiumCache = new Map<string, { active: boolean; checkedAt: number }>();
   xpCooldowns = new Map<string, number>();
 
   constructor() {
@@ -44,10 +43,22 @@ export class SukunaClient extends Client {
 
   async getConfig(guildId: string): Promise<any> {
     const cached = this.settingsCache.get(guildId);
-    if (cached) return cached.config;
+    // Single-guild pro rule: configs cannot go stale forever. 60s TTL keeps
+    // dashboard edits live within a minute without a DB read per message.
+    if (cached && Date.now() - cached.updatedAt < 60_000) return cached.config;
+    if (cached) this.settingsCache.delete(guildId);
 
     const config = await this.loadConfig(guildId);
     return config;
+  }
+
+  evictGuildCache(guildId: string): void {
+    this.settingsCache.delete(guildId);
+    // Drop this guild's XP cooldowns too (bounded sweep below).
+    const prefix = `xp_${guildId}_`;
+    for (const key of this.xpCooldowns.keys()) {
+      if (key.startsWith(prefix)) this.xpCooldowns.delete(key);
+    }
   }
 
   private async loadConfig(guildId: string): Promise<any> {

@@ -987,20 +987,19 @@ async function updateTicketConfig(
     }
   }
 
-  let config = await TicketConfig.findOne({ guildId: guild.id });
-  if (!config) {
-    config = await TicketConfig.create(defaultTicketConfig(guild.id));
-  }
-
-  if (data.maxTicketsPerUser !== undefined) config.maxTicketsPerUser = data.maxTicketsPerUser;
-  if (data.cooldownSeconds !== undefined) config.cooldownSeconds = data.cooldownSeconds;
-  if (data.dmTranscript !== undefined) config.dmTranscript = data.dmTranscript;
-  if (data.transcriptChannelId !== undefined)
-    config.transcriptChannelId = data.transcriptChannelId ?? undefined;
-  if (data.autoCloseMinutes !== undefined) config.autoCloseMinutes = data.autoCloseMinutes;
-  if (data.staffRoleIds !== undefined) config.staffRoleIds = data.staffRoleIds;
-
-  await config.save();
+  // Atomic upsert + patch (findOne-then-create raced duplicate-key on first save).
+  const updates: Record<string, unknown> = {};
+  if (data.maxTicketsPerUser !== undefined) updates.maxTicketsPerUser = data.maxTicketsPerUser;
+  if (data.cooldownSeconds !== undefined) updates.cooldownSeconds = data.cooldownSeconds;
+  if (data.dmTranscript !== undefined) updates.dmTranscript = data.dmTranscript;
+  if (data.transcriptChannelId !== undefined) updates.transcriptChannelId = data.transcriptChannelId ?? undefined;
+  if (data.autoCloseMinutes !== undefined) updates.autoCloseMinutes = data.autoCloseMinutes;
+  if (data.staffRoleIds !== undefined) updates.staffRoleIds = data.staffRoleIds;
+  const config = await TicketConfig.findOneAndUpdate(
+    { guildId: guild.id },
+    { $set: updates, $setOnInsert: defaultTicketConfig(guild.id) },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
 
   sendJson(res, 200, {
     config: {
