@@ -1,6 +1,6 @@
-# 爱 Doctora Bot — Agent Notes
+# 愛 Bella Star Bot — Agent Notes
 
-> The bot identity is **爱 Doctora**. `sukuna`/`Sukuna*`/`SUKUNA_*` is the legacy internal namespace — do **not** rename it; it breaks env vars, Mongo config keys and model names.
+> The bot identity is **愛 Bella Star**. `sukuna`/`Sukuna*`/`SUKUNA_*` is the legacy internal namespace — do **not** rename it; it breaks env vars, Mongo config keys and model names.
 
 ## Commands
 

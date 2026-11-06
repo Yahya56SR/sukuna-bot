@@ -65,14 +65,31 @@ export const bankCommand: Command = {
       }
 
       // Conditional: only charge while the limit has not already been raised.
-      const upgraded = await User.findOneAndUpdate(
-        { userId, bankLimit: { $lt: MAX_LIMIT }, balance: { $gte: LIMIT_UPGRADE_COST } },
-        {
-          $inc: { balance: -LIMIT_UPGRADE_COST, bankLimit: LIMIT_STEP },
-          $min: { bankLimit: MAX_LIMIT },
-        },
-        { new: true },
-      );
+      // NOTE: `$inc` + `$min` on the same path is a conflicting-operators
+      // error in MongoDB, so clamp with an aggregation pipeline instead.
+      let upgraded: any = null;
+      try {
+        upgraded = await User.findOneAndUpdate(
+          { userId, bankLimit: { $lt: MAX_LIMIT }, balance: { $gte: LIMIT_UPGRADE_COST } },
+          [
+            {
+              $set: {
+                balance: { $subtract: ['$balance', LIMIT_UPGRADE_COST] },
+                bankLimit: {
+                  $min: [{ $add: [{ $ifNull: ['$bankLimit', 0] }, LIMIT_STEP] }, MAX_LIMIT],
+                },
+              },
+            },
+          ],
+          { new: true },
+        );
+      } catch (err) {
+        await interaction.reply({
+          content: '❌ Upgrade failed due to a database error. Please try again.',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
 
       if (!upgraded) {
         await interaction.reply({
@@ -113,10 +130,18 @@ export const bankCommand: Command = {
 
       if (updated.bank > updated.bankLimit) {
         // Over the ceiling — push the excess straight back to the wallet.
-        const overflow = updated.bank - updated.bankLimit;
-        await User.updateOne({ userId }, { $inc: { bank: -overflow, balance: overflow } });
+        // Conditional on bank still holding at least the overflow so a
+        // concurrent withdraw cannot drive the bank negative.
+        const overflow = Math.max(0, Math.min(updated.bank - updated.bankLimit, updated.bank));
+        if (overflow > 0) {
+          await User.updateOne(
+            { userId, bank: { $gte: overflow } },
+            { $inc: { bank: -overflow, balance: overflow } },
+          );
+        }
+        const deposited = Math.max(0, requested - overflow);
         await interaction.reply({
-          content: `🏦 Deposited **${formatCoins(requested - overflow)}** (your bank holds **${formatCoins(updated.bankLimit)}** at most).`,
+          content: `🏦 Deposited **${formatCoins(deposited)}** (your bank holds **${formatCoins(updated.bankLimit)}** at most).`,
         });
         return;
       }
@@ -156,5 +181,5 @@ function statusEmbed(tag: string, user: { balance: number; bank: number; bankLim
         inline: false,
       },
     )
-    .setFooter({ text: '爱 Doctora • Bank' });
+    .setFooter({ text: '愛 Bella Star • Bank' });
 }

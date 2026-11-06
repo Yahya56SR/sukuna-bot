@@ -7,18 +7,18 @@ export { env };
 export type Env = EnvType;
 
 /* ------------------------------------------------------------------ */
-/* 爱 Doctora AI Persona Configuration */
+/* 愛 Bella Star AI Persona Configuration */
 /* ------------------------------------------------------------------ */
 
 /** Name used whenever the persona has no explicit display name. */
-export const DEFAULT_DISPLAY_NAME = '爱 Doctora';
+export const DEFAULT_DISPLAY_NAME = '愛 Bella Star';
 
 /**
  * Names this persona shipped with before. A stored config still holding one of
  * them counts as "not customised", so renaming the bot also renames existing
  * deployments instead of leaving the old UI value in MongoDB forever.
  */
-const LEGACY_DISPLAY_NAMES = new Set(['Sukuna']);
+const LEGACY_DISPLAY_NAMES = new Set(['Sukuna', '爱 Doctora', '愛 Doctora']);
 
 export interface SukunaConfig {
   enabled: boolean;

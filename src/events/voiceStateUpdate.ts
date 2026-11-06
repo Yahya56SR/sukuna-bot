@@ -32,8 +32,16 @@ let tickInterval: ReturnType<typeof setInterval> | null = null;
 /** In-flight guard: only one voice tick runs at a time. */
 let ticking = false;
 
+/** A voice session only earns XP while the member is actually audible. */
+function isVoiceActive(state: VoiceState | null | undefined): boolean {
+  if (!state) return false;
+  return !(state.selfMute || state.serverMute || state.selfDeaf || state.serverDeaf || state.suppress);
+}
+
 /**
  * Award random XP for a number of minutes spent in voice.
+ * Returns true when XP was actually written (callers advance the session
+ * timestamp only on success so a DB failure does not lose minutes).
  */
 async function awardVoiceXp(
   client: Client,
@@ -42,27 +50,38 @@ async function awardVoiceXp(
   guild?: Guild,
   user?: User,
   settings?: LevelSettings,
-): Promise<void> {
-  if (minutes <= 0 || !guild || !user) return;
+  voiceState?: VoiceState | null,
+  channelId?: string | null,
+): Promise<boolean> {
+  if (minutes <= 0 || !guild || !user) return false;
+  // Muted / deafened / suppressed members do not earn voice XP.
+  if (voiceState && !isVoiceActive(voiceState)) return false;
 
   let cfg = settings;
   if (!cfg) {
     const row = await loadGuildConfig(client, guild.id);
     cfg = readLevelSettings(row ?? {});
   }
-  if (!cfg.enabled) return;
-  if (cfg.ignoreBots && user.bot) return;
+  if (!cfg.enabled) return false;
+  if (cfg.ignoreBots && user.bot) return false;
+  // Channel gates mirror messageCreate (previously voice bypassed them).
+  if (channelId) {
+    if (cfg.noXpChannels.includes(channelId)) return false;
+    if (cfg.xpChannel && channelId !== cfg.xpChannel) return false;
+  }
 
   const amount = randomXp(cfg.perVoiceMinuteMin, cfg.perVoiceMinuteMax) * minutes;
-  if (amount <= 0) return;
+  if (amount <= 0) return false;
 
   try {
     const result = await addXp(userId, amount, 'voice', minutes);
     if (result.leveledUp) {
       await handleLevelUp(guild, user, result.newLevel, result.oldLevel, undefined, cfg);
     }
+    return true;
   } catch (err) {
     console.error(`Failed to award voice XP to ${userId}:`, err);
+    return false;
   }
 }
 
@@ -88,7 +107,10 @@ function setUserSession(guildId: string, userId: string, ts: number): void {
 }
 
 function deleteUserSession(guildId: string, userId: string): void {
-  voiceSessions.get(guildId)?.delete(userId);
+  const byUser = voiceSessions.get(guildId);
+  if (!byUser) return;
+  byUser.delete(userId);
+  if (byUser.size === 0) voiceSessions.delete(guildId);
 }
 
 /**
@@ -106,12 +128,20 @@ export async function handleVoiceStateUpdate(
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
 
-  // Temp VC: create a channel when a member joins the "create" channel.
-  await handleTempVCJoin(client, newState);
+  // Temp VC must not abort XP tracking: guard each handler separately.
+  try {
+    await handleTempVCJoin(client, newState);
+  } catch (err) {
+    console.error('[TempVC] join failed:', err);
+  }
 
   // Temp VC: delete the channel when it becomes empty.
   if (oldState.channelId && changedChannel) {
-    await handleTempVCLeave(oldState);
+    try {
+      await handleTempVCLeave(oldState);
+    } catch (err) {
+      console.error('[TempVC] leave failed:', err);
+    }
   }
 
   // The bot itself was moved to another voice channel (or disconnected): the
@@ -127,16 +157,27 @@ export async function handleVoiceStateUpdate(
   if (oldState.channelId && changedChannel) {
     const guildId = oldState.guild?.id ?? newState.guild?.id;
     const joinTs = guildId ? getUserSession(guildId, userId) : undefined;
-    if (joinTs) {
+    if (joinTs && guildId) {
       const minutes = Math.floor((now - joinTs) / 60000);
-      deleteUserSession(guildId!, userId);
-      await awardVoiceXp(
-        client,
-        userId,
-        minutes,
-        newState.guild ?? oldState.guild,
-        newState.member?.user ?? oldState.member?.user,
-      );
+      // Delete *before* the awaited award so a concurrent tick cannot
+      // double-count the same minutes. The award is best-effort here — the
+      // tick already grants per-minute XP, so losing <1 minute on leave is
+      // intentional.
+      if (!isVoiceActive(oldState)) {
+        deleteUserSession(guildId, userId);
+      } else {
+        deleteUserSession(guildId, userId);
+        await awardVoiceXp(
+          client,
+          userId,
+          minutes,
+          newState.guild ?? oldState.guild,
+          newState.member?.user ?? oldState.member?.user,
+          undefined,
+          oldState,
+          oldState.channelId,
+        );
+      }
     }
   }
 
@@ -144,7 +185,11 @@ export async function handleVoiceStateUpdate(
   // Without this a channel move would end the session and stop all further
   // voice XP until the member left and rejoined.
   if (changedChannel && newState.channelId && newState.member?.user && newState.guild) {
-    setUserSession(newState.guild.id, userId, now);
+    // Only track audible joins; muted joins start earning when unmuted (the
+    // next state update re-seeds via the tick's freshness check).
+    if (isVoiceActive(newState)) {
+      setUserSession(newState.guild.id, userId, now);
+    }
   }
 }
 
@@ -273,26 +318,48 @@ export async function handleVoiceTick(client: Client): Promise<void> {
       if (!byUser) continue;
 
       const guild = client.guilds.cache.get(guildId);
-      if (!guild) continue;
+      if (!guild) {
+        // Guild no longer cached (left/deleted): drop its sessions instead
+        // of leaking them forever.
+        voiceSessions.delete(guildId);
+        continue;
+      }
 
       const entries: Array<[string, number]> = [...byUser.entries()];
       for (const [userId, joinTs] of entries) {
+        // Skip if the session was already resumed/advanced concurrently.
+        if (byUser.get(userId) !== joinTs) continue;
         const minutesElapsed = Math.floor((now - joinTs) / 60000);
         if (minutesElapsed < 1) continue;
 
-        const member =
-          guild.voiceStates.cache.get(userId)?.member ?? guild.members.cache.get(userId) ?? null;
-        if (!member?.voice?.channelId) {
+        const voiceState = guild.voiceStates.cache.get(userId) ?? null;
+        const member = voiceState?.member ?? guild.members.cache.get(userId) ?? null;
+        if (!member?.voice?.channelId || !voiceState?.channelId) {
           // User no longer in any voice channel in this guild.
           byUser.delete(userId);
           continue;
         }
+        if (!isVoiceActive(voiceState)) continue;
 
-        await awardVoiceXp(client, userId, minutesElapsed, guild, member.user);
+        const awarded = await awardVoiceXp(
+          client,
+          userId,
+          minutesElapsed,
+          guild,
+          member.user,
+          undefined,
+          voiceState,
+          voiceState.channelId,
+        );
+        if (!awarded) continue; // keep joinTs so minutes accrue for next tick
 
         // Advance the session timestamp so XP is awarded once per minute going
-        // forward, aligned to the minute boundary to prevent drift.
-        setUserSession(guildId, userId, now - ((now - joinTs) % 60000));
+        // forward, aligned to the minute boundary to prevent drift. Only
+        // advance when the session is still the one we awarded for — a
+        // concurrent leave/move owns the newer timestamp.
+        if (byUser.get(userId) === joinTs) {
+          setUserSession(guildId, userId, now - ((now - joinTs) % 60000));
+        }
       }
 
       if (byUser.size === 0) voiceSessions.delete(guildId);
@@ -311,6 +378,7 @@ export function startVoiceTracking(client: Client): void {
   tickInterval = setInterval(() => {
     void handleVoiceTick(client);
   }, 60_000);
+  tickInterval.unref?.();
 }
 
 export function stopVoiceTracking(): void {
@@ -334,6 +402,8 @@ export function seedVoiceSessions(client: Client): void {
     const byUser = new Map<string, number>();
     for (const state of guild.voiceStates.cache.values()) {
       if (!state.channelId || !state.member?.user) continue;
+      if (state.member.user.bot) continue;
+      if (!isVoiceActive(state)) continue;
       if (!byUser.has(state.id)) byUser.set(state.id, now);
     }
     if (byUser.size > 0) voiceSessions.set(guild.id, byUser);

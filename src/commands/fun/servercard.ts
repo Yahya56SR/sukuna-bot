@@ -13,6 +13,7 @@ export const servercardCommand: Command = {
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'utility',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const guild = interaction.guild;
@@ -37,7 +38,7 @@ export const servercardCommand: Command = {
         { name: 'Boost Tier', value: guild.premiumTier ? `${guild.premiumTier} (${guild.premiumSubscriptionCount} boosts)` : 'None', inline: true },
       )
       .setThumbnail(guild.iconURL({ size: 256 }) ?? null)
-      .setFooter({ text: '爱 Doctora • Server Card' })
+      .setFooter({ text: '愛 Bella Star • Server Card' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

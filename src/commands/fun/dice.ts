@@ -14,6 +14,7 @@ export const diceCommand: Command = {
         .setMaxValue(1000),
     ),
   category: "fun",
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const sides = interaction.options.getInteger("sides") ?? 6;

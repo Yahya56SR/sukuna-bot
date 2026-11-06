@@ -50,6 +50,8 @@ export interface IGameProfile extends Document {
     timesWorked: number;
     totalEarned: number;
     bestJob: string;
+    /** Highest single-shift payout — used to keep `bestJob` honest. */
+    bestReward: number;
   };
   /** Daily streak */
   dailyStreak: number;
@@ -83,7 +85,7 @@ const gameProfileSchema = new Schema<IGameProfile>(
     fishing: { caught: { type: Number, default: 0 }, sold: { type: Number, default: 0 }, biggestFish: { name: { type: String }, weight: { type: Number }, value: { type: Number } }, rareCatches: { type: Number, default: 0 } },
     mining: { mined: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
     hunting: { hunted: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
-    work: { timesWorked: { type: Number, default: 0 }, totalEarned: { type: Number, default: 0 }, bestJob: { type: String } },
+    work: { timesWorked: { type: Number, default: 0 }, totalEarned: { type: Number, default: 0 }, bestJob: { type: String }, bestReward: { type: Number, default: 0 } },
     dailyStreak: { type: Number, default: 0 },
     maxDailyStreak: { type: Number, default: 0 },
     lastDaily: { type: Date },

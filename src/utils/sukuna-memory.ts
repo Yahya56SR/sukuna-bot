@@ -68,9 +68,12 @@ export async function recallMemories(
 
   const query: any = { guildId };
   if (about) {
+    // Escape user input — raw `new RegExp(about)` allowed regex injection /
+    // ReDoS via a crafted `about` string.
+    const safe = about.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.$or = [
       { aboutUserId: about },
-      { aboutName: new RegExp(about, 'i') },
+      { aboutName: new RegExp(safe, 'i') },
     ];
   }
 

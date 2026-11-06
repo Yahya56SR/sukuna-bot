@@ -37,7 +37,10 @@ export const buyCommand: Command = {
     const user = await getEconomyUser(interaction.user.id);
 
     // Permanent unlocks are one-time purchases no matter how often they are bought.
-    if (item.kind === 'permanent' && user.inventory?.some((entry) => entry.itemId === item.id)) {
+    if (
+      item.kind === 'permanent' &&
+      user.inventory?.some((entry) => entry.itemId === item.id && entry.quantity > 0)
+    ) {
       await interaction.reply({
         content: `❌ You already own the **${item.emoji} ${item.name}**.`,
         flags: MessageFlags.Ephemeral,
@@ -73,7 +76,7 @@ export const buyCommand: Command = {
         { name: 'Paid', value: formatCoins(item.price), inline: true },
         { name: 'Wallet left', value: formatCoins(balance), inline: true },
       )
-      .setFooter({ text: '爱 Doctora • Shop' });
+      .setFooter({ text: '愛 Bella Star • Shop' });
 
     await interaction.reply({ embeds: [embed] });
   },

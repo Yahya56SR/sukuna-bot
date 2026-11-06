@@ -25,6 +25,7 @@ export const truthCommand: Command = {
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'fun',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const question =

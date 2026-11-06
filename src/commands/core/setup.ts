@@ -109,7 +109,7 @@ export const setupCommand: Command = {
           .map(([key, value]) => `• **${key}**: \`${value}\``)
           .join('\n'),
       )
-      .setFooter({ text: '爱 Doctora • Setup' })
+      .setFooter({ text: '愛 Bella Star • Setup' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

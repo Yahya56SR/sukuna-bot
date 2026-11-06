@@ -301,15 +301,28 @@ export class VerificationSystem {
 			);
 	}
 
+	private hasStaff(interaction: ButtonInteraction | ModalSubmitInteraction, settings: VerificationSettings): boolean {
+		const member = interaction.member as GuildMember;
+		if (!member) return false;
+		if (member.permissions?.has('ManageGuild')) return true;
+		if (member.permissions?.has('ManageMessages')) return true;
+		if (settings.staffRoleId && member.roles?.cache.has(settings.staffRoleId)) return true;
+		return false;
+	}
+
 	async handleApprove(interaction: ButtonInteraction, requestId: string): Promise<void> {
 		const request = await VerificationRequest.findById(requestId);
 		if (!request || request.status !== 'pending') {
 			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
 			return;
 		}
-		await interaction.deferReply({ flags: 64 });
 		const guild = interaction.guild as Guild;
 		const settings = await this.getSettings(guild.id);
+		if (!this.hasStaff(interaction, settings)) {
+			await interaction.reply({ content: '❌ Only staff can review verifications.', flags: 64 });
+			return;
+		}
+		await interaction.deferReply({ flags: 64 });
 		const member = await guild.members.fetch(request.userId).catch(() => null);
 
 		if (member) {
@@ -334,10 +347,22 @@ export class VerificationSystem {
 			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
 			return;
 		}
+		const guild = interaction.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+		if (!this.hasStaff(interaction, settings)) {
+			await interaction.reply({ content: '❌ Only staff can review verifications.', flags: 64 });
+			return;
+		}
 		await interaction.showModal(this.denyModal(requestId));
 	}
 
 	async handleDenyModal(interaction: ModalSubmitInteraction, requestId: string): Promise<void> {
+		const guild = interaction.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+		if (!this.hasStaff(interaction, settings)) {
+			await interaction.reply({ content: '❌ Only staff can review verifications.', flags: 64 });
+			return;
+		}
 		await interaction.deferReply({ flags: 64 });
 		const request = await VerificationRequest.findById(requestId);
 		if (!request || request.status !== 'pending') {
@@ -346,8 +371,6 @@ export class VerificationSystem {
 		}
 
 		const reason = interaction.fields.getTextInputValue('deny_reason');
-		const guild = interaction.guild as Guild;
-		const settings = await this.getSettings(guild.id);
 
 		request.status = 'denied';
 		request.reviewedBy = interaction.user.id;
@@ -400,7 +423,11 @@ export class VerificationSystem {
 	}
 
 	pendingRequests(guildId: string, limit = 25): Promise<any[]> {
-		return VerificationRequest.find({ guildId, status: 'pending' }).sort({ createdAt: -1 }).limit(limit).lean();
+		// Include claimed: claim/approve/deny flows look up claimed rows
+		// through this accessor — filtering to `pending` only made every
+		// claimed request unfindable (and the old `.save()` on lean rows
+		// crashed with "save is not a function").
+		return VerificationRequest.find({ guildId, status: { $in: ['pending', 'claimed'] } }).sort({ createdAt: -1 }).limit(limit).lean();
 	}
 
 	pendingCount(guildId: string): Promise<number> {

@@ -144,7 +144,7 @@ export const logsCommand: Command = {
       let webhookToken: string | undefined;
       try {
         const webhook = await channel.createWebhook({
-          name: '爱 Doctora Logs',
+          name: '愛 Bella Star Logs',
           avatar: interaction.client.user.displayAvatarURL(),
           reason: 'Auto-mod logging webhook',
         });

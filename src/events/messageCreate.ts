@@ -21,14 +21,24 @@ export const messageCreate = {
   name: Events.MessageCreate as keyof ClientEvents,
   execute: async (client: any, message: Message) => {
     // Run the Sukuna AI persona first: it also records bot messages as context.
+    // `handleSukunaMessage` is async — a sync try/catch alone misses
+    // rejections (they were unhandled).
     try {
-      handleSukunaMessage(message);
+      const maybePromise = handleSukunaMessage(message) as unknown as
+        | Promise<unknown>
+        | void;
+      if (maybePromise && typeof (maybePromise as any).catch === 'function') {
+        (maybePromise as any).catch((err: unknown) =>
+          client.logger?.warn({ err }, 'sukuna handler failed'),
+        );
+      }
     } catch (err) {
       client.logger?.warn({ err }, 'sukuna handler failed');
     }
 
     if (!message.guild) return;
-    if (!message.author?.bot) bumpCounter('messagesSeen');
+    if (!message.author) return;
+    if (!message.author.bot) bumpCounter('messagesSeen');
 
     let config: any = null;
     let configLoaded = true;
@@ -53,7 +63,7 @@ export const messageCreate = {
 
     let tagHandled = false;
     try {
-      const prefixMatch = message.content.match(PREFIX_COMMAND_RE);
+      const prefixMatch = (message.content ?? '').match(PREFIX_COMMAND_RE);
       if (prefixMatch && !message.author.bot) {
         const commandName = prefixMatch[2].toLowerCase();
         const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
@@ -95,8 +105,8 @@ export const messageCreate = {
     const now = Date.now();
     const cooldownMs = Math.max(0, settings.cooldownSeconds) * 1000;
 
-    const xpCooldowns: Map<string, number> = client.xpCooldowns || new Map();
-    client.xpCooldowns = xpCooldowns;
+    if (!client.xpCooldowns) client.xpCooldowns = new Map();
+    const xpCooldowns: Map<string, number> = client.xpCooldowns;
     const cooldownKey = `xp_${guildId}_${userId}`;
 
     // Fast in-memory path first. Only touch the database once the in-memory
@@ -104,6 +114,13 @@ export const messageCreate = {
     // cooldown across restarts without costing a query per message.
     const memoryExpiry = xpCooldowns.get(cooldownKey) ?? 0;
     if (memoryExpiry > now) return;
+
+    // Optimistic lock: claim the cooldown *before* the awaited DB reads/writes
+    // so two messages arriving in the same tick cannot both pass and both
+    // `addXp` (the old check-then-set-after-write double-counted).
+    if (cooldownMs > 0) {
+      xpCooldowns.set(cooldownKey, now + cooldownMs);
+    }
 
     let storedExpiry = 0;
     if (cooldownMs > 0) {
@@ -120,14 +137,18 @@ export const messageCreate = {
     }
 
     const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
-    if (amount <= 0) return;
+    if (amount <= 0) {
+      // No XP this time — release the optimistic claim so the next message retries.
+      if (cooldownMs > 0) xpCooldowns.delete(cooldownKey);
+      return;
+    }
 
     try {
       const result = await addXp(userId, amount, 'message');
 
-      // Start the cooldown only once XP was actually awarded, so a failed write
-      // does not silently cost the member their next message.
-      xpCooldowns.set(cooldownKey, now + cooldownMs);
+      // Refresh the expiry from now (not the stale capture) so DB latency does
+      // not shrink the effective cooldown.
+      if (cooldownMs > 0) xpCooldowns.set(cooldownKey, Date.now() + cooldownMs);
 
       if (result.leveledUp) {
         await handleLevelUp(
@@ -141,6 +162,10 @@ export const messageCreate = {
       }
     } catch (err) {
       client.logger?.error({ err, userId }, 'failed to process XP for message');
+      // Award failed — release the optimistic claim so the next message can retry.
+      if (cooldownMs > 0 && (xpCooldowns.get(cooldownKey) ?? 0) !== storedExpiry) {
+        xpCooldowns.delete(cooldownKey);
+      }
     }
 
     // Prune on a size threshold regardless of whether XP was awarded, so a
@@ -159,5 +184,16 @@ const XP_COOLDOWN_SOFT_CAP = 10_000;
 function cleanupCooldowns(cooldowns: Map<string, number>, now: number): void {
   for (const [key, expiry] of cooldowns.entries()) {
     if (expiry <= now) cooldowns.delete(key);
+  }
+  // Hard cap: if everything is still unexpired the map would grow without
+  // bound. Evict oldest-inserted entries (Map preserves insertion order).
+  if (cooldowns.size > XP_COOLDOWN_SOFT_CAP * 2) {
+    const excess = cooldowns.size - XP_COOLDOWN_SOFT_CAP;
+    let removed = 0;
+    for (const key of cooldowns.keys()) {
+      if (removed >= excess) break;
+      cooldowns.delete(key);
+      removed++;
+    }
   }
 }

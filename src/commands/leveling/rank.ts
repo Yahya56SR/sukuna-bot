@@ -13,6 +13,7 @@ export const rankCommand: Command = {
       option.setName('user').setDescription('The user to check').setRequired(false),
     ),
   category: 'leveling',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser('user') ?? interaction.user;

@@ -34,7 +34,7 @@ export const SHOP_ITEMS: readonly ShopItem[] = [
     id: 'coin_pouch',
     name: 'Coin Pouch',
     emoji: '🧧',
-    description: 'Crack it open for somewhere between 500 and 2,000 coins.',
+    description: 'Crack it open for somewhere between 500 and 1,200 coins.',
     price: 1_200,
     kind: 'consumable',
   },

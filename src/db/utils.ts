@@ -99,10 +99,23 @@ export async function addXp(
   // award owns the value and our stale write is skipped instead of clobbering
   // it. Runs only when the level actually changes, so the common path stays a
   // single round trip.
+  // The old filter `{ totalXp, xp: totalXp }` never matched legacy rows where
+  // `xp >> totalXp` (effective total != stored totalXp), so `level` stayed
+  // stale forever. Filter on `level` instead — a concurrent higher level
+  // also makes this a no-op — and heal `totalXp`/`xp` to the effective total
+  // when they diverge.
   if (doc.level !== info.level) {
     await User.updateOne(
-      { userId, totalXp, xp: totalXp },
+      { userId, level: { $lt: info.level } },
       { $set: { level: info.level } },
+    ).catch(() => undefined);
+  }
+  if ((doc.xp ?? 0) !== totalXp || (doc.totalXp ?? 0) !== totalXp) {
+    // Heal the dual-column divergence so leaderboards/ranks (which sort on
+    // totalXp) see this user. Guarded to never overwrite a newer higher total.
+    await User.updateOne(
+      { userId, totalXp: { $lt: totalXp } },
+      { $set: { totalXp, xp: totalXp } },
     ).catch(() => undefined);
   }
 
@@ -172,8 +185,13 @@ export async function backfillUserXp(): Promise<number> {
     });
 
     for await (const doc of cursor) {
+      // Guarded on stored totalXp still being below the source value so a
+      // concurrent addXp between cursor read and this write is not clobbered.
       batch.push({
-        updateOne: { filter: { _id: doc._id }, update: { $set: { totalXp: doc.xp ?? 0 } } },
+        updateOne: {
+          filter: { _id: doc._id, totalXp: { $lt: doc.xp ?? 0 } },
+          update: { $set: { totalXp: doc.xp ?? 0 } },
+        },
       });
       if (batch.length >= 500) await flush();
     }
@@ -187,14 +205,16 @@ export async function backfillUserXp(): Promise<number> {
   return fixed;
 }
 
-/** Top members, highest total XP first. */
+/** Top members, highest effective XP first (heals legacy xp-only rows). */
 export async function getLeaderboard(limit = 10): Promise<XpRow[]> {
-  const rows = await User.find({ totalXp: { $gt: 0 } })
-    .sort({ totalXp: -1, userId: 1 })
-    .limit(Math.max(1, limit))
-    .lean();
+  const rows = await User.aggregate([
+    { $addFields: { effectiveXp: { $max: [{ $ifNull: ['$xp', 0] }, { $ifNull: ['$totalXp', 0] }] } } },
+    { $match: { effectiveXp: { $gt: 0 } } },
+    { $sort: { effectiveXp: -1, userId: 1 } },
+    { $limit: Math.max(1, limit) },
+  ]).allowDiskUse(true);
 
-  return rows.map((row) => {
+  return rows.map((row: any) => {
     const xp = effectiveXp(row);
     return {
       user_id: row.userId as string,
@@ -214,11 +234,15 @@ export async function getRankPosition(userId: string): Promise<number> {
   const xp = effectiveXp(doc);
   if (xp <= 0) return 0;
 
-  const higher = await User.countDocuments({ totalXp: { $gt: xp } });
+  const higher = await User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ['$xp', 0] }, { $ifNull: ['$totalXp', 0] }] }, xp] },
+  });
   return higher + 1;
 }
 
 /** How many members have an XP record (i.e. are ranked). */
 export async function countRanked(): Promise<number> {
-  return User.countDocuments({ totalXp: { $gt: 0 } });
+  return User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ['$xp', 0] }, { $ifNull: ['$totalXp', 0] }] }, 0] },
+  });
 }

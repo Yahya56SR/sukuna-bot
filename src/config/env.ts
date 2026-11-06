@@ -25,7 +25,7 @@ const EnvSchema = z.object({
     (v) => typeof v === 'string' ? v.split(',').map(s => s.trim()).filter(Boolean) : (v ?? []),
     z.array(z.string()).default([]),
   ),
-  SUKUNA_DISPLAY_NAME: z.string().default("爱 Doctora"),
+  SUKUNA_DISPLAY_NAME: z.string().default("愛 Bella Star"),
   SUKUNA_MODEL: z.string().default("gemini-3.8-live"),
   SUKUNA_VOICE_NAME: z.string().default("Aoede"),
   SUKUNA_VOICE_DUPLEX: z.preprocess(

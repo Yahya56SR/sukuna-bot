@@ -74,7 +74,7 @@ export const giveCommand: Command = {
         { name: 'Amount', value: formatCoins(amount), inline: true },
         { name: 'Your wallet after', value: formatCoins(result.fromBalance), inline: true },
       )
-      .setFooter({ text: '爱 Doctora • Coin Transfer' })
+      .setFooter({ text: '愛 Bella Star • Coin Transfer' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

@@ -5,6 +5,7 @@ export interface ErrorTarget {
   reply?: (opts: any) => Promise<unknown>;
   followUp?: (opts: any) => Promise<unknown>;
   editReply?: (opts: any) => Promise<unknown>;
+  respond?: (opts: any) => Promise<unknown>;
   deferred?: boolean;
   replied?: boolean;
 }
@@ -23,6 +24,17 @@ export async function replyError(
   errorId?: string,
 ): Promise<void> {
   const content = errorId ? `${message} (ref: ${errorId})` : message;
+
+  // Autocomplete interactions only support `respond()` — `reply`/`followUp`/
+  // `editReply` do not exist on them and the interaction would time out.
+  if ((interaction as any).respond) {
+    try {
+      await (interaction as any).respond([]);
+    } catch {
+      /* expired */
+    }
+    return;
+  }
 
   try {
     if (interaction.deferred && !interaction.replied && interaction.editReply) {

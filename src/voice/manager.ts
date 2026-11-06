@@ -121,29 +121,41 @@ export async function connectVoice(guild: Guild, channelId: string): Promise<Voi
   // Keep the reason around: Discord's voice server closes with a code that says
   // exactly why it refused (4014 = kicked/unauthorised, 4016 = bad session,
   // 4017 = the channel requires DAVE/E2EE, ...).
+  // NOTE: @discordjs/voice emits a single `stateChange` event — listening for
+  // `VoiceConnectionStatus.Destroyed` etc. as event names never fires, which
+  // leaked sessions forever. Handle everything through `stateChange`.
   let lastFailure = '';
+  let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
   connection.on('stateChange', (_previous, next) => {
-    if (next.status !== VoiceConnectionStatus.Disconnected) return;
-    const closeCode = 'closeCode' in next ? `, close code ${next.closeCode}` : '';
-    lastFailure = `disconnected (reason: ${next.reason}${closeCode})`;
-    console.warn('[Voice] Connection lost:', lastFailure);
-  });  connection.on(VoiceConnectionStatus.Destroyed, () => {
-    if (sessions.get(guild.id) !== session) return;
-    session.conversation?.stop();
-    sessions.delete(guild.id);
-  });
-  // @discordjs/voice recovers from channel moves and websocket resets by itself.
-  // If it has not recovered after a grace period, drop the session so the next
-  // /voice join starts from a clean state.
-  connection.on(VoiceConnectionStatus.Disconnected, () => {
-    const timer = setTimeout(() => {
+    if (next.status === VoiceConnectionStatus.Ready && disconnectTimer) {
+      clearTimeout(disconnectTimer);
+      disconnectTimer = null;
+    }
+    if (next.status === VoiceConnectionStatus.Disconnected) {
+      const closeCode = 'closeCode' in next ? `, close code ${next.closeCode}` : '';
+      lastFailure = `disconnected (reason: ${next.reason}${closeCode})`;
+      console.warn('[Voice] Connection lost:', lastFailure);
+      // @discordjs/voice recovers from moves/resets by itself; if it hasn't
+      // recovered after a grace period, drop the session for a clean rejoin.
+      if (disconnectTimer) clearTimeout(disconnectTimer);
+      disconnectTimer = setTimeout(() => {
+        disconnectTimer = null;
+        if (sessions.get(guild.id) !== session) return;
+        if (connection.state.status === VoiceConnectionStatus.Ready) return;
+        console.warn('[Voice] Connection lost for too long, leaving the channel');
+        disconnectVoice(guild.id);
+      }, 15_000);
+      disconnectTimer.unref?.();
+    }
+    if (next.status === VoiceConnectionStatus.Destroyed) {
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+        disconnectTimer = null;
+      }
       if (sessions.get(guild.id) !== session) return;
-      if (connection.state.status === VoiceConnectionStatus.Ready) return;
-      console.warn('[Voice] Connection lost for too long, leaving the channel');
-      disconnectVoice(guild.id);
-    }, 15_000);
-    timer.unref?.();
-    connection.once(VoiceConnectionStatus.Ready, () => clearTimeout(timer));
+      session.conversation?.stop();
+      sessions.delete(guild.id);
+    }
   });
   player.on('error', (error) => {
     console.warn('[Voice] Playback error:', error instanceof Error ? error.message : error);
@@ -326,7 +338,12 @@ async function drain(guildId: string): Promise<void> {
         continue;
       }
 
-      session.player.play(createAudioResource(stream, { inputType: StreamType.Raw }));
+      try {
+        session.player.play(createAudioResource(stream, { inputType: StreamType.Raw }));
+      } catch (error) {
+        console.warn('[Voice] Playback failed:', error instanceof Error ? error.message : error);
+        continue;
+      }
 
       try {
         await entersState(session.player, AudioPlayerStatus.Idle, PLAYBACK_TIMEOUT_MS);

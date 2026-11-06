@@ -48,7 +48,7 @@ async function userHasOpenTicket(guildId: string, userId: string) {
 }
 
 /** Staff = Manage Guild permission OR a configured staff role. */
-function canManageTicket(member: GuildMember | null, staffRoleIds: string[]): boolean {
+export function canManageTicket(member: GuildMember | null, staffRoleIds: string[]): boolean {
   if (!member) return false;
   if (member.permissions.has('ManageGuild')) return true;
   if (staffRoleIds.length === 0) return false;
@@ -56,7 +56,7 @@ function canManageTicket(member: GuildMember | null, staffRoleIds: string[]): bo
   return staffRoleIds.some((id) => roleIds.includes(id));
 }
 
-function canCloseTicket(member: GuildMember | null, ticket: any, staffRoleIds: string[]): boolean {
+export function canCloseTicket(member: GuildMember | null, ticket: any, staffRoleIds: string[]): boolean {
   if (!member) return false;
   if (member.id === ticket.userId) return true;
   return canManageTicket(member, staffRoleIds);
@@ -69,7 +69,7 @@ function canCloseTicket(member: GuildMember | null, ticket: any, staffRoleIds: s
 export const ticketCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('ticket')
-    .setDescription('愛 Doctora feature-rich ticket system.')
+    .setDescription('愛 Bella Star feature-rich ticket system.')
     .setDMPermission(false)
     .addSubcommand((sub) =>
       sub
@@ -157,7 +157,11 @@ export const ticketCommand: Command = {
     .addSubcommand((sub) => sub.setName('stats').setDescription('Show ticket system statistics.')),
 
   category: 'moderation',
-  userPermissions: ['ManageGuild'],
+  // NOTE: no command-level `userPermissions` — `close`/`transcript` are for
+  // ticket owners (who lack ManageGuild) while `setup`/`department`/`config`
+  // are admin-only. Each handler enforces its own gate (see handleClose,
+  // handleSetup, …). A top-level ManageGuild requirement would make /ticket
+  // close unusable for regular owners.
   execute: async (context) => {
     const { interaction, guild, client } = context;
     const subcommand = interaction.options.getSubcommand(true);
@@ -211,7 +215,12 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
 
   const channel =
     (interaction.options.getChannel('channel') as TextChannel | null) ??
-    (interaction.channel as TextChannel);
+    (interaction.channel as TextChannel | null);
+
+  if (!channel || !(channel as any).isTextBased?.()) {
+    await replyError(interaction, '❌ Please pick a text channel for the panel.');
+    return;
+  }
 
   const existing = await TicketPanel.findOne({ guildId: guild.id, channelId: channel.id });
   if (existing) {
@@ -233,7 +242,7 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
 
   const embed = new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle("🎫 愛 Doctora Support Tickets")
+    .setTitle("🎫 愛 Bella Star Support Tickets")
     .setDescription(
       "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" +
         departments
@@ -242,7 +251,7 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
     )
     .setImage("https://media1.tenor.com/m/kQNXoHoGFc0AAAAC/support.gif")
     .setThumbnail(guild.iconURL())
-    .setFooter({ text: "愛 Doctora • Tickets" })
+    .setFooter({ text: "愛 Bella Star • Tickets" })
     .setTimestamp();
 
   const rows: ActionRowBuilder[] = [];
@@ -271,12 +280,12 @@ async function handleSetup(interaction: ChatInputCommandInteraction, guild: Guil
     guildId: guild.id,
     channelId: channel.id,
     messageId: message.id,
-    embedTitle: embed.data.title ?? '🎫 愛 Doctora Support Tickets',
+    embedTitle: embed.data.title ?? '🎫 愛 Bella Star Support Tickets',
     embedDescription: embed.data.description ?? '',
     embedColor: 0x5865f2,
     embedImage: embed.data.image?.url ?? undefined,
     embedThumbnail: embed.data.thumbnail?.url ?? undefined,
-    embedFooter: '愛 Doctora • Tickets',
+    embedFooter: '愛 Bella Star • Tickets',
   });
 
   await interaction.reply({
@@ -675,6 +684,12 @@ async function handleConfig(interaction: ChatInputCommandInteraction, guild: Gui
 /* -------------------------------------------------------------------------- */
 
 async function handleStats(interaction: ChatInputCommandInteraction, guild: Guild) {
+  const member = interaction.member as GuildMember;
+  if (!member.permissions.has('ManageGuild')) {
+    await replyError(interaction, '❌ You need `Manage Server` permission.');
+    return;
+  }
+
   const open = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: null });
   const closed = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: { $ne: null } });
   const panels = await TicketPanel.countDocuments({ guildId: guild.id });
@@ -690,7 +705,7 @@ async function handleStats(interaction: ChatInputCommandInteraction, guild: Guil
       { name: 'Panels posted', value: String(panels), inline: true },
       { name: 'Active departments', value: String(departments), inline: true },
     )
-    .setFooter({ text: '愛 Doctora • Tickets' })
+    .setFooter({ text: '愛 Bella Star • Tickets' })
     .setTimestamp();
 
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

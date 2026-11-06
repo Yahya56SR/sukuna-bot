@@ -22,11 +22,11 @@ const vcPanelSchema = new Schema<IVcPanel>(
       type: String,
       required: true,
       default:
-        'Click **Join VC** below to have 愛 Doctora join **your** voice channel.\n\n' +
+        'Click **Join VC** below to have 愛 Bella Star join **your** voice channel.\n\n' +
         'Make sure you are in a voice channel before tapping. Works for any voice channel in this server.',
     },
     embedColor: { type: Number, required: true, default: 0x5865f2 },
-    embedFooter: { type: String, default: '愛 Doctora • One Tap VC' },
+    embedFooter: { type: String, default: '愛 Bella Star • One Tap VC' },
   },
   { timestamps: true },
 );

@@ -32,7 +32,12 @@ export function resolveLevelRoles(
     .sort((a, b) => a.level - b.level);
 
   const best = tiers[tiers.length - 1];
-  if (!best) return { removeRoleIds: [] };
+  // No tier reached (e.g. after resetxp): strip *all* configured tiers so a
+  // downgrade removes rewards instead of leaving them forever.
+  const allTiers = Object.entries(levelRoles)
+    .filter(([key, roleId]) => /^\d+$/.test(key) && typeof roleId === 'string' && roleId !== '')
+    .map(([, roleId]) => roleId);
+  if (!best) return { removeRoleIds: [...new Set(allTiers)] };
 
   return {
     grantRoleId: best.roleId,
@@ -57,7 +62,16 @@ async function applyLevelRoles(
   grantRoleId: string | undefined,
   removeRoleIds: string[],
 ): Promise<void> {
-  if (!grantRoleId) return;
+  // No grant (level below every tier / reset): still strip stale tiers.
+  if (!grantRoleId) {
+    const stale = (removeRoleIds ?? []).filter((id) => member.roles.cache.has(id));
+    if (stale.length > 0) {
+      await member.roles.remove(stale, 'Level reward removed').catch((err) => {
+        console.error(`[LevelUp] Failed to remove level roles from ${member.id}:`, err);
+      });
+    }
+    return;
+  }
 
   let role: Role | null = guild.roles.cache.get(grantRoleId) ?? null;
   if (!role) {

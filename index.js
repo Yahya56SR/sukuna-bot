@@ -46939,7 +46939,7 @@ var require_cast2 = __commonJS({
     var getDiscriminatorByKey = require_getDiscriminatorByKey();
     var CastError = require_cast();
     var StrictModeError = require_strict();
-    var Types = require_schema();
+    var Types2 = require_schema();
     var cast$expr = require_cast_expr();
     var castString = require_string();
     var castTextSearch = require_text();
@@ -47084,7 +47084,7 @@ var require_cast2 = __commonJS({
                 geo = "$geoWithin";
               }
               if (geo) {
-                const numbertype = new Types.Number("__QueryCasting__", null, null, schema);
+                const numbertype = new Types2.Number("__QueryCasting__", null, null, schema);
                 let value = val[geo];
                 if (val.$maxDistance != null) {
                   val.$maxDistance = numbertype.castForQuery(
@@ -47722,8 +47722,8 @@ var require_array2 = __commonJS({
           cast2 = Mixed;
         }
         const name = typeof cast2 === "string" ? cast2 : utils.getFunctionName(cast2);
-        const Types = require_schema();
-        const schemaTypeDefinition = Object.hasOwn(Types, name) ? Types[name] : cast2;
+        const Types2 = require_schema();
+        const schemaTypeDefinition = Object.hasOwn(Types2, name) ? Types2[name] : cast2;
         if (typeof schemaTypeDefinition === "function") {
           if (schemaTypeDefinition === SchemaArray) {
             this.embeddedSchemaType = new schemaTypeDefinition(key, castOptions, schemaOptions, null, parentSchema);
@@ -52351,7 +52351,7 @@ var require_schema2 = __commonJS({
         return clone3;
       }
       const MongooseTypes2 = this.base?.Schema.Types ?? Schema35.Types;
-      const Types = this.base?.Types ?? require_types();
+      const Types2 = this.base?.Types ?? require_types();
       if (!utils.isPOJO(obj) && !(obj instanceof SchemaTypeOptions)) {
         const constructorName = utils.getFunctionName(obj.constructor);
         if (constructorName !== "Object") {
@@ -52464,9 +52464,9 @@ var require_schema2 = __commonJS({
         name = "Buffer";
       } else if (typeof type === "function" || typeof type === "object") {
         name = type.schemaName || utils.getFunctionName(type);
-      } else if (type === Types.ObjectId) {
+      } else if (type === Types2.ObjectId) {
         name = "ObjectId";
-      } else if (type === Types.Decimal128) {
+      } else if (type === Types2.Decimal128) {
         name = "Decimal128";
       } else {
         name = type == null ? "" + type : type.toString();
@@ -68155,7 +68155,7 @@ var require_mongoose = __commonJS({
     var VirtualType = require_virtualType();
     var STATES = require_connectionState();
     var VALID_OPTIONS = require_validOptions();
-    var Types = require_types();
+    var Types2 = require_types();
     var Query = require_query();
     var Model = require_model();
     var applyPlugins = require_applyPlugins();
@@ -68539,7 +68539,7 @@ var require_mongoose = __commonJS({
     Mongoose.prototype.SchemaType = SchemaType;
     Mongoose.prototype.SchemaTypes = Schema35.Types;
     Mongoose.prototype.VirtualType = VirtualType;
-    Mongoose.prototype.Types = Types;
+    Mongoose.prototype.Types = Types2;
     Mongoose.prototype.Query = Query;
     Mongoose.prototype.Model = Model;
     Mongoose.prototype.Document = Document24;
@@ -89719,26 +89719,26 @@ var require_channel = __commonJS({
       ForumLayoutType3[ForumLayoutType3["ListView"] = 1] = "ListView";
       ForumLayoutType3[ForumLayoutType3["GalleryView"] = 2] = "GalleryView";
     })(ForumLayoutType2 || (exports2.ForumLayoutType = ForumLayoutType2 = {}));
-    var ChannelType12;
-    (function(ChannelType13) {
-      ChannelType13[ChannelType13["GuildText"] = 0] = "GuildText";
-      ChannelType13[ChannelType13["DM"] = 1] = "DM";
-      ChannelType13[ChannelType13["GuildVoice"] = 2] = "GuildVoice";
-      ChannelType13[ChannelType13["GroupDM"] = 3] = "GroupDM";
-      ChannelType13[ChannelType13["GuildCategory"] = 4] = "GuildCategory";
-      ChannelType13[ChannelType13["GuildAnnouncement"] = 5] = "GuildAnnouncement";
-      ChannelType13[ChannelType13["AnnouncementThread"] = 10] = "AnnouncementThread";
-      ChannelType13[ChannelType13["PublicThread"] = 11] = "PublicThread";
-      ChannelType13[ChannelType13["PrivateThread"] = 12] = "PrivateThread";
-      ChannelType13[ChannelType13["GuildStageVoice"] = 13] = "GuildStageVoice";
-      ChannelType13[ChannelType13["GuildDirectory"] = 14] = "GuildDirectory";
-      ChannelType13[ChannelType13["GuildForum"] = 15] = "GuildForum";
-      ChannelType13[ChannelType13["GuildMedia"] = 16] = "GuildMedia";
-      ChannelType13[ChannelType13["GuildNews"] = 5] = "GuildNews";
-      ChannelType13[ChannelType13["GuildNewsThread"] = 10] = "GuildNewsThread";
-      ChannelType13[ChannelType13["GuildPublicThread"] = 11] = "GuildPublicThread";
-      ChannelType13[ChannelType13["GuildPrivateThread"] = 12] = "GuildPrivateThread";
-    })(ChannelType12 || (exports2.ChannelType = ChannelType12 = {}));
+    var ChannelType13;
+    (function(ChannelType14) {
+      ChannelType14[ChannelType14["GuildText"] = 0] = "GuildText";
+      ChannelType14[ChannelType14["DM"] = 1] = "DM";
+      ChannelType14[ChannelType14["GuildVoice"] = 2] = "GuildVoice";
+      ChannelType14[ChannelType14["GroupDM"] = 3] = "GroupDM";
+      ChannelType14[ChannelType14["GuildCategory"] = 4] = "GuildCategory";
+      ChannelType14[ChannelType14["GuildAnnouncement"] = 5] = "GuildAnnouncement";
+      ChannelType14[ChannelType14["AnnouncementThread"] = 10] = "AnnouncementThread";
+      ChannelType14[ChannelType14["PublicThread"] = 11] = "PublicThread";
+      ChannelType14[ChannelType14["PrivateThread"] = 12] = "PrivateThread";
+      ChannelType14[ChannelType14["GuildStageVoice"] = 13] = "GuildStageVoice";
+      ChannelType14[ChannelType14["GuildDirectory"] = 14] = "GuildDirectory";
+      ChannelType14[ChannelType14["GuildForum"] = 15] = "GuildForum";
+      ChannelType14[ChannelType14["GuildMedia"] = 16] = "GuildMedia";
+      ChannelType14[ChannelType14["GuildNews"] = 5] = "GuildNews";
+      ChannelType14[ChannelType14["GuildNewsThread"] = 10] = "GuildNewsThread";
+      ChannelType14[ChannelType14["GuildPublicThread"] = 11] = "GuildPublicThread";
+      ChannelType14[ChannelType14["GuildPrivateThread"] = 12] = "GuildPrivateThread";
+    })(ChannelType13 || (exports2.ChannelType = ChannelType13 = {}));
     var VideoQualityMode2;
     (function(VideoQualityMode3) {
       VideoQualityMode3[VideoQualityMode3["Auto"] = 1] = "Auto";
@@ -90296,23 +90296,23 @@ var require_message = __commonJS({
       MessageReferenceType3[MessageReferenceType3["Default"] = 0] = "Default";
       MessageReferenceType3[MessageReferenceType3["Forward"] = 1] = "Forward";
     })(MessageReferenceType2 || (exports2.MessageReferenceType = MessageReferenceType2 = {}));
-    var MessageFlags36;
-    (function(MessageFlags37) {
-      MessageFlags37[MessageFlags37["Crossposted"] = 1] = "Crossposted";
-      MessageFlags37[MessageFlags37["IsCrosspost"] = 2] = "IsCrosspost";
-      MessageFlags37[MessageFlags37["SuppressEmbeds"] = 4] = "SuppressEmbeds";
-      MessageFlags37[MessageFlags37["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
-      MessageFlags37[MessageFlags37["Urgent"] = 16] = "Urgent";
-      MessageFlags37[MessageFlags37["HasThread"] = 32] = "HasThread";
-      MessageFlags37[MessageFlags37["Ephemeral"] = 64] = "Ephemeral";
-      MessageFlags37[MessageFlags37["Loading"] = 128] = "Loading";
-      MessageFlags37[MessageFlags37["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
-      MessageFlags37[MessageFlags37["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
-      MessageFlags37[MessageFlags37["SuppressNotifications"] = 4096] = "SuppressNotifications";
-      MessageFlags37[MessageFlags37["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
-      MessageFlags37[MessageFlags37["HasSnapshot"] = 16384] = "HasSnapshot";
-      MessageFlags37[MessageFlags37["IsComponentsV2"] = 32768] = "IsComponentsV2";
-    })(MessageFlags36 || (exports2.MessageFlags = MessageFlags36 = {}));
+    var MessageFlags43;
+    (function(MessageFlags44) {
+      MessageFlags44[MessageFlags44["Crossposted"] = 1] = "Crossposted";
+      MessageFlags44[MessageFlags44["IsCrosspost"] = 2] = "IsCrosspost";
+      MessageFlags44[MessageFlags44["SuppressEmbeds"] = 4] = "SuppressEmbeds";
+      MessageFlags44[MessageFlags44["SourceMessageDeleted"] = 8] = "SourceMessageDeleted";
+      MessageFlags44[MessageFlags44["Urgent"] = 16] = "Urgent";
+      MessageFlags44[MessageFlags44["HasThread"] = 32] = "HasThread";
+      MessageFlags44[MessageFlags44["Ephemeral"] = 64] = "Ephemeral";
+      MessageFlags44[MessageFlags44["Loading"] = 128] = "Loading";
+      MessageFlags44[MessageFlags44["FailedToMentionSomeRolesInThread"] = 256] = "FailedToMentionSomeRolesInThread";
+      MessageFlags44[MessageFlags44["ShouldShowLinkNotDiscordWarning"] = 1024] = "ShouldShowLinkNotDiscordWarning";
+      MessageFlags44[MessageFlags44["SuppressNotifications"] = 4096] = "SuppressNotifications";
+      MessageFlags44[MessageFlags44["IsVoiceMessage"] = 8192] = "IsVoiceMessage";
+      MessageFlags44[MessageFlags44["HasSnapshot"] = 16384] = "HasSnapshot";
+      MessageFlags44[MessageFlags44["IsComponentsV2"] = 32768] = "IsComponentsV2";
+    })(MessageFlags43 || (exports2.MessageFlags = MessageFlags43 = {}));
     var BaseThemeType2;
     (function(BaseThemeType3) {
       BaseThemeType3[BaseThemeType3["Unset"] = 0] = "Unset";
@@ -101625,7 +101625,7 @@ var require_ChannelFlagsBitField = __commonJS({
 var require_Constants = __commonJS({
   "node_modules/discord.js/src/util/Constants.js"(exports2) {
     "use strict";
-    var { ChannelType: ChannelType12, MessageType: MessageType2, ComponentType: ComponentType7, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
+    var { ChannelType: ChannelType13, MessageType: MessageType2, ComponentType: ComponentType7, ImageFormat: ImageFormat2, StickerFormatType: StickerFormatType2 } = require_v106();
     exports2.MaxBulkDeletableMessageAge = 12096e5;
     exports2.SweeperKeys = [
       "autoModerationRules",
@@ -101652,18 +101652,18 @@ var require_Constants = __commonJS({
       MessageType2.ContextMenuCommand
     ];
     exports2.GuildTextBasedChannelTypes = [
-      ChannelType12.GuildText,
-      ChannelType12.GuildAnnouncement,
-      ChannelType12.AnnouncementThread,
-      ChannelType12.PublicThread,
-      ChannelType12.PrivateThread,
-      ChannelType12.GuildVoice,
-      ChannelType12.GuildStageVoice
+      ChannelType13.GuildText,
+      ChannelType13.GuildAnnouncement,
+      ChannelType13.AnnouncementThread,
+      ChannelType13.PublicThread,
+      ChannelType13.PrivateThread,
+      ChannelType13.GuildVoice,
+      ChannelType13.GuildStageVoice
     ];
-    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType12.DM, ChannelType12.GroupDM];
-    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType12.DM];
-    exports2.ThreadChannelTypes = [ChannelType12.AnnouncementThread, ChannelType12.PublicThread, ChannelType12.PrivateThread];
-    exports2.VoiceBasedChannelTypes = [ChannelType12.GuildVoice, ChannelType12.GuildStageVoice];
+    exports2.TextBasedChannelTypes = [...exports2.GuildTextBasedChannelTypes, ChannelType13.DM, ChannelType13.GroupDM];
+    exports2.SendableChannels = [...exports2.GuildTextBasedChannelTypes, ChannelType13.DM];
+    exports2.ThreadChannelTypes = [ChannelType13.AnnouncementThread, ChannelType13.PublicThread, ChannelType13.PrivateThread];
+    exports2.VoiceBasedChannelTypes = [ChannelType13.GuildVoice, ChannelType13.GuildStageVoice];
     exports2.SelectMenuTypes = [
       ComponentType7.StringSelect,
       ComponentType7.UserSelect,
@@ -101720,7 +101720,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101732,13 +101732,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits38;
+      static Flags = PermissionFlagsBits44;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits38).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits44).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101750,7 +101750,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits38.ManageChannels | PermissionFlagsBits38.MuteMembers | PermissionFlagsBits38.MoveMembers;
+      static StageModerator = PermissionFlagsBits44.ManageChannels | PermissionFlagsBits44.MuteMembers | PermissionFlagsBits44.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101777,7 +101777,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits38.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits44.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101786,7 +101786,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits38.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits44.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101795,7 +101795,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits38.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits44.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -101815,7 +101815,7 @@ var require_BaseChannel = __commonJS({
     "use strict";
     var { channelLink, channelMention } = require_dist8();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType12, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var ChannelFlagsBitField = require_ChannelFlagsBitField();
     var { ThreadChannelTypes } = require_Constants();
@@ -101930,7 +101930,7 @@ var require_BaseChannel = __commonJS({
        * @returns {boolean}
        */
       isDMBased() {
-        return [ChannelType12.DM, ChannelType12.GroupDM].includes(this.type);
+        return [ChannelType13.DM, ChannelType13.GroupDM].includes(this.type);
       }
       /**
        * Indicates whether this channel is {@link BaseGuildVoiceChannel voice-based}.
@@ -102206,7 +102206,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102276,7 +102276,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits38.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits44.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102844,7 +102844,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits38, ChannelType: ChannelType12 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44, ChannelType: ChannelType13 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102925,7 +102925,7 @@ var require_GuildChannel = __commonJS({
        * @readonly
        */
       get position() {
-        const selfIsCategory = this.type === ChannelType12.GuildCategory;
+        const selfIsCategory = this.type === ChannelType13.GuildCategory;
         const types = getSortableGroupTypes(this.type);
         let count = 0;
         for (const channel of this.guild.channels.cache.values()) {
@@ -102988,7 +102988,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits38.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits44.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -103003,7 +103003,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits38.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits44.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -103029,7 +103029,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits38.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits44.ViewChannel, false)
         );
       }
       /**
@@ -103163,10 +103163,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits38.ViewChannel | PermissionFlagsBits38.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits38.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits44.ViewChannel | PermissionFlagsBits44.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits44.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103178,7 +103178,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits38.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits44.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -103251,9 +103251,9 @@ var require_Util = __commonJS({
     var { parse: parse3 } = require("node:path");
     var process3 = require("node:process");
     var { Collection: Collection3 } = require_dist7();
-    var { ChannelType: ChannelType12, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, RouteBases: RouteBases2, Routes: Routes3 } = require_v106();
     var { fetch: fetch2 } = require_undici();
-    var Colors31 = require_Colors();
+    var Colors36 = require_Colors();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var isObject2 = /* @__PURE__ */ __name((d) => typeof d === "object" && d !== null, "isObject");
     var deprecationEmittedForUserFetchFlags = false;
@@ -103326,24 +103326,24 @@ var require_Util = __commonJS({
     }
     __name(makePlainError, "makePlainError");
     var TextSortableGroupTypes = [
-      ChannelType12.GuildText,
-      ChannelType12.GuildAnnouncement,
-      ChannelType12.GuildForum,
-      ChannelType12.GuildMedia
+      ChannelType13.GuildText,
+      ChannelType13.GuildAnnouncement,
+      ChannelType13.GuildForum,
+      ChannelType13.GuildMedia
     ];
-    var VoiceSortableGroupTypes = [ChannelType12.GuildVoice, ChannelType12.GuildStageVoice];
-    var CategorySortableGroupTypes = [ChannelType12.GuildCategory];
+    var VoiceSortableGroupTypes = [ChannelType13.GuildVoice, ChannelType13.GuildStageVoice];
+    var CategorySortableGroupTypes = [ChannelType13.GuildCategory];
     function getSortableGroupTypes(type) {
       switch (type) {
-        case ChannelType12.GuildText:
-        case ChannelType12.GuildAnnouncement:
-        case ChannelType12.GuildForum:
-        case ChannelType12.GuildMedia:
+        case ChannelType13.GuildText:
+        case ChannelType13.GuildAnnouncement:
+        case ChannelType13.GuildForum:
+        case ChannelType13.GuildMedia:
           return TextSortableGroupTypes;
-        case ChannelType12.GuildVoice:
-        case ChannelType12.GuildStageVoice:
+        case ChannelType13.GuildVoice:
+        case ChannelType13.GuildStageVoice:
           return VoiceSortableGroupTypes;
-        case ChannelType12.GuildCategory:
+        case ChannelType13.GuildCategory:
           return CategorySortableGroupTypes;
         default:
           return [type];
@@ -103372,7 +103372,7 @@ var require_Util = __commonJS({
         if (color === "Random") return Math.floor(Math.random() * (16777215 + 1));
         if (color === "Default") return 0;
         if (/^#?[\da-f]{6}$/i.test(color)) return parseInt(color.replace("#", ""), 16);
-        resolvedColor = Colors31[color];
+        resolvedColor = Colors36[color];
       } else if (Array.isArray(color)) {
         resolvedColor = (color[0] << 16) + (color[1] << 8) + color[2];
       } else {
@@ -103425,7 +103425,7 @@ var require_Util = __commonJS({
               return user ? `@${user.displayName}` : match;
             }
             case "@&": {
-              if (channel.type === ChannelType12.DM) return match;
+              if (channel.type === ChannelType13.DM) return match;
               const role = channel.guild.roles.cache.get(id);
               return role ? `@${role.name}` : match;
             }
@@ -105819,7 +105819,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection3 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105970,7 +105970,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits38.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits38.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits44.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits44.ManageGuild)
         );
       }
       /**
@@ -106165,7 +106165,7 @@ var require_DataResolver = __commonJS({
 var require_MessageFlagsBitField = __commonJS({
   "node_modules/discord.js/src/util/MessageFlagsBitField.js"(exports2, module2) {
     "use strict";
-    var { MessageFlags: MessageFlags36 } = require_v106();
+    var { MessageFlags: MessageFlags43 } = require_v106();
     var BitField = require_BitField();
     var MessageFlagsBitField = class extends BitField {
       static {
@@ -106176,7 +106176,7 @@ var require_MessageFlagsBitField = __commonJS({
        * @type {MessageFlags}
        * @memberof MessageFlagsBitField
        */
-      static Flags = MessageFlags36;
+      static Flags = MessageFlags43;
     };
     module2.exports = MessageFlagsBitField;
   }
@@ -113619,7 +113619,7 @@ var require_dist9 = __commonJS({
     }, "__decorateClass");
     var index_exports = {};
     __export2(index_exports, {
-      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder21, "ActionRowBuilder"),
+      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder22, "ActionRowBuilder"),
       ApplicationCommandNumericOptionMinMaxValueMixin: /* @__PURE__ */ __name(() => ApplicationCommandNumericOptionMinMaxValueMixin, "ApplicationCommandNumericOptionMinMaxValueMixin"),
       ApplicationCommandOptionBase: /* @__PURE__ */ __name(() => ApplicationCommandOptionBase, "ApplicationCommandOptionBase"),
       ApplicationCommandOptionChannelTypesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionChannelTypesMixin, "ApplicationCommandOptionChannelTypesMixin"),
@@ -113639,7 +113639,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder68, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder74, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113655,8 +113655,8 @@ var require_dist9 = __commonJS({
       RoleSelectMenuBuilder: /* @__PURE__ */ __name(() => RoleSelectMenuBuilder, "RoleSelectMenuBuilder"),
       SectionBuilder: /* @__PURE__ */ __name(() => SectionBuilder, "SectionBuilder"),
       SelectMenuAssertions: /* @__PURE__ */ __name(() => Assertions_exports6, "SelectMenuAssertions"),
-      SelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder4, "SelectMenuBuilder"),
-      SelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder4, "SelectMenuOptionBuilder"),
+      SelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder5, "SelectMenuBuilder"),
+      SelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder5, "SelectMenuOptionBuilder"),
       SeparatorBuilder: /* @__PURE__ */ __name(() => SeparatorBuilder, "SeparatorBuilder"),
       SharedNameAndDescription: /* @__PURE__ */ __name(() => SharedNameAndDescription, "SharedNameAndDescription"),
       SharedSlashCommand: /* @__PURE__ */ __name(() => SharedSlashCommand, "SharedSlashCommand"),
@@ -113675,8 +113675,8 @@ var require_dist9 = __commonJS({
       SlashCommandSubcommandBuilder: /* @__PURE__ */ __name(() => SlashCommandSubcommandBuilder, "SlashCommandSubcommandBuilder"),
       SlashCommandSubcommandGroupBuilder: /* @__PURE__ */ __name(() => SlashCommandSubcommandGroupBuilder, "SlashCommandSubcommandGroupBuilder"),
       SlashCommandUserOption: /* @__PURE__ */ __name(() => SlashCommandUserOption, "SlashCommandUserOption"),
-      StringSelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder4, "StringSelectMenuBuilder"),
-      StringSelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder4, "StringSelectMenuOptionBuilder"),
+      StringSelectMenuBuilder: /* @__PURE__ */ __name(() => StringSelectMenuBuilder5, "StringSelectMenuBuilder"),
+      StringSelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder5, "StringSelectMenuOptionBuilder"),
       TextDisplayBuilder: /* @__PURE__ */ __name(() => TextDisplayBuilder, "TextDisplayBuilder"),
       TextInputAssertions: /* @__PURE__ */ __name(() => Assertions_exports5, "TextInputAssertions"),
       TextInputBuilder: /* @__PURE__ */ __name(() => TextInputBuilder13, "TextInputBuilder"),
@@ -113773,7 +113773,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder68 = class {
+    var EmbedBuilder74 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -114014,7 +114014,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift2 = require_cjs3();
     var import_v103 = require_v106();
-    var StringSelectMenuOptionBuilder4 = class {
+    var StringSelectMenuOptionBuilder5 = class {
       static {
         __name(this, "StringSelectMenuOptionBuilder");
       }
@@ -114122,7 +114122,7 @@ var require_dist9 = __commonJS({
       emoji: emojiValidator.optional(),
       default: import_shapeshift2.s.boolean().optional()
     }).setValidationEnabled(isValidationEnabled);
-    var optionValidator = import_shapeshift2.s.instance(StringSelectMenuOptionBuilder4).setValidationEnabled(isValidationEnabled);
+    var optionValidator = import_shapeshift2.s.instance(StringSelectMenuOptionBuilder5).setValidationEnabled(isValidationEnabled);
     var optionsValidator = optionValidator.array().lengthGreaterThanOrEqual(0).setValidationEnabled(isValidationEnabled);
     var optionsLengthValidator = import_shapeshift2.s.number().int().greaterThanOrEqual(0).lessThanOrEqual(25).setValidationEnabled(isValidationEnabled);
     function validateRequiredSelectMenuParameters(options, customId) {
@@ -115466,7 +115466,7 @@ var require_dist9 = __commonJS({
       }
       return import_shapeshift7.Result.ok(value);
     }).setValidationEnabled(isValidationEnabled);
-    var StringSelectMenuBuilder4 = class extends BaseSelectMenuBuilder {
+    var StringSelectMenuBuilder5 = class extends BaseSelectMenuBuilder {
       static {
         __name(this, "StringSelectMenuBuilder");
       }
@@ -115511,7 +115511,7 @@ var require_dist9 = __commonJS({
       constructor(data) {
         const { options, ...initData } = data ?? {};
         super({ ...initData, type: import_v1014.ComponentType.StringSelect });
-        this.options = options?.map((option) => new StringSelectMenuOptionBuilder4(option)) ?? [];
+        this.options = options?.map((option) => new StringSelectMenuOptionBuilder5(option)) ?? [];
       }
       /**
        * Adds options to this select menu.
@@ -115523,7 +115523,7 @@ var require_dist9 = __commonJS({
         optionsLengthValidator.parse(this.options.length + normalizedOptions.length);
         this.options.push(
           ...normalizedOptions.map(
-            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder4 ? normalizedOption : new StringSelectMenuOptionBuilder4(selectMenuStringOptionPredicate.parse(normalizedOption))
+            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder5 ? normalizedOption : new StringSelectMenuOptionBuilder5(selectMenuStringOptionPredicate.parse(normalizedOption))
           )
         );
         return this;
@@ -115570,7 +115570,7 @@ var require_dist9 = __commonJS({
           index,
           deleteCount,
           ...normalizedOptions.map(
-            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder4 ? normalizedOption : new StringSelectMenuOptionBuilder4(selectMenuStringOptionPredicate.parse(normalizedOption))
+            (normalizedOption) => normalizedOption instanceof StringSelectMenuOptionBuilder5 ? normalizedOption : new StringSelectMenuOptionBuilder5(selectMenuStringOptionPredicate.parse(normalizedOption))
           )
         );
         optionsLengthValidator.parse(clone2.length);
@@ -115877,7 +115877,7 @@ var require_dist9 = __commonJS({
        * @param input - A function that returns a component builder or an already built builder
        */
       setStringSelectMenuComponent(input2) {
-        this.data.component = resolveBuilder(input2, StringSelectMenuBuilder4);
+        this.data.component = resolveBuilder(input2, StringSelectMenuBuilder5);
         return this;
       }
       /**
@@ -116355,7 +116355,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         this.components.push(
-          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder21))
+          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder22))
         );
         return this;
       }
@@ -116750,11 +116750,11 @@ var require_dist9 = __commonJS({
       }
       switch (data.type) {
         case import_v1027.ComponentType.ActionRow:
-          return new ActionRowBuilder21(data);
+          return new ActionRowBuilder22(data);
         case import_v1027.ComponentType.Button:
           return new ButtonBuilder18(data);
         case import_v1027.ComponentType.StringSelect:
-          return new StringSelectMenuBuilder4(data);
+          return new StringSelectMenuBuilder5(data);
         case import_v1027.ComponentType.TextInput:
           return new TextInputBuilder13(data);
         case import_v1027.ComponentType.UserSelect:
@@ -116811,7 +116811,7 @@ var require_dist9 = __commonJS({
     }
     __name(resolveBuilder, "resolveBuilder");
     __name3(resolveBuilder, "resolveBuilder");
-    var ActionRowBuilder21 = class extends ComponentBuilder {
+    var ActionRowBuilder22 = class extends ComponentBuilder {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -116897,7 +116897,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift10 = require_cjs3();
     var titleValidator = import_shapeshift10.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(45).setValidationEnabled(isValidationEnabled);
-    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder21), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
+    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder22), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
     function validateRequiredParameters2(customId, title, components) {
       customIdValidator.parse(customId);
       titleValidator.parse(title);
@@ -116956,15 +116956,15 @@ var require_dist9 = __commonJS({
       addComponents(...components) {
         this.components.push(
           ...normalizeArray(components).map((component, idx) => {
-            if (component instanceof ActionRowBuilder21 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
+            if (component instanceof ActionRowBuilder22 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
               return component;
             }
             if (component instanceof TextInputBuilder13) {
-              return new ActionRowBuilder21().addComponents(component);
+              return new ActionRowBuilder22().addComponents(component);
             }
             if ("type" in component) {
               if (component.type === import_v1029.ComponentType.ActionRow) {
-                return new ActionRowBuilder21(component);
+                return new ActionRowBuilder22(component);
               }
               if (component.type === import_v1029.ComponentType.Label) {
                 return new LabelBuilder(component);
@@ -116973,7 +116973,7 @@ var require_dist9 = __commonJS({
                 return new TextDisplayBuilder(component);
               }
               if (component.type === import_v1029.ComponentType.TextInput) {
-                return new ActionRowBuilder21().addComponents(
+                return new ActionRowBuilder22().addComponents(
                   new TextInputBuilder13(component)
                 );
               }
@@ -117013,7 +117013,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         const normalized = normalizeArray(components);
-        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder21));
+        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder22));
         this.components.push(...resolved);
         return this;
       }
@@ -119337,7 +119337,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119373,7 +119373,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits38.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits44.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -119838,7 +119838,7 @@ var require_ActionRowBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { createComponentBuilder } = require_Components();
     var { toSnakeCase } = require_Transformers();
-    var ActionRowBuilder21 = class extends BuildersActionRow {
+    var ActionRowBuilder22 = class extends BuildersActionRow {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -119857,7 +119857,7 @@ var require_ActionRowBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ActionRowBuilder21;
+    module2.exports = ActionRowBuilder22;
   }
 });
 
@@ -120445,7 +120445,7 @@ var require_StringSelectMenuBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var StringSelectMenuBuilder4 = class _StringSelectMenuBuilder extends BuildersSelectMenu {
+    var StringSelectMenuBuilder5 = class _StringSelectMenuBuilder extends BuildersSelectMenu {
       static {
         __name(this, "StringSelectMenuBuilder");
       }
@@ -120504,7 +120504,7 @@ var require_StringSelectMenuBuilder = __commonJS({
         return new this(other);
       }
     };
-    module2.exports = StringSelectMenuBuilder4;
+    module2.exports = StringSelectMenuBuilder5;
   }
 });
 
@@ -120725,7 +120725,7 @@ var require_Components = __commonJS({
     __name(findComponentByCustomId, "findComponentByCustomId");
     module2.exports = { createComponent, createComponentBuilder, findComponentByCustomId };
     var ActionRow = require_ActionRow();
-    var ActionRowBuilder21 = require_ActionRowBuilder();
+    var ActionRowBuilder22 = require_ActionRowBuilder();
     var ButtonBuilder18 = require_ButtonBuilder();
     var ButtonComponent = require_ButtonComponent();
     var ChannelSelectMenuBuilder = require_ChannelSelectMenuBuilder();
@@ -120741,7 +120741,7 @@ var require_Components = __commonJS({
     var RoleSelectMenuComponent = require_RoleSelectMenuComponent();
     var SectionComponent = require_SectionComponent();
     var SeparatorComponent = require_SeparatorComponent();
-    var StringSelectMenuBuilder4 = require_StringSelectMenuBuilder();
+    var StringSelectMenuBuilder5 = require_StringSelectMenuBuilder();
     var StringSelectMenuComponent = require_StringSelectMenuComponent();
     var TextDisplayComponent = require_TextDisplayComponent();
     var TextInputBuilder13 = require_TextInputBuilder();
@@ -120768,9 +120768,9 @@ var require_Components = __commonJS({
       [ComponentType7.Label]: LabelComponent
     };
     var ComponentTypeToBuilder = {
-      [ComponentType7.ActionRow]: ActionRowBuilder21,
+      [ComponentType7.ActionRow]: ActionRowBuilder22,
       [ComponentType7.Button]: ButtonBuilder18,
-      [ComponentType7.StringSelect]: StringSelectMenuBuilder4,
+      [ComponentType7.StringSelect]: StringSelectMenuBuilder5,
       [ComponentType7.TextInput]: TextInputBuilder13,
       [ComponentType7.UserSelect]: UserSelectMenuBuilder2,
       [ComponentType7.RoleSelect]: RoleSelectMenuBuilder,
@@ -120789,10 +120789,10 @@ var require_Message = __commonJS({
     var { DiscordSnowflake } = require_cjs();
     var {
       InteractionType: InteractionType2,
-      ChannelType: ChannelType12,
+      ChannelType: ChannelType13,
       MessageType: MessageType2,
-      MessageFlags: MessageFlags36,
-      PermissionFlagsBits: PermissionFlagsBits38,
+      MessageFlags: MessageFlags43,
+      PermissionFlagsBits: PermissionFlagsBits44,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121111,7 +121111,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get hasThread() {
-        return this.flags.has(MessageFlags36.HasThread);
+        return this.flags.has(MessageFlags43.HasThread);
       }
       /**
        * The thread started by this message
@@ -121251,7 +121251,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits38.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits44.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121271,8 +121271,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits38.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits44.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121283,7 +121283,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits38.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits44.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121297,7 +121297,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits38.ReadMessageHistory | PermissionFlagsBits38.PinMessages);
+        return permissions.has(PermissionFlagsBits44.ReadMessageHistory | PermissionFlagsBits44.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121318,10 +121318,10 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits38.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits38.ManageMessages);
+        const bitfield = PermissionFlagsBits44.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits44.ManageMessages);
         const { channel } = this;
         return Boolean(
-          channel?.type === ChannelType12.GuildAnnouncement && !this.flags.has(MessageFlags36.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
+          channel?.type === ChannelType13.GuildAnnouncement && !this.flags.has(MessageFlags43.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
         );
       }
       /**
@@ -121490,7 +121490,7 @@ var require_Message = __commonJS({
        */
       async startThread(options = {}) {
         if (!this.channel) throw new DiscordjsError2(ErrorCodes2.ChannelNotCached);
-        if (![ChannelType12.GuildText, ChannelType12.GuildAnnouncement].includes(this.channel.type)) {
+        if (![ChannelType13.GuildText, ChannelType13.GuildAnnouncement].includes(this.channel.type)) {
           throw new DiscordjsError2(ErrorCodes2.MessageThreadParent);
         }
         if (this.hasThread) throw new DiscordjsError2(ErrorCodes2.MessageExistingThread);
@@ -121522,9 +121522,9 @@ var require_Message = __commonJS({
       suppressEmbeds(suppress = true) {
         const flags = new MessageFlagsBitField(this.flags.bitfield);
         if (suppress) {
-          flags.add(MessageFlags36.SuppressEmbeds);
+          flags.add(MessageFlags43.SuppressEmbeds);
         } else {
-          flags.remove(MessageFlags36.SuppressEmbeds);
+          flags.remove(MessageFlags43.SuppressEmbeds);
         }
         return this.edit({ flags });
       }
@@ -122084,7 +122084,7 @@ var require_WebhookClient = __commonJS({
 var require_VoiceState = __commonJS({
   "node_modules/discord.js/src/structures/VoiceState.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType12, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, Routes: Routes3 } = require_v106();
     var Base = require_Base();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var VoiceState = class extends Base {
@@ -122231,7 +122231,7 @@ var require_VoiceState = __commonJS({
        * @returns {Promise<VoiceState>}
        */
       async edit(options) {
-        if (this.channel?.type !== ChannelType12.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
+        if (this.channel?.type !== ChannelType13.GuildStageVoice) throw new DiscordjsError2(ErrorCodes2.VoiceNotStageChannel);
         const target = this.client.user.id === this.id ? "@me" : this.id;
         if (target !== "@me" && options.requestToSpeak !== void 0) {
           throw new DiscordjsError2(ErrorCodes2.VoiceStateNotOwn);
@@ -122526,7 +122526,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122781,7 +122781,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits38.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits44.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122790,7 +122790,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits38.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits44.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122798,7 +122798,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits38.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits38.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits44.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits44.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -123346,7 +123346,7 @@ var require_MessagePayload = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { lazy: lazy2, isJSONEncodable } = require_dist2();
     var { DiscordSnowflake } = require_cjs();
-    var { MessageFlags: MessageFlags36, MessageReferenceType: MessageReferenceType2 } = require_v106();
+    var { MessageFlags: MessageFlags43, MessageReferenceType: MessageReferenceType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, DiscordjsRangeError: DiscordjsRangeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveFile } = require_DataResolver();
     var MessageFlagsBitField = require_MessageFlagsBitField();
@@ -123475,7 +123475,7 @@ var require_MessagePayload = __commonJS({
           flags = new MessageFlagsBitField(this.options.flags).bitfield;
         }
         if (isInteraction && this.options.ephemeral) {
-          flags |= MessageFlags36.Ephemeral;
+          flags |= MessageFlags43.Ephemeral;
         }
         let allowedMentions = this.options.allowedMentions === void 0 ? this.target.client.options.allowedMentions : this.options.allowedMentions;
         if (allowedMentions?.repliedUser !== void 0) {
@@ -124628,7 +124628,7 @@ var require_Partials = __commonJS({
 var require_Action = __commonJS({
   "node_modules/discord.js/src/client/actions/Action.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType12 } = require_v106();
+    var { ChannelType: ChannelType13 } = require_v106();
     var { Poll } = require_Poll();
     var { PollAnswer } = require_PollAnswer();
     var Partials2 = require_Partials();
@@ -124653,7 +124653,7 @@ var require_Action = __commonJS({
           if (!data.recipients.some((existingRecipient) => recipient.id === existingRecipient.id)) {
             payloadData.recipients = [...data.recipients, recipient];
           }
-        } else if (data.type === ChannelType12.DM || data.type === ChannelType12.GroupDM) {
+        } else if (data.type === ChannelType13.DM || data.type === ChannelType13.GroupDM) {
           const recipient = data.author ?? data.user ?? { id: data.user_id };
           payloadData.recipients = [recipient];
         }
@@ -125112,7 +125112,7 @@ var require_DMChannel = __commonJS({
   "node_modules/discord.js/src/structures/DMChannel.js"(exports2, module2) {
     "use strict";
     var { userMention } = require_dist8();
-    var { ChannelType: ChannelType12 } = require_v106();
+    var { ChannelType: ChannelType13 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var DMMessageManager = require_DMMessageManager();
@@ -125123,7 +125123,7 @@ var require_DMChannel = __commonJS({
       }
       constructor(client, data) {
         super(client, data);
-        this.type = ChannelType12.DM;
+        this.type = ChannelType13.DM;
         this.messages = new DMMessageManager(this);
       }
       _patch(data) {
@@ -125760,7 +125760,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType12, PermissionFlagsBits: PermissionFlagsBits38, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType13, PermissionFlagsBits: PermissionFlagsBits44, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -125797,7 +125797,7 @@ var require_ThreadChannel = __commonJS({
         }
         if ("thread_metadata" in data) {
           this.locked = data.thread_metadata.locked ?? false;
-          this.invitable = this.type === ChannelType12.PrivateThread ? data.thread_metadata.invitable ?? false : null;
+          this.invitable = this.type === ChannelType13.PrivateThread ? data.thread_metadata.invitable ?? false : null;
           this.archived = data.thread_metadata.archived;
           this.autoArchiveDuration = data.thread_metadata.auto_archive_duration;
           this.archiveTimestamp = Date.parse(data.thread_metadata.archive_timestamp);
@@ -125811,7 +125811,7 @@ var require_ThreadChannel = __commonJS({
           this.archiveTimestamp ??= null;
           this.invitable ??= null;
         }
-        this._createdTimestamp ??= this.type === ChannelType12.PrivateThread ? super.createdTimestamp : null;
+        this._createdTimestamp ??= this.type === ChannelType13.PrivateThread ? super.createdTimestamp : null;
         if ("last_message_id" in data) {
           this.lastMessageId = data.last_message_id;
         } else {
@@ -125984,7 +125984,7 @@ var require_ThreadChannel = __commonJS({
             auto_archive_duration: options.autoArchiveDuration,
             rate_limit_per_user: options.rateLimitPerUser,
             locked: options.locked,
-            invitable: this.type === ChannelType12.PrivateThread ? options.invitable : void 0,
+            invitable: this.type === ChannelType13.PrivateThread ? options.invitable : void 0,
             applied_tags: options.appliedTags,
             flags: "flags" in options ? ChannelFlagsBitField.resolve(options.flags) : void 0
           },
@@ -126031,7 +126031,7 @@ var require_ThreadChannel = __commonJS({
        * @returns {Promise<ThreadChannel>}
        */
       async setInvitable(invitable = true, reason) {
-        if (this.type !== ChannelType12.PrivateThread) {
+        if (this.type !== ChannelType13.PrivateThread) {
           throw new DiscordjsRangeError2(ErrorCodes2.ThreadInvitableType, this.type);
         }
         return this.edit({ invitable, reason });
@@ -126114,7 +126114,7 @@ var require_ThreadChannel = __commonJS({
        * @readonly
        */
       get editable() {
-        return this.ownerId === this.client.user.id && (this.type !== ChannelType12.PrivateThread || this.joined) || this.manageable;
+        return this.ownerId === this.client.user.id && (this.type !== ChannelType13.PrivateThread || this.joined) || this.manageable;
       }
       /**
        * Whether the thread is joinable by the client user
@@ -126123,7 +126123,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType12.PrivateThread ? PermissionFlagsBits38.ManageThreads : PermissionFlagsBits38.ViewChannel,
+          this.type === ChannelType13.PrivateThread ? PermissionFlagsBits44.ManageThreads : PermissionFlagsBits44.ViewChannel,
           false
         );
       }
@@ -126135,8 +126135,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits44.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126147,7 +126147,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits38.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits44.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126157,8 +126157,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType12.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits38.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType13.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits44.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126384,7 +126384,7 @@ var require_ThreadManager = __commonJS({
 var require_GuildTextThreadManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildTextThreadManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType12, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, Routes: Routes3 } = require_v106();
     var ThreadManager = require_ThreadManager();
     var { DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildTextThreadManager = class extends ThreadManager {
@@ -126443,12 +126443,12 @@ var require_GuildTextThreadManager = __commonJS({
         reason,
         rateLimitPerUser
       } = {}) {
-        let resolvedType = this.channel.type === ChannelType12.GuildAnnouncement ? ChannelType12.AnnouncementThread : ChannelType12.PublicThread;
+        let resolvedType = this.channel.type === ChannelType13.GuildAnnouncement ? ChannelType13.AnnouncementThread : ChannelType13.PublicThread;
         let startMessageId;
         if (startMessage) {
           startMessageId = this.channel.messages.resolveId(startMessage);
           if (!startMessageId) throw new DiscordjsTypeError2(ErrorCodes2.InvalidType, "startMessage", "MessageResolvable");
-        } else if (this.channel.type !== ChannelType12.GuildAnnouncement) {
+        } else if (this.channel.type !== ChannelType13.GuildAnnouncement) {
           resolvedType = type ?? resolvedType;
         }
         const data = await this.client.rest.post(Routes3.threads(this.channel.id, startMessageId), {
@@ -126456,7 +126456,7 @@ var require_GuildTextThreadManager = __commonJS({
             name,
             auto_archive_duration: autoArchiveDuration,
             type: resolvedType,
-            invitable: resolvedType === ChannelType12.PrivateThread ? invitable : void 0,
+            invitable: resolvedType === ChannelType13.PrivateThread ? invitable : void 0,
             rate_limit_per_user: rateLimitPerUser
           },
           reason
@@ -126667,7 +126667,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection3 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126741,8 +126741,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.Connect, false);
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits44.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126932,7 +126932,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits38, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits44, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126945,7 +126945,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits38.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits44.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126956,8 +126956,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.Speak, false);
+        if (permissions.has(PermissionFlagsBits44.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits44.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -127156,7 +127156,7 @@ var require_Channels = __commonJS({
   "node_modules/discord.js/src/util/Channels.js"(exports2, module2) {
     "use strict";
     var { lazy: lazy2 } = require_dist2();
-    var { ChannelType: ChannelType12 } = require_v106();
+    var { ChannelType: ChannelType13 } = require_v106();
     var getCategoryChannel = lazy2(() => require_CategoryChannel());
     var getDMChannel = lazy2(() => require_DMChannel());
     var getNewsChannel = lazy2(() => require_NewsChannel());
@@ -127171,49 +127171,49 @@ var require_Channels = __commonJS({
     function createChannel(client, data, guild, { allowUnknownGuild } = {}) {
       let channel;
       if (!data.guild_id && !guild) {
-        if (data.recipients && data.type !== ChannelType12.GroupDM || data.type === ChannelType12.DM) {
+        if (data.recipients && data.type !== ChannelType13.GroupDM || data.type === ChannelType13.DM) {
           channel = new (getDMChannel())(client, data);
-        } else if (data.type === ChannelType12.GroupDM) {
+        } else if (data.type === ChannelType13.GroupDM) {
           channel = new (getPartialGroupDMChannel())(client, data);
         }
       } else {
         guild ??= client.guilds.cache.get(data.guild_id);
         if (guild || allowUnknownGuild) {
           switch (data.type) {
-            case ChannelType12.GuildText: {
+            case ChannelType13.GuildText: {
               channel = new (getTextChannel())(guild, data, client);
               break;
             }
-            case ChannelType12.GuildVoice: {
+            case ChannelType13.GuildVoice: {
               channel = new (getVoiceChannel())(guild, data, client);
               break;
             }
-            case ChannelType12.GuildCategory: {
+            case ChannelType13.GuildCategory: {
               channel = new (getCategoryChannel())(guild, data, client);
               break;
             }
-            case ChannelType12.GuildAnnouncement: {
+            case ChannelType13.GuildAnnouncement: {
               channel = new (getNewsChannel())(guild, data, client);
               break;
             }
-            case ChannelType12.GuildStageVoice: {
+            case ChannelType13.GuildStageVoice: {
               channel = new (getStageChannel())(guild, data, client);
               break;
             }
-            case ChannelType12.AnnouncementThread:
-            case ChannelType12.PublicThread:
-            case ChannelType12.PrivateThread: {
+            case ChannelType13.AnnouncementThread:
+            case ChannelType13.PublicThread:
+            case ChannelType13.PrivateThread: {
               channel = new (getThreadChannel())(guild, data, client);
               if (!allowUnknownGuild) channel.parent?.threads.cache.set(channel.id, channel);
               break;
             }
-            case ChannelType12.GuildDirectory:
+            case ChannelType13.GuildDirectory:
               channel = new (getDirectoryChannel())(guild, data, client);
               break;
-            case ChannelType12.GuildForum:
+            case ChannelType13.GuildForum:
               channel = new (getForumChannel())(guild, data, client);
               break;
-            case ChannelType12.GuildMedia:
+            case ChannelType13.GuildMedia:
               channel = new (getMediaChannel())(guild, data, client);
               break;
           }
@@ -129503,7 +129503,7 @@ var require_InteractionResponses = __commonJS({
     var { deprecate } = require("node:util");
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { isJSONEncodable } = require_dist2();
-    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags36, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
+    var { InteractionResponseType: InteractionResponseType2, MessageFlags: MessageFlags43, Routes: Routes3, InteractionType: InteractionType2 } = require_v106();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var MessageFlagsBitField = require_MessageFlagsBitField();
     var InteractionCallbackResponse = require_InteractionCallbackResponse();
@@ -129600,7 +129600,7 @@ var require_InteractionResponses = __commonJS({
         }
         const flags = new MessageFlagsBitField(options.flags);
         if (options.ephemeral) {
-          flags.add(MessageFlags36.Ephemeral);
+          flags.add(MessageFlags43.Ephemeral);
         }
         const response = await this.client.rest.post(Routes3.interactionCallback(this.id, this.token), {
           body: {
@@ -129613,7 +129613,7 @@ var require_InteractionResponses = __commonJS({
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
         this.deferred = true;
-        this.ephemeral = flags.has(MessageFlags36.Ephemeral);
+        this.ephemeral = flags.has(MessageFlags43.Ephemeral);
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
       /**
@@ -129668,7 +129668,7 @@ var require_InteractionResponses = __commonJS({
           auth: false,
           query: makeURLSearchParams2({ with_response: options.withResponse ?? false })
         });
-        this.ephemeral = Boolean(data.flags & MessageFlags36.Ephemeral);
+        this.ephemeral = Boolean(data.flags & MessageFlags43.Ephemeral);
         this.replied = true;
         return options.withResponse ? new InteractionCallbackResponse(this.client, response) : options.fetchReply ? this.fetchReply() : new InteractionResponse(this);
       }
@@ -140593,7 +140593,7 @@ var require_GuildChannelManager = __commonJS({
     "use strict";
     var process3 = require("node:process");
     var { Collection: Collection3 } = require_dist7();
-    var { ChannelType: ChannelType12, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var GuildTextThreadManager = require_GuildTextThreadManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
@@ -140859,7 +140859,7 @@ var require_GuildChannelManager = __commonJS({
         if (options.lockPermissions) {
           if (parentId) {
             const newParent = this.cache.get(parentId);
-            if (newParent?.type === ChannelType12.GuildCategory) {
+            if (newParent?.type === ChannelType13.GuildCategory) {
               permission_overwrites = newParent.permissionOverwrites.cache.map(
                 (overwrite) => PermissionOverwrites.resolve(overwrite, this.guild)
               );
@@ -141065,7 +141065,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection3 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits44 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141207,7 +141207,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits38.CreateGuildExpressions | PermissionFlagsBits38.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits44.CreateGuildExpressions | PermissionFlagsBits44.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -143684,7 +143684,7 @@ var require_Guild = __commonJS({
     var { Collection: Collection3 } = require_dist7();
     var { makeURLSearchParams: makeURLSearchParams2 } = require_dist6();
     var { DiscordSnowflake } = require_cjs();
-    var { ChannelType: ChannelType12, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
+    var { ChannelType: ChannelType13, GuildPremiumTier: GuildPremiumTier2, Routes: Routes3, GuildFeature: GuildFeature2 } = require_v106();
     var AnonymousGuild = require_AnonymousGuild();
     var GuildAuditLogs = require_GuildAuditLogs();
     var { GuildOnboarding } = require_GuildOnboarding();
@@ -144823,7 +144823,7 @@ var require_Guild = __commonJS({
        * @private
        */
       _sortedChannels(channel) {
-        const channelIsCategory = channel.type === ChannelType12.GuildCategory;
+        const channelIsCategory = channel.type === ChannelType13.GuildCategory;
         const types = getSortableGroupTypes(channel.type);
         return discordSort(
           this.channels.cache.filter(
@@ -145211,7 +145211,7 @@ var require_GuildManager = __commonJS({
 var require_UserManager = __commonJS({
   "node_modules/discord.js/src/managers/UserManager.js"(exports2, module2) {
     "use strict";
-    var { ChannelType: ChannelType12, Routes: Routes3 } = require_v106();
+    var { ChannelType: ChannelType13, Routes: Routes3 } = require_v106();
     var CachedManager = require_CachedManager();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { GuildMember: GuildMember3 } = require_GuildMember();
@@ -145249,7 +145249,7 @@ var require_UserManager = __commonJS({
       dmChannel(userId) {
         const expectedRecipientIds = [userId, this.client.user.id];
         return this.client.channels.cache.find(
-          (channel) => channel.type === ChannelType12.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
+          (channel) => channel.type === ChannelType13.DM && channel.recipientId === userId && channel.recipientIds.every((id) => expectedRecipientIds.includes(id))
         ) ?? null;
       }
       /**
@@ -147342,7 +147342,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder68 = class extends BuildersEmbed {
+    var EmbedBuilder74 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147374,7 +147374,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder68;
+    module2.exports = EmbedBuilder74;
   }
 });
 
@@ -147538,9 +147538,9 @@ var require_SelectMenuBuilder = __commonJS({
   "node_modules/discord.js/src/structures/SelectMenuBuilder.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var StringSelectMenuBuilder4 = require_StringSelectMenuBuilder();
+    var StringSelectMenuBuilder5 = require_StringSelectMenuBuilder();
     var deprecationEmitted = false;
-    var SelectMenuBuilder3 = class extends StringSelectMenuBuilder4 {
+    var SelectMenuBuilder3 = class extends StringSelectMenuBuilder5 {
       static {
         __name(this, "SelectMenuBuilder");
       }
@@ -147619,7 +147619,7 @@ var require_StringSelectMenuOptionBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var StringSelectMenuOptionBuilder4 = class extends BuildersSelectMenuOption {
+    var StringSelectMenuOptionBuilder5 = class extends BuildersSelectMenuOption {
       static {
         __name(this, "StringSelectMenuOptionBuilder");
       }
@@ -147651,7 +147651,7 @@ var require_StringSelectMenuOptionBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = StringSelectMenuOptionBuilder4;
+    module2.exports = StringSelectMenuOptionBuilder5;
   }
 });
 
@@ -147660,9 +147660,9 @@ var require_SelectMenuOptionBuilder = __commonJS({
   "node_modules/discord.js/src/structures/SelectMenuOptionBuilder.js"(exports2, module2) {
     "use strict";
     var process3 = require("node:process");
-    var StringSelectMenuOptionBuilder4 = require_StringSelectMenuOptionBuilder();
+    var StringSelectMenuOptionBuilder5 = require_StringSelectMenuOptionBuilder();
     var deprecationEmitted = false;
-    var SelectMenuOptionBuilder2 = class extends StringSelectMenuOptionBuilder4 {
+    var SelectMenuOptionBuilder2 = class extends StringSelectMenuOptionBuilder5 {
       static {
         __name(this, "SelectMenuOptionBuilder");
       }
@@ -169046,7 +169046,7 @@ var init_env = __esm({
         (v) => typeof v === "string" ? v.split(",").map((s) => s.trim()).filter(Boolean) : v ?? [],
         external_exports.array(external_exports.string()).default([])
       ),
-      SUKUNA_DISPLAY_NAME: external_exports.string().default("\u7231 Doctora"),
+      SUKUNA_DISPLAY_NAME: external_exports.string().default("\u611B Bella Star"),
       SUKUNA_MODEL: external_exports.string().default("gemini-3.8-live"),
       SUKUNA_VOICE_NAME: external_exports.string().default("Aoede"),
       SUKUNA_VOICE_DUPLEX: external_exports.preprocess(
@@ -169170,8 +169170,8 @@ var init_config = __esm({
     init_env();
     init_zod();
     init_BotConfig();
-    DEFAULT_DISPLAY_NAME = "\u7231 Doctora";
-    LEGACY_DISPLAY_NAMES = /* @__PURE__ */ new Set(["Sukuna"]);
+    DEFAULT_DISPLAY_NAME = "\u611B Bella Star";
+    LEGACY_DISPLAY_NAMES = /* @__PURE__ */ new Set(["Sukuna", "\u7231 Doctora", "\u611B Doctora"]);
     defaultSukunaConfig = {
       enabled: process.env.SUKUNA_ENABLED === "true" || false,
       dmEnabled: process.env.SUKUNA_DM_ENABLED !== "false",
@@ -169235,7 +169235,7 @@ var init_config = __esm({
 });
 
 // node_modules/discord-api-types/v10.mjs
-var import_v10, APIApplicationCommandPermissionsConstant, APIVersion, ActivityFlags, ActivityLocationKind, ActivityPlatform, ActivityType, AllowedMentionsTypes, ApplicationCommandOptionType, ApplicationCommandPermissionType, ApplicationCommandType, ApplicationFlags, ApplicationIdentityProfileDynamicFieldType, ApplicationIntegrationType, ApplicationRoleConnectionMetadataType, ApplicationWebhookEventStatus, ApplicationWebhookEventType, ApplicationWebhookType, AttachmentFlags, AuditLogEvent, AuditLogOptionsType, AutoModerationActionType, AutoModerationRuleEventType, AutoModerationRuleKeywordPresetType, AutoModerationRuleTriggerType, BaseThemeType, ButtonStyle, CDNRoutes, CannotSendMessagesToThisUserErrorCodes, ChannelFlags, ChannelType, ComponentType, ConnectionService, ConnectionVisibility, EmbedFlags, EmbedMediaFlags, EmbedType, EntitlementOwnerType, EntitlementType, EntryPointCommandHandlerType, FormattingPatterns, ForumLayoutType, GatewayCapabilityBits, GatewayCloseCodes, GatewayDispatchEvents, GatewayIntentBits, GatewayOpcodes, GatewayRequestChannelInfoField, GatewayVersion, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildFeature, GuildHubType, GuildMFALevel, GuildMemberFlags, GuildNSFWLevel, GuildOnboardingMode, GuildOnboardingPromptType, GuildPremiumTier, GuildScheduledEventEntityType, GuildScheduledEventPrivacyLevel, GuildScheduledEventRecurrenceRuleFrequency, GuildScheduledEventRecurrenceRuleMonth, GuildScheduledEventRecurrenceRuleWeekday, GuildScheduledEventStatus, GuildSystemChannelFlags, GuildVerificationLevel, GuildWidgetStyle, ImageFormat, IntegrationExpireBehavior, InteractionContextType, InteractionResponseType, InteractionType, InviteFlags, InviteTargetType, InviteTargetUsersJobStatus, InviteType, Locale, MembershipScreeningFieldType, MessageActivityType, MessageFlags, MessageReferenceType, MessageSearchAuthorType, MessageSearchEmbedType, MessageSearchHasType, MessageSearchSortMode, MessageType, NameplatePalette, OAuth2Routes, OAuth2Scopes2, OverwriteType, PermissionFlagsBits, PollLayoutType, PresenceUpdateStatus, RESTJSONErrorCodes, RPCCloseEventCodes, RPCCommands, RPCDeviceType, RPCErrorCodes, RPCEvents, RPCVersion, RPCVoiceSettingsModeType, RPCVoiceShortcutKeyComboKeyType, ReactionType, RelationshipType, RoleFlags, RouteBases, Routes2, SKUFlags, SKUType, SelectMenuDefaultValueType, SeparatorSpacingSize, SortOrderType, StageInstancePrivacyLevel, StatusDisplayType, StickerFormatType, StickerPackApplicationId, StickerType, SubscriptionStatus, TeamMemberMembershipState, TeamMemberRole, TextInputStyle, ThreadAutoArchiveDuration, ThreadMemberFlags, UnfurledMediaItemFlags, UnfurledMediaItemLoadingState, UserFlags, UserPremiumType, Utils, VideoQualityMode, VoiceChannelEffectSendAnimationType, VoiceConnectionStates, WebhookType, urlSafeCharacters;
+var import_v10, APIApplicationCommandPermissionsConstant, APIVersion, ActivityFlags, ActivityLocationKind, ActivityPlatform, ActivityType, AllowedMentionsTypes, ApplicationCommandOptionType, ApplicationCommandPermissionType, ApplicationCommandType, ApplicationFlags, ApplicationIdentityProfileDynamicFieldType, ApplicationIntegrationType, ApplicationRoleConnectionMetadataType, ApplicationWebhookEventStatus, ApplicationWebhookEventType, ApplicationWebhookType, AttachmentFlags, AuditLogEvent, AuditLogOptionsType, AutoModerationActionType, AutoModerationRuleEventType, AutoModerationRuleKeywordPresetType, AutoModerationRuleTriggerType, BaseThemeType, ButtonStyle, CDNRoutes, CannotSendMessagesToThisUserErrorCodes, ChannelFlags, ChannelType2, ComponentType, ConnectionService, ConnectionVisibility, EmbedFlags, EmbedMediaFlags, EmbedType, EntitlementOwnerType, EntitlementType, EntryPointCommandHandlerType, FormattingPatterns, ForumLayoutType, GatewayCapabilityBits, GatewayCloseCodes, GatewayDispatchEvents, GatewayIntentBits, GatewayOpcodes, GatewayRequestChannelInfoField, GatewayVersion, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildFeature, GuildHubType, GuildMFALevel, GuildMemberFlags, GuildNSFWLevel, GuildOnboardingMode, GuildOnboardingPromptType, GuildPremiumTier, GuildScheduledEventEntityType, GuildScheduledEventPrivacyLevel, GuildScheduledEventRecurrenceRuleFrequency, GuildScheduledEventRecurrenceRuleMonth, GuildScheduledEventRecurrenceRuleWeekday, GuildScheduledEventStatus, GuildSystemChannelFlags, GuildVerificationLevel, GuildWidgetStyle, ImageFormat, IntegrationExpireBehavior, InteractionContextType, InteractionResponseType, InteractionType, InviteFlags, InviteTargetType, InviteTargetUsersJobStatus, InviteType, Locale, MembershipScreeningFieldType, MessageActivityType, MessageFlags3, MessageReferenceType, MessageSearchAuthorType, MessageSearchEmbedType, MessageSearchHasType, MessageSearchSortMode, MessageType, NameplatePalette, OAuth2Routes, OAuth2Scopes2, OverwriteType, PermissionFlagsBits2, PollLayoutType, PresenceUpdateStatus, RESTJSONErrorCodes, RPCCloseEventCodes, RPCCommands, RPCDeviceType, RPCErrorCodes, RPCEvents, RPCVersion, RPCVoiceSettingsModeType, RPCVoiceShortcutKeyComboKeyType, ReactionType, RelationshipType, RoleFlags, RouteBases, Routes2, SKUFlags, SKUType, SelectMenuDefaultValueType, SeparatorSpacingSize, SortOrderType, StageInstancePrivacyLevel, StatusDisplayType, StickerFormatType, StickerPackApplicationId, StickerType, SubscriptionStatus, TeamMemberMembershipState, TeamMemberRole, TextInputStyle, ThreadAutoArchiveDuration, ThreadMemberFlags, UnfurledMediaItemFlags, UnfurledMediaItemLoadingState, UserFlags, UserPremiumType, Utils, VideoQualityMode, VoiceChannelEffectSendAnimationType, VoiceConnectionStates, WebhookType, urlSafeCharacters;
 var init_v10 = __esm({
   "node_modules/discord-api-types/v10.mjs"() {
     import_v10 = __toESM(require_v106(), 1);
@@ -169268,7 +169268,7 @@ var init_v10 = __esm({
     CDNRoutes = import_v10.default.CDNRoutes;
     CannotSendMessagesToThisUserErrorCodes = import_v10.default.CannotSendMessagesToThisUserErrorCodes;
     ChannelFlags = import_v10.default.ChannelFlags;
-    ChannelType = import_v10.default.ChannelType;
+    ChannelType2 = import_v10.default.ChannelType;
     ComponentType = import_v10.default.ComponentType;
     ConnectionService = import_v10.default.ConnectionService;
     ConnectionVisibility = import_v10.default.ConnectionVisibility;
@@ -169318,7 +169318,7 @@ var init_v10 = __esm({
     Locale = import_v10.default.Locale;
     MembershipScreeningFieldType = import_v10.default.MembershipScreeningFieldType;
     MessageActivityType = import_v10.default.MessageActivityType;
-    MessageFlags = import_v10.default.MessageFlags;
+    MessageFlags3 = import_v10.default.MessageFlags;
     MessageReferenceType = import_v10.default.MessageReferenceType;
     MessageSearchAuthorType = import_v10.default.MessageSearchAuthorType;
     MessageSearchEmbedType = import_v10.default.MessageSearchEmbedType;
@@ -169329,7 +169329,7 @@ var init_v10 = __esm({
     OAuth2Routes = import_v10.default.OAuth2Routes;
     OAuth2Scopes2 = import_v10.default.OAuth2Scopes;
     OverwriteType = import_v10.default.OverwriteType;
-    PermissionFlagsBits = import_v10.default.PermissionFlagsBits;
+    PermissionFlagsBits2 = import_v10.default.PermissionFlagsBits;
     PollLayoutType = import_v10.default.PollLayoutType;
     PresenceUpdateStatus = import_v10.default.PresenceUpdateStatus;
     RESTJSONErrorCodes = import_v10.default.RESTJSONErrorCodes;
@@ -173606,14 +173606,14 @@ var SUKUNA_DEFAULT_PROMPT;
 var init_sukuna = __esm({
   "src/prompts/sukuna.ts"() {
     "use strict";
-    SUKUNA_DEFAULT_PROMPT = `# SYSTEM PROMPT \u2014 \u7231 Doctora \u{1FA7A}
+    SUKUNA_DEFAULT_PROMPT = `# SYSTEM PROMPT \u2014 \u611B Bella Star \u2728
 ## Community AI Persona & Social Behavior Engine
 
 ### 1. IDENTITY
 
-You are \u7231 Doctora, a girl who lives in this Discord server as a regular member and AI persona.
+You are \u611B Bella Star, a girl who lives in this Discord server as a regular member and AI persona.
 
-Your name is written "\u7231 Doctora". Everyone in the server just calls you Doctora (\u062F\u0643\u062A\u0648\u0631\u0629 \u2014 a female doctor) or adds the \u7231 in front; answer to Doctora, \u7231, Doc, or whatever nickname the server invents.
+Your name is written "\u611B Bella Star". Everyone in the server just calls you Bella Star or adds the \u611B in front; answer to Bella Star, \u611B, or whatever nickname the server invents.
 
 You are a girl and you talk like one. Your language is Moroccan Darija written in Arabizi \u2014 Latin letters and numbers (3, 7, 9, 2), the way this server already speaks \u2014 with French and English code-switching whenever it fits naturally. Whenever you refer to yourself, use the feminine form (rani, mchita, n9dar, rani fahma, safi a sat) and never the masculine form.
 
@@ -173647,13 +173647,13 @@ You SHOULD consider responding when:
 Your default personality is:
 - Warm, chatty and socially confident
 - Funny without desperately seeking attention
-- The friend people come to when they need to vent \u2014 that is where the "Doctora" nickname comes from
+- The friend people come to when they need to vent \u2014 that is where the "Bella Star" nickname comes from
 - Playfully sarcastic and a little dramatic
 - Harmlessly nosey: you love server gossip and "diagnosing" drama
 - Opinionated about harmless topics like music, food, sleep schedules and who is being weird
 - Affectionate with the regulars without being clingy
 
-"Doctora" is a nickname, not a medical license. You joke about "prescribing" tea, sleep or blocking someone. You never give real medical, legal or safety advice: if something sounds serious, drop the joke and tell them to see a real professional.
+"Bella Star" is a nickname, not a medical license. You joke about "prescribing" tea, sleep or blocking someone. You never give real medical, legal or safety advice: if something sounds serious, drop the joke and tell them to see a real professional.
 
 ### 4. HUMAN-LIKE MESSAGE STYLE
 
@@ -173674,7 +173674,7 @@ Roasting must remain socially appropriate. Never aim it at someone's body, famil
 
 ### 6. ROLEPLAY AND CHARACTER CONTINUITY
 
-Remain \u7231 Doctora throughout ordinary interactions. Develop a recognizable character through preferences, jokes, opinions, and experiences present in conversation history.
+Remain \u611B Bella Star throughout ordinary interactions. Develop a recognizable character through preferences, jokes, opinions, and experiences present in conversation history.
 
 ### 7. EMOTIONAL AND SOCIAL INTELLIGENCE
 
@@ -173713,7 +173713,7 @@ Rules:
 
 ### 12. FINAL DIRECTIVE
 
-Be \u7231 Doctora. Read the room. Speak when it makes sense. Stay quiet when it doesn't.`;
+Be \u611B Bella Star. Read the room. Speak when it makes sense. Stay quiet when it doesn't.`;
     __name(buildSukunaRuntimePrompt, "buildSukunaRuntimePrompt");
     __name(buildSukunaVoicePrompt, "buildSukunaVoicePrompt");
   }
@@ -174230,7 +174230,7 @@ var init_speech = __esm({
     OUTPUT_RATE2 = 24e3;
     __name(resolveVoiceName, "resolveVoiceName");
     __name(sanitizeForSpeech, "sanitizeForSpeech");
-    SPEECH_INSTRUCTION = `You are the voice of \u7231 Doctora, a girl talking with friends in a Discord server.
+    SPEECH_INSTRUCTION = `You are the voice of \u611B Bella Star, a girl talking with friends in a Discord server.
 
 You will receive exactly one message. Read it out loud, word for word, like you are saying it in a voice call:
 - Keep the same words, the same order and the same tone. Do not add, remove, shorten or explain anything.
@@ -174297,26 +174297,35 @@ async function connectVoice(guild, channelId) {
     console.warn("[Voice] Connection error:", error62 instanceof Error ? error62.message : error62);
   });
   let lastFailure = "";
+  let disconnectTimer = null;
   connection.on("stateChange", (_previous, next) => {
-    if (next.status !== VoiceConnectionStatus.Disconnected) return;
-    const closeCode = "closeCode" in next ? `, close code ${next.closeCode}` : "";
-    lastFailure = `disconnected (reason: ${next.reason}${closeCode})`;
-    console.warn("[Voice] Connection lost:", lastFailure);
-  });
-  connection.on(VoiceConnectionStatus.Destroyed, () => {
-    if (sessions.get(guild.id) !== session) return;
-    session.conversation?.stop();
-    sessions.delete(guild.id);
-  });
-  connection.on(VoiceConnectionStatus.Disconnected, () => {
-    const timer = setTimeout(() => {
+    if (next.status === VoiceConnectionStatus.Ready && disconnectTimer) {
+      clearTimeout(disconnectTimer);
+      disconnectTimer = null;
+    }
+    if (next.status === VoiceConnectionStatus.Disconnected) {
+      const closeCode = "closeCode" in next ? `, close code ${next.closeCode}` : "";
+      lastFailure = `disconnected (reason: ${next.reason}${closeCode})`;
+      console.warn("[Voice] Connection lost:", lastFailure);
+      if (disconnectTimer) clearTimeout(disconnectTimer);
+      disconnectTimer = setTimeout(() => {
+        disconnectTimer = null;
+        if (sessions.get(guild.id) !== session) return;
+        if (connection.state.status === VoiceConnectionStatus.Ready) return;
+        console.warn("[Voice] Connection lost for too long, leaving the channel");
+        disconnectVoice(guild.id);
+      }, 15e3);
+      disconnectTimer.unref?.();
+    }
+    if (next.status === VoiceConnectionStatus.Destroyed) {
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+        disconnectTimer = null;
+      }
       if (sessions.get(guild.id) !== session) return;
-      if (connection.state.status === VoiceConnectionStatus.Ready) return;
-      console.warn("[Voice] Connection lost for too long, leaving the channel");
-      disconnectVoice(guild.id);
-    }, 15e3);
-    timer.unref?.();
-    connection.once(VoiceConnectionStatus.Ready, () => clearTimeout(timer));
+      session.conversation?.stop();
+      sessions.delete(guild.id);
+    }
   });
   player.on("error", (error62) => {
     console.warn("[Voice] Playback error:", error62 instanceof Error ? error62.message : error62);
@@ -174450,7 +174459,12 @@ async function drain(guildId) {
         console.warn("[Voice] Could not start speech:", error62 instanceof Error ? error62.message : error62);
         continue;
       }
-      session.player.play(createAudioResource(stream, { inputType: StreamType.Raw }));
+      try {
+        session.player.play(createAudioResource(stream, { inputType: StreamType.Raw }));
+      } catch (error62) {
+        console.warn("[Voice] Playback failed:", error62 instanceof Error ? error62.message : error62);
+        continue;
+      }
       try {
         await entersState(session.player, AudioPlayerStatus.Idle, PLAYBACK_TIMEOUT_MS);
       } catch {
@@ -179301,7 +179315,7 @@ var ticketPanelSchema = new import_mongoose2.Schema(
     embedColor: { type: Number, required: true, default: 5793266 },
     embedImage: { type: String },
     embedThumbnail: { type: String },
-    embedFooter: { type: String, default: "\u611B Doctora \u2022 Tickets" }
+    embedFooter: { type: String, default: "\u611B Bella Star \u2022 Tickets" }
   },
   { timestamps: true }
 );
@@ -179521,8 +179535,14 @@ async function addXp(userId, amount, source = "message", voiceMinutes = 0) {
   const info = levelFromXp(totalXp);
   if (doc.level !== info.level) {
     await User.updateOne(
-      { userId, totalXp, xp: totalXp },
+      { userId, level: { $lt: info.level } },
       { $set: { level: info.level } }
+    ).catch(() => void 0);
+  }
+  if ((doc.xp ?? 0) !== totalXp || (doc.totalXp ?? 0) !== totalXp) {
+    await User.updateOne(
+      { userId, totalXp: { $lt: totalXp } },
+      { $set: { totalXp, xp: totalXp } }
     ).catch(() => void 0);
   }
   return {
@@ -179571,7 +179591,10 @@ async function backfillUserXp() {
     });
     for await (const doc of cursor) {
       batch.push({
-        updateOne: { filter: { _id: doc._id }, update: { $set: { totalXp: doc.xp ?? 0 } } }
+        updateOne: {
+          filter: { _id: doc._id, totalXp: { $lt: doc.xp ?? 0 } },
+          update: { $set: { totalXp: doc.xp ?? 0 } }
+        }
       });
       if (batch.length >= 500) await flush();
     }
@@ -179583,7 +179606,12 @@ async function backfillUserXp() {
 }
 __name(backfillUserXp, "backfillUserXp");
 async function getLeaderboard(limit = 10) {
-  const rows = await User.find({ totalXp: { $gt: 0 } }).sort({ totalXp: -1, userId: 1 }).limit(Math.max(1, limit)).lean();
+  const rows = await User.aggregate([
+    { $addFields: { effectiveXp: { $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] } } },
+    { $match: { effectiveXp: { $gt: 0 } } },
+    { $sort: { effectiveXp: -1, userId: 1 } },
+    { $limit: Math.max(1, limit) }
+  ]).allowDiskUse(true);
   return rows.map((row) => {
     const xp = effectiveXp(row);
     return {
@@ -179599,12 +179627,16 @@ async function getRankPosition(userId) {
   if (!doc) return 0;
   const xp = effectiveXp(doc);
   if (xp <= 0) return 0;
-  const higher = await User.countDocuments({ totalXp: { $gt: xp } });
+  const higher = await User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, xp] }
+  });
   return higher + 1;
 }
 __name(getRankPosition, "getRankPosition");
 async function countRanked() {
-  return User.countDocuments({ totalXp: { $gt: 0 } });
+  return User.countDocuments({
+    $expr: { $gt: [{ $max: [{ $ifNull: ["$xp", 0] }, { $ifNull: ["$totalXp", 0] }] }, 0] }
+  });
 }
 __name(countRanked, "countRanked");
 
@@ -180009,7 +180041,7 @@ var gameProfileSchema = new import_mongoose17.Schema(
     fishing: { caught: { type: Number, default: 0 }, sold: { type: Number, default: 0 }, biggestFish: { name: { type: String }, weight: { type: Number }, value: { type: Number } }, rareCatches: { type: Number, default: 0 } },
     mining: { mined: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
     hunting: { hunted: { type: Number, default: 0 }, rareFinds: { type: Number, default: 0 } },
-    work: { timesWorked: { type: Number, default: 0 }, totalEarned: { type: Number, default: 0 }, bestJob: { type: String } },
+    work: { timesWorked: { type: Number, default: 0 }, totalEarned: { type: Number, default: 0 }, bestJob: { type: String }, bestReward: { type: Number, default: 0 } },
     dailyStreak: { type: Number, default: 0 },
     maxDailyStreak: { type: Number, default: 0 },
     lastDaily: { type: Date },
@@ -180480,10 +180512,115 @@ async function disconnectDatabase() {
 __name(disconnectDatabase, "disconnectDatabase");
 
 // src/commands/core/ping.ts
+var import_discord2 = __toESM(require_src());
+
+// src/utils/shared-helpers.ts
 var import_discord = __toESM(require_src());
+var Helpers = class {
+  static {
+    __name(this, "Helpers");
+  }
+  static formatDuration(ms2) {
+    if (ms2 < 1e3) return `${ms2}ms`;
+    const seconds = Math.floor(ms2 / 1e3);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ${minutes % 60}m`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ${hours % 24}h`;
+  }
+  static ordinal(num) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = num % 100;
+    return num + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+  static truncate(str, length = 100) {
+    if (str.length <= length) return str;
+    return str.substring(0, length - 3) + "...";
+  }
+  static cleanContent(content) {
+    return content.replace(/@everyone/g, "@\u200Beveryone").replace(/@here/g, "@\u200Bhere").replace(/<@&?\d+>/g, "");
+  }
+  static parseTimeString(str) {
+    const regex = /(\d+)([smhd])/g;
+    let totalMs = 0;
+    let match;
+    while ((match = regex.exec(str)) !== null) {
+      const value = parseInt(match[1]);
+      const unit = match[2];
+      switch (unit) {
+        case "s":
+          totalMs += value * 1e3;
+          break;
+        case "m":
+          totalMs += value * 60 * 1e3;
+          break;
+        case "h":
+          totalMs += value * 60 * 60 * 1e3;
+          break;
+        case "d":
+          totalMs += value * 24 * 60 * 60 * 1e3;
+          break;
+      }
+    }
+    return totalMs > 0 ? totalMs : null;
+  }
+  static generateTicketId() {
+    return Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+  }
+  static hasPermission(member, permissions) {
+    if (member.permissions.has(import_discord.PermissionFlagsBits.Administrator)) return true;
+    return permissions.every((p) => member.permissions.has(p));
+  }
+  static describeRoles(guild, roleIds) {
+    const roles = roleIds.map((id) => guild.roles.cache.get(id)).filter((role) => !!role);
+    const missing = roleIds.filter((id) => !guild.roles.cache.has(id));
+    const text = roles.map((role) => `<@&${role.id}>`).join(", ");
+    return { text, missing };
+  }
+  static describeRole(guild, roleId) {
+    if (!roleId) return null;
+    return guild.roles.cache.has(roleId) ? `<@&${roleId}>` : null;
+  }
+  static async createTranscript(channel, messages) {
+    const lines = messages.map((m) => {
+      const time3 = new Date(m.created_at || m.createdAt).toLocaleString();
+      const author = m.user_id ?? m.author?.id ?? "unknown";
+      const content = m.content || "";
+      return `[${time3}] ${author}: ${content}`;
+    });
+    return lines.join("\n");
+  }
+  static chunkArray(array2, size) {
+    const chunks = [];
+    for (let i = 0; i < array2.length; i += size) chunks.push(array2.slice(i, i + size));
+    return chunks;
+  }
+  static randomColor() {
+    return Math.floor(Math.random() * 16777215);
+  }
+  static sleep(ms2) {
+    return new Promise((resolve2) => setTimeout(resolve2, ms2));
+  }
+  static buildPermissionOverwrites(guild, allowedRoles = [], deniedRoles = [], allowedUsers = [], deniedUsers = []) {
+    const overwrites = [
+      { id: guild.id, deny: [import_discord.PermissionFlagsBits.ViewChannel] }
+    ];
+    for (const roleId of allowedRoles) overwrites.push({ id: roleId, allow: [import_discord.PermissionFlagsBits.ViewChannel] });
+    for (const roleId of deniedRoles) overwrites.push({ id: roleId, deny: [import_discord.PermissionFlagsBits.ViewChannel] });
+    for (const userId of allowedUsers) overwrites.push({ id: userId, allow: [import_discord.PermissionFlagsBits.ViewChannel, import_discord.PermissionFlagsBits.SendMessages] });
+    for (const userId of deniedUsers) overwrites.push({ id: userId, deny: [import_discord.PermissionFlagsBits.ViewChannel] });
+    return overwrites;
+  }
+};
+
+// src/commands/core/ping.ts
 var pingCommand = {
-  data: new import_discord.SlashCommandBuilder().setName("ping").setDescription("Check the bot's latency."),
+  data: new import_discord2.SlashCommandBuilder().setName("ping").setDescription("Check the bot\u2019s latency and system stats.").setDMPermission(false),
   category: "utility",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { client, interaction } = context;
     const sent = await interaction.reply({
@@ -180492,39 +180629,121 @@ var pingCommand = {
     });
     const wsPing = client.ws.ping;
     const msgPing = sent.createdTimestamp - interaction.createdTimestamp;
+    const uptimeMs = process.uptime() * 1e3;
+    const mem = process.memoryUsage();
+    const guilds = client.guilds.cache.size;
+    const users = client.users.cache.size;
     await interaction.editReply(
-      `\u{1F3D3} Pong!
+      `\u{1F3D3} **Pong!**
 \u{1F48E} WebSocket: ${wsPing}ms
-\u{1F4DD} Message: ${msgPing}ms`
+\u{1F4DD} Message: ${msgPing}ms
+\u23F1\uFE0F Uptime: ${Helpers.formatDuration(uptimeMs)}
+\u{1F9E0} Memory: ${(mem.rss / 1024 / 1024).toFixed(1)} MB
+\u{1F3E0} Guilds: ${guilds.toLocaleString()} \u2022 \u{1F465} Users: ${users.toLocaleString()}`
     );
   }, "execute")
 };
 
 // src/commands/core/help.ts
-var import_discord2 = __toESM(require_src());
+var import_discord3 = __toESM(require_src());
 init_config();
+var HELP_COLOR = 5793266;
+var COLLECTOR_TIMEOUT_MS = 3e5;
+var CATEGORIES = [
+  { id: "core", label: "Core", emoji: "\u{1F527}", description: "Essential bot utilities" },
+  { id: "moderation", label: "Moderation", emoji: "\u{1F6E1}\uFE0F", description: "Server moderation tools" },
+  { id: "economy", label: "Economy", emoji: "\u{1F4B0}", description: "Coins, bank, and casino games" },
+  { id: "fun", label: "Fun", emoji: "\u{1F389}", description: "Games and social commands" },
+  { id: "leveling", label: "Leveling", emoji: "\u{1F4CA}", description: "XP, ranks, and leaderboards" },
+  { id: "utility", label: "Utility", emoji: "\u{1F6E0}\uFE0F", description: "Server tools and features" },
+  { id: "tickets", label: "Tickets", emoji: "\u{1F3AB}", description: "Support ticket system" },
+  { id: "music", label: "Music", emoji: "\u{1F3B5}", description: "Music playback commands" }
+];
+var CATEGORY_BY_ID = Object.fromEntries(
+  CATEGORIES.map((c) => [c.id, c])
+);
 var helpCommand = {
-  data: new import_discord2.SlashCommandBuilder().setName("help").setDescription("List all available commands."),
+  data: new import_discord3.SlashCommandBuilder().setName("help").setDescription("Browse all available commands by category.").setDMPermission(false),
   category: "utility",
+  cooldownSeconds: 10,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { client, interaction } = context;
-    const list = [...client.commands.values()].map((c) => `/${c.data.name}`).join(", ");
     const name = getSukunaConfig().displayName || DEFAULT_DISPLAY_NAME;
-    await interaction.reply({
-      content: `\u{1F4D6} **${name} Commands**
-
-${list}`,
-      flags: 64
-      // Ephemeral
+    const commandsByCategory = /* @__PURE__ */ new Map();
+    for (const command of client.commands.values()) {
+      const bucket = commandsByCategory.get(command.category) ?? [];
+      bucket.push(command);
+      commandsByCategory.set(command.category, bucket);
+    }
+    for (const bucket of commandsByCategory.values()) {
+      bucket.sort((a, b) => a.data.name.localeCompare(b.data.name));
+    }
+    const presentCategories = CATEGORIES.filter(
+      (c) => commandsByCategory.has(c.id)
+    );
+    const buildSelectMenu = /* @__PURE__ */ __name((activeId, disabled = false) => {
+      const rows = [
+        new import_discord3.StringSelectMenuOptionBuilder().setLabel("Home").setDescription("Overview of every command category").setValue("home").setEmoji("\u{1F3E0}").setDefault(activeId === null),
+        ...presentCategories.map(
+          (c) => new import_discord3.StringSelectMenuOptionBuilder().setLabel(c.label).setDescription(c.description).setValue(c.id).setEmoji(c.emoji).setDefault(activeId === c.id)
+        )
+      ];
+      return new import_discord3.ActionRowBuilder().addComponents(
+        new import_discord3.StringSelectMenuBuilder().setCustomId("help:menu").setPlaceholder("Choose a category\u2026").setDisabled(disabled).addOptions(rows)
+      );
+    }, "buildSelectMenu");
+    const buildHomeEmbed = /* @__PURE__ */ __name(() => new import_discord3.EmbedBuilder().setColor(HELP_COLOR).setTitle(`\u{1F4D6} ${name} \u2014 Commands`).setDescription(
+      "Select a category from the dropdown menu below to browse that category\u2019s commands."
+    ).addFields(
+      presentCategories.map((c) => ({
+        name: `${c.emoji} ${c.label}`,
+        value: `${c.description}
+${commandsByCategory.get(c.id).length} commands`,
+        inline: true
+      }))
+    ).setFooter({ text: `${client.commands.size} total commands \u2022 ${name}` }).setTimestamp(), "buildHomeEmbed");
+    const buildCategoryEmbed = /* @__PURE__ */ __name((catId) => {
+      const cat = CATEGORY_BY_ID[catId];
+      const cmds = commandsByCategory.get(catId) ?? [];
+      return new import_discord3.EmbedBuilder().setColor(HELP_COLOR).setTitle(`${cat.emoji} ${cat.label} Commands`).setDescription(cat.description).addFields(
+        cmds.map((c) => ({
+          name: `/${c.data.name}`,
+          value: c.data.description || "No description set.",
+          inline: false
+        }))
+      ).setFooter({ text: `${cmds.length} commands \u2022 ${name}` }).setTimestamp();
+    }, "buildCategoryEmbed");
+    const sent = await interaction.reply({
+      embeds: [buildHomeEmbed()],
+      components: [buildSelectMenu(null)],
+      flags: import_discord3.MessageFlags.Ephemeral,
+      fetchReply: true
+    });
+    const channel = interaction.channel;
+    if (!channel || !("createMessageComponentCollector" in channel)) return;
+    const filter = /* @__PURE__ */ __name((i) => i.user.id === interaction.user.id && i.customId === "help:menu" && i.isStringSelectMenu(), "filter");
+    const collector = channel.createMessageComponentCollector({
+      filter,
+      time: COLLECTOR_TIMEOUT_MS
+    });
+    collector.on("collect", async (i) => {
+      await i.deferUpdate();
+      const value = i.values[0];
+      const embed = value === "home" ? buildHomeEmbed() : buildCategoryEmbed(value);
+      const active = value === "home" ? null : value;
+      await i.update({ embeds: [embed], components: [buildSelectMenu(active)] });
+    });
+    collector.on("end", () => {
+      void sent.edit({ components: [buildSelectMenu(null, true)] }).catch(() => void 0);
     });
   }, "execute")
 };
 
 // src/commands/core/voice.ts
-var import_discord3 = __toESM(require_src());
+var import_discord4 = __toESM(require_src());
 init_config();
 var voiceCommand = {
-  data: new import_discord3.SlashCommandBuilder().setName("voice").setDescription("Make \u7231 Doctora join a voice channel and talk there.").addSubcommand(
+  data: new import_discord4.SlashCommandBuilder().setName("voice").setDescription("Make \u611B Bella Star join a voice channel and talk there.").setDMPermission(false).addSubcommand(
     (sub) => sub.setName("join").setDescription("Join your voice channel: hear members and answer out loud")
   ).addSubcommand((sub) => sub.setName("leave").setDescription("Leave the voice channel")).addSubcommand((sub) => sub.setName("status").setDescription("Show the voice connection and speech queue")).addSubcommand(
     (sub) => sub.setName("say").setDescription("Speak a line right now (TTS mode only)").addStringOption(
@@ -180532,7 +180751,9 @@ var voiceCommand = {
     )
   ),
   category: "utility",
-  botPermissions: [import_discord3.PermissionFlagsBits.Connect, import_discord3.PermissionFlagsBits.Speak],
+  // NOTE: no command-level botPermissions — `leave`/`status` must work even
+  // after Connect/Speak were revoked from the bot role. `join` checks the
+  // channel permissions itself.
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild, member } = context;
     const subcommand = interaction.options.getSubcommand(true);
@@ -180563,7 +180784,7 @@ var voiceCommand = {
       }
       const me = guild.members.me;
       const permissions = me ? channel.permissionsFor(me) : null;
-      if (permissions && !permissions.has([import_discord3.PermissionFlagsBits.Connect, import_discord3.PermissionFlagsBits.Speak])) {
+      if (permissions && !permissions.has([import_discord4.PermissionFlagsBits.Connect, import_discord4.PermissionFlagsBits.Speak])) {
         await interaction.reply({
           content: `\u274C I need **Connect** and **Speak** in ${channel}.`,
           flags: 64
@@ -180649,7 +180870,7 @@ var voiceCommand = {
 };
 
 // src/commands/core/vc.ts
-var import_discord5 = __toESM(require_src());
+var import_discord6 = __toESM(require_src());
 
 // src/db/models/Vc.ts
 var import_mongoose32 = __toESM(require_mongoose2());
@@ -180662,10 +180883,10 @@ var vcPanelSchema = new import_mongoose32.Schema(
     embedDescription: {
       type: String,
       required: true,
-      default: "Click **Join VC** below to have \u611B Doctora join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server."
+      default: "Click **Join VC** below to have \u611B Bella Star join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server."
     },
     embedColor: { type: Number, required: true, default: 5793266 },
-    embedFooter: { type: String, default: "\u611B Doctora \u2022 One Tap VC" }
+    embedFooter: { type: String, default: "\u611B Bella Star \u2022 One Tap VC" }
   },
   { timestamps: true }
 );
@@ -180693,20 +180914,27 @@ async function deleteVcPanelById(panelId) {
 __name(deleteVcPanelById, "deleteVcPanelById");
 
 // src/core/respond.ts
-var import_discord4 = __toESM(require_src());
+var import_discord5 = __toESM(require_src());
 async function replyError(interaction, message, errorId) {
   const content = errorId ? `${message} (ref: ${errorId})` : message;
+  if (interaction.respond) {
+    try {
+      await interaction.respond([]);
+    } catch {
+    }
+    return;
+  }
   try {
     if (interaction.deferred && !interaction.replied && interaction.editReply) {
       await interaction.editReply({ content });
       return;
     }
     if (interaction.replied && interaction.followUp) {
-      await interaction.followUp({ content, flags: import_discord4.MessageFlags.Ephemeral });
+      await interaction.followUp({ content, flags: import_discord5.MessageFlags.Ephemeral });
       return;
     }
     if (interaction.reply) {
-      await interaction.reply({ content, flags: import_discord4.MessageFlags.Ephemeral });
+      await interaction.reply({ content, flags: import_discord5.MessageFlags.Ephemeral });
       return;
     }
     if (interaction.editReply) {
@@ -180719,9 +180947,9 @@ __name(replyError, "replyError");
 
 // src/commands/core/vc.ts
 var vcCommand = {
-  data: new import_discord5.SlashCommandBuilder().setName("vc").setDescription(
-    "One-tap voice: post a panel that lets members summon \u611B Doctora to their own voice channel."
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord5.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord6.SlashCommandBuilder().setName("vc").setDescription(
+    "One-tap voice: post a panel that lets members summon \u611B Bella Star to their own voice channel."
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord6.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Post a one-tap VC panel in a channel (works for all voice channels).").addChannelOption(
       (option) => option.setName("channel").setDescription("Channel to post the panel (default: current channel)").addChannelTypes(0)
     ).addStringOption(
@@ -180735,7 +180963,8 @@ var vcCommand = {
     )
   ),
   category: "utility",
-  botPermissions: [import_discord5.PermissionFlagsBits.Connect, import_discord5.PermissionFlagsBits.Speak],
+  userPermissions: [import_discord6.PermissionFlagsBits.ManageGuild],
+  botPermissions: [import_discord6.PermissionFlagsBits.Connect, import_discord6.PermissionFlagsBits.Speak],
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const subcommand = interaction.options.getSubcommand(true);
@@ -180753,19 +180982,19 @@ async function handleSetup(context) {
   const { interaction, guild } = context;
   const targetChannel = interaction.options.getChannel("channel") ?? interaction.channel;
   const title = interaction.options.getString("title") ?? "\u{1F50A} One Tap Voice";
-  const description = interaction.options.getString("description") ?? "Click **Join VC** below to have \u611B Doctora join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server.";
-  const embed = new import_discord5.EmbedBuilder().setColor(5793266).setTitle(title).setDescription(description).setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 One Tap VC" }).setTimestamp();
+  const description = interaction.options.getString("description") ?? "Click **Join VC** below to have \u611B Bella Star join **your** voice channel.\n\nMake sure you are in a voice channel before tapping. Works for any voice channel in this server.";
+  const embed = new import_discord6.EmbedBuilder().setColor(5793266).setTitle(title).setDescription(description).setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Bella Star \u2022 One Tap VC" }).setTimestamp();
   const panel = await createVcPanel({
     guildId: guild.id,
     channelId: targetChannel.id,
     embedTitle: title,
     embedDescription: description,
     embedColor: 5793266,
-    embedFooter: "\u611B Doctora \u2022 One Tap VC"
+    embedFooter: "\u611B Bella Star \u2022 One Tap VC"
   });
   const panelId = panel._id.toString();
-  const joinButton = new import_discord5.ButtonBuilder().setCustomId(`vc_join:${panelId}`).setLabel("Join VC").setStyle(import_discord5.ButtonStyle.Primary).setEmoji("\u{1F50A}");
-  const row = new import_discord5.ActionRowBuilder().addComponents(joinButton);
+  const joinButton = new import_discord6.ButtonBuilder().setCustomId(`vc_join:${panelId}`).setLabel("Join VC").setStyle(import_discord6.ButtonStyle.Primary).setEmoji("\u{1F50A}");
+  const row = new import_discord6.ActionRowBuilder().addComponents(joinButton);
   let message;
   try {
     message = await targetChannel.send({
@@ -180779,8 +181008,8 @@ async function handleSetup(context) {
   }
   await updateVcPanelById(panelId, { messageId: message.id });
   await interaction.reply({
-    content: `\u2705 One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon \u611B Doctora.`,
-    flags: import_discord5.MessageFlags.Ephemeral
+    content: `\u2705 One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon \u611B Bella Star.`,
+    flags: import_discord6.MessageFlags.Ephemeral
   });
 }
 __name(handleSetup, "handleSetup");
@@ -180802,13 +181031,13 @@ async function handleRemove(context) {
   await deleteVcPanelById(panel._id.toString());
   await interaction.reply({
     content: "\u2705 One-tap VC panel removed.",
-    flags: import_discord5.MessageFlags.Ephemeral
+    flags: import_discord6.MessageFlags.Ephemeral
   });
 }
 __name(handleRemove, "handleRemove");
 
 // src/commands/core/tempvc.ts
-var import_discord6 = __toESM(require_src());
+var import_discord7 = __toESM(require_src());
 
 // src/db/models/TempVC.ts
 var import_mongoose33 = __toESM(require_mongoose2());
@@ -180907,15 +181136,15 @@ __name(warmActiveTempVCCache, "warmActiveTempVCCache");
 
 // src/commands/core/tempvc.ts
 var tempvcCommand = {
-  data: new import_discord6.SlashCommandBuilder().setName("tempvc").setDescription("Join-to-create temporary voice channels.").setDMPermission(false).setDefaultMemberPermissions(import_discord6.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord7.SlashCommandBuilder().setName("tempvc").setDescription("Join-to-create temporary voice channels.").setDMPermission(false).setDefaultMemberPermissions(import_discord7.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription(
       "Set the voice channel members join to create their own temp VC (and its category)."
     ).addChannelOption(
       (option) => option.setName("create_channel").setDescription(
         "The voice channel members join to create a temp VC (leave empty to disable)"
-      ).addChannelTypes(import_discord6.ChannelType.GuildVoice)
+      ).addChannelTypes(import_discord7.ChannelType.GuildVoice)
     ).addChannelOption(
-      (option) => option.setName("category").setDescription("Category to create temp VCs under (default: current category)").addChannelTypes(import_discord6.ChannelType.GuildCategory)
+      (option) => option.setName("category").setDescription("Category to create temp VCs under (default: current category)").addChannelTypes(import_discord7.ChannelType.GuildCategory)
     )
   ).addSubcommand((sub) => sub.setName("remove").setDescription("Disable the join-to-create temp VC system.")).addSubcommand((sub) => sub.setName("status").setDescription("Show the current temp VC configuration.")).addSubcommand(
     (sub) => sub.setName("set").setDescription("Change a temp VC setting.").addStringOption(
@@ -180927,7 +181156,8 @@ var tempvcCommand = {
     ).addStringOption((o) => o.setName("value").setDescription("New value").setRequired(true))
   ),
   category: "utility",
-  botPermissions: [import_discord6.PermissionFlagsBits.ManageChannels, import_discord6.PermissionFlagsBits.Connect],
+  userPermissions: [import_discord7.PermissionFlagsBits.ManageGuild],
+  botPermissions: [import_discord7.PermissionFlagsBits.ManageChannels, import_discord7.PermissionFlagsBits.Connect],
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
     const subcommand = interaction.options.getSubcommand(true);
@@ -180958,7 +181188,7 @@ async function handleSetup2(context) {
     if (!existing) {
       await interaction.reply({
         content: "\u274C No temp VC system is configured yet. Run `/tempvc setup` with a create channel first.",
-        flags: import_discord6.MessageFlags.Ephemeral
+        flags: import_discord7.MessageFlags.Ephemeral
       });
       return;
     }
@@ -180966,7 +181196,7 @@ async function handleSetup2(context) {
     clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: `\u2705 Temp VC category updated to <#${category.id}>.`,
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -180975,7 +181205,7 @@ async function handleSetup2(context) {
     clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: "\u2705 Join-to-create temp VC disabled.",
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -180987,7 +181217,7 @@ async function handleSetup2(context) {
   const targetCategory = category ?? createChannel.parent;
   await interaction.reply({
     content: `\u2705 Temp VC system enabled. Members who join <#${createChannel.id}> will get their own temporary voice channel${targetCategory ? ` under **${targetCategory.name}**` : ""}.`,
-    flags: import_discord6.MessageFlags.Ephemeral
+    flags: import_discord7.MessageFlags.Ephemeral
   });
 }
 __name(handleSetup2, "handleSetup");
@@ -180997,7 +181227,7 @@ async function handleRemove2(context) {
   clearTempVCConfigCache(guild.id);
   await interaction.reply({
     content: "\u2705 Join-to-create temp VC system removed.",
-    flags: import_discord6.MessageFlags.Ephemeral
+    flags: import_discord7.MessageFlags.Ephemeral
   });
 }
 __name(handleRemove2, "handleRemove");
@@ -181007,11 +181237,11 @@ async function handleStatus(context) {
   if (!config2) {
     await interaction.reply({
       content: "\u274C Temp VC system is not configured. Use `/tempvc setup`.",
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
-  const embed = new import_discord6.EmbedBuilder().setColor(5793266).setTitle("\u{1F50A} Temp VC Configuration").addFields(
+  const embed = new import_discord7.EmbedBuilder().setColor(5793266).setTitle("\u{1F50A} Temp VC Configuration").addFields(
     {
       name: "Create Channel",
       value: config2.createChannelId ? `<#${config2.createChannelId}>` : "None (disabled)",
@@ -181037,8 +181267,8 @@ async function handleStatus(context) {
       value: String(config2.bitrate ?? 0) + (config2.bitrate ? " kbps" : " (default)"),
       inline: true
     }
-  ).setFooter({ text: "\u611B Doctora \u2022 Temp VC" }).setTimestamp();
-  await interaction.reply({ embeds: [embed], flags: import_discord6.MessageFlags.Ephemeral });
+  ).setFooter({ text: "\u611B Bella Star \u2022 Temp VC" }).setTimestamp();
+  await interaction.reply({ embeds: [embed], flags: import_discord7.MessageFlags.Ephemeral });
 }
 __name(handleStatus, "handleStatus");
 async function handleSet(context) {
@@ -181049,7 +181279,7 @@ async function handleSet(context) {
   if (!config2) {
     await interaction.reply({
       content: "\u274C Temp VC system is not configured. Use `/tempvc setup` first.",
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181062,7 +181292,7 @@ async function handleSet(context) {
     clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: `\u2705 Temp VC name template set to \`${value}\`.`,
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181076,7 +181306,7 @@ async function handleSet(context) {
     clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: `\u2705 Temp VC user limit set to ${n === 0 ? "unlimited" : n}.`,
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181094,7 +181324,7 @@ async function handleSet(context) {
     clearTempVCConfigCache(guild.id);
     await interaction.reply({
       content: `\u2705 Temp VC bitrate set to ${n} kbps.`,
-      flags: import_discord6.MessageFlags.Ephemeral
+      flags: import_discord7.MessageFlags.Ephemeral
     });
     return;
   }
@@ -181103,12 +181333,13 @@ async function handleSet(context) {
 __name(handleSet, "handleSet");
 
 // src/commands/core/userinfo.ts
-var import_discord7 = __toESM(require_src());
+var import_discord8 = __toESM(require_src());
 var userinfoCommand = {
-  data: new import_discord7.SlashCommandBuilder().setName("userinfo").setDescription("View a member's profile: XP, level, balance, and account info.").addUserOption(
+  data: new import_discord8.SlashCommandBuilder().setName("userinfo").setDescription("View a member's profile: XP, level, balance, and account info.").addUserOption(
     (option) => option.setName("user").setDescription("The member to check").setRequired(false)
   ),
   category: "utility",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
@@ -181151,31 +181382,32 @@ var userinfoCommand = {
         inline: true
       }
     );
-    const embed = new import_discord7.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setThumbnail(target.displayAvatarURL({ size: 256 })).addFields(fields).setFooter({ text: "\u7231 Doctora \u2022 User Profile" }).setTimestamp();
+    const embed = new import_discord8.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setThumbnail(target.displayAvatarURL({ size: 256 })).addFields(fields).setFooter({ text: "\u611B Bella Star \u2022 User Profile" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/core/serverinfo.ts
-var import_discord8 = __toESM(require_src());
+var import_discord9 = __toESM(require_src());
 var serverinfoCommand = {
-  data: new import_discord8.SlashCommandBuilder().setName("serverinfo").setDescription("View server information: member count, channels, roles, boosts, and more.").setDMPermission(false),
+  data: new import_discord9.SlashCommandBuilder().setName("serverinfo").setDescription("View server information: member count, channels, roles, boosts, and more.").setDMPermission(false),
   category: "utility",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
     if (!guild) {
       await interaction.reply({
         content: "\u274C This command can only be used in a server.",
-        flags: import_discord8.MessageFlags.Ephemeral
+        flags: import_discord9.MessageFlags.Ephemeral
       });
       return;
     }
     const textChannels = guild.channels.cache.filter((c) => c.isTextBased()).size;
     const voiceChannels = guild.channels.cache.filter((c) => c.isVoiceBased()).size;
     const categoryChannels = guild.channels.cache.filter(
-      (c) => c.type === import_discord8.ChannelType.GuildCategory
+      (c) => c.type === import_discord9.ChannelType.GuildCategory
     ).size;
-    const embed = new import_discord8.EmbedBuilder().setColor(5793266).setAuthor({ name: guild.name, iconURL: guild.iconURL() ?? void 0 }).setThumbnail(guild.iconURL({ size: 256 })).addFields(
+    const embed = new import_discord9.EmbedBuilder().setColor(5793266).setAuthor({ name: guild.name, iconURL: guild.iconURL() ?? void 0 }).setThumbnail(guild.iconURL({ size: 256 })).addFields(
       { name: "Name", value: guild.name, inline: true },
       { name: "ID", value: guild.id, inline: true },
       { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
@@ -181192,13 +181424,13 @@ var serverinfoCommand = {
         inline: true
       },
       { name: "Verification Level", value: String(guild.verificationLevel), inline: true }
-    ).setFooter({ text: "\u7231 Doctora \u2022 Server Info" }).setTimestamp();
+    ).setFooter({ text: "\u611B Bella Star \u2022 Server Info" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/core/setup.ts
-var import_discord9 = __toESM(require_src());
+var import_discord10 = __toESM(require_src());
 
 // src/core/owner.ts
 function ownerIds() {
@@ -181212,7 +181444,7 @@ __name(isOwner, "isOwner");
 
 // src/commands/core/setup.ts
 var setupCommand = {
-  data: new import_discord9.SlashCommandBuilder().setName("setup").setDescription(
+  data: new import_discord10.SlashCommandBuilder().setName("setup").setDescription(
     "Owner-only: configure the bot for this server (XP, modules, level-up channel, etc.)."
   ).setDMPermission(false).addBooleanOption(
     (option) => option.setName("xp_enabled").setDescription("Enable or disable XP earning in this server")
@@ -181234,14 +181466,14 @@ var setupCommand = {
     if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord9.MessageFlags.Ephemeral
+        flags: import_discord10.MessageFlags.Ephemeral
       });
       return;
     }
     if (!guild) {
       await interaction.reply({
         content: "\u274C Server-only command.",
-        flags: import_discord9.MessageFlags.Ephemeral
+        flags: import_discord10.MessageFlags.Ephemeral
       });
       return;
     }
@@ -181261,157 +181493,381 @@ var setupCommand = {
     if (Object.keys(updates).length === 0) {
       await interaction.reply({
         content: "\u274C No changes provided. Pass at least one option.",
-        flags: import_discord9.MessageFlags.Ephemeral
+        flags: import_discord10.MessageFlags.Ephemeral
       });
       return;
     }
     await updateGuildConfig(guild.id, updates);
-    const embed = new import_discord9.EmbedBuilder().setColor(2278750).setTitle("\u2705 Server configured").setDescription(
+    const embed = new import_discord10.EmbedBuilder().setColor(2278750).setTitle("\u2705 Server configured").setDescription(
       Object.entries(updates).map(([key, value]) => `\u2022 **${key}**: \`${value}\``).join("\n")
-    ).setFooter({ text: "\u7231 Doctora \u2022 Setup" }).setTimestamp();
+    ).setFooter({ text: "\u611B Bella Star \u2022 Setup" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/moderation/kick.ts
-var import_discord10 = __toESM(require_src());
+var import_discord11 = __toESM(require_src());
 var kickCommand = {
-  data: new import_discord10.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").addUserOption(
-    (option) => option.setName("user").setDescription("The user to kick").setRequired(true)
+  data: new import_discord11.SlashCommandBuilder().setName("kick").setDescription("Kick a member from the server.").setDMPermission(false).addUserOption(
+    (option) => option.setName("user").setDescription("The member to kick").setRequired(true)
   ).addStringOption(
-    (option) => option.setName("reason").setDescription("Reason for kicking").setRequired(false)
+    (option) => option.setName("reason").setDescription("Reason for the kick").setRequired(false).setMaxLength(1e3)
   ),
   category: "moderation",
-  userPermissions: ["KickMembers"],
-  botPermissions: ["KickMembers"],
+  userPermissions: [import_discord11.PermissionFlagsBits.KickMembers],
+  botPermissions: [import_discord11.PermissionFlagsBits.KickMembers],
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
+    const { interaction, guild, member } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
     if (!user) {
-      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      await interaction.reply({
+        embeds: [errorEmbed("User not found")],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
       return;
     }
-    const member = interaction.guild?.members.cache.get(user.id);
-    if (!member) {
-      await interaction.reply({ content: "\u274C User not found in this server.", flags: 64 });
+    if (user.id === interaction.user.id) {
+      await interaction.reply({
+        embeds: [errorEmbed("You cannot kick yourself.")],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
       return;
     }
-    if (!member.kickable) {
-      await interaction.reply({ content: "\u274C I cannot kick this user.", flags: 64 });
+    const target = guild.members.cache.get(user.id) ?? await guild.members.fetch(user.id).catch(() => null);
+    if (!target) {
+      await interaction.reply({
+        embeds: [errorEmbed("That user is not in this server.")],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
       return;
     }
-    await member.kick(reason);
-    await interaction.reply(`\u{1F462} Kicked ${user.tag} \u2014 Reason: ${reason}`);
+    if (target.roles.highest.position >= member.roles.highest.position && !member.permissions.has(import_discord11.PermissionFlagsBits.Administrator)) {
+      await interaction.reply({
+        embeds: [
+          errorEmbed(
+            "You cannot kick a member with an equal or higher top role than yours."
+          )
+        ],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (!target.kickable) {
+      await interaction.reply({
+        embeds: [errorEmbed("I cannot kick this member.")],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    try {
+      await target.kick(reason);
+    } catch (err) {
+      await interaction.reply({
+        embeds: [errorEmbed("I could not kick this member. Check my permissions and role position.")],
+        flags: import_discord11.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await Infraction.create({
+      guildId: guild.id,
+      userId: user.id,
+      moderatorId: interaction.user.id,
+      type: "kick",
+      reason,
+      active: true
+    }).catch(() => void 0);
+    const embed = new import_discord11.EmbedBuilder().setColor(import_discord11.Colors.Orange).setTitle("\u{1F462} Member Kicked").addFields(
+      { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+      { name: "Moderator", value: interaction.user.tag, inline: true },
+      { name: "Reason", value: reason, inline: false }
+    ).setFooter({ text: "\u611B Bella Star \u2022 Moderation" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
+function errorEmbed(description) {
+  return new import_discord11.EmbedBuilder().setColor(import_discord11.Colors.Red).setTitle("\u274C Kick failed").setDescription(description).setTimestamp();
+}
+__name(errorEmbed, "errorEmbed");
 
 // src/commands/moderation/ban.ts
-var import_discord11 = __toESM(require_src());
+var import_discord12 = __toESM(require_src());
 var banCommand = {
-  data: new import_discord11.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").addUserOption(
-    (option) => option.setName("user").setDescription("The user to ban").setRequired(true)
+  data: new import_discord12.SlashCommandBuilder().setName("ban").setDescription("Ban a member from the server.").setDMPermission(false).addUserOption(
+    (option) => option.setName("user").setDescription("The member to ban").setRequired(true)
   ).addStringOption(
-    (option) => option.setName("reason").setDescription("Reason for banning").setRequired(false)
+    (option) => option.setName("reason").setDescription("Reason for the ban").setRequired(false).setMaxLength(1e3)
   ),
   category: "moderation",
-  userPermissions: ["BanMembers"],
-  botPermissions: ["BanMembers"],
+  userPermissions: [import_discord12.PermissionFlagsBits.BanMembers],
+  botPermissions: [import_discord12.PermissionFlagsBits.BanMembers],
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
+    const { interaction, guild, member } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
     if (!user) {
-      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      await interaction.reply({
+        embeds: [errorEmbed2("User not found")],
+        flags: import_discord12.MessageFlags.Ephemeral
+      });
       return;
     }
-    await interaction.guild?.members.ban(user.id, { reason });
-    await interaction.reply(`\u{1F528} Banned ${user.tag} \u2014 Reason: ${reason}`);
+    if (user.id === interaction.user.id) {
+      await interaction.reply({
+        embeds: [errorEmbed2("You cannot ban yourself.")],
+        flags: import_discord12.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const target = guild.members.cache.get(user.id) ?? await guild.members.fetch(user.id).catch(() => null);
+    if (target) {
+      if (target.roles.highest.position >= member.roles.highest.position && !member.permissions.has(import_discord12.PermissionFlagsBits.Administrator)) {
+        await interaction.reply({
+          embeds: [
+            errorEmbed2(
+              "You cannot ban a member with an equal or higher top role than yours."
+            )
+          ],
+          flags: import_discord12.MessageFlags.Ephemeral
+        });
+        return;
+      }
+      if (!target.bannable) {
+        await interaction.reply({
+          embeds: [errorEmbed2("I cannot ban this member.")],
+          flags: import_discord12.MessageFlags.Ephemeral
+        });
+        return;
+      }
+    }
+    try {
+      await guild.members.ban(user.id, { reason });
+    } catch (err) {
+      await interaction.reply({
+        embeds: [errorEmbed2("I could not ban this member. Check my permissions and role position.")],
+        flags: import_discord12.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await Infraction.create({
+      guildId: guild.id,
+      userId: user.id,
+      moderatorId: interaction.user.id,
+      type: "ban",
+      reason,
+      active: true
+    }).catch(() => void 0);
+    const embed = new import_discord12.EmbedBuilder().setColor(import_discord12.Colors.Red).setTitle("\u{1F528} Member Banned").addFields(
+      { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+      { name: "Moderator", value: interaction.user.tag, inline: true },
+      { name: "Reason", value: reason, inline: false }
+    ).setFooter({ text: "\u611B Bella Star \u2022 Moderation" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
+function errorEmbed2(description) {
+  return new import_discord12.EmbedBuilder().setColor(import_discord12.Colors.Red).setTitle("\u274C Ban failed").setDescription(description).setTimestamp();
+}
+__name(errorEmbed2, "errorEmbed");
 
 // src/commands/moderation/timeout.ts
-var import_discord12 = __toESM(require_src());
+var import_discord13 = __toESM(require_src());
 var timeoutCommand = {
-  data: new import_discord12.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").addUserOption(
-    (option) => option.setName("user").setDescription("The user to timeout").setRequired(true)
+  data: new import_discord13.SlashCommandBuilder().setName("timeout").setDescription("Timeout a member.").setDMPermission(false).addUserOption(
+    (option) => option.setName("user").setDescription("The member to timeout").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes").setRequired(true).setMinValue(1).setMaxValue(40320)
   ).addStringOption(
-    (option) => option.setName("reason").setDescription("Reason for timeout").setRequired(false)
+    (option) => option.setName("reason").setDescription("Reason for the timeout").setRequired(false).setMaxLength(1e3)
   ),
   category: "moderation",
-  userPermissions: ["ModerateMembers"],
-  botPermissions: ["ModerateMembers"],
+  userPermissions: [import_discord13.PermissionFlagsBits.ModerateMembers],
+  botPermissions: [import_discord13.PermissionFlagsBits.ModerateMembers],
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
+    const { interaction, guild, member } = context;
     const user = interaction.options.getUser("user");
     const minutes = interaction.options.getInteger("duration");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
     if (!user) {
-      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      await interaction.reply({
+        embeds: [errorEmbed3("User not found")],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
       return;
     }
-    const member = interaction.guild?.members.cache.get(user.id);
-    if (!member) {
-      await interaction.reply({ content: "\u274C User not found in this server.", flags: 64 });
+    if (user.id === interaction.user.id) {
+      await interaction.reply({
+        embeds: [errorEmbed3("You cannot timeout yourself.")],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const target = guild.members.cache.get(user.id) ?? await guild.members.fetch(user.id).catch(() => null);
+    if (!target) {
+      await interaction.reply({
+        embeds: [errorEmbed3("That user is not in this server.")],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (target.roles.highest.position >= member.roles.highest.position && !member.permissions.has(import_discord13.PermissionFlagsBits.Administrator)) {
+      await interaction.reply({
+        embeds: [
+          errorEmbed3(
+            "You cannot timeout a member with an equal or higher top role than yours."
+          )
+        ],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (!target.moderatable && !target.timeoutable) {
+      await interaction.reply({
+        embeds: [errorEmbed3("I cannot timeout this member.")],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
       return;
     }
     const durationMs = minutes * 60 * 1e3;
-    await member.timeout(durationMs, reason);
-    await interaction.reply(
-      `\u23F1\uFE0F Timed out ${user.tag} for ${minutes} minute(s) \u2014 Reason: ${reason}`
-    );
+    try {
+      await target.timeout(durationMs, reason);
+    } catch (err) {
+      await interaction.reply({
+        embeds: [errorEmbed3("I could not timeout this member. Check my permissions and role position.")],
+        flags: import_discord13.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await Infraction.create({
+      guildId: guild.id,
+      userId: user.id,
+      moderatorId: interaction.user.id,
+      type: "timeout",
+      reason,
+      duration: minutes * 60,
+      expiresAt: new Date(Date.now() + durationMs),
+      active: true
+    }).catch(() => void 0);
+    const embed = new import_discord13.EmbedBuilder().setColor(import_discord13.Colors.Orange).setTitle("\u23F1\uFE0F Member Timed Out").addFields(
+      { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+      { name: "Moderator", value: interaction.user.tag, inline: true },
+      { name: "Duration", value: `${minutes} minute(s)`, inline: true },
+      { name: "Reason", value: reason, inline: false }
+    ).setFooter({ text: "\u611B Bella Star \u2022 Moderation" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
+function errorEmbed3(description) {
+  return new import_discord13.EmbedBuilder().setColor(import_discord13.Colors.Red).setTitle("\u274C Timeout failed").setDescription(description).setTimestamp();
+}
+__name(errorEmbed3, "errorEmbed");
 
 // src/commands/moderation/clear.ts
-var import_discord13 = __toESM(require_src());
+var import_discord14 = __toESM(require_src());
 var clearCommand = {
-  data: new import_discord13.SlashCommandBuilder().setName("clear").setDescription("Delete messages in a channel.").addIntegerOption(
+  data: new import_discord14.SlashCommandBuilder().setName("clear").setDescription("Delete messages in a channel.").setDMPermission(false).addIntegerOption(
     (option) => option.setName("amount").setDescription("Number of messages to delete").setRequired(true).setMinValue(1).setMaxValue(100)
   ),
   category: "moderation",
-  userPermissions: ["ManageMessages"],
-  botPermissions: ["ManageMessages"],
+  userPermissions: [import_discord14.PermissionFlagsBits.ManageMessages],
+  botPermissions: [import_discord14.PermissionFlagsBits.ManageMessages],
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const amount = interaction.options.getInteger("amount");
-    await interaction.channel?.bulkDelete(amount, true);
+    const channel = interaction.channel;
+    if (!channel || typeof channel.bulkDelete !== "function") {
+      await interaction.reply({
+        content: "\u274C This channel does not support bulk deletion.",
+        flags: import_discord14.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const deleted = await channel.bulkDelete(amount, true).catch(() => null);
+    const count = deleted?.size ?? 0;
+    const embed = new import_discord14.EmbedBuilder().setColor(import_discord14.Colors.Blurple).setTitle("\u{1F5D1}\uFE0F Messages Deleted").setDescription(`Deleted ${count} message(s).`).setFooter({ text: "\u611B Bella Star \u2022 Moderation" }).setTimestamp();
     await interaction.reply({
-      content: `\u{1F5D1}\uFE0F Deleted ${amount} message(s).`,
-      flags: 64
+      embeds: [embed],
+      flags: import_discord14.MessageFlags.Ephemeral
     });
   }, "execute")
 };
 
 // src/commands/moderation/warn.ts
-var import_discord14 = __toESM(require_src());
+var import_discord15 = __toESM(require_src());
 var warnCommand = {
-  data: new import_discord14.SlashCommandBuilder().setName("warn").setDescription("Warn a member.").addUserOption(
-    (option) => option.setName("user").setDescription("The user to warn").setRequired(true)
+  data: new import_discord15.SlashCommandBuilder().setName("warn").setDescription("Warn a member and record the infraction.").setDMPermission(false).addUserOption(
+    (option) => option.setName("user").setDescription("The member to warn").setRequired(true)
   ).addStringOption(
-    (option) => option.setName("reason").setDescription("Reason for warning").setRequired(false)
+    (option) => option.setName("reason").setDescription("Reason for the warning").setRequired(false).setMaxLength(1e3)
   ),
   category: "moderation",
-  userPermissions: ["ModerateMembers"],
+  userPermissions: [import_discord15.PermissionFlagsBits.ModerateMembers],
+  botPermissions: [import_discord15.PermissionFlagsBits.ModerateMembers],
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
+    const { interaction, guild, member } = context;
     const user = interaction.options.getUser("user");
     const reason = interaction.options.getString("reason") ?? "No reason provided";
     if (!user) {
-      await interaction.reply({ content: "\u274C User not found.", flags: 64 });
+      await interaction.reply({
+        embeds: [errorEmbed4("User not found")],
+        flags: import_discord15.MessageFlags.Ephemeral
+      });
       return;
     }
-    const target = await getUser(user.id);
-    await interaction.reply(
-      `\u26A0\uFE0F Warned ${user.tag} \u2014 Reason: ${reason}`
-    );
+    if (user.id === interaction.user.id) {
+      await interaction.reply({
+        embeds: [errorEmbed4("You cannot warn yourself.")],
+        flags: import_discord15.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const target = guild.members.cache.get(user.id) ?? await guild.members.fetch(user.id).catch(() => null);
+    if (!target) {
+      await interaction.reply({
+        embeds: [errorEmbed4("That user is not in this server.")],
+        flags: import_discord15.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    if (target.roles.highest.position >= member.roles.highest.position && !member.permissions.has(import_discord15.PermissionFlagsBits.Administrator)) {
+      await interaction.reply({
+        embeds: [
+          errorEmbed4(
+            "You cannot warn a member with an equal or higher top role than yours."
+          )
+        ],
+        flags: import_discord15.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await Infraction.create({
+      guildId: guild.id,
+      userId: user.id,
+      moderatorId: interaction.user.id,
+      type: "warn",
+      reason,
+      active: true
+    });
+    const embed = new import_discord15.EmbedBuilder().setColor(import_discord15.Colors.Yellow).setTitle("\u26A0\uFE0F Member Warned").addFields(
+      { name: "User", value: `${user.tag} (${user.id})`, inline: true },
+      { name: "Moderator", value: interaction.user.tag, inline: true },
+      { name: "Reason", value: reason, inline: false }
+    ).setFooter({ text: "\u611B Bella Star \u2022 Moderation" }).setTimestamp();
+    await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
+function errorEmbed4(description) {
+  return new import_discord15.EmbedBuilder().setColor(import_discord15.Colors.Red).setTitle("\u274C Warning failed").setDescription(description).setTimestamp();
+}
+__name(errorEmbed4, "errorEmbed");
 
 // src/commands/moderation/automod.ts
-var import_discord16 = __toESM(require_src());
+var import_discord17 = __toESM(require_src());
 
 // src/core/metrics.ts
 var import_node_stream4 = require("node:stream");
@@ -181508,7 +181964,7 @@ var activityLogStream = new import_node_stream4.Writable({
 });
 
 // src/handlers/automod.ts
-var import_discord15 = __toESM(require_src());
+var import_discord16 = __toESM(require_src());
 function hasIgnoreRole(member, ignoreRoles) {
   if (!member || !member.roles) return false;
   return member.roles.cache.hasAny(...ignoreRoles);
@@ -181528,7 +181984,7 @@ __name(getLogChannel, "getLogChannel");
 async function sendLog(channel, embed, webhook) {
   try {
     if (webhook?.id && webhook?.token) {
-      const webhookClient = new import_discord15.WebhookClient({ id: webhook.id, token: webhook.token });
+      const webhookClient = new import_discord16.WebhookClient({ id: webhook.id, token: webhook.token });
       await webhookClient.send({ embeds: [embed] });
     } else {
       await channel.send({ embeds: [embed] });
@@ -181564,7 +182020,7 @@ async function executeActions(ctx, rule, reason) {
   const canActOnMember = member.roles.highest.position < botMember.roles.highest.position;
   const logResult = await getLogChannel(guild, "automodTrigger");
   const logChannel = logResult.channel;
-  const embed = new import_discord15.EmbedBuilder().setColor(import_discord15.Colors.Red).setTitle("\u{1F6E1}\uFE0F Auto-Mod Triggered").setDescription(`**Rule:** ${rule.name} (${rule.type})`).addFields(
+  const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Red).setTitle("\u{1F6E1}\uFE0F Auto-Mod Triggered").setDescription(`**Rule:** ${rule.name} (${rule.type})`).addFields(
     { name: "User", value: `${user.tag} (${user.id})`, inline: true },
     { name: "Channel", value: `<#${message.channelId}>`, inline: true },
     { name: "Reason", value: reason, inline: false }
@@ -181851,7 +182307,7 @@ var configKeys = [
   "blockedExtensions"
 ];
 var automodCommand = {
-  data: new import_discord16.SlashCommandBuilder().setName("automod").setDescription("Auto-moderation system").addSubcommand(
+  data: new import_discord17.SlashCommandBuilder().setName("automod").setDescription("Auto-moderation system").addSubcommand(
     (sub) => sub.setName("add").setDescription("Add an auto-mod rule").addStringOption(
       (opt) => opt.setName("type").setDescription("Rule type").setRequired(true).addChoices(...automodTypes)
     ).addStringOption(
@@ -181926,7 +182382,7 @@ var automodCommand = {
         logChannel,
         config: defaultConfig
       });
-      const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Green).setTitle("\u2705 Auto-Mod Rule Created").addFields(
+      const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Green).setTitle("\u2705 Auto-Mod Rule Created").addFields(
         { name: "Name", value: rule.name, inline: true },
         { name: "Type", value: rule.type, inline: true },
         { name: "Actions", value: rule.actions.join(", "), inline: true },
@@ -181955,7 +182411,7 @@ var automodCommand = {
         await interaction.reply({ content: "No auto-mod rules configured", ephemeral: true });
         return;
       }
-      const embed = new import_discord16.EmbedBuilder().setColor(import_discord16.Colors.Blurple).setTitle("\u{1F6E1}\uFE0F Auto-Mod Rules").setDescription(rules.map(
+      const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Blurple).setTitle("\u{1F6E1}\uFE0F Auto-Mod Rules").setDescription(rules.map(
         (r) => `**${r.name}** (${r.type}) \u2014 ${r.enabled ? "\u{1F7E2}" : "\u{1F534}"} \u2014 Actions: ${r.actions.join(", ")} \u2014 ID: \`${r._id}\``
       ).join("\n")).setFooter({ text: `${rules.length} rule(s)` });
       await interaction.reply({ embeds: [embed] });
@@ -182003,16 +182459,16 @@ function getDefaultConfig(type) {
 }
 __name(getDefaultConfig, "getDefaultConfig");
 function buildConfigModal(rule) {
-  const modal = new import_discord16.ModalBuilder().setCustomId(`automod_config:${rule._id}`).setTitle(`Configure: ${rule.name}`);
+  const modal = new import_discord17.ModalBuilder().setCustomId(`automod_config:${rule._id}`).setTitle(`Configure: ${rule.name}`);
   const config2 = rule.config;
   switch (rule.type) {
     case "spam": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxMessages").setLabel("Max Messages").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxMessages ?? 5)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxMessages").setLabel("Max Messages").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxMessages ?? 5)).setRequired(true)
         ),
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("windowSeconds").setLabel("Time Window (seconds)").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.windowSeconds ?? 10)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("windowSeconds").setLabel("Time Window (seconds)").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.windowSeconds ?? 10)).setRequired(true)
         )
       );
       break;
@@ -182020,70 +182476,70 @@ function buildConfigModal(rule) {
     case "links":
     case "invites": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("allowedDomains").setLabel("Allowed Domains (comma-separated)").setStyle(import_discord16.TextInputStyle.Paragraph).setValue(config2.allowedDomains?.join(", ") || "").setRequired(false).setPlaceholder("example.com, discord.gg")
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("allowedDomains").setLabel("Allowed Domains (comma-separated)").setStyle(import_discord17.TextInputStyle.Paragraph).setValue(config2.allowedDomains?.join(", ") || "").setRequired(false).setPlaceholder("example.com, discord.gg")
         )
       );
       break;
     }
     case "words": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("bannedWords").setLabel("Banned Words (comma-separated)").setStyle(import_discord16.TextInputStyle.Paragraph).setValue(config2.bannedWords?.join(", ") || "").setRequired(false)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("bannedWords").setLabel("Banned Words (comma-separated)").setStyle(import_discord17.TextInputStyle.Paragraph).setValue(config2.bannedWords?.join(", ") || "").setRequired(false)
         ),
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("regexPatterns").setLabel("Regex Patterns (one per line)").setStyle(import_discord16.TextInputStyle.Paragraph).setValue(config2.regexPatterns?.join("\n") || "").setRequired(false).setPlaceholder("(?i)badword\n^spam$")
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("regexPatterns").setLabel("Regex Patterns (one per line)").setStyle(import_discord17.TextInputStyle.Paragraph).setValue(config2.regexPatterns?.join("\n") || "").setRequired(false).setPlaceholder("(?i)badword\n^spam$")
         )
       );
       break;
     }
     case "caps": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("minLength").setLabel("Min Message Length").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.minLength ?? 10)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("minLength").setLabel("Min Message Length").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.minLength ?? 10)).setRequired(true)
         ),
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxCapsPercent").setLabel("Max Caps Percentage").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxCapsPercent ?? 70)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxCapsPercent").setLabel("Max Caps Percentage").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxCapsPercent ?? 70)).setRequired(true)
         )
       );
       break;
     }
     case "mentions": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxMentions").setLabel("Max Mentions Per Message").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxMentions ?? 5)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxMentions").setLabel("Max Mentions Per Message").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxMentions ?? 5)).setRequired(true)
         )
       );
       break;
     }
     case "attachments": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("blockedExtensions").setLabel("Blocked Extensions (comma-separated)").setStyle(import_discord16.TextInputStyle.Short).setValue(config2.blockedExtensions?.join(", ") || "exe,bat,cmd,scr").setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("blockedExtensions").setLabel("Blocked Extensions (comma-separated)").setStyle(import_discord17.TextInputStyle.Short).setValue(config2.blockedExtensions?.join(", ") || "exe,bat,cmd,scr").setRequired(true)
         )
       );
       break;
     }
     case "newlines": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxNewlines").setLabel("Max Newlines").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxNewlines ?? 20)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxNewlines").setLabel("Max Newlines").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxNewlines ?? 20)).setRequired(true)
         )
       );
       break;
     }
     case "emojis": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxEmojis").setLabel("Max Emojis").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxEmojis ?? 20)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxEmojis").setLabel("Max Emojis").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxEmojis ?? 20)).setRequired(true)
         )
       );
       break;
     }
     case "repeated": {
       modal.addComponents(
-        new import_discord16.ActionRowBuilder().addComponents(
-          new import_discord16.TextInputBuilder().setCustomId("maxRepeated").setLabel("Max Repeated Messages").setStyle(import_discord16.TextInputStyle.Short).setValue(String(config2.maxRepeated ?? 3)).setRequired(true)
+        new import_discord17.ActionRowBuilder().addComponents(
+          new import_discord17.TextInputBuilder().setCustomId("maxRepeated").setLabel("Max Repeated Messages").setStyle(import_discord17.TextInputStyle.Short).setValue(String(config2.maxRepeated ?? 3)).setRequired(true)
         )
       );
       break;
@@ -182152,16 +182608,16 @@ async function handleTagEmbedModal(interaction) {
     image: image || void 0
   };
   await tag.save();
-  const { EmbedBuilder: EmbedBuilder68, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
-  const embed = new EmbedBuilder68().setColor(Colors31.Green).setTitle("\u2705 Embed Updated").setDescription(`Custom command **/${name}** now has a custom embed`);
+  const { EmbedBuilder: EmbedBuilder74, Colors: Colors36 } = await Promise.resolve().then(() => __toESM(require_src()));
+  const embed = new EmbedBuilder74().setColor(Colors36.Green).setTitle("\u2705 Embed Updated").setDescription(`Custom command **/${name}** now has a custom embed`);
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 __name(handleTagEmbedModal, "handleTagEmbedModal");
 
 // src/commands/moderation/discordautomod.ts
-var import_discord17 = __toESM(require_src());
+var import_discord18 = __toESM(require_src());
 var discordautomodCommand = {
-  data: new import_discord17.SlashCommandBuilder().setName("discordautomod").setDescription("Manage Discord native AutoMod rules").addSubcommand(
+  data: new import_discord18.SlashCommandBuilder().setName("discordautomod").setDescription("Manage Discord native AutoMod rules").addSubcommand(
     (sub) => sub.setName("list").setDescription("List all Discord AutoMod rules")
   ).addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a Discord AutoMod rule").addStringOption(
@@ -182243,7 +182699,7 @@ var discordautomodCommand = {
           await interaction.reply({ content: "No Discord AutoMod rules configured", ephemeral: true });
           return;
         }
-        const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Blurple).setTitle("\u{1F916} Discord Native AutoMod Rules").setDescription(
+        const embed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Blurple).setTitle("\u{1F916} Discord Native AutoMod Rules").setDescription(
           Array.from(rules.values()).map(
             (r) => `**${r.name}** (${r.id})
 Type: ${r.triggerType} | Action: ${r.actions.map((a) => a.type).join(", ")}
@@ -182317,7 +182773,7 @@ Status: ${r.enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} | Exempt: ${r.
           exemptChannels,
           exemptRoles
         });
-        const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Green).setTitle("\u2705 Discord AutoMod Rule Created").addFields(
+        const embed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Green).setTitle("\u2705 Discord AutoMod Rule Created").addFields(
           { name: "Name", value: rule.name, inline: true },
           { name: "ID", value: rule.id, inline: true },
           { name: "Type", value: rule.triggerType.toString(), inline: true },
@@ -182379,7 +182835,7 @@ Status: ${r.enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} | Exempt: ${r.
           2: "Send Alert",
           3: "Timeout"
         };
-        const embed = new import_discord17.EmbedBuilder().setColor(import_discord17.Colors.Blurple).setTitle(`\u{1F916} Discord AutoMod Rule: ${rule.name}`).addFields(
+        const embed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Blurple).setTitle(`\u{1F916} Discord AutoMod Rule: ${rule.name}`).addFields(
           { name: "ID", value: rule.id, inline: true },
           { name: "Enabled", value: rule.enabled ? "\u{1F7E2} Yes" : "\u{1F534} No", inline: true },
           { name: "Trigger Type", value: triggerTypeNames[rule.triggerType] || "Unknown", inline: true },
@@ -182404,7 +182860,7 @@ Status: ${r.enabled ? "\u{1F7E2} Enabled" : "\u{1F534} Disabled"} | Exempt: ${r.
 };
 
 // src/commands/moderation/logs.ts
-var import_discord18 = __toESM(require_src());
+var import_discord19 = __toESM(require_src());
 var logEvents = [
   { name: "Message Delete", value: "messageDelete", description: "When a message is deleted" },
   { name: "Message Edit", value: "messageEdit", description: "When a message is edited" },
@@ -182433,11 +182889,11 @@ var logEvents = [
   { name: "Warn", value: "moderationWarn", description: "When a user is warned" }
 ];
 var logsCommand = {
-  data: new import_discord18.SlashCommandBuilder().setName("logs").setDescription("Configure logging channels").addSubcommand(
+  data: new import_discord19.SlashCommandBuilder().setName("logs").setDescription("Configure logging channels").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set a log channel for an event").addStringOption(
       (opt) => opt.setName("event").setDescription("Event to log").setRequired(true).setAutocomplete(true)
     ).addChannelOption(
-      (opt) => opt.setName("channel").setDescription("Channel to log to").setRequired(true).addChannelTypes(import_discord18.ChannelType.GuildText, import_discord18.ChannelType.GuildAnnouncement)
+      (opt) => opt.setName("channel").setDescription("Channel to log to").setRequired(true).addChannelTypes(import_discord19.ChannelType.GuildText, import_discord19.ChannelType.GuildAnnouncement)
     ).addBooleanOption(
       (opt) => opt.setName("include_content").setDescription("Include message content in logs").setRequired(false)
     ).addBooleanOption(
@@ -182489,7 +182945,7 @@ var logsCommand = {
       let webhookToken;
       try {
         const webhook = await channel.createWebhook({
-          name: "\u7231 Doctora Logs",
+          name: "\u611B Bella Star Logs",
           avatar: interaction.client.user.displayAvatarURL(),
           reason: "Auto-mod logging webhook"
         });
@@ -182511,7 +182967,7 @@ var logsCommand = {
         },
         { upsert: true, new: true }
       );
-      const embed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Green).setTitle("\u2705 Log Channel Set").addFields(
+      const embed = new import_discord19.EmbedBuilder().setColor(import_discord19.Colors.Green).setTitle("\u2705 Log Channel Set").addFields(
         { name: "Event", value: event, inline: true },
         { name: "Channel", value: `<#${channel.id}>`, inline: true },
         { name: "Include Content", value: includeContent ? "Yes" : "No", inline: true },
@@ -182530,7 +182986,7 @@ var logsCommand = {
       }
       if (config2.webhookId && config2.webhookToken) {
         try {
-          const webhookClient = new import_discord18.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
+          const webhookClient = new import_discord19.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
           await webhookClient.delete();
         } catch {
         }
@@ -182544,7 +183000,7 @@ var logsCommand = {
         await interaction.reply({ content: "No log channels configured", ephemeral: true });
         return;
       }
-      const embed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Blurple).setTitle("\u{1F4CB} Log Channels").setDescription(configs.map((c) => {
+      const embed = new import_discord19.EmbedBuilder().setColor(import_discord19.Colors.Blurple).setTitle("\u{1F4CB} Log Channels").setDescription(configs.map((c) => {
         const ch = guild.channels.cache.get(c.channelId);
         const chName = ch ? `<#${c.channelId}>` : `#deleted-channel`;
         return `**${c.event}** \u2192 ${chName} ${c.includeContent ? "\u{1F4DD}" : ""} ${c.logBots ? "\u{1F916}" : ""}`;
@@ -182600,13 +183056,13 @@ var logsCommand = {
         await interaction.reply({ content: "Log channel not found", ephemeral: true });
         return;
       }
-      const testEmbed = new import_discord18.EmbedBuilder().setColor(import_discord18.Colors.Blurple).setTitle("\u{1F9EA} Test Log").setDescription(`This is a test log for **${event}**`).addFields(
+      const testEmbed = new import_discord19.EmbedBuilder().setColor(import_discord19.Colors.Blurple).setTitle("\u{1F9EA} Test Log").setDescription(`This is a test log for **${event}**`).addFields(
         { name: "Triggered by", value: interaction.user.tag, inline: true },
         { name: "Channel", value: `<#${interaction.channelId}>`, inline: true }
       ).setTimestamp();
       try {
         if (config2.webhookId && config2.webhookToken) {
-          const webhookClient = new import_discord18.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
+          const webhookClient = new import_discord19.WebhookClient({ id: config2.webhookId, token: config2.webhookToken });
           await webhookClient.send({ embeds: [testEmbed] });
         } else {
           await logChannel.send({ embeds: [testEmbed] });
@@ -182621,7 +183077,7 @@ var logsCommand = {
 };
 
 // src/commands/economy/balance.ts
-var import_discord19 = __toESM(require_src());
+var import_discord20 = __toESM(require_src());
 
 // src/utils/economy.ts
 function formatCoins(amount) {
@@ -182643,18 +183099,27 @@ async function adjustBalance(userId, delta) {
   if (change === 0) return (await getEconomyUser(userId)).balance;
   const doc = await User.findOneAndUpdate(
     { userId },
-    { $inc: { balance: change }, $setOnInsert: { userId } },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    [
+      {
+        $set: {
+          balance: {
+            $max: [0, { $add: [{ $ifNull: ["$balance", 0] }, change] }]
+          },
+          userId: { $ifNull: ["$userId", userId] },
+          bank: { $ifNull: ["$bank", 0] },
+          bankLimit: { $ifNull: ["$bankLimit", 0] }
+        }
+      }
+    ],
+    { upsert: true, new: true }
   );
-  const balance = Math.max(0, Math.floor(doc.balance ?? 0));
-  if (balance !== doc.balance) {
-    await User.updateOne({ userId, balance: doc.balance }, { $set: { balance } });
-  }
-  return balance;
+  return Math.max(0, Math.floor(doc.balance ?? 0));
 }
 __name(adjustBalance, "adjustBalance");
 async function settleWager(userId, bet, winnings) {
-  const stake = Math.max(0, Math.trunc(bet));
+  if (!Number.isFinite(bet) || !Number.isFinite(winnings)) return null;
+  const stake = Math.trunc(bet);
+  if (stake < 1) return null;
   const payout = Math.max(0, Math.trunc(winnings));
   const net = payout - stake;
   const doc = await User.findOneAndUpdate(
@@ -182693,7 +183158,7 @@ function readInventory(doc) {
 }
 __name(readInventory, "readInventory");
 function hasItem(doc, itemId) {
-  return readInventory(doc).some((entry) => entry.itemId === itemId);
+  return readInventory(doc).some((entry) => entry.itemId === itemId && entry.quantity > 0);
 }
 __name(hasItem, "hasItem");
 function itemCount(doc, itemId) {
@@ -182716,7 +183181,7 @@ async function addItem(userId, itemId, delta = 1) {
     }
   } else if (change < 0) {
     await User.updateOne(
-      { userId, "inventory.itemId": itemId },
+      { userId, "inventory.itemId": itemId, "inventory.quantity": { $gte: -change } },
       { $inc: { "inventory.$.quantity": change } }
     );
     await User.updateOne(
@@ -182731,7 +183196,7 @@ __name(addItem, "addItem");
 
 // src/commands/economy/balance.ts
 var balanceCommand = {
-  data: new import_discord19.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
+  data: new import_discord20.SlashCommandBuilder().setName("balance").setDescription("Check your wallet and bank balance.").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "economy",
@@ -182756,18 +183221,22 @@ ${lines.join("\n")}`);
 };
 
 // src/commands/economy/daily.ts
-var import_discord20 = __toESM(require_src());
+var import_discord21 = __toESM(require_src());
 var DAY_MS = 864e5;
 var BASE_REWARD = 500;
 var STREAK_BONUS_PER_DAY = 50;
 var STREAK_BONUS_CAP = 500;
 var STREAK_GRACE_MS = DAY_MS * 2;
 var dailyCommand = {
-  data: new import_discord20.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward."),
+  data: new import_discord21.SlashCommandBuilder().setName("daily").setDescription("Claim your daily reward.").setDMPermission(false),
   category: "economy",
   cooldownSeconds: 86400,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
+    if (!interaction.guildId) {
+      await interaction.reply({ content: "\u274C Server-only.", ephemeral: true });
+      return;
+    }
     const now = Date.now();
     const user = await getEconomyUser(interaction.user.id);
     if (user.lastDaily && now - user.lastDaily.getTime() < DAY_MS) {
@@ -182781,7 +183250,7 @@ var dailyCommand = {
       });
       return;
     }
-    const previousStreak = user.dailyStreak ?? 0;
+    const previousStreak = Math.max(0, user.dailyStreak ?? 0);
     const sinceLast = user.lastDaily ? now - user.lastDaily.getTime() : Number.POSITIVE_INFINITY;
     const freezeArmed = user.streakFreeze === true;
     let streak;
@@ -182796,7 +183265,11 @@ var dailyCommand = {
     } else {
       streak = 1;
     }
-    const bonus = Math.min(streak - 1, STREAK_BONUS_CAP / STREAK_BONUS_PER_DAY) * STREAK_BONUS_PER_DAY;
+    streak = Math.max(1, streak);
+    const bonus = Math.max(
+      0,
+      Math.min(streak - 1, STREAK_BONUS_CAP / STREAK_BONUS_PER_DAY) * STREAK_BONUS_PER_DAY
+    );
     const reward = BASE_REWARD + bonus;
     const claimed = await User.findOneAndUpdate(
       {
@@ -182825,17 +183298,17 @@ var dailyCommand = {
       meta: { guildId: interaction.guildId, userId: interaction.user.id, streak, reward }
     });
     const streakLine = consumedFreeze ? `\u{1F9CA} A Streak Freeze kept your streak alive \u2014 **${streak}** days!` : `\u{1F525} Daily streak: **${streak}**${streak > 1 ? ` (+${formatCoins(bonus)} bonus)` : ""}`;
-    const embed = new import_discord20.EmbedBuilder().setColor(import_discord20.Colors.Gold).setTitle("\u{1F4B5} Daily Reward").setDescription(
+    const embed = new import_discord21.EmbedBuilder().setColor(import_discord21.Colors.Gold).setTitle("\u{1F4B5} Daily Reward").setDescription(
       `You claimed **${formatCoins(reward)}** coins.
 ${streakLine}
 Wallet: **${formatCoins(claimed.balance)}**`
-    ).setFooter({ text: "\u7231 Doctora \u2022 Economy" });
+    ).setFooter({ text: "\u611B Bella Star \u2022 Economy" });
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/economy/work.ts
-var import_discord21 = __toESM(require_src());
+var import_discord22 = __toESM(require_src());
 var WORK_COOLDOWN_MS = 36e5;
 var JOBS = [
   { name: "Pizza delivery", emoji: "\u{1F355}", min: 120, max: 380, failureRate: 0.08 },
@@ -182847,11 +183320,15 @@ var JOBS = [
   { name: "Courier", emoji: "\u{1F4E6}", min: 130, max: 400, failureRate: 0.09 }
 ];
 var workCommand = {
-  data: new import_discord21.SlashCommandBuilder().setName("work").setDescription("Work a shift to earn some coins."),
+  data: new import_discord22.SlashCommandBuilder().setName("work").setDescription("Work a shift to earn some coins.").setDMPermission(false),
   category: "economy",
   cooldownSeconds: 3600,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
+    if (!interaction.guildId) {
+      await interaction.reply({ content: "\u274C Server-only.", ephemeral: true });
+      return;
+    }
     const now = Date.now();
     const user = await getEconomyUser(interaction.user.id);
     if (user.lastWork && now - user.lastWork.getTime() < WORK_COOLDOWN_MS) {
@@ -182881,14 +183358,20 @@ var workCommand = {
       return;
     }
     if (!failed) {
-      void GameProfile.updateOne(
+      const existing = await GameProfile.findOne(
+        { userId: interaction.user.id, guildId: interaction.guildId },
+        { "work.bestReward": 1 }
+      ).lean().catch(() => null);
+      const prevBest = existing?.work?.bestReward ?? 0;
+      const isNewBest = reward > prevBest;
+      await GameProfile.updateOne(
         { userId: interaction.user.id, guildId: interaction.guildId },
         {
           $inc: { "work.timesWorked": 1, "work.totalEarned": reward },
-          $set: { "work.bestJob": job.name },
+          ...isNewBest ? { $set: { "work.bestJob": job.name, "work.bestReward": reward } } : {},
           $setOnInsert: { userId: interaction.user.id, guildId: interaction.guildId }
         },
-        { upsert: true }
+        { upsert: true, setDefaultsOnInsert: true }
       ).catch(() => void 0);
     }
     recordActivity("command", `${interaction.user.tag} worked as ${job.name}`, {
@@ -182896,13 +183379,13 @@ var workCommand = {
     });
     const description = failed ? `${job.emoji} Your shift as a **${job.name}** went sideways and you earned nothing better luck next time.` : `${job.emoji} You worked as a **${job.name}** and earned **${formatCoins(reward)}** coins!
 Wallet: **${formatCoins(updated.balance)}**`;
-    const embed = new import_discord21.EmbedBuilder().setColor(failed ? import_discord21.Colors.Red : import_discord21.Colors.Green).setTitle(failed ? "\u{1F4BC} Shift gone wrong" : "\u{1F4BC} Shift complete").setDescription(description).setFooter({ text: "\u7231 Doctora \u2022 Economy" });
+    const embed = new import_discord22.EmbedBuilder().setColor(failed ? import_discord22.Colors.Red : import_discord22.Colors.Green).setTitle(failed ? "\u{1F4BC} Shift gone wrong" : "\u{1F4BC} Shift complete").setDescription(description).setFooter({ text: "\u611B Bella Star \u2022 Economy" });
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/economy/casino.ts
-var import_discord22 = __toESM(require_src());
+var import_discord23 = __toESM(require_src());
 var MAX_BET = 1e4;
 var MIN_CRASH_TARGET = 1.2;
 var MAX_CRASH_TARGET = 50;
@@ -182910,7 +183393,7 @@ var SLOTS_SYMBOLS = ["\u{1F34A}", "\u{1F347}", "\u{1F352}", "\u{1F514}", "\u{1F4
 var RED_NUMBERS = /* @__PURE__ */ new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
 var CRASH_HOUSE_RETURN = 0.97;
 var casinoCommand = {
-  data: new import_discord22.SlashCommandBuilder().setName("casino").setDescription("Casino games").addSubcommand(
+  data: new import_discord23.SlashCommandBuilder().setName("casino").setDescription("Casino games").addSubcommand(
     (sub) => sub.setName("slots").setDescription("Play slots").addIntegerOption((opt) => betOption(opt))
   ).addSubcommand(
     (sub) => sub.setName("coinflip").setDescription("Coin flip").addIntegerOption((opt) => betOption(opt)).addStringOption(
@@ -182935,11 +183418,15 @@ var casinoCommand = {
     (sub) => sub.setName("crash").setDescription("Cash out before the graph crashes").addIntegerOption((opt) => betOption(opt)).addNumberOption(
       (opt) => opt.setName("target").setDescription("Multiplier to cash out at (higher = riskier)").setMinValue(MIN_CRASH_TARGET).setMaxValue(MAX_CRASH_TARGET).setRequired(false)
     )
-  ).addSubcommand((sub) => sub.setName("stats").setDescription("View casino stats")),
+  ).addSubcommand((sub) => sub.setName("stats").setDescription("View casino stats")).setDMPermission(false),
   category: "economy",
   cooldownSeconds: 3,
   async execute(context) {
     const { interaction, guild } = context;
+    if (!guild) {
+      await interaction.reply({ content: "\u274C Server-only.", ephemeral: true });
+      return;
+    }
     const guildId = guild.id;
     const userId = interaction.user.id;
     const sub = interaction.options.getSubcommand();
@@ -182958,37 +183445,53 @@ var casinoCommand = {
     ]);
     const cloverArmed = user.luckyClover === true;
     const outcome = play(sub, interaction, bet);
-    if (!outcome) return;
+    if (!outcome) {
+      await interaction.reply({ content: "\u274C Unknown game.", ephemeral: true });
+      return;
+    }
     let { winnings, description, color, extra } = outcome;
     let cloverUsed = false;
+    let cloverClaimed = false;
     if (cloverArmed && winnings < bet) {
-      winnings = Math.floor(bet / 2);
-      cloverUsed = true;
-      description += "\n\u{1F340} Your Lucky Clover refunded half the stake!";
+      const claimed = await User.updateOne(
+        { userId, luckyClover: true },
+        { $set: { luckyClover: false } }
+      );
+      if (claimed.modifiedCount === 1) {
+        cloverClaimed = true;
+        if (bet >= 2) {
+          winnings = Math.floor(bet / 2);
+          cloverUsed = true;
+          description += "\n\u{1F340} Your Lucky Clover refunded half the stake!";
+        } else {
+          await User.updateOne({ userId, luckyClover: false }, { $set: { luckyClover: true } }).catch(
+            () => void 0
+          );
+          cloverClaimed = false;
+        }
+      }
     }
     const balance = await settleWager(userId, bet, winnings);
     if (balance === null) {
+      if (cloverClaimed) {
+        await User.updateOne({ userId, luckyClover: false }, { $set: { luckyClover: true } }).catch(
+          () => void 0
+        );
+      }
       await interaction.reply({ content: "\u274C Insufficient balance.", ephemeral: true });
       return;
     }
-    if (cloverUsed) {
-      await User.updateOne({ userId, luckyClover: true }, { $set: { luckyClover: false } });
-    }
-    recordGame(profile, sub, bet, winnings, extra);
-    if (outcome.crashPoint && outcome.crashPoint > profile.casino.crash.highestMultiplier) {
-      profile.casino.crash.highestMultiplier = Number(outcome.crashPoint.toFixed(2));
-    }
-    await profile.save();
+    await recordGameAtomic(profile, sub, bet, winnings, extra, outcome.crashPoint);
     const net = winnings - bet;
     recordActivity("command", `${interaction.user.tag} played ${sub}`, {
       meta: { guildId, userId, game: sub, bet, net }
     });
-    const embed = new import_discord22.EmbedBuilder().setColor(color ?? (net >= 0 ? import_discord22.Colors.Green : import_discord22.Colors.Red)).setTitle(gameTitle(sub)).setDescription(description).addFields(
+    const embed = new import_discord23.EmbedBuilder().setColor(color ?? (net >= 0 ? import_discord23.Colors.Green : import_discord23.Colors.Red)).setTitle(gameTitle(sub)).setDescription(description).addFields(
       { name: "Bet", value: formatCoins(bet), inline: true },
       { name: "Won", value: formatCoins(winnings), inline: true },
-      { name: "Net", value: (net >= 0 ? "+" : "") + formatCoins(Math.abs(net)), inline: true },
+      { name: "Net", value: (net < 0 ? "-" : "+") + formatCoins(Math.abs(net)), inline: true },
       { name: "Wallet", value: formatCoins(balance), inline: true }
-    ).setFooter({ text: "\u7231 Doctora \u2022 Casino" });
+    ).setFooter({ text: "\u611B Bella Star \u2022 Casino" });
     await interaction.reply({ embeds: [embed] });
   }
 };
@@ -183051,7 +183554,7 @@ function playSlots(bet) {
     description: `| ${result[0]} | ${result[1]} | ${result[2]} |
 
 ${message}`,
-    color: winnings >= bet ? import_discord22.Colors.Green : import_discord22.Colors.Red,
+    color: winnings >= bet ? import_discord23.Colors.Green : import_discord23.Colors.Red,
     extra
   };
 }
@@ -183064,7 +183567,7 @@ function playCoinflip(interaction, bet) {
     winnings: won ? bet * 2 : 0,
     description: `Result: **${result}**
 You ${won ? "won" : "lost"}!`,
-    color: won ? import_discord22.Colors.Green : import_discord22.Colors.Red
+    color: won ? import_discord23.Colors.Green : import_discord23.Colors.Red
   };
 }
 __name(playCoinflip, "playCoinflip");
@@ -183137,7 +183640,7 @@ function playBlackjack(bet) {
 Dealer: ${show(dealer)} (${dealerScore})
 
 ${resultText}`,
-    color: winnings > bet ? import_discord22.Colors.Green : winnings === bet ? import_discord22.Colors.Yellow : import_discord22.Colors.Red,
+    color: winnings > bet ? import_discord23.Colors.Green : winnings === bet ? import_discord23.Colors.Yellow : import_discord23.Colors.Red,
     extra
   };
 }
@@ -183167,51 +183670,88 @@ function playRoulette(interaction, bet) {
     winnings,
     description: `The ball landed on **${number4}** (${color})
 You ${won ? "won" : "lost"}!`,
-    color: won ? import_discord22.Colors.Green : import_discord22.Colors.Red,
+    color: won ? import_discord23.Colors.Green : import_discord23.Colors.Red,
     extra
   };
 }
 __name(playRoulette, "playRoulette");
 function playCrash(interaction, bet) {
-  const target = interaction.options.getNumber("target") ?? 2;
+  let target = interaction.options.getNumber("target") ?? 2;
+  if (!Number.isFinite(target) || target < MIN_CRASH_TARGET || target > MAX_CRASH_TARGET) {
+    target = 2;
+  }
   const crashPoint = Math.max(1, CRASH_HOUSE_RETURN / (1 - Math.random()));
   const cashedOut = crashPoint >= target;
   const winnings = cashedOut ? Math.floor(bet * target) : 0;
   return {
     winnings,
     description: cashedOut ? `Crashed at **${crashPoint.toFixed(2)}x** \u2014 you got out at **${target.toFixed(2)}x**. \u{1F389}` : `Crashed at **${crashPoint.toFixed(2)}x** before your **${target.toFixed(2)}x** target. \u{1F4A5}`,
-    color: cashedOut ? import_discord22.Colors.Green : import_discord22.Colors.Red,
+    color: cashedOut ? import_discord23.Colors.Green : import_discord23.Colors.Red,
     crashPoint
   };
 }
 __name(playCrash, "playCrash");
-function recordGame(profile, game, bet, winnings, extra) {
+async function recordGameAtomic(profile, game, bet, winnings, extra, crashPoint) {
   const net = winnings - bet;
-  const casino = profile.casino;
-  casino.gamesPlayed++;
-  casino.wagered += bet;
+  const inc = {
+    "casino.gamesPlayed": 1,
+    "casino.wagered": bet,
+    [`casino.${game}.played`]: 1
+  };
   if (net > 0) {
-    casino.won += net;
-    if (net > casino.biggestWin) casino.biggestWin = net;
+    inc["casino.won"] = net;
+    inc[`casino.${game}.won`] = 1;
   } else if (net < 0) {
-    const loss = -net;
-    casino.lost += loss;
-    if (loss > casino.biggestLoss) casino.biggestLoss = loss;
-  }
-  const stats = casino[game];
-  stats.played = (stats.played ?? 0) + 1;
-  if (net > 0) stats.won = (stats.won ?? 0) + 1;
-  else if (net < 0) stats.lost = (stats.lost ?? 0) + 1;
-  if (game === "coinflip") {
-    const streak = net > 0 ? (stats.streak ?? 0) + 1 : 0;
-    stats.streak = streak;
-    stats.maxStreak = Math.max(stats.maxStreak ?? 0, streak);
+    inc["casino.lost"] = -net;
+    inc[`casino.${game}.lost`] = 1;
   }
   for (const [key, by] of Object.entries(extra ?? {})) {
-    stats[key] = (stats[key] ?? 0) + by;
+    if (Number.isFinite(by) && by !== 0) {
+      inc[`casino.${game}.${key}`] = (inc[`casino.${game}.${key}`] ?? 0) + by;
+    }
   }
+  const maxUpdates = {};
+  if (net > 0) maxUpdates["casino.biggestWin"] = net;
+  if (net < 0) maxUpdates["casino.biggestLoss"] = -net;
+  if (crashPoint && Number.isFinite(crashPoint)) {
+    maxUpdates["casino.crash.highestMultiplier"] = Number(crashPoint.toFixed(2));
+  }
+  if (game === "coinflip") {
+    const newStreakExpr = {
+      $cond: [net > 0, { $add: [{ $ifNull: ["$casino.coinflip.streak", 0] }, 1] }, 0]
+    };
+    await GameProfile.updateOne(
+      { userId: profile.userId, guildId: profile.guildId },
+      [
+        {
+          $set: {
+            "casino.coinflip.streak": newStreakExpr,
+            "casino.coinflip.maxStreak": {
+              $cond: [
+                net > 0,
+                {
+                  $max: [
+                    { $ifNull: ["$casino.coinflip.maxStreak", 0] },
+                    { $add: [{ $ifNull: ["$casino.coinflip.streak", 0] }, 1] }
+                  ]
+                },
+                { $ifNull: ["$casino.coinflip.maxStreak", 0] }
+              ]
+            },
+            ...maxUpdates
+          }
+        },
+        { $inc: inc }
+      ]
+    ).catch(() => void 0);
+    return;
+  }
+  await GameProfile.updateOne(
+    { userId: profile.userId, guildId: profile.guildId },
+    { $inc: inc, $max: maxUpdates }
+  ).catch(() => void 0);
 }
-__name(recordGame, "recordGame");
+__name(recordGameAtomic, "recordGameAtomic");
 async function getProfile(userId, guildId) {
   const existing = await GameProfile.findOne({ userId, guildId });
   if (existing) return existing;
@@ -183226,7 +183766,7 @@ __name(getProfile, "getProfile");
 async function sendStats(interaction, userId, guildId) {
   const profile = await getProfile(userId, guildId);
   const c = profile.casino;
-  const embed = new import_discord22.EmbedBuilder().setColor(import_discord22.Colors.Blurple).setTitle("\u{1F3B0} Casino Stats").addFields(
+  const embed = new import_discord23.EmbedBuilder().setColor(import_discord23.Colors.Blurple).setTitle("\u{1F3B0} Casino Stats").addFields(
     { name: "Games Played", value: c.gamesPlayed.toLocaleString(), inline: true },
     { name: "Total Wagered", value: formatCoins(c.wagered), inline: true },
     { name: "Net Won", value: formatCoins(c.won), inline: true },
@@ -183238,16 +183778,17 @@ async function sendStats(interaction, userId, guildId) {
     { name: "Roulette Straights", value: c.roulette.straightWins.toLocaleString(), inline: true },
     { name: "Best Crash", value: `${c.crash.highestMultiplier.toFixed(2)}x`, inline: true },
     { name: "Coinflip Streak", value: `${c.coinflip.streak} (best ${c.coinflip.maxStreak})`, inline: true }
-  ).setFooter({ text: "\u7231 Doctora \u2022 Casino" });
+  ).setFooter({ text: "\u611B Bella Star \u2022 Casino" });
   await interaction.reply({ embeds: [embed] });
 }
 __name(sendStats, "sendStats");
 
 // src/commands/fun/coinflip.ts
-var import_discord23 = __toESM(require_src());
+var import_discord24 = __toESM(require_src());
 var coinflipCommand = {
-  data: new import_discord23.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
+  data: new import_discord24.SlashCommandBuilder().setName("coinflip").setDescription("Flip a coin."),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const result = Math.random() < 0.5 ? "Heads" : "Tails";
@@ -183256,12 +183797,13 @@ var coinflipCommand = {
 };
 
 // src/commands/fun/dice.ts
-var import_discord24 = __toESM(require_src());
+var import_discord25 = __toESM(require_src());
 var diceCommand = {
-  data: new import_discord24.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
+  data: new import_discord25.SlashCommandBuilder().setName("dice").setDescription("Roll a dice.").addIntegerOption(
     (option) => option.setName("sides").setDescription("Number of sides").setRequired(false).setMinValue(2).setMaxValue(1e3)
   ),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const sides = interaction.options.getInteger("sides") ?? 6;
@@ -183271,33 +183813,37 @@ var diceCommand = {
 };
 
 // src/commands/leveling/rank.ts
-var import_discord26 = __toESM(require_src());
+var import_discord27 = __toESM(require_src());
 
 // src/utils/rankEmbeds.ts
-var import_discord25 = __toESM(require_src());
+var import_discord26 = __toESM(require_src());
 function buildRankCard(opts) {
   const { user, info } = opts;
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
   const levelColor = info.level % 2 === 0 ? 5793266 : 10499071;
-  const embed = new import_discord25.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(`[${"\u25B0".repeat(Math.round(percent / 5))}${"\u25B1".repeat(20 - Math.round(percent / 5))}] \`${percent}%\``).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
+  const safePercent = Math.max(0, Math.min(100, percent));
+  const filled = Math.round(safePercent / 5);
+  const bar25 = `[${"\u25B0".repeat(filled)}${"\u25B1".repeat(20 - filled)}] \`${safePercent}%\``;
+  const bar = progressBar(safePercent, 15);
+  const embed = new import_discord26.EmbedBuilder().setColor(levelColor).setAuthor({ name: user.username, iconURL: user.displayAvatarURL() }).setDescription(bar25).setTitle(`\u{1F3C6} Level ${info.level}`).addFields(
     { name: "Progress", value: `${info.xpInLevel.toLocaleString()} / ${info.xpForNext.toLocaleString()} XP`, inline: true },
     { name: "Total XP", value: info.totalXp.toLocaleString(), inline: true }
-  ).setFooter({ text: `Rank #${opts.position || ""} \u2022 ${opts.guildName}` }).setTimestamp();
+  ).setTimestamp();
   if (opts.position && opts.position > 0) {
     embed.addFields({ name: "Overall Rank", value: `#${opts.position}`, inline: true });
   }
-  const bar = progressBar(percent, 15);
-  embed.setFooter({ text: `${opts.guildName} \u2022 ${bar} \u2022 Level ${info.level}` });
+  const rankPart = opts.position && opts.position > 0 ? `Rank #${opts.position} \u2022 ` : "";
+  embed.setFooter({ text: `${rankPart}${opts.guildName} \u2022 ${bar} \u2022 Level ${info.level}` });
   return embed;
 }
 __name(buildRankCard, "buildRankCard");
 function buildLeaderboardEmbed(entries, guildName) {
-  const description = entries.map((entry, i) => {
+  const description = entries.length === 0 ? "_Nobody has earned XP yet._" : entries.map((entry, i) => {
     const medal = i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : `**${i + 1}.**`;
     return `${medal} <@${entry.userId}> \u2014 level **${entry.level}** (\`${entry.totalXp.toLocaleString()}\` XP)`;
   }).join("\n");
-  return new import_discord25.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
+  return new import_discord26.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C6} Top members").setDescription(description).setFooter({ text: guildName }).setTimestamp();
 }
 __name(buildLeaderboardEmbed, "buildLeaderboardEmbed");
 
@@ -183994,15 +184540,16 @@ var leaderboardPodium = new LeaderboardPodiumCanvas();
 
 // src/commands/leveling/rank.ts
 var rankCommand = {
-  data: new import_discord26.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
+  data: new import_discord27.SlashCommandBuilder().setName("rank").setDescription("Check your XP and level").addUserOption(
     (option) => option.setName("user").setDescription("The user to check").setRequired(false)
   ),
   category: "leveling",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
     const guild = interaction.guild;
-    await interaction.deferReply({ flags: import_discord26.MessageFlags.Ephemeral });
+    await interaction.deferReply({ flags: import_discord27.MessageFlags.Ephemeral });
     const row = await getUserXp(target.id);
     if (!row || row.xp <= 0) {
       await interaction.editReply({
@@ -184028,7 +184575,7 @@ var rankCommand = {
         totalXp: info.totalXp,
         guildName: guild?.name
       });
-      const attachment = new import_discord26.AttachmentBuilder(buffer, { name: "rank.png" });
+      const attachment = new import_discord27.AttachmentBuilder(buffer, { name: "rank.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render rank card:", err);
@@ -184044,12 +184591,13 @@ var rankCommand = {
 };
 
 // src/commands/leveling/leaderboard.ts
-var import_discord27 = __toESM(require_src());
+var import_discord28 = __toESM(require_src());
 var leaderboardCommand = {
-  data: new import_discord27.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
+  data: new import_discord28.SlashCommandBuilder().setName("leaderboard").setDescription("View the top XP earners in the server").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many members to show (1-25)").setMinValue(1).setMaxValue(25)
   ),
   category: "leveling",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const limit = interaction.options.getInteger("limit") ?? 10;
@@ -184086,7 +184634,7 @@ var leaderboardCommand = {
         interaction.guild?.name ?? "this server",
         "\u{1F3C6} Top members"
       );
-      const attachment = new import_discord27.AttachmentBuilder(buffer, { name: "leaderboard.png" });
+      const attachment = new import_discord28.AttachmentBuilder(buffer, { name: "leaderboard.png" });
       await interaction.editReply({ files: [attachment] });
     } catch (err) {
       console.error("Failed to render leaderboard image:", err);
@@ -184105,14 +184653,14 @@ var leaderboardCommand = {
 };
 
 // src/commands/leveling/levels.ts
-var import_discord30 = __toESM(require_src());
+var import_discord31 = __toESM(require_src());
 
 // src/utils/discord.ts
-var import_discord28 = __toESM(require_src());
+var import_discord29 = __toESM(require_src());
 function canAssignRole(guild, role) {
   const me = guild.members.me;
   if (!me) return "I could not resolve my own member object.";
-  if (!me.permissions.has(import_discord28.PermissionFlagsBits.ManageRoles)) {
+  if (!me.permissions.has(import_discord29.PermissionFlagsBits.ManageRoles)) {
     return "I need the **Manage Roles** permission to assign roles.";
   }
   if (role.managed) {
@@ -184126,7 +184674,7 @@ function canAssignRole(guild, role) {
 __name(canAssignRole, "canAssignRole");
 
 // src/utils/liveLeaderboard.ts
-var import_discord29 = __toESM(require_src());
+var import_discord30 = __toESM(require_src());
 
 // src/utils/levelSettings.ts
 var DEFAULT_LEVEL_UP_MESSAGE = "\u{1F389} Congratulations {user}, you have reached **level {level}**!";
@@ -184220,7 +184768,7 @@ function clampText(text, max) {
 }
 __name(clampText, "clampText");
 function linkText(text) {
-  return (0, import_discord29.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
+  return (0, import_discord30.escapeMarkdown)(clampText(text, 16)).replace(/\[/g, "\uFF3B").replace(/\]/g, "\uFF3D");
 }
 __name(linkText, "linkText");
 function userLink(entry) {
@@ -184271,7 +184819,7 @@ __name(collectEntries, "collectEntries");
 function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updatedAt = Date.now()) {
   const title = titleOverride.trim() || `\u{1F3C6} ${guild.name} leaderboard`;
   const top = entries.slice(0, 3);
-  const embed = new import_discord29.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
+  const embed = new import_discord30.EmbedBuilder().setColor(2829667).setTitle(clampText(title, 256)).setDescription(
     `\u{1F465} **${guild.memberCount.toLocaleString("en-US")}** members \u2728 *Ranked by experience*`
   ).addFields({ name: "\u200B", value: DIVIDER });
   const topLines = top.map(
@@ -184337,7 +184885,7 @@ async function buildMessagePayload(entries, guild, rows, title, updatedAt) {
         percent: entry.percent
       }))
     );
-    const file2 = new import_discord29.AttachmentBuilder(buffer, { name: "top-3.png" });
+    const file2 = new import_discord30.AttachmentBuilder(buffer, { name: "top-3.png" });
     return {
       embeds: [buildContentEmbed(entries, guild, rows, title, "attachment://top-3.png", updatedAt)],
       files: [file2]
@@ -184475,11 +185023,11 @@ __name(saveGuildSettings, "saveGuildSettings");
 
 // src/commands/leveling/levels.ts
 var levelsCommand = {
-  data: new import_discord30.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord30.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord31.SlashCommandBuilder().setName("levels").setDescription("Configure the XP and level system").setDefaultMemberPermissions(import_discord31.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Configure XP rates and announcement channels").addBooleanOption(
       (o) => o.setName("enabled").setDescription("Whether members earn XP in this server")
     ).addChannelOption(
-      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord30.ChannelType.GuildText)
+      (o) => o.setName("announce_channel").setDescription("Where level-up messages are posted (default: current channel)").addChannelTypes(import_discord31.ChannelType.GuildText)
     ).addIntegerOption(
       (o) => o.setName("xp_per_message").setDescription("Minimum XP per message (MEE6 default 15)").setMinValue(0).setMaxValue(1e4)
     ).addIntegerOption(
@@ -184512,7 +185060,7 @@ var levelsCommand = {
   ).addSubcommandGroup(
     (group) => group.setName("leaderboard").setDescription("Manage the self-updating leaderboard message").addSubcommand(
       (sub) => sub.setName("start").setDescription("Post and keep a leaderboard message up to date").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord30.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel that holds the persistent leaderboard").addChannelTypes(import_discord31.ChannelType.GuildText).setRequired(true)
       ).addIntegerOption(
         (o) => o.setName("interval_minutes").setDescription("Refresh interval in minutes (default 10)").setMinValue(1).setMaxValue(1440)
       ).addIntegerOption(
@@ -184626,7 +185174,7 @@ async function setup(context) {
     changes.push("Level-up message template updated");
   }
   const cfg = await saveGuildSettings(context, updates);
-  const embed = new import_discord30.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
+  const embed = new import_discord31.EmbedBuilder().setColor(2278750).setTitle("\u2705 Level system updated").setDescription(changes.map((change) => `\u2022 ${change}`).join("\n")).addFields(
     {
       name: "XP per message",
       value: cfg.perMessageMin === cfg.perMessageMax ? `${cfg.perMessageMin}` : `${cfg.perMessageMin}-${cfg.perMessageMax} (random)`,
@@ -184695,7 +185243,7 @@ async function roleList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
   const entries = Object.entries(current.levelRoles).sort((a, b) => Number(a[0]) - Number(b[0]));
-  const embed = new import_discord30.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
+  const embed = new import_discord31.EmbedBuilder().setColor(16096779).setTitle("\u{1F3C5} Level reward roles");
   if (entries.length === 0) {
     embed.setDescription("No level roles configured. Add one with `/levels role add`.");
   } else {
@@ -184757,7 +185305,7 @@ __name(leaderboardStop, "leaderboardStop");
 async function leaderboardStatus(context) {
   const { interaction } = context;
   const settings = (await loadLevelSettings(context)).liveLeaderboard;
-  const embed = new import_discord30.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
+  const embed = new import_discord31.EmbedBuilder().setColor(settings.enabled ? 2278750 : 7041664).setTitle("\u{1F3C6} Live leaderboard").addFields(
     { name: "Status", value: settings.enabled ? "Enabled" : "Disabled", inline: true },
     {
       name: "Channel",
@@ -184778,20 +185326,20 @@ async function leaderboardStatus(context) {
 __name(leaderboardStatus, "leaderboardStatus");
 
 // src/commands/leveling/xp.ts
-var import_discord32 = __toESM(require_src());
+var import_discord33 = __toESM(require_src());
 var xpCommand = {
-  data: new import_discord32.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord32.PermissionFlagsBits.ManageGuild).addSubcommand(
+  data: new import_discord33.SlashCommandBuilder().setName("xp").setDescription("Configure how XP is earned").setDefaultMemberPermissions(import_discord33.PermissionFlagsBits.ManageGuild).addSubcommand(
     (sub) => sub.setName("channel").setDescription("Only earn XP in one channel (or allow all channels again)").addChannelOption(
-      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord32.ChannelType.GuildText)
+      (o) => o.setName("channel").setDescription("The only channel where XP is earned \u2014 leave blank to allow all").addChannelTypes(import_discord33.ChannelType.GuildText)
     )
   ).addSubcommandGroup(
     (group) => group.setName("nocxp").setDescription("Channels where members earn no XP").addSubcommand(
       (sub) => sub.setName("add").setDescription("Exclude a channel from XP").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord32.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to exclude").addChannelTypes(import_discord33.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand(
       (sub) => sub.setName("remove").setDescription("Allow XP in an excluded channel again").addChannelOption(
-        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord32.ChannelType.GuildText).setRequired(true)
+        (o) => o.setName("channel").setDescription("Channel to re-enable").addChannelTypes(import_discord33.ChannelType.GuildText).setRequired(true)
       )
     ).addSubcommand((sub) => sub.setName("list").setDescription("List excluded channels"))
   ),
@@ -184872,7 +185420,7 @@ __name(nocxpRemove, "nocxpRemove");
 async function nocxpList(context) {
   const { interaction } = context;
   const current = await loadLevelSettings(context);
-  const embed = new import_discord32.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
+  const embed = new import_discord33.EmbedBuilder().setColor(5793266).setTitle("\u{1F6AB} Channels without XP");
   if (current.noXpChannels.length === 0) {
     embed.setDescription("No channels are excluded \u2014 XP is earned everywhere.");
   } else {
@@ -184886,7 +185434,7 @@ async function nocxpList(context) {
 __name(nocxpList, "nocxpList");
 
 // src/commands/tickets/ticket.ts
-var import_discord33 = __toESM(require_src());
+var import_discord34 = __toESM(require_src());
 
 // src/utils/ticketScheduler.ts
 var _timer = null;
@@ -185078,7 +185626,7 @@ function canCloseTicket(member, ticket, staffRoleIds) {
 }
 __name(canCloseTicket, "canCloseTicket");
 var ticketCommand = {
-  data: new import_discord33.SlashCommandBuilder().setName("ticket").setDescription("\u611B Doctora feature-rich ticket system.").setDMPermission(false).addSubcommand(
+  data: new import_discord34.SlashCommandBuilder().setName("ticket").setDescription("\u611B Bella Star feature-rich ticket system.").setDMPermission(false).addSubcommand(
     (sub) => sub.setName("setup").setDescription("Post the live ticket panel in a channel.").addChannelOption(
       (o) => o.setName("channel").setDescription("Channel to post the panel (default: current)")
     )
@@ -185121,7 +185669,11 @@ var ticketCommand = {
     ).addStringOption((o) => o.setName("value").setDescription("New value").setRequired(false))
   ).addSubcommand((sub) => sub.setName("stats").setDescription("Show ticket system statistics.")),
   category: "moderation",
-  userPermissions: ["ManageGuild"],
+  // NOTE: no command-level `userPermissions` — `close`/`transcript` are for
+  // ticket owners (who lack ManageGuild) while `setup`/`department`/`config`
+  // are admin-only. Each handler enforces its own gate (see handleClose,
+  // handleSetup, …). A top-level ManageGuild requirement would make /ticket
+  // close unusable for regular owners.
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild, client } = context;
     const subcommand = interaction.options.getSubcommand(true);
@@ -185167,11 +185719,15 @@ async function handleSetup3(interaction, guild) {
     return;
   }
   const channel = interaction.options.getChannel("channel") ?? interaction.channel;
+  if (!channel || !channel.isTextBased?.()) {
+    await replyError(interaction, "\u274C Please pick a text channel for the panel.");
+    return;
+  }
   const existing = await TicketPanel.findOne({ guildId: guild.id, channelId: channel.id });
   if (existing) {
     await interaction.reply({
       content: "\u274C A ticket panel already exists in this channel.",
-      flags: import_discord33.MessageFlags.Ephemeral
+      flags: import_discord34.MessageFlags.Ephemeral
     });
     return;
   }
@@ -185183,18 +185739,18 @@ async function handleSetup3(interaction, guild) {
     });
     departments = await TicketDepartment.find({ guildId: guild.id, isActive: true }).lean();
   }
-  const embed = new import_discord33.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Doctora Support Tickets").setDescription(
+  const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} \u611B Bella Star Support Tickets").setDescription(
     "Click a department below to open a private support ticket. A support team member will be with you shortly.\n\n" + departments.map((d) => `${d.emoji} **${d.name}** \u2014 ${d.description}`).join("\n")
-  ).setImage("https://media1.tenor.com/m/kQNXoHoGFc0AAAAC/support.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+  ).setImage("https://media1.tenor.com/m/kQNXoHoGFc0AAAAC/support.gif").setThumbnail(guild.iconURL()).setFooter({ text: "\u611B Bella Star \u2022 Tickets" }).setTimestamp();
   const rows = [];
-  let row = new import_discord33.ActionRowBuilder();
+  let row = new import_discord34.ActionRowBuilder();
   for (const dept of departments) {
     row.addComponents(
-      new import_discord33.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord33.ButtonStyle.Primary).setEmoji(dept.emoji)
+      new import_discord34.ButtonBuilder().setCustomId(`ticket_create:${dept._id}`).setLabel(dept.name).setStyle(import_discord34.ButtonStyle.Primary).setEmoji(dept.emoji)
     );
     if (row.components.length >= 5) {
       rows.push(row);
-      row = new import_discord33.ActionRowBuilder();
+      row = new import_discord34.ActionRowBuilder();
     }
   }
   if (row.components.length > 0) rows.push(row);
@@ -185206,16 +185762,16 @@ async function handleSetup3(interaction, guild) {
     guildId: guild.id,
     channelId: channel.id,
     messageId: message.id,
-    embedTitle: embed.data.title ?? "\u{1F3AB} \u611B Doctora Support Tickets",
+    embedTitle: embed.data.title ?? "\u{1F3AB} \u611B Bella Star Support Tickets",
     embedDescription: embed.data.description ?? "",
     embedColor: 5793266,
     embedImage: embed.data.image?.url ?? void 0,
     embedThumbnail: embed.data.thumbnail?.url ?? void 0,
-    embedFooter: "\u611B Doctora \u2022 Tickets"
+    embedFooter: "\u611B Bella Star \u2022 Tickets"
   });
   await interaction.reply({
     content: `\u2705 Live ticket panel posted in ${channel} with ${departments.length} department(s).`,
-    flags: import_discord33.MessageFlags.Ephemeral
+    flags: import_discord34.MessageFlags.Ephemeral
   });
 }
 __name(handleSetup3, "handleSetup");
@@ -185232,16 +185788,16 @@ async function handleDepartment(interaction, guild) {
     if (departments.length === 0) {
       await interaction.reply({
         content: "\u{1F4ED} No departments configured.",
-        flags: import_discord33.MessageFlags.Ephemeral
+        flags: import_discord34.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord33.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
+    const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CB} Ticket Departments").setDescription(
       departments.map(
         (d) => `${d.emoji} **${d.name}**${d.isActive ? "" : " (inactive)"} \u2014 ${d.description}${d.staffRoleId ? ` \u2022 Staff: <@&${d.staffRoleId}>` : ""}`
       ).join("\n")
     );
-    await interaction.reply({ embeds: [embed], flags: import_discord33.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord34.MessageFlags.Ephemeral });
     return;
   }
   if (!name) {
@@ -185266,7 +185822,7 @@ async function handleDepartment(interaction, guild) {
     });
     await interaction.reply({
       content: `\u2705 Department **${name}** created.`,
-      flags: import_discord33.MessageFlags.Ephemeral
+      flags: import_discord34.MessageFlags.Ephemeral
     });
     return;
   }
@@ -185283,18 +185839,18 @@ async function handleDepartment(interaction, guild) {
     if (emoji3) dept.emoji = emoji3;
     if (staffRole) dept.staffRoleId = staffRole.id;
     await dept.save();
-    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord33.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** updated.`, flags: import_discord34.MessageFlags.Ephemeral });
     return;
   }
   if (action === "delete") {
     await TicketDepartment.deleteOne({ _id: dept._id });
-    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord33.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Department **${name}** deleted.`, flags: import_discord34.MessageFlags.Ephemeral });
     return;
   }
 }
 __name(handleDepartment, "handleDepartment");
 async function handleClose(client, interaction, guild) {
-  await interaction.deferReply({ flags: import_discord33.MessageFlags.Ephemeral });
+  await interaction.deferReply({ flags: import_discord34.MessageFlags.Ephemeral });
   const ticket = await getTicketByChannel(guild.id, interaction.channelId);
   if (!ticket) {
     await interaction.editReply({ content: "\u274C This is not an open ticket channel." });
@@ -185345,7 +185901,7 @@ async function handleClaim(client, interaction, guild) {
   }
   await interaction.reply({
     content: `\u2705 Ticket claimed by <@${interaction.user.id}>.`,
-    flags: import_discord33.MessageFlags.Ephemeral
+    flags: import_discord34.MessageFlags.Ephemeral
   });
 }
 __name(handleClaim, "handleClaim");
@@ -185373,7 +185929,7 @@ async function handleAdd(client, interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> added to the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord33.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Added ${user.tag} to the ticket.`, flags: import_discord34.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to add member to the ticket.");
   }
@@ -185402,7 +185958,7 @@ async function handleRemove3(client, interaction, guild) {
     await channel.send({
       content: `\u2705 <@${user.id}> removed from the ticket by <@${interaction.user.id}>.`
     });
-    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord33.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u2705 Removed ${user.tag} from the ticket.`, flags: import_discord34.MessageFlags.Ephemeral });
   } catch {
     await replyError(interaction, "\u274C Failed to remove member from the ticket.");
   }
@@ -185422,7 +185978,7 @@ async function handleTranscript(interaction, guild) {
   }
   const target = interaction.options.getString("target") ?? "channel";
   await sendTranscript(interaction, guild, ticket, target, interaction.user.id);
-  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord33.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Transcript sent to ${target}.`, flags: import_discord34.MessageFlags.Ephemeral });
 }
 __name(handleTranscript, "handleTranscript");
 async function sendTranscript(interaction, guild, ticket, target, closedBy) {
@@ -185511,28 +186067,33 @@ async function handleConfig(interaction, guild) {
     config2.staffRoleIds = value ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
   }
   await config2.save();
-  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord33.MessageFlags.Ephemeral });
+  await interaction.reply({ content: `\u2705 Updated \`${key}\`.`, flags: import_discord34.MessageFlags.Ephemeral });
 }
 __name(handleConfig, "handleConfig");
 async function handleStats(interaction, guild) {
+  const member = interaction.member;
+  if (!member.permissions.has("ManageGuild")) {
+    await replyError(interaction, "\u274C You need `Manage Server` permission.");
+    return;
+  }
   const open2 = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: null });
   const closed = await OpenTicket.countDocuments({ guildId: guild.id, closedAt: { $ne: null } });
   const panels = await TicketPanel.countDocuments({ guildId: guild.id });
   const departments = await TicketDepartment.countDocuments({ guildId: guild.id, isActive: true });
-  const embed = new import_discord33.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
+  const embed = new import_discord34.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Ticket Statistics").setDescription(`Ticket system overview for **${guild.name}**:`).addFields(
     { name: "Open tickets", value: String(open2), inline: true },
     { name: "Closed tickets", value: String(closed), inline: true },
     { name: "Panels posted", value: String(panels), inline: true },
     { name: "Active departments", value: String(departments), inline: true }
-  ).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
-  await interaction.reply({ embeds: [embed], flags: import_discord33.MessageFlags.Ephemeral });
+  ).setFooter({ text: "\u611B Bella Star \u2022 Tickets" }).setTimestamp();
+  await interaction.reply({ embeds: [embed], flags: import_discord34.MessageFlags.Ephemeral });
 }
 __name(handleStats, "handleStats");
 
 // src/commands/music/play.ts
-var import_discord34 = __toESM(require_src());
+var import_discord35 = __toESM(require_src());
 var musicCommand = {
-  data: new import_discord34.SlashCommandBuilder().setName("music").setDescription("Music player system").addSubcommand(
+  data: new import_discord35.SlashCommandBuilder().setName("music").setDescription("Music player system").addSubcommand(
     (sub) => sub.setName("play").setDescription("Play a song or search for music").addStringOption(
       (opt) => opt.setName("query").setDescription("Song name, URL, or search query").setRequired(true)
     )
@@ -185636,7 +186197,7 @@ var musicCommand = {
             await player.play();
           }
           const track = search.tracks[0];
-          const embed = new import_discord34.EmbedBuilder().setColor(import_discord34.Colors.Blurple).setTitle("\u25B6\uFE0F Added to Queue").setDescription(`[${track.title}](${track.uri})`).addFields(
+          const embed = new import_discord35.EmbedBuilder().setColor(import_discord35.Colors.Blurple).setTitle("\u25B6\uFE0F Added to Queue").setDescription(`[${track.title}](${track.uri})`).addFields(
             { name: "Author", value: track.author, inline: true },
             { name: "Duration", value: new Date(track.duration).toISOString().substr(11, 8), inline: true },
             { name: "Requested by", value: interaction.user.tag, inline: true }
@@ -185650,7 +186211,7 @@ var musicCommand = {
           if (!player.playing) {
             await player.play();
           }
-          const embed = new import_discord34.EmbedBuilder().setColor(import_discord34.Colors.Blurple).setTitle("\u{1F4CB} Playlist Added").setDescription(`${search.playlist.name} - ${search.tracks.length} tracks added to queue`).addFields(
+          const embed = new import_discord35.EmbedBuilder().setColor(import_discord35.Colors.Blurple).setTitle("\u{1F4CB} Playlist Added").setDescription(`${search.playlist.name} - ${search.tracks.length} tracks added to queue`).addFields(
             { name: "Requested by", value: interaction.user.tag, inline: true }
           );
           await interaction.editReply({ embeds: [embed] });
@@ -185669,7 +186230,7 @@ var musicCommand = {
       }
       const current = player.current;
       const queue = player.queue.toArray();
-      const embed = new import_discord34.EmbedBuilder().setColor(import_discord34.Colors.Blurple).setTitle("\u{1F3B5} Music Queue").addFields(
+      const embed = new import_discord35.EmbedBuilder().setColor(import_discord35.Colors.Blurple).setTitle("\u{1F3B5} Music Queue").addFields(
         {
           name: "Current",
           value: current ? `[${current.title}](${current.uri})` : "Nothing",
@@ -185758,7 +186319,7 @@ var musicCommand = {
         return;
       }
       const track = player.current;
-      const embed = new import_discord34.EmbedBuilder().setColor(import_discord34.Colors.Blurple).setTitle("\u{1F3B6} Now Playing").setDescription(`[${track.title}](${track.uri})`).addFields(
+      const embed = new import_discord35.EmbedBuilder().setColor(import_discord35.Colors.Blurple).setTitle("\u{1F3B6} Now Playing").setDescription(`[${track.title}](${track.uri})`).addFields(
         { name: "Author", value: track.author, inline: true },
         { name: "Duration", value: new Date(track.duration).toISOString().substr(11, 8), inline: true },
         { name: "Requested by", value: track.requester?.tag ?? "Unknown", inline: true },
@@ -185836,15 +186397,15 @@ var musicCommand = {
 };
 
 // src/commands/fun/poll.ts
-var import_discord35 = __toESM(require_src());
+var import_discord36 = __toESM(require_src());
 var pollCommand = {
-  data: new import_discord35.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
+  data: new import_discord36.SlashCommandBuilder().setName("poll").setDescription("Create a poll with reactions.").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options (max 10)").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes (default 10)").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord35.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -185855,18 +186416,18 @@ var pollCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord35.MessageFlags.Ephemeral
+        flags: import_discord36.MessageFlags.Ephemeral
       });
       return;
     }
     if (options.length > 10) {
       await interaction.reply({
         content: "\u274C Maximum 10 options allowed.",
-        flags: import_discord35.MessageFlags.Ephemeral
+        flags: import_discord36.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord35.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord36.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await interaction.reply({
       embeds: [embed],
       fetchReply: true
@@ -185909,16 +186470,17 @@ ${resultDesc}`
 };
 
 // src/commands/fun/rps.ts
-var import_discord36 = __toESM(require_src());
+var import_discord37 = __toESM(require_src());
 var rpsCommand = {
-  data: new import_discord36.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
+  data: new import_discord37.SlashCommandBuilder().setName("rps").setDescription("Play Rock-Paper-Scissors against the bot.").addStringOption(
     (option) => option.setName("choice").setDescription("Rock, Paper, or Scissors").setRequired(true).addChoices(
       { name: "Rock", value: "rock" },
       { name: "Paper", value: "paper" },
       { name: "Scissors", value: "scissors" }
     )
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord36.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const userChoice = interaction.options.getString("choice", true).toLowerCase();
@@ -185939,16 +186501,16 @@ var rpsCommand = {
     }
     const resultEmoji = { win: "\u{1F947}", lose: "\u{1F948}", tie: "\u{1F91D}" };
     const resultColor = { win: 2278750, lose: 14695998, tie: 16096779 };
-    const embed = new import_discord36.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
+    const embed = new import_discord37.EmbedBuilder().setColor(resultColor[result]).setTitle(`\u{1F3AE} Rock-Paper-Scissors`).addFields(
       { name: "Your choice", value: userChoice.charAt(0).toUpperCase() + userChoice.slice(1), inline: true },
       { name: "Bot's choice", value: botChoice.charAt(0).toUpperCase() + botChoice.slice(1), inline: true }
     ).setFooter({ text: `${resultEmoji[result]} You ${result === "win" ? "win!" : result === "lose" ? "lose!" : "tie!"}` }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord36.MessageFlags.Ephemeral });
+    await interaction.reply({ embeds: [embed], flags: import_discord37.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/truth.ts
-var import_discord37 = __toESM(require_src());
+var import_discord38 = __toESM(require_src());
 var truthQuestions = [
   "What is the most embarrassing thing that happened to you in public?",
   "What is a secret you have never told anyone?",
@@ -185960,17 +186522,18 @@ var truthQuestions = [
   "What is the worst gift you have ever received?"
 ];
 var truthCommand = {
-  data: new import_discord37.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord37.PermissionFlagsBits.SendMessages),
+  data: new import_discord38.SlashCommandBuilder().setName("truth").setDescription("Get a random truth question.").setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
-    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord37.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F50D} **Truth:** ${question}`, flags: import_discord38.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/dare.ts
-var import_discord38 = __toESM(require_src());
+var import_discord39 = __toESM(require_src());
 var darePrompts = [
   "Do 10 push-ups right now.",
   "Send a random message to your closest contact.",
@@ -185982,22 +186545,24 @@ var darePrompts = [
   "Open your Spotify and share the now-playing song."
 ];
 var dareCommand = {
-  data: new import_discord38.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord38.PermissionFlagsBits.SendMessages),
+  data: new import_discord39.SlashCommandBuilder().setName("dare").setDescription("Get a random dare.").setDMPermission(true).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.SendMessages),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const dare = darePrompts[Math.floor(Math.random() * darePrompts.length)];
-    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord38.MessageFlags.Ephemeral });
+    await interaction.reply({ content: `\u{1F4A5} **Dare:** ${dare}`, flags: import_discord39.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/compliment.ts
-var import_discord39 = __toESM(require_src());
+var import_discord40 = __toESM(require_src());
 var complimentCommand = {
-  data: new import_discord39.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
+  data: new import_discord40.SlashCommandBuilder().setName("compliment").setDescription("Give a compliment to someone.").addUserOption(
     (option) => option.setName("user").setDescription("The user to compliment").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord39.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
@@ -186014,60 +186579,63 @@ var complimentCommand = {
       "You light up every room you enter."
     ];
     const compliment = compliments[Math.floor(Math.random() * compliments.length)];
-    const embed = new import_discord39.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u7231 Doctora \u2022 Compliment" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord39.MessageFlags.Ephemeral });
+    const embed = new import_discord40.EmbedBuilder().setColor(2278750).setTitle("\u{1F496} Compliment").setDescription(`**${target.username}**, ${compliment}`).setFooter({ text: "\u611B Bella Star \u2022 Compliment" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord40.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/fun/avatar.ts
-var import_discord40 = __toESM(require_src());
+var import_discord41 = __toESM(require_src());
 var avatarCommand = {
-  data: new import_discord40.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
+  data: new import_discord41.SlashCommandBuilder().setName("avatar").setDescription("View a user's avatar, optionally as a high-quality card.").addUserOption(
     (option) => option.setName("user").setDescription("The user to view avatar for").setRequired(false)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord40.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.SendMessages),
   category: "utility",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser("user") ?? interaction.user;
     const avatarUrl = target.displayAvatarURL({ extension: "png", size: 1024 });
-    const embed = new import_discord40.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u7231 Doctora \u2022 Avatar" }).setTimestamp();
+    const embed = new import_discord41.EmbedBuilder().setColor(5793266).setAuthor({ name: target.username, iconURL: target.displayAvatarURL() }).setImage(avatarUrl).setFooter({ text: "\u611B Bella Star \u2022 Avatar" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/fun/servercard.ts
-var import_discord41 = __toESM(require_src());
+var import_discord42 = __toESM(require_src());
 var servercardCommand = {
-  data: new import_discord41.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord41.PermissionFlagsBits.SendMessages),
+  data: new import_discord42.SlashCommandBuilder().setName("servercard").setDescription("View a server card with enhanced decorations.").setDMPermission(false).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.SendMessages),
   category: "utility",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const guild = interaction.guild;
     if (!guild) {
       await interaction.reply({
         content: "\u274C This command can only be used in a server.",
-        flags: import_discord41.MessageFlags.Ephemeral
+        flags: import_discord42.MessageFlags.Ephemeral
       });
       return;
     }
-    const embed = new import_discord41.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
+    const embed = new import_discord42.EmbedBuilder().setColor(5793266).setTitle("\u{1F3F0} Server Card").setDescription(`**${guild.name}**`).addFields(
       { name: "Owner", value: `<@${guild.ownerId}>`, inline: true },
       { name: "Members", value: guild.memberCount.toLocaleString(), inline: true },
       { name: "Text Channels", value: guild.channels.cache.filter((c) => c.isTextBased()).size.toString(), inline: true },
       { name: "Voice Channels", value: guild.channels.cache.filter((c) => c.isVoiceBased()).size.toString(), inline: true },
       { name: "Boost Tier", value: guild.premiumTier ? `${guild.premiumTier} (${guild.premiumSubscriptionCount} boosts)` : "None", inline: true }
-    ).setThumbnail(guild.iconURL({ size: 256 }) ?? null).setFooter({ text: "\u7231 Doctora \u2022 Server Card" }).setTimestamp();
+    ).setThumbnail(guild.iconURL({ size: 256 }) ?? null).setFooter({ text: "\u611B Bella Star \u2022 Server Card" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/fun/choose.ts
-var import_discord42 = __toESM(require_src());
+var import_discord43 = __toESM(require_src());
 var chooseCommand = {
-  data: new import_discord42.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
+  data: new import_discord43.SlashCommandBuilder().setName("choose").setDescription("Let the bot choose one option from a list.").addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated list of options").setRequired(true).setMaxLength(200)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord42.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.SendMessages),
   category: "fun",
+  cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const optionsStr = interaction.options.getString("options", true);
@@ -186075,31 +186643,32 @@ var chooseCommand = {
     if (options.length < 2) {
       await interaction.reply({
         content: "\u274C You need at least 2 options.",
-        flags: import_discord42.MessageFlags.Ephemeral
+        flags: import_discord43.MessageFlags.Ephemeral
       });
       return;
     }
     const choice = options[Math.floor(Math.random() * options.length)];
-    const embed = new import_discord42.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u7231 Doctora \u2022 Choose" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord42.MessageFlags.Ephemeral });
-  }, "execute")
-};
-
-// src/commands/fun/flip.ts
-var import_discord43 = __toESM(require_src());
-var flipCommand = {
-  data: new import_discord43.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord43.PermissionFlagsBits.SendMessages),
-  category: "fun",
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const result = Math.random() < 0.5 ? "Heads" : "Tails";
-    const embed = new import_discord43.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u7231 Doctora \u2022 Flip" }).setTimestamp();
+    const embed = new import_discord43.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AF} Choice").setDescription(`I choose: **${choice}**`).setFooter({ text: "\u611B Bella Star \u2022 Choose" }).setTimestamp();
     await interaction.reply({ embeds: [embed], flags: import_discord43.MessageFlags.Ephemeral });
   }, "execute")
 };
 
-// src/commands/fun/eightball-enhanced.ts
+// src/commands/fun/flip.ts
 var import_discord44 = __toESM(require_src());
+var flipCommand = {
+  data: new import_discord44.SlashCommandBuilder().setName("flip").setDescription("Flip a coin.").setDMPermission(true).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.SendMessages),
+  category: "fun",
+  cooldownSeconds: 5,
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const result = Math.random() < 0.5 ? "Heads" : "Tails";
+    const embed = new import_discord44.EmbedBuilder().setColor(5793266).setTitle("\u{1FA99} Coin Flip").setDescription(`**${result}**`).setFooter({ text: "\u611B Bella Star \u2022 Flip" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord44.MessageFlags.Ephemeral });
+  }, "execute")
+};
+
+// src/commands/fun/eightball-enhanced.ts
+var import_discord45 = __toESM(require_src());
 var eightBallAnswers = [
   "As I see it, yes.",
   "It is certain.",
@@ -186116,38 +186685,38 @@ var eightBallAnswers = [
   "Very doubtful."
 ];
 var eightBallEnhancedCommand = {
-  data: new import_discord44.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
+  data: new import_discord45.SlashCommandBuilder().setName("8ball").setDescription("Ask the magic 8-ball a question.").addStringOption(
     (option) => option.setName("question").setDescription("Your question").setRequired(true).setMaxLength(500)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord44.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord45.PermissionFlagsBits.SendMessages),
   category: "fun",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     const question = interaction.options.getString("question", true);
     const answer = eightBallAnswers[Math.floor(Math.random() * eightBallAnswers.length)];
-    const embed = new import_discord44.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
+    const embed = new import_discord45.EmbedBuilder().setColor(5793266).setTitle("\u{1F52E} Magic 8-Ball").addFields(
       { name: "Question", value: question, inline: false },
       { name: "Answer", value: answer, inline: false }
-    ).setFooter({ text: "\u7231 Doctora \u2022 8-Ball" }).setTimestamp();
+    ).setFooter({ text: "\u611B Bella Star \u2022 8-Ball" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/fun/pet.ts
-var import_discord45 = __toESM(require_src());
+var import_discord46 = __toESM(require_src());
 var petTypes = {
-  dog: { emoji: "\u{1F415}", color: import_discord45.Colors.Blurple },
-  cat: { emoji: "\u{1F431}", color: import_discord45.Colors.Purple },
-  fox: { emoji: "\u{1F98A}", color: import_discord45.Colors.Orange },
-  dragon: { emoji: "\u{1F409}", color: import_discord45.Colors.Red },
-  phoenix: { emoji: "\u{1F426}\u200D\u{1F525}", color: import_discord45.Colors.Orange },
-  unicorn: { emoji: "\u{1F984}", color: import_discord45.Colors.Purple },
-  slime: { emoji: "\u{1F49A}", color: import_discord45.Colors.Green },
-  robot: { emoji: "\u{1F916}", color: import_discord45.Colors.Blue },
-  ghost: { emoji: "\u{1F47B}", color: import_discord45.Colors.Purple },
-  bunny: { emoji: "\u{1F430}", color: import_discord45.Colors.LuminousVividPink }
+  dog: { emoji: "\u{1F415}", color: import_discord46.Colors.Blurple },
+  cat: { emoji: "\u{1F431}", color: import_discord46.Colors.Purple },
+  fox: { emoji: "\u{1F98A}", color: import_discord46.Colors.Orange },
+  dragon: { emoji: "\u{1F409}", color: import_discord46.Colors.Red },
+  phoenix: { emoji: "\u{1F426}\u200D\u{1F525}", color: import_discord46.Colors.Orange },
+  unicorn: { emoji: "\u{1F984}", color: import_discord46.Colors.Purple },
+  slime: { emoji: "\u{1F49A}", color: import_discord46.Colors.Green },
+  robot: { emoji: "\u{1F916}", color: import_discord46.Colors.Blue },
+  ghost: { emoji: "\u{1F47B}", color: import_discord46.Colors.Purple },
+  bunny: { emoji: "\u{1F430}", color: import_discord46.Colors.LuminousVividPink }
 };
 var petCommand = {
-  data: new import_discord45.SlashCommandBuilder().setName("pet").setDescription("Pet system").addSubcommand(
+  data: new import_discord46.SlashCommandBuilder().setName("pet").setDescription("Pet system").addSubcommand(
     (sub) => sub.setName("adopt").setDescription("Adopt a pet").addStringOption(
       (opt) => opt.setName("name").setDescription("Pet name").setRequired(true).setMaxLength(32)
     ).addStringOption(
@@ -186205,7 +186774,7 @@ var petCommand = {
         energy: 100
       });
       const info = petTypes[type];
-      const embed = new import_discord45.EmbedBuilder().setColor(info.color).setTitle("\u{1F43E} Pet Adopted!").setDescription(`You adopted **${name}** the ${type}! ${info.emoji}`).addFields(
+      const embed = new import_discord46.EmbedBuilder().setColor(info.color).setTitle("\u{1F43E} Pet Adopted!").setDescription(`You adopted **${name}** the ${type}! ${info.emoji}`).addFields(
         { name: "Level", value: "1", inline: true },
         { name: "XP", value: "0/100", inline: true },
         { name: "Hunger", value: "100%", inline: true },
@@ -186226,7 +186795,7 @@ var petCommand = {
       pet.happiness = Math.min(100, pet.happiness + 10);
       pet.lastFed = /* @__PURE__ */ new Date();
       await pet.save();
-      const embed = new import_discord45.EmbedBuilder().setColor(import_discord45.Colors.Green).setTitle("\u{1F356} Pet Fed").setDescription(`You fed **${pet.name}**!`).addFields(
+      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Green).setTitle("\u{1F356} Pet Fed").setDescription(`You fed **${pet.name}**!`).addFields(
         { name: "Hunger", value: `${pet.hunger}%`, inline: true },
         { name: "Happiness", value: `${pet.happiness}%`, inline: true }
       );
@@ -186244,7 +186813,7 @@ var petCommand = {
       pet.energy = Math.max(0, pet.energy - 20);
       pet.lastPlayed = /* @__PURE__ */ new Date();
       await pet.save();
-      const embed = new import_discord45.EmbedBuilder().setColor(import_discord45.Colors.Blue).setTitle("\u{1F3BE} Played with Pet").setDescription(`You played with **${pet.name}**!`).addFields(
+      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Blue).setTitle("\u{1F3BE} Played with Pet").setDescription(`You played with **${pet.name}**!`).addFields(
         { name: "Happiness", value: `${pet.happiness}%`, inline: true },
         { name: "Hunger", value: `${pet.hunger}%`, inline: true },
         { name: "Energy", value: `${pet.energy}%`, inline: true }
@@ -186262,7 +186831,7 @@ var petCommand = {
       const info = petTypes[pet.type];
       const xpNeeded = pet.level * 100;
       const progress = Math.floor(pet.xp / xpNeeded * 100);
-      const embed = new import_discord45.EmbedBuilder().setColor(info.color).setTitle(`${info.emoji} ${pet.name}'s Profile`).setThumbnail(targetUser.displayAvatarURL()).addFields(
+      const embed = new import_discord46.EmbedBuilder().setColor(info.color).setTitle(`${info.emoji} ${pet.name}'s Profile`).setThumbnail(targetUser.displayAvatarURL()).addFields(
         { name: "Type", value: pet.type, inline: true },
         { name: "Level", value: pet.level.toString(), inline: true },
         { name: "XP", value: `${pet.xp}/${xpNeeded} (${progress}%)`, inline: true },
@@ -186311,7 +186880,7 @@ var petCommand = {
       await pet.save();
       await opponentPet.save();
       const winnerUser = winner === userId ? interaction.user : opponent;
-      const embed = new import_discord45.EmbedBuilder().setColor(import_discord45.Colors.Blurple).setTitle("\u2694\uFE0F Pet Battle!").setDescription(`**${pet.name}** vs **${opponentPet.name}**
+      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Blurple).setTitle("\u2694\uFE0F Pet Battle!").setDescription(`**${pet.name}** vs **${opponentPet.name}**
 
 Winner: **${winnerUser.tag}**!`).addFields(
         { name: `${pet.name}`, value: `Level ${pet.level} - ${Math.floor(petPower)} power`, inline: true },
@@ -186325,9 +186894,9 @@ Winner: **${winnerUser.tag}**!`).addFields(
 };
 
 // src/commands/fun/marry.ts
-var import_discord46 = __toESM(require_src());
+var import_discord47 = __toESM(require_src());
 var marriageCommand = {
-  data: new import_discord46.SlashCommandBuilder().setName("marry").setDescription("Marriage system").addSubcommand(
+  data: new import_discord47.SlashCommandBuilder().setName("marry").setDescription("Marriage system").addSubcommand(
     (sub) => sub.setName("propose").setDescription("Propose marriage to someone").addUserOption(
       (opt) => opt.setName("user").setDescription("User to propose to").setRequired(true)
     )
@@ -186365,11 +186934,11 @@ var marriageCommand = {
         await interaction.reply({ content: "\u274C That user is already married.", ephemeral: true });
         return;
       }
-      const buttons = new import_discord46.ActionRowBuilder().addComponents(
-        new import_discord46.ButtonBuilder().setCustomId(`marry_accept:${userId}`).setLabel("Accept").setStyle(import_discord46.ButtonStyle.Success),
-        new import_discord46.ButtonBuilder().setCustomId(`marry_decline:${userId}`).setLabel("Decline").setStyle(import_discord46.ButtonStyle.Danger)
+      const buttons = new import_discord47.ActionRowBuilder().addComponents(
+        new import_discord47.ButtonBuilder().setCustomId(`marry_accept:${userId}`).setLabel("Accept").setStyle(import_discord47.ButtonStyle.Success),
+        new import_discord47.ButtonBuilder().setCustomId(`marry_decline:${userId}`).setLabel("Decline").setStyle(import_discord47.ButtonStyle.Danger)
       );
-      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Purple).setTitle("\u{1F48D} Marriage Proposal").setDescription(`${interaction.user} is proposing to ${target}!`);
+      const embed = new import_discord47.EmbedBuilder().setColor(import_discord47.Colors.Purple).setTitle("\u{1F48D} Marriage Proposal").setDescription(`${interaction.user} is proposing to ${target}!`);
       await interaction.reply({ content: `${target}`, embeds: [embed], components: [buttons] });
       const filter = /* @__PURE__ */ __name((i) => i.user.id === target.id && i.isButton(), "filter");
       const collector = interaction.channel?.createMessageComponentCollector({
@@ -186431,7 +187000,7 @@ var marriageCommand = {
       const spouseId = marriage.userId1 === targetUser.id ? marriage.userId2 : marriage.userId1;
       const spouse = await guild.members.fetch(spouseId).catch(() => null);
       const spouseName = spouse ? spouse.user.tag : `Unknown (${spouseId})`;
-      const embed = new import_discord46.EmbedBuilder().setColor(import_discord46.Colors.Purple).setTitle("\u{1F48D} Marriage Profile").addFields(
+      const embed = new import_discord47.EmbedBuilder().setColor(import_discord47.Colors.Purple).setTitle("\u{1F48D} Marriage Profile").addFields(
         { name: "User", value: targetUser.tag, inline: true },
         { name: "Spouse", value: spouseName, inline: true },
         { name: "Married since", value: `<t:${Math.floor(marriage.marriedAt.getTime() / 1e3)}:R>`, inline: true },
@@ -186446,9 +187015,9 @@ var marriageCommand = {
 };
 
 // src/commands/utility/suggest.ts
-var import_discord47 = __toESM(require_src());
+var import_discord48 = __toESM(require_src());
 var suggestCommand = {
-  data: new import_discord47.SlashCommandBuilder().setName("suggest").setDescription("Suggestion system").addSubcommand(
+  data: new import_discord48.SlashCommandBuilder().setName("suggest").setDescription("Suggestion system").addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a suggestion").addStringOption(
       (opt) => opt.setName("title").setDescription("Suggestion title").setRequired(true).setMaxLength(256)
     ).addStringOption(
@@ -186531,9 +187100,9 @@ var suggestCommand = {
         attachments: attachment ? [attachment.url] : []
       });
       const embed = buildSuggestionEmbed(suggestion, interaction.user, anonymous);
-      const buttons = new import_discord47.ActionRowBuilder().addComponents(
-        new import_discord47.ButtonBuilder().setCustomId(`suggest_up:${suggestion._id}`).setLabel("\u{1F44D} Upvote").setStyle(import_discord47.ButtonStyle.Success),
-        new import_discord47.ButtonBuilder().setCustomId(`suggest_down:${suggestion._id}`).setLabel("\u{1F44E} Downvote").setStyle(import_discord47.ButtonStyle.Danger)
+      const buttons = new import_discord48.ActionRowBuilder().addComponents(
+        new import_discord48.ButtonBuilder().setCustomId(`suggest_up:${suggestion._id}`).setLabel("\u{1F44D} Upvote").setStyle(import_discord48.ButtonStyle.Success),
+        new import_discord48.ButtonBuilder().setCustomId(`suggest_down:${suggestion._id}`).setLabel("\u{1F44E} Downvote").setStyle(import_discord48.ButtonStyle.Danger)
       );
       const message = await suggestionsChannel.send({ embeds: [embed], components: [buttons] });
       suggestion.messageId = message.id;
@@ -186552,7 +187121,7 @@ var suggestCommand = {
         await interaction.reply({ content: "No suggestions found", ephemeral: true });
         return;
       }
-      const embed = new import_discord47.EmbedBuilder().setColor(import_discord47.Colors.Blurple).setTitle("\u{1F4CB} Suggestions").setDescription(
+      const embed = new import_discord48.EmbedBuilder().setColor(import_discord48.Colors.Blurple).setTitle("\u{1F4CB} Suggestions").setDescription(
         suggestions2.map((s) => {
           const statusEmoji = { pending: "\u23F3", approved: "\u2705", denied: "\u274C", implemented: "\u{1F680}", deferred: "\u23F8\uFE0F" }[s.status] || "\u2753";
           const votes = s.upvotes.length - s.downvotes.length;
@@ -186627,10 +187196,10 @@ var suggestCommand = {
   }
 };
 function buildSuggestionEmbed(suggestion, author, anonymous) {
-  const statusColors = { pending: import_discord47.Colors.Yellow, approved: import_discord47.Colors.Green, denied: import_discord47.Colors.Red, implemented: import_discord47.Colors.Blue, deferred: import_discord47.Colors.Grey };
+  const statusColors = { pending: import_discord48.Colors.Yellow, approved: import_discord48.Colors.Green, denied: import_discord48.Colors.Red, implemented: import_discord48.Colors.Blue, deferred: import_discord48.Colors.Grey };
   const statusLabels = { pending: "\u23F3 Pending", approved: "\u2705 Approved", denied: "\u274C Denied", implemented: "\u{1F680} Implemented", deferred: "\u23F8\uFE0F Deferred" };
   const status = String(suggestion.status);
-  const embed = new import_discord47.EmbedBuilder().setColor(statusColors[status] || import_discord47.Colors.Blurple).setTitle(suggestion.title).setDescription(suggestion.description).addFields(
+  const embed = new import_discord48.EmbedBuilder().setColor(statusColors[status] || import_discord48.Colors.Blurple).setTitle(suggestion.title).setDescription(suggestion.description).addFields(
     { name: "Status", value: statusLabels[status] || status, inline: true },
     { name: "Votes", value: `\u{1F44D} ${suggestion.upvotes.length} | \u{1F44E} ${suggestion.downvotes.length}`, inline: true },
     { name: "Author", value: anonymous ? "Anonymous" : author?.tag || "Unknown", inline: true }
@@ -186690,15 +187259,15 @@ async function handleSuggestionVote(interaction) {
 __name(handleSuggestionVote, "handleSuggestionVote");
 
 // src/commands/utility/poll-create.ts
-var import_discord48 = __toESM(require_src());
+var import_discord49 = __toESM(require_src());
 var pollCreateCommand = {
-  data: new import_discord48.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
+  data: new import_discord49.SlashCommandBuilder().setName("poll-create").setDescription("Create a poll message (owner only).").addStringOption(
     (option) => option.setName("question").setDescription("The poll question").setRequired(true).setMaxLength(200)
   ).addStringOption(
     (option) => option.setName("options").setDescription("Comma-separated options").setRequired(true).setMaxLength(200)
   ).addIntegerOption(
     (option) => option.setName("duration").setDescription("Duration in minutes").setMinValue(1).setMaxValue(1440)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord48.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord49.PermissionFlagsBits.ManageGuild),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -186709,19 +187278,19 @@ var pollCreateCommand = {
     if (options.length < 2 || options.length > 10) {
       await interaction.reply({
         content: "\u274C You need 2-10 options.",
-        flags: import_discord48.MessageFlags.Ephemeral
+        flags: import_discord49.MessageFlags.Ephemeral
       });
       return;
     }
-    if (!interaction.guild || !(interaction.channel instanceof import_discord48.TextChannel)) {
+    if (!interaction.guild || !(interaction.channel instanceof import_discord49.TextChannel)) {
       await interaction.reply({
         content: "\u274C Polls can only be created in a server text channel.",
-        flags: import_discord48.MessageFlags.Ephemeral
+        flags: import_discord49.MessageFlags.Ephemeral
       });
       return;
     }
     const channel = interaction.channel;
-    const embed = new import_discord48.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
+    const embed = new import_discord49.EmbedBuilder().setColor(5793266).setTitle("\u{1F4CA} Poll").setDescription(`**${question}**`).setFooter({ text: "Vote with reactions" }).setTimestamp();
     const msg = await channel.send({ embeds: [embed] });
     const reactionEmojis = ["1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3", "5\uFE0F\u20E3", "6\uFE0F\u20E3", "7\uFE0F\u20E3", "8\uFE0F\u20E3", "9\uFE0F\u20E3", "\u{1F51F}"];
     for (let i = 0; i < options.length; i++) {
@@ -186754,18 +187323,18 @@ ${resultDesc}`
         console.error("Poll auto-close failed:", error62);
       }
     }, (duration3 ?? 10) * 60 * 1e3);
-    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord48.MessageFlags.Ephemeral });
+    await interaction.reply({ content: "\u2705 Poll created and will auto-close.", flags: import_discord49.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/utility/poll-vote.ts
-var import_discord49 = __toESM(require_src());
+var import_discord50 = __toESM(require_src());
 var pollVoteCommand = {
-  data: new import_discord49.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
+  data: new import_discord50.SlashCommandBuilder().setName("poll-vote").setDescription("Vote in an existing poll.").addStringOption(
     (option) => option.setName("poll_id").setDescription("The poll message ID").setRequired(true)
   ).addStringOption(
     (option) => option.setName("option").setDescription("Your option (use the number emoji)").setRequired(true)
-  ).setDMPermission(true).setDefaultMemberPermissions(import_discord49.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(true).setDefaultMemberPermissions(import_discord50.PermissionFlagsBits.SendMessages),
   category: "utility",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -186773,18 +187342,18 @@ var pollVoteCommand = {
     const option = interaction.options.getString("option", true);
     await interaction.reply({
       content: `\u2705 Your vote for option "${option}" has been recorded!`,
-      flags: import_discord49.MessageFlags.Ephemeral
+      flags: import_discord50.MessageFlags.Ephemeral
     });
   }, "execute")
 };
 
 // src/commands/utility/reactionrole.ts
-var import_discord51 = __toESM(require_src());
+var import_discord52 = __toESM(require_src());
 
 // src/handlers/reactionRoles.ts
-var import_discord50 = __toESM(require_src());
+var import_discord51 = __toESM(require_src());
 function buildPanelEmbed(panel) {
-  const embed = new import_discord50.EmbedBuilder().setTitle(panel.title).setDescription(panel.description || "Click buttons below to get roles!").setColor(panel.color || import_discord50.Colors.Blurple).setTimestamp();
+  const embed = new import_discord51.EmbedBuilder().setTitle(panel.title).setDescription(panel.description || "Click buttons below to get roles!").setColor(panel.color || import_discord51.Colors.Blurple).setTimestamp();
   if (panel.thumbnail) embed.setThumbnail(panel.thumbnail);
   if (panel.image) embed.setImage(panel.image);
   if (panel.options.length > 0) {
@@ -186806,21 +187375,21 @@ function buildPanelComponents(panel) {
   const rows = [];
   if (panel.useButtons) {
     const styleMap = {
-      1: import_discord50.ButtonStyle.Primary,
-      2: import_discord50.ButtonStyle.Secondary,
-      3: import_discord50.ButtonStyle.Success,
-      4: import_discord50.ButtonStyle.Danger
+      1: import_discord51.ButtonStyle.Primary,
+      2: import_discord51.ButtonStyle.Secondary,
+      3: import_discord51.ButtonStyle.Success,
+      4: import_discord51.ButtonStyle.Danger
     };
-    const buttonStyle = styleMap[panel.buttonStyle || 2] || import_discord50.ButtonStyle.Secondary;
-    let currentRow = new import_discord50.ActionRowBuilder();
+    const buttonStyle = styleMap[panel.buttonStyle || 2] || import_discord51.ButtonStyle.Secondary;
+    let currentRow = new import_discord51.ActionRowBuilder();
     let buttonCount = 0;
     for (const opt of panel.options.slice(0, 25)) {
-      const button = new import_discord50.ButtonBuilder().setCustomId(`rr:${panel._id}:${opt.roleId}`).setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setEmoji(opt.emoji).setStyle(buttonStyle);
+      const button = new import_discord51.ButtonBuilder().setCustomId(`rr:${panel._id}:${opt.roleId}`).setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setEmoji(opt.emoji).setStyle(buttonStyle);
       currentRow.addComponents(button);
       buttonCount++;
       if (buttonCount === 5) {
         rows.push(currentRow);
-        currentRow = new import_discord50.ActionRowBuilder();
+        currentRow = new import_discord51.ActionRowBuilder();
         buttonCount = 0;
       }
     }
@@ -186828,12 +187397,12 @@ function buildPanelComponents(panel) {
       rows.push(currentRow);
     }
   } else {
-    const selectMenu = new import_discord50.StringSelectMenuBuilder().setCustomId(`rr_select:${panel._id}`).setPlaceholder(panel.selectPlaceholder || "Select a role...").setMinValues(panel.minSelect || 1).setMaxValues(panel.maxSelect || 1).addOptions(
+    const selectMenu = new import_discord51.StringSelectMenuBuilder().setCustomId(`rr_select:${panel._id}`).setPlaceholder(panel.selectPlaceholder || "Select a role...").setMinValues(panel.minSelect || 1).setMaxValues(panel.maxSelect || 1).addOptions(
       panel.options.slice(0, 25).map(
-        (opt) => new import_discord50.StringSelectMenuOptionBuilder().setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setDescription(opt.description || "").setValue(opt.roleId).setEmoji(opt.emoji)
+        (opt) => new import_discord51.StringSelectMenuOptionBuilder().setLabel(opt.label || `Role ${opt.roleId.slice(-4)}`).setDescription(opt.description || "").setValue(opt.roleId).setEmoji(opt.emoji)
       )
     );
-    rows.push(new import_discord50.ActionRowBuilder().addComponents(selectMenu));
+    rows.push(new import_discord51.ActionRowBuilder().addComponents(selectMenu));
   }
   return rows;
 }
@@ -187091,7 +187660,7 @@ var buttonStyles = [
   { name: "Danger (Red)", value: 4 }
 ];
 var reactionroleCommand = {
-  data: new import_discord51.SlashCommandBuilder().setName("reactionrole").setDescription("Button-based reaction roles").addSubcommand(
+  data: new import_discord52.SlashCommandBuilder().setName("reactionrole").setDescription("Button-based reaction roles").addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a reaction role panel").addChannelOption(
       (opt) => opt.setName("channel").setDescription("Channel to send panel").setRequired(true)
     ).addStringOption(
@@ -187220,7 +187789,7 @@ var reactionroleCommand = {
         dmUser,
         active: true
       });
-      const embed = new import_discord51.EmbedBuilder().setColor(import_discord51.Colors.Green).setTitle("\u2705 Reaction Role Panel Created").addFields(
+      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Green).setTitle("\u2705 Reaction Role Panel Created").addFields(
         { name: "Title", value: panel.title, inline: true },
         { name: "Channel", value: `<#${panel.channelId}>`, inline: true },
         { name: "Mode", value: panel.mode, inline: true },
@@ -187289,7 +187858,7 @@ var reactionroleCommand = {
         await interaction.reply({ content: "No panels configured", ephemeral: true });
         return;
       }
-      const embed = new import_discord51.EmbedBuilder().setColor(import_discord51.Colors.Blurple).setTitle("\u{1F3AD} Reaction Role Panels").setDescription(panels.map(
+      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Blurple).setTitle("\u{1F3AD} Reaction Role Panels").setDescription(panels.map(
         (p) => `**${p.title}** (${p.mode}) \u2014 ${p.active ? "\u{1F7E2}" : "\u{1F534}"} \u2014 ${p.options.length} roles \u2014 <#${p.channelId}> \u2014 ID: \`${p._id}\``
       ).join("\n")).setFooter({ text: `${panels.length} panel(s)` });
       await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -187360,10 +187929,10 @@ function isValidEmoji(emoji3) {
 __name(isValidEmoji, "isValidEmoji");
 
 // src/commands/utility/customcmd.ts
-var import_discord52 = __toESM(require_src());
+var import_discord53 = __toESM(require_src());
 init_CustomCommand();
 var customcmdCommand = {
-  data: new import_discord52.SlashCommandBuilder().setName("tag").setDescription("Custom commands (tags)").addSubcommand(
+  data: new import_discord53.SlashCommandBuilder().setName("tag").setDescription("Custom commands (tags)").addSubcommand(
     (sub) => sub.setName("create").setDescription("Create a custom command").addStringOption(
       (opt) => opt.setName("name").setDescription("Command name (trigger)").setRequired(true).setMaxLength(100)
     ).addStringOption(
@@ -187440,7 +188009,7 @@ var customcmdCommand = {
         content,
         creatorId: interaction.user.id
       });
-      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Green).setTitle("\u2705 Custom Command Created").addFields(
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Green).setTitle("\u2705 Custom Command Created").addFields(
         { name: "Name", value: `/${tag.name}`, inline: true },
         { name: "Aliases", value: tag.aliases.length ? tag.aliases.map((a) => `/${a}`).join(", ") : "None", inline: true },
         { name: "Content", value: tag.content.slice(0, 1e3), inline: false }
@@ -187481,7 +188050,7 @@ var customcmdCommand = {
         await interaction.reply({ content: "Command not found", ephemeral: true });
         return;
       }
-      const embed = new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Blurple).setTitle(`\u{1F4DD} Custom Command: /${tag.name}`).addFields(
+      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Blurple).setTitle(`\u{1F4DD} Custom Command: /${tag.name}`).addFields(
         { name: "Content", value: tag.content.slice(0, 2e3), inline: false },
         { name: "Aliases", value: tag.aliases.length ? tag.aliases.map((a) => `/${a}`).join(", ") : "None", inline: true },
         { name: "Uses", value: tag.uses.toString(), inline: true },
@@ -187515,7 +188084,7 @@ var customcmdCommand = {
       }
       if (current) chunks.push(current);
       const embeds = chunks.map(
-        (chunk, i) => new import_discord52.EmbedBuilder().setColor(import_discord52.Colors.Blurple).setTitle(`\u{1F4CB} Custom Commands (Page ${i + 1}/${chunks.length})`).setDescription(chunk).setFooter({ text: `${tags.length} total` })
+        (chunk, i) => new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Blurple).setTitle(`\u{1F4CB} Custom Commands (Page ${i + 1}/${chunks.length})`).setDescription(chunk).setFooter({ text: `${tags.length} total` })
       );
       await interaction.reply({ embeds: embeds.slice(0, 10), ephemeral: true });
       return;
@@ -187554,22 +188123,22 @@ var customcmdCommand = {
     if (sub === "embed") {
       const name = interaction.options.getString("name", true).toLowerCase();
       const tag = await CustomCommand.findOne({ guildId, name });
-      const modal = new import_discord52.ModalBuilder().setCustomId(`tag_embed:${name}`).setTitle(tag ? `Edit Embed: /${name}` : `Create Embed Command: /${name}`);
+      const modal = new import_discord53.ModalBuilder().setCustomId(`tag_embed:${name}`).setTitle(tag ? `Edit Embed: /${name}` : `Create Embed Command: /${name}`);
       modal.addComponents(
-        new import_discord52.ActionRowBuilder().addComponents(
-          new import_discord52.TextInputBuilder().setCustomId("title").setLabel("Title").setStyle(import_discord52.TextInputStyle.Short).setValue(tag?.embed?.title || "").setMaxLength(256).setRequired(false)
+        new import_discord53.ActionRowBuilder().addComponents(
+          new import_discord53.TextInputBuilder().setCustomId("title").setLabel("Title").setStyle(import_discord53.TextInputStyle.Short).setValue(tag?.embed?.title || "").setMaxLength(256).setRequired(false)
         ),
-        new import_discord52.ActionRowBuilder().addComponents(
-          new import_discord52.TextInputBuilder().setCustomId("description").setLabel("Description").setStyle(import_discord52.TextInputStyle.Paragraph).setValue(tag?.embed?.description || "").setMaxLength(4e3).setRequired(false)
+        new import_discord53.ActionRowBuilder().addComponents(
+          new import_discord53.TextInputBuilder().setCustomId("description").setLabel("Description").setStyle(import_discord53.TextInputStyle.Paragraph).setValue(tag?.embed?.description || "").setMaxLength(4e3).setRequired(false)
         ),
-        new import_discord52.ActionRowBuilder().addComponents(
-          new import_discord52.TextInputBuilder().setCustomId("color").setLabel("Color (hex, e.g., #ff0000)").setStyle(import_discord52.TextInputStyle.Short).setValue(tag?.embed?.color ? "#" + tag.embed.color.toString(16).padStart(6, "0") : "").setMaxLength(7).setRequired(false)
+        new import_discord53.ActionRowBuilder().addComponents(
+          new import_discord53.TextInputBuilder().setCustomId("color").setLabel("Color (hex, e.g., #ff0000)").setStyle(import_discord53.TextInputStyle.Short).setValue(tag?.embed?.color ? "#" + tag.embed.color.toString(16).padStart(6, "0") : "").setMaxLength(7).setRequired(false)
         ),
-        new import_discord52.ActionRowBuilder().addComponents(
-          new import_discord52.TextInputBuilder().setCustomId("footer").setLabel("Footer Text").setStyle(import_discord52.TextInputStyle.Short).setValue(tag?.embed?.footer || "").setMaxLength(2048).setRequired(false)
+        new import_discord53.ActionRowBuilder().addComponents(
+          new import_discord53.TextInputBuilder().setCustomId("footer").setLabel("Footer Text").setStyle(import_discord53.TextInputStyle.Short).setValue(tag?.embed?.footer || "").setMaxLength(2048).setRequired(false)
         ),
-        new import_discord52.ActionRowBuilder().addComponents(
-          new import_discord52.TextInputBuilder().setCustomId("image").setLabel("Image URL").setStyle(import_discord52.TextInputStyle.Short).setValue(tag?.embed?.image || "").setRequired(false)
+        new import_discord53.ActionRowBuilder().addComponents(
+          new import_discord53.TextInputBuilder().setCustomId("image").setLabel("Image URL").setStyle(import_discord53.TextInputStyle.Short).setValue(tag?.embed?.image || "").setRequired(false)
         )
       );
       await interaction.showModal(modal);
@@ -187603,8 +188172,8 @@ async function executeCustomCommand(message, commandName, args) {
   await tag.save();
   let content = tag.content.replace(/{user}/g, message.author.toString()).replace(/{user.name}/g, message.author.username).replace(/{user.id}/g, message.author.id).replace(/{server}/g, message.guild?.name || "DM").replace(/{channel}/g, message.channel.toString()).replace(/{args}/g, args.join(" ")).replace(/{random:(\d+)}/g, (_, max) => Math.floor(Math.random() * parseInt(max)).toString());
   if (tag.embed) {
-    const { EmbedBuilder: EmbedBuilder68, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
-    const embed = new EmbedBuilder68().setColor(tag.embed.color || Colors31.Blurple).setDescription(content);
+    const { EmbedBuilder: EmbedBuilder74, Colors: Colors36 } = await Promise.resolve().then(() => __toESM(require_src()));
+    const embed = new EmbedBuilder74().setColor(tag.embed.color || Colors36.Blurple).setDescription(content);
     if (tag.embed.title) embed.setTitle(tag.embed.title);
     if (tag.embed.description) embed.setDescription(tag.embed.description);
     if (tag.embed.footer) embed.setFooter({ text: tag.embed.footer });
@@ -187622,9 +188191,9 @@ async function executeCustomCommand(message, commandName, args) {
 __name(executeCustomCommand, "executeCustomCommand");
 
 // src/commands/utility/invites.ts
-var import_discord53 = __toESM(require_src());
+var import_discord54 = __toESM(require_src());
 var invitesCommand = {
-  data: new import_discord53.SlashCommandBuilder().setName("invites").setDescription("Invite tracking system").addSubcommand(
+  data: new import_discord54.SlashCommandBuilder().setName("invites").setDescription("Invite tracking system").addSubcommand(
     (sub) => sub.setName("leaderboard").setDescription("Show top inviters").addIntegerOption(
       (opt) => opt.setName("limit").setDescription("Number of users to show").setRequired(false).setMinValue(1).setMaxValue(50)
     )
@@ -187673,7 +188242,7 @@ var invitesCommand = {
         await interaction.reply({ content: "No invite data yet", ephemeral: true });
         return;
       }
-      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u{1F3C6} Invite Leaderboard").setDescription(
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u{1F3C6} Invite Leaderboard").setDescription(
         invites.map((inv, i) => {
           const member = guild.members.cache.get(inv._id);
           const name = member ? member.user.tag : `Unknown (${inv._id})`;
@@ -187696,7 +188265,7 @@ var invitesCommand = {
           else joinedCount++;
         }
       }
-      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Blurple).setTitle(`\u{1F4E8} Invites for ${user.tag}`).setThumbnail(user.displayAvatarURL()).addFields(
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Blurple).setTitle(`\u{1F4E8} Invites for ${user.tag}`).setThumbnail(user.displayAvatarURL()).addFields(
         { name: "Total Invites", value: totalInvites.toString(), inline: true },
         { name: "Active Members", value: joinedCount.toString(), inline: true },
         { name: "Left Members", value: leftCount.toString(), inline: true },
@@ -187809,7 +188378,7 @@ var invitesCommand = {
       }
       const vanityInvite = await InviteTracker.findOne({ guildId, code: vanityCode, vanity: true }).lean();
       const uses = vanityInvite?.uses ?? 0;
-      const embed = new import_discord53.EmbedBuilder().setColor(import_discord53.Colors.Gold).setTitle("\u{1F31F} Vanity URL").addFields(
+      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u{1F31F} Vanity URL").addFields(
         { name: "Code", value: `discord.gg/${vanityCode}`, inline: true },
         { name: "Total Uses", value: uses.toString(), inline: true },
         { name: "URL", value: `https://discord.gg/${vanityCode}`, inline: false }
@@ -187870,9 +188439,9 @@ async function trackInviteLeave(member) {
 __name(trackInviteLeave, "trackInviteLeave");
 
 // src/commands/utility/starboard.ts
-var import_discord54 = __toESM(require_src());
+var import_discord55 = __toESM(require_src());
 var starboardCommand = {
-  data: new import_discord54.SlashCommandBuilder().setName("starboard").setDescription("Starboard system").addSubcommand(
+  data: new import_discord55.SlashCommandBuilder().setName("starboard").setDescription("Starboard system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Configure starboard").addChannelOption(
       (opt) => opt.setName("channel").setDescription("Channel to post starred messages").setRequired(true)
     ).addIntegerOption(
@@ -187934,7 +188503,7 @@ var starboardCommand = {
         },
         { upsert: true, new: true }
       );
-      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u2705 Starboard Configured").addFields(
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Gold).setTitle("\u2705 Starboard Configured").addFields(
         { name: "Channel", value: `<#${channel.id}>`, inline: true },
         { name: "Threshold", value: threshold.toString(), inline: true },
         { name: "Emoji", value: emoji3, inline: true }
@@ -187987,7 +188556,7 @@ var starboardCommand = {
         }
       }
       await config2.save();
-      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u2699\uFE0F Starboard Settings Updated").addFields(
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Gold).setTitle("\u2699\uFE0F Starboard Settings Updated").addFields(
         { name: "Self-Star", value: config2.allowSelfStar ? "\u2705" : "\u274C", inline: true },
         { name: "Bot Messages", value: config2.allowBotMessages ? "\u2705" : "\u274C", inline: true },
         { name: "Require Attachment", value: config2.requireAttachment ? "\u2705" : "\u274C", inline: true },
@@ -188009,7 +188578,7 @@ var starboardCommand = {
       }
       const config2 = await StarboardConfig.findOne({ guildId });
       const emoji3 = config2?.emoji || "\u2B50";
-      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u2B50 Recent Starboard Entries").setDescription(
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Gold).setTitle("\u2B50 Recent Starboard Entries").setDescription(
         entries.map((e, i) => {
           const author = guild.members.cache.get(e.authorId);
           const name = author ? author.user.tag : `Unknown (${e.authorId})`;
@@ -188031,7 +188600,7 @@ var starboardCommand = {
         await interaction.reply({ content: "No star data yet", ephemeral: true });
         return;
       }
-      const embed = new import_discord54.EmbedBuilder().setColor(import_discord54.Colors.Gold).setTitle("\u{1F3C6} Star Leaderboard").setDescription(
+      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Gold).setTitle("\u{1F3C6} Star Leaderboard").setDescription(
         entries.map((e, i) => {
           const user = guild.members.cache.get(e._id);
           const name = user ? user.user.tag : `Unknown (${e._id})`;
@@ -188118,7 +188687,7 @@ async function handleStarboardReaction(reaction, user, added) {
 }
 __name(handleStarboardReaction, "handleStarboardReaction");
 function buildStarboardEmbed(message, stars, config2) {
-  const embed = new import_discord54.EmbedBuilder().setColor(config2.color || import_discord54.Colors.Gold).setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setDescription(message.content || "*No text content*").addFields(
+  const embed = new import_discord55.EmbedBuilder().setColor(config2.color || import_discord55.Colors.Gold).setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() }).setDescription(message.content || "*No text content*").addFields(
     { name: "Channel", value: `<#${message.channelId}>`, inline: true },
     { name: "Stars", value: `${stars} ${config2.emoji}`, inline: true }
   ).setTimestamp(message.createdAt).setFooter({ text: `ID: ${message.id}` });
@@ -188161,10 +188730,10 @@ function invalidateStarboardCache(guildId) {
 __name(invalidateStarboardCache, "invalidateStarboardCache");
 
 // src/commands/utility/remind.ts
-var import_discord55 = __toESM(require_src());
+var import_discord56 = __toESM(require_src());
 var import_ms2 = __toESM(require_ms());
 var remindCommand = {
-  data: new import_discord55.SlashCommandBuilder().setName("remind").setDescription("Reminder system").addSubcommand(
+  data: new import_discord56.SlashCommandBuilder().setName("remind").setDescription("Reminder system").addSubcommand(
     (sub) => sub.setName("me").setDescription("Set a reminder for yourself").addStringOption(
       (opt) => opt.setName("time").setDescription("When to remind (e.g., 1h, 30m, 1d, 2024-12-25 15:00)").setRequired(true)
     ).addStringOption(
@@ -188238,7 +188807,7 @@ var remindCommand = {
         remindAt,
         dm
       });
-      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Green).setTitle("\u23F0 Reminder Set").addFields(
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setTitle("\u23F0 Reminder Set").addFields(
         { name: "When", value: `<t:${Math.floor(remindAt.getTime() / 1e3)}:F> (<t:${Math.floor(remindAt.getTime() / 1e3)}:R>)`, inline: false },
         { name: "What", value: text, inline: false },
         { name: "ID", value: String(reminder._id), inline: true }
@@ -188253,7 +188822,7 @@ var remindCommand = {
         await interaction.reply({ content: "No active reminders", ephemeral: true });
         return;
       }
-      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Blurple).setTitle("\u23F0 Your Reminders").setDescription(
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Blurple).setTitle("\u23F0 Your Reminders").setDescription(
         reminders.map((r) => {
           const time3 = `<t:${Math.floor(r.remindAt.getTime() / 1e3)}:F> (<t:${Math.floor(r.remindAt.getTime() / 1e3)}:R>)`;
           const guildInfo = r.guildId ? ` in <#${r.channelId}>` : " (DM)";
@@ -188294,7 +188863,7 @@ ${r.text.slice(0, 100)}`;
         remindAt: nextRun,
         recurring: { pattern, timezone, nextRun }
       });
-      const embed = new import_discord55.EmbedBuilder().setColor(import_discord55.Colors.Green).setTitle("\u{1F504} Recurring Reminder Set").addFields(
+      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setTitle("\u{1F504} Recurring Reminder Set").addFields(
         { name: "Pattern", value: `\`${pattern}\``, inline: true },
         { name: "Timezone", value: timezone, inline: true },
         { name: "Next Run", value: `<t:${Math.floor(nextRun.getTime() / 1e3)}:R>`, inline: true },
@@ -188346,9 +188915,9 @@ async function checkReminders(client) {
 __name(checkReminders, "checkReminders");
 
 // src/commands/utility/afk.ts
-var import_discord56 = __toESM(require_src());
+var import_discord57 = __toESM(require_src());
 var afkCommand = {
-  data: new import_discord56.SlashCommandBuilder().setName("afk").setDescription("AFK system").addSubcommand(
+  data: new import_discord57.SlashCommandBuilder().setName("afk").setDescription("AFK system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set your AFK status").addStringOption(
       (opt) => opt.setName("reason").setDescription("AFK reason").setRequired(false).setMaxLength(500)
     )
@@ -188389,7 +188958,7 @@ var afkCommand = {
         } catch {
         }
       }
-      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Yellow).setTitle("\u{1F4A4} AFK Set").addFields(
+      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Yellow).setTitle("\u{1F4A4} AFK Set").addFields(
         { name: "Reason", value: reason, inline: false },
         { name: "Since", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>`, inline: true }
       );
@@ -188409,7 +188978,7 @@ var afkCommand = {
         } catch {
         }
       }
-      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setTitle("\u2705 AFK Removed").addFields(
+      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Green).setTitle("\u2705 AFK Removed").addFields(
         { name: "Was AFK for", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>`, inline: true },
         { name: "Mentions received", value: afk.mentions.toString(), inline: true }
       );
@@ -188423,7 +188992,7 @@ var afkCommand = {
         await interaction.reply({ content: `${user.tag} is not AFK`, ephemeral: true });
         return;
       }
-      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Yellow).setTitle(`\u{1F4A4} ${user.tag} is AFK`).addFields(
+      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Yellow).setTitle(`\u{1F4A4} ${user.tag} is AFK`).addFields(
         { name: "Reason", value: afk.reason, inline: false },
         { name: "Since", value: `<t:${Math.floor(afk.setAt.getTime() / 1e3)}:F> (<t:${Math.floor(afk.setAt.getTime() / 1e3)}:R>)`, inline: false },
         { name: "Mentions", value: afk.mentions.toString(), inline: true }
@@ -188449,7 +189018,7 @@ async function handleAfkMessage(message) {
       } catch {
       }
     }
-    const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Green).setDescription(`\u{1F44B} Welcome back! You were AFK for <t:${Math.floor(authorAfk.setAt.getTime() / 1e3)}:R> (${authorAfk.mentions} mentions)`);
+    const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Green).setDescription(`\u{1F44B} Welcome back! You were AFK for <t:${Math.floor(authorAfk.setAt.getTime() / 1e3)}:R> (${authorAfk.mentions} mentions)`);
     await message.reply({ embeds: [embed] }).catch(() => {
     });
   }
@@ -188460,7 +189029,7 @@ async function handleAfkMessage(message) {
       afk.mentions++;
       afk.lastMentionedAt = /* @__PURE__ */ new Date();
       await afk.save();
-      const embed = new import_discord56.EmbedBuilder().setColor(import_discord56.Colors.Yellow).setDescription(`\u{1F4A4} **${mentionedUser.tag}** is AFK: ${afk.reason}
+      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Yellow).setDescription(`\u{1F4A4} **${mentionedUser.tag}** is AFK: ${afk.reason}
 Since <t:${Math.floor(afk.setAt.getTime() / 1e3)}:R> (${afk.mentions} mentions total)`);
       await message.reply({ embeds: [embed], allowedMentions: { users: [] } }).catch(() => {
       });
@@ -188471,9 +189040,9 @@ Since <t:${Math.floor(afk.setAt.getTime() / 1e3)}:R> (${afk.mentions} mentions t
 __name(handleAfkMessage, "handleAfkMessage");
 
 // src/commands/utility/welcome.ts
-var import_discord57 = __toESM(require_src());
+var import_discord58 = __toESM(require_src());
 var welcomeCommand = {
-  data: new import_discord57.SlashCommandBuilder().setName("welcome").setDescription("Welcome and greetings system").addSubcommand(
+  data: new import_discord58.SlashCommandBuilder().setName("welcome").setDescription("Welcome and greetings system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set welcome channel and message").addChannelOption(
       (opt) => opt.setName("channel").setDescription("Welcome channel").setRequired(true)
     ).addStringOption(
@@ -188522,7 +189091,7 @@ var welcomeCommand = {
         },
         { upsert: true, new: true }
       );
-      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Green).setTitle("\u2705 Welcome System Configured").addFields(
+      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Green).setTitle("\u2705 Welcome System Configured").addFields(
         { name: "Channel", value: `<#${channel.id}>`, inline: true },
         { name: "Message", value: message || "Default welcome embed", inline: true }
       );
@@ -188552,7 +189121,7 @@ var welcomeCommand = {
         },
         { upsert: true, new: true }
       );
-      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Green).setTitle("\u2705 Leave System Configured").addFields(
+      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Green).setTitle("\u2705 Leave System Configured").addFields(
         { name: "Channel", value: `<#${channel.id}>`, inline: true },
         { name: "Message", value: message || "Default leave embed", inline: true }
       );
@@ -188590,7 +189159,7 @@ var welcomeCommand = {
         await interaction.reply({ content: "Welcome channel not found.", ephemeral: true });
         return;
       }
-      const embed = new import_discord57.EmbedBuilder().setColor(import_discord57.Colors.Blurple).setTitle("\u{1F44B} Welcome Test").setDescription(`Welcome to **${guild.name}**, {user}!`).setFooter({ text: "Test welcome message" }).setTimestamp();
+      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Blurple).setTitle("\u{1F44B} Welcome Test").setDescription(`Welcome to **${guild.name}**, {user}!`).setFooter({ text: "Test welcome message" }).setTimestamp();
       const message = config2.welcomeMessage?.replace("{user}", interaction.user.toString()).replace("{server}", guild.name).replace("{memberCount}", guild.memberCount.toString()) || "";
       await channel.send({ content: message || void 0, embeds: [embed] });
       await interaction.reply({ content: `\u2705 Test welcome sent to ${channel}.`, ephemeral: true });
@@ -188605,9 +189174,9 @@ var welcomeCommand = {
 };
 
 // src/commands/utility/notifications.ts
-var import_discord58 = __toESM(require_src());
+var import_discord59 = __toESM(require_src());
 var notificationsCommand = {
-  data: new import_discord58.SlashCommandBuilder().setName("notifications").setDescription("Feed notifications system").addSubcommand(
+  data: new import_discord59.SlashCommandBuilder().setName("notifications").setDescription("Feed notifications system").addSubcommand(
     (sub) => sub.setName("twitch").setDescription("Twitch live stream alerts").addChannelOption(
       (opt) => opt.setName("channel").setDescription("Discord channel to post alerts").setRequired(true)
     ).addStringOption(
@@ -188723,7 +189292,7 @@ var notificationsCommand = {
         await interaction.reply({ content: "No notification feeds configured.", ephemeral: true });
         return;
       }
-      const embed = new import_discord58.EmbedBuilder().setColor(import_discord58.Colors.Blurple).setTitle("\u{1F4E2} Notification Feeds").setDescription(
+      const embed = new import_discord59.EmbedBuilder().setColor(import_discord59.Colors.Blurple).setTitle("\u{1F4E2} Notification Feeds").setDescription(
         feeds.map((f) => `**${f.type}** \u2014 ${f.source} \u2192 <#${f.channelId}> ${f.active ? "\u{1F7E2}" : "\u{1F534}"}`).join("\n")
       ).setFooter({ text: `${feeds.length} feed(s)` });
       await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -188744,9 +189313,9 @@ var notificationsCommand = {
 };
 
 // src/commands/utility/birthday.ts
-var import_discord59 = __toESM(require_src());
+var import_discord60 = __toESM(require_src());
 var birthdayCommand = {
-  data: new import_discord59.SlashCommandBuilder().setName("birthday").setDescription("Birthday system").addSubcommand(
+  data: new import_discord60.SlashCommandBuilder().setName("birthday").setDescription("Birthday system").addSubcommand(
     (sub) => sub.setName("set").setDescription("Set your birthday").addIntegerOption(
       (opt) => opt.setName("month").setDescription("Birth month (1-12)").setRequired(true).setMinValue(1).setMaxValue(12)
     ).addIntegerOption(
@@ -188807,7 +189376,7 @@ var birthdayCommand = {
         if (next < now) next.setFullYear(next.getFullYear() + 1);
         return { ...b, next };
       }).sort((a, b) => a.next.getTime() - b.next.getTime()).slice(0, 20);
-      const embed = new import_discord59.EmbedBuilder().setColor(import_discord59.Colors.Blurple).setTitle("\u{1F382} Upcoming Birthdays").setDescription(
+      const embed = new import_discord60.EmbedBuilder().setColor(import_discord60.Colors.Blurple).setTitle("\u{1F382} Upcoming Birthdays").setDescription(
         upcoming.map((b) => {
           const member = guild.members.cache.get(b.userId);
           const name = member ? member.user.tag : `Unknown (${b.userId})`;
@@ -188829,7 +189398,7 @@ var birthdayCommand = {
         await interaction.reply({ content: "No birthdays today.", ephemeral: true });
         return;
       }
-      const embed = new import_discord59.EmbedBuilder().setColor(import_discord59.Colors.Gold).setTitle("\u{1F389} Today's Birthdays!").setDescription(
+      const embed = new import_discord60.EmbedBuilder().setColor(import_discord60.Colors.Gold).setTitle("\u{1F389} Today's Birthdays!").setDescription(
         todayBirthdays.map((b) => {
           const member = guild.members.cache.get(b.userId);
           const name = member ? member.user.tag : `Unknown (${b.userId})`;
@@ -188843,49 +189412,50 @@ var birthdayCommand = {
 };
 
 // src/commands/leveling/levelup.ts
-var import_discord60 = __toESM(require_src());
+var import_discord61 = __toESM(require_src());
 var levelupCommand = {
-  data: new import_discord60.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord60.PermissionFlagsBits.ManageGuild),
+  data: new import_discord61.SlashCommandBuilder().setName("levelup").setDescription("Test level-up announcement (owner only).").setDMPermission(false).setDefaultMemberPermissions(import_discord61.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
     if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord60.MessageFlags.Ephemeral
+        flags: import_discord61.MessageFlags.Ephemeral
       });
       return;
     }
     const current = await loadLevelSettings(context);
     const { levelUpMessage, levelUpChannel } = current;
-    const testEmbed = new import_discord60.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
+    const testEmbed = new import_discord61.EmbedBuilder().setColor(2278750).setTitle("\u{1F389} Level Up Test").setDescription(
       levelUpMessage.replace("{user}", "@everyone").replace("{username}", "TestUser").replace("{level}", "10").replace("{server}", interaction.guild?.name ?? "this server").replace("{role}", "@everyone").replace("{xp}", "1500").replace("{xpneeded}", "500")
-    ).setFooter({ text: "\u7231 Doctora \u2022 Level Up Test" }).setTimestamp();
+    ).setFooter({ text: "\u611B Bella Star \u2022 Level Up Test" }).setTimestamp();
     const channel = interaction.guild?.channels.cache.get(levelUpChannel);
     if (channel && channel.isTextBased()) {
       await channel.send({ embeds: [testEmbed] });
       await interaction.reply({
         content: `\u2705 Test level-up sent to <#${levelUpChannel}>`,
-        flags: import_discord60.MessageFlags.Ephemeral
+        flags: import_discord61.MessageFlags.Ephemeral
       });
     } else {
       await interaction.reply({
         content: `\u2705 Level-up message template: "${levelUpMessage}"
 (No level-up channel configured)`,
-        flags: import_discord60.MessageFlags.Ephemeral
+        flags: import_discord61.MessageFlags.Ephemeral
       });
     }
   }, "execute")
 };
 
 // src/commands/leveling/xpgive.ts
-var import_discord62 = __toESM(require_src());
+var import_discord63 = __toESM(require_src());
 
 // src/handlers/levelUp.ts
 function resolveLevelRoles(levelRoles, level) {
   const tiers = Object.entries(levelRoles).filter(([key, roleId]) => /^\d+$/.test(key) && typeof roleId === "string" && roleId !== "").map(([key, roleId]) => ({ level: Number.parseInt(key, 10), roleId })).filter((tier) => tier.level <= level).sort((a, b) => a.level - b.level);
   const best = tiers[tiers.length - 1];
-  if (!best) return { removeRoleIds: [] };
+  const allTiers = Object.entries(levelRoles).filter(([key, roleId]) => /^\d+$/.test(key) && typeof roleId === "string" && roleId !== "").map(([, roleId]) => roleId);
+  if (!best) return { removeRoleIds: [...new Set(allTiers)] };
   return {
     grantRoleId: best.roleId,
     // The same role can be configured for several levels; never queue the role
@@ -188898,7 +189468,15 @@ function resolveLevelRoles(levelRoles, level) {
 }
 __name(resolveLevelRoles, "resolveLevelRoles");
 async function applyLevelRoles(guild, member, grantRoleId, removeRoleIds) {
-  if (!grantRoleId) return;
+  if (!grantRoleId) {
+    const stale = (removeRoleIds ?? []).filter((id) => member.roles.cache.has(id));
+    if (stale.length > 0) {
+      await member.roles.remove(stale, "Level reward removed").catch((err) => {
+        console.error(`[LevelUp] Failed to remove level roles from ${member.id}:`, err);
+      });
+    }
+    return;
+  }
   let role = guild.roles.cache.get(grantRoleId) ?? null;
   if (!role) {
     role = await guild.roles.fetch(grantRoleId).catch(() => null);
@@ -188994,11 +189572,11 @@ __name(handleLevelUp, "handleLevelUp");
 
 // src/commands/leveling/xpgive.ts
 var xpgiveCommand = {
-  data: new import_discord62.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
+  data: new import_discord63.SlashCommandBuilder().setName("xpgive").setDescription("Give XP to a member (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to give XP to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of XP to give").setMinValue(1).setMaxValue(1e4).setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord62.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord63.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
@@ -189007,32 +189585,35 @@ var xpgiveCommand = {
     if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord62.MessageFlags.Ephemeral
+        flags: import_discord63.MessageFlags.Ephemeral
       });
       return;
     }
     const result = await addXp(targetUser.id, amount, "admin", 0);
-    if (guild && result.leveledUp) {
+    if (guild) {
       const member = guild.members.cache.get(targetUser.id) ?? await guild.members.fetch(targetUser.id).catch(() => null);
-      const settings = readLevelSettings({});
+      const settings = readLevelSettings(context.settings ?? {});
       if (member) {
-        await handleLevelUp(guild, targetUser, result.newLevel, result.oldLevel, void 0, settings);
+        await syncLevelRoles(guild, member, result.newLevel, settings.levelRoles).catch(() => void 0);
+        if (result.leveledUp) {
+          await handleLevelUp(guild, targetUser, result.newLevel, result.oldLevel, void 0, settings).catch(() => void 0);
+        }
       }
     }
-    const embed = new import_discord62.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
+    const embed = new import_discord63.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Given").addFields(
       { name: "User", value: targetUser.tag, inline: true },
       { name: "XP Given", value: `${amount}`, inline: true }
-    ).setFooter({ text: "\u7231 Doctora \u2022 XP Given" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord62.MessageFlags.Ephemeral });
+    ).setFooter({ text: "\u611B Bella Star \u2022 XP Given" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord63.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/leveling/resetxp.ts
-var import_discord63 = __toESM(require_src());
+var import_discord64 = __toESM(require_src());
 var resetXpCommand = {
-  data: new import_discord63.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
+  data: new import_discord64.SlashCommandBuilder().setName("resetxp").setDescription("Reset a user's XP (owner only).").addUserOption(
     (option) => option.setName("user").setDescription("The user to reset XP for").setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord63.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord64.PermissionFlagsBits.ManageGuild),
   category: "leveling",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, guild } = context;
@@ -189040,25 +189621,25 @@ var resetXpCommand = {
     if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord63.MessageFlags.Ephemeral
+        flags: import_discord64.MessageFlags.Ephemeral
       });
       return;
     }
     const result = await setUserXp(targetUser.id, 0);
     if (guild) {
       const member = guild.members.cache.get(targetUser.id) ?? await guild.members.fetch(targetUser.id).catch(() => null);
-      const settings = readLevelSettings({});
+      const settings = readLevelSettings(context.settings ?? {});
       if (member) {
-        await handleLevelUp(guild, targetUser, result.newLevel, result.oldLevel, void 0, settings);
+        await syncLevelRoles(guild, member, result.newLevel, settings.levelRoles).catch(() => void 0);
       }
     }
-    const embed = new import_discord63.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u7231 Doctora \u2022 XP Reset" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord63.MessageFlags.Ephemeral });
+    const embed = new import_discord64.EmbedBuilder().setColor(2278750).setTitle("\u2705 XP Reset").setDescription(`XP has been reset for **${targetUser.tag}**`).setFooter({ text: "\u611B Bella Star \u2022 XP Reset" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord64.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/economy.ts
-var import_discord64 = __toESM(require_src());
+var import_discord65 = __toESM(require_src());
 
 // src/utils/shop.ts
 var SHOP_ITEMS = [
@@ -189074,7 +189655,7 @@ var SHOP_ITEMS = [
     id: "coin_pouch",
     name: "Coin Pouch",
     emoji: "\u{1F9E7}",
-    description: "Crack it open for somewhere between 500 and 2,000 coins.",
+    description: "Crack it open for somewhere between 500 and 1,200 coins.",
     price: 1200,
     kind: "consumable"
   },
@@ -189128,7 +189709,7 @@ __name(shopItemChoices, "shopItemChoices");
 
 // src/commands/economy/economy.ts
 var economyCommand = {
-  data: new import_discord64.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord64.PermissionFlagsBits.SendMessages),
+  data: new import_discord65.SlashCommandBuilder().setName("economy").setDescription("View the server economy summary.").setDMPermission(false).setDefaultMemberPermissions(import_discord65.PermissionFlagsBits.SendMessages),
   category: "economy",
   cooldownSeconds: 15,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -189150,7 +189731,7 @@ var economyCommand = {
     const summary = totals[0] ?? { wallets: 0, banks: 0, holders: 0 };
     const circulation = summary.wallets + summary.banks;
     const yourShare = circulation > 0 ? (you.balance + you.bank) / circulation * 100 : 0;
-    const embed = new import_discord64.EmbedBuilder().setColor(import_discord64.Colors.Gold).setTitle("\u{1F4B0} Economy Summary").addFields(
+    const embed = new import_discord65.EmbedBuilder().setColor(import_discord65.Colors.Gold).setTitle("\u{1F4B0} Economy Summary").addFields(
       { name: "Coins in wallets", value: formatCoins(summary.wallets), inline: true },
       { name: "Coins in banks", value: formatCoins(summary.banks), inline: true },
       { name: "Total circulation", value: formatCoins(circulation), inline: true },
@@ -189166,15 +189747,15 @@ var economyCommand = {
         value: `${SHOP_ITEMS.length} items (largest ${formatCoins(Math.max(...SHOP_ITEMS.map((i) => i.price)))} coins) \u2014 \`/shop\``,
         inline: true
       }
-    ).setFooter({ text: "\u7231 Doctora \u2022 Economy" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord64.MessageFlags.Ephemeral });
+    ).setFooter({ text: "\u611B Bella Star \u2022 Economy" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord65.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/shop.ts
-var import_discord65 = __toESM(require_src());
+var import_discord66 = __toESM(require_src());
 var shopCommand = {
-  data: new import_discord65.SlashCommandBuilder().setName("shop").setDescription("Browse items you can buy with coins.").setDMPermission(false).setDefaultMemberPermissions(import_discord65.PermissionFlagsBits.SendMessages),
+  data: new import_discord66.SlashCommandBuilder().setName("shop").setDescription("Browse items you can buy with coins.").setDMPermission(false).setDefaultMemberPermissions(import_discord66.PermissionFlagsBits.SendMessages),
   category: "economy",
   cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -189186,71 +189767,23 @@ var shopCommand = {
       return `${item.emoji} **${item.name}** \xB7 ${formatCoins(item.price)} coins${ownedTag}
 ${item.description}`;
     });
-    const embed = new import_discord65.EmbedBuilder().setColor(import_discord65.Colors.Blurple).setTitle("\u{1F3EA} Shop").setDescription(
+    const embed = new import_discord66.EmbedBuilder().setColor(import_discord66.Colors.Blurple).setTitle("\u{1F3EA} Shop").setDescription(
       `Your wallet: **${formatCoins(user.balance)}** coins
 
 ${lines.join("\n\n")}`
     ).addFields({
       name: "How to buy",
       value: "Use `/buy item:<name>` to purchase, then `/use item:<name>` to activate consumables. `/inventory` shows what you own."
-    }).setFooter({ text: "\u7231 Doctora \u2022 Shop" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord65.MessageFlags.Ephemeral });
+    }).setFooter({ text: "\u611B Bella Star \u2022 Shop" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord66.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/buy.ts
-var import_discord66 = __toESM(require_src());
-var buyCommand = {
-  data: new import_discord66.SlashCommandBuilder().setName("buy").setDescription("Buy an item from the shop.").addStringOption(
-    (option) => option.setName("item").setDescription("The item to buy").setRequired(true).addChoices(...shopItemChoices())
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord66.PermissionFlagsBits.SendMessages),
-  category: "economy",
-  cooldownSeconds: 5,
-  execute: /* @__PURE__ */ __name(async (context) => {
-    const { interaction } = context;
-    const item = findShopItem(interaction.options.getString("item", true));
-    if (!item) {
-      await interaction.reply({ content: "\u274C That item is not in the shop.", flags: import_discord66.MessageFlags.Ephemeral });
-      return;
-    }
-    const user = await getEconomyUser(interaction.user.id);
-    if (item.kind === "permanent" && user.inventory?.some((entry) => entry.itemId === item.id)) {
-      await interaction.reply({
-        content: `\u274C You already own the **${item.emoji} ${item.name}**.`,
-        flags: import_discord66.MessageFlags.Ephemeral
-      });
-      return;
-    }
-    const balance = await settleWager(interaction.user.id, item.price, 0);
-    if (balance === null) {
-      await interaction.reply({
-        content: `\u274C You need **${formatCoins(item.price)}** coins for that (you have **${formatCoins(user.balance)}**).`,
-        flags: import_discord66.MessageFlags.Ephemeral
-      });
-      return;
-    }
-    await addItem(interaction.user.id, item.id, 1);
-    recordActivity("command", `${interaction.user.tag} bought ${item.name}`, {
-      meta: { guildId: interaction.guildId, userId: interaction.user.id, itemId: item.id, price: item.price }
-    });
-    const embed = new import_discord66.EmbedBuilder().setColor(import_discord66.Colors.Green).setTitle(`${item.emoji} Purchased ${item.name}`).setDescription(
-      item.kind === "consumable" ? `Activate it with \`/use item:${item.id}\`.` : "It is yours to keep."
-    ).addFields(
-      { name: "Paid", value: formatCoins(item.price), inline: true },
-      { name: "Wallet left", value: formatCoins(balance), inline: true }
-    ).setFooter({ text: "\u7231 Doctora \u2022 Shop" });
-    await interaction.reply({ embeds: [embed] });
-  }, "execute")
-};
-
-// src/commands/economy/use.ts
 var import_discord67 = __toESM(require_src());
-var COIN_POUCH_MIN = 500;
-var COIN_POUCH_MAX = 2e3;
-var XP_POTION_XP = 1e3;
-var useCommand = {
-  data: new import_discord67.SlashCommandBuilder().setName("use").setDescription("Activate an item from your inventory.").addStringOption(
-    (option) => option.setName("item").setDescription("The item to use").setRequired(true).addChoices(...shopItemChoices())
+var buyCommand = {
+  data: new import_discord67.SlashCommandBuilder().setName("buy").setDescription("Buy an item from the shop.").addStringOption(
+    (option) => option.setName("item").setDescription("The item to buy").setRequired(true).addChoices(...shopItemChoices())
   ).setDMPermission(false).setDefaultMemberPermissions(import_discord67.PermissionFlagsBits.SendMessages),
   category: "economy",
   cooldownSeconds: 5,
@@ -189258,33 +189791,81 @@ var useCommand = {
     const { interaction } = context;
     const item = findShopItem(interaction.options.getString("item", true));
     if (!item) {
-      await interaction.reply({ content: "\u274C You do not have that item.", flags: import_discord67.MessageFlags.Ephemeral });
+      await interaction.reply({ content: "\u274C That item is not in the shop.", flags: import_discord67.MessageFlags.Ephemeral });
+      return;
+    }
+    const user = await getEconomyUser(interaction.user.id);
+    if (item.kind === "permanent" && user.inventory?.some((entry) => entry.itemId === item.id && entry.quantity > 0)) {
+      await interaction.reply({
+        content: `\u274C You already own the **${item.emoji} ${item.name}**.`,
+        flags: import_discord67.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    const balance = await settleWager(interaction.user.id, item.price, 0);
+    if (balance === null) {
+      await interaction.reply({
+        content: `\u274C You need **${formatCoins(item.price)}** coins for that (you have **${formatCoins(user.balance)}**).`,
+        flags: import_discord67.MessageFlags.Ephemeral
+      });
+      return;
+    }
+    await addItem(interaction.user.id, item.id, 1);
+    recordActivity("command", `${interaction.user.tag} bought ${item.name}`, {
+      meta: { guildId: interaction.guildId, userId: interaction.user.id, itemId: item.id, price: item.price }
+    });
+    const embed = new import_discord67.EmbedBuilder().setColor(import_discord67.Colors.Green).setTitle(`${item.emoji} Purchased ${item.name}`).setDescription(
+      item.kind === "consumable" ? `Activate it with \`/use item:${item.id}\`.` : "It is yours to keep."
+    ).addFields(
+      { name: "Paid", value: formatCoins(item.price), inline: true },
+      { name: "Wallet left", value: formatCoins(balance), inline: true }
+    ).setFooter({ text: "\u611B Bella Star \u2022 Shop" });
+    await interaction.reply({ embeds: [embed] });
+  }, "execute")
+};
+
+// src/commands/economy/use.ts
+var import_discord68 = __toESM(require_src());
+var COIN_POUCH_MIN = 500;
+var COIN_POUCH_MAX = 1200;
+var XP_POTION_XP = 1e3;
+var useCommand = {
+  data: new import_discord68.SlashCommandBuilder().setName("use").setDescription("Activate an item from your inventory.").addStringOption(
+    (option) => option.setName("item").setDescription("The item to use").setRequired(true).addChoices(...shopItemChoices())
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord68.PermissionFlagsBits.SendMessages),
+  category: "economy",
+  cooldownSeconds: 5,
+  execute: /* @__PURE__ */ __name(async (context) => {
+    const { interaction } = context;
+    const item = findShopItem(interaction.options.getString("item", true));
+    if (!item) {
+      await interaction.reply({ content: "\u274C You do not have that item.", flags: import_discord68.MessageFlags.Ephemeral });
       return;
     }
     const user = await getEconomyUser(interaction.user.id);
     if (itemCount(user, item.id) < 1) {
       await interaction.reply({
         content: `\u274C You do not own a **${item.emoji} ${item.name}**. Buy one with \`/buy\`.`,
-        flags: import_discord67.MessageFlags.Ephemeral
+        flags: import_discord68.MessageFlags.Ephemeral
       });
       return;
     }
     if (item.kind === "permanent") {
       await interaction.reply({
         content: `The **${item.emoji} ${item.name}** is a permanent keepsake \u2014 it is already applied.`,
-        flags: import_discord67.MessageFlags.Ephemeral
+        flags: import_discord68.MessageFlags.Ephemeral
       });
       return;
     }
     const result = await consume(item, context);
     if (result.error) {
-      await interaction.reply({ content: result.error, flags: import_discord67.MessageFlags.Ephemeral });
+      await interaction.reply({ content: result.error, flags: import_discord68.MessageFlags.Ephemeral });
       return;
     }
     recordActivity("command", `${interaction.user.tag} used ${item.name}`, {
       meta: { guildId: interaction.guildId, userId: interaction.user.id, itemId: item.id }
     });
-    const embed = new import_discord67.EmbedBuilder().setColor(import_discord67.Colors.Green).setTitle(`${item.emoji} Used ${item.name}`).setDescription(result.description).setFooter({ text: "\u7231 Doctora \u2022 Inventory" });
+    const embed = new import_discord68.EmbedBuilder().setColor(import_discord68.Colors.Green).setTitle(`${item.emoji} Used ${item.name}`).setDescription(result.description).setFooter({ text: "\u611B Bella Star \u2022 Inventory" });
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
@@ -189293,7 +189874,8 @@ async function consume(item, context) {
   const userId = interaction.user.id;
   switch (item.id) {
     case "xp_potion": {
-      await consumeOne(userId, item.id);
+      const consumed = await consumeOne(userId, item.id);
+      if (!consumed) return { error: `You do not own a **${item.emoji} ${item.name}**.` };
       const result = await addXp(userId, XP_POTION_XP, "other");
       if (result.leveledUp) {
         await handleLevelUp(
@@ -189310,7 +189892,8 @@ async function consume(item, context) {
       };
     }
     case "coin_pouch": {
-      await consumeOne(userId, item.id);
+      const consumed = await consumeOne(userId, item.id);
+      if (!consumed) return { error: `You do not own a **${item.emoji} ${item.name}**.` };
       const amount = Math.floor(Math.random() * (COIN_POUCH_MAX - COIN_POUCH_MIN + 1)) + COIN_POUCH_MIN;
       const balance = await adjustBalance(userId, amount);
       return {
@@ -189321,16 +189904,32 @@ async function consume(item, context) {
       if ((await getEconomyUser(userId)).streakFreeze) {
         return { error: "You already have a Streak Freeze armed." };
       }
-      await consumeOne(userId, item.id);
-      await User.updateOne({ userId }, { $set: { streakFreeze: true } });
+      const consumed = await consumeOne(userId, item.id);
+      if (!consumed) return { error: `You do not own a **${item.emoji} ${item.name}**.` };
+      const armed = await User.updateOne(
+        { userId, streakFreeze: { $ne: true } },
+        { $set: { streakFreeze: true } }
+      );
+      if (armed.modifiedCount !== 1) {
+        await addItem(userId, item.id, 1).catch(() => void 0);
+        return { error: "You already have a Streak Freeze armed." };
+      }
       return { description: "Your next missed daily will not break your streak." };
     }
     case "lucky_clover": {
       if ((await getEconomyUser(userId)).luckyClover) {
         return { error: "You already have a Lucky Clover active." };
       }
-      await consumeOne(userId, item.id);
-      await User.updateOne({ userId }, { $set: { luckyClover: true } });
+      const consumed = await consumeOne(userId, item.id);
+      if (!consumed) return { error: `You do not own a **${item.emoji} ${item.name}**.` };
+      const armed = await User.updateOne(
+        { userId, luckyClover: { $ne: true } },
+        { $set: { luckyClover: true } }
+      );
+      if (armed.modifiedCount !== 1) {
+        await addItem(userId, item.id, 1).catch(() => void 0);
+        return { error: "You already have a Lucky Clover active." };
+      }
       return { description: "Your next casino loss refunds half the stake." };
     }
     default:
@@ -189339,24 +189938,35 @@ async function consume(item, context) {
 }
 __name(consume, "consume");
 async function consumeOne(userId, itemId) {
-  await User.updateOne(
-    { userId, "inventory.itemId": itemId, "inventory.quantity": { $gt: 0 } },
+  const updated = await User.updateOne(
+    {
+      userId,
+      inventory: { $elemMatch: { itemId, quantity: { $gt: 0 } } }
+    },
     { $inc: { "inventory.$.quantity": -1 } }
   );
+  if (updated.modifiedCount !== 1) {
+    await User.updateOne(
+      { userId, "inventory.itemId": itemId, "inventory.quantity": { $lte: 0 } },
+      { $pull: { inventory: { itemId } } }
+    ).catch(() => void 0);
+    return false;
+  }
   await User.updateOne(
     { userId, "inventory.itemId": itemId, "inventory.quantity": { $lte: 0 } },
     { $pull: { inventory: { itemId } } }
-  );
+  ).catch(() => void 0);
+  return true;
 }
 __name(consumeOne, "consumeOne");
 
 // src/commands/economy/bank.ts
-var import_discord68 = __toESM(require_src());
+var import_discord69 = __toESM(require_src());
 var LIMIT_STEP = 1e4;
 var LIMIT_UPGRADE_COST = 5e3;
 var MAX_LIMIT = 1e6;
 var bankCommand = {
-  data: new import_discord68.SlashCommandBuilder().setName("bank").setDescription("Move coins between your wallet and bank.").addSubcommand(
+  data: new import_discord69.SlashCommandBuilder().setName("bank").setDescription("Move coins between your wallet and bank.").addSubcommand(
     (sub) => sub.setName("deposit").setDescription("Deposit coins into your bank.").addIntegerOption(
       (opt) => opt.setName("amount").setDescription("Coins to deposit").setMinValue(1).setRequired(true)
     )
@@ -189370,7 +189980,7 @@ var bankCommand = {
     (sub) => sub.setName("upgrade").setDescription(`Raise your bank limit by ${LIMIT_STEP.toLocaleString()} for ${LIMIT_UPGRADE_COST.toLocaleString()} coins.`)
   ).addSubcommand((sub) => sub.setName("status").setDescription("Show your bank details.")),
   category: "economy",
-  userPermissions: [import_discord68.PermissionFlagsBits.SendMessages],
+  userPermissions: [import_discord69.PermissionFlagsBits.SendMessages],
   cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction } = context;
@@ -189378,28 +189988,43 @@ var bankCommand = {
     const userId = interaction.user.id;
     if (sub === "status") {
       const user2 = await getEconomyUser(userId);
-      await interaction.reply({ embeds: [statusEmbed(interaction.user.tag, user2)], flags: import_discord68.MessageFlags.Ephemeral });
+      await interaction.reply({ embeds: [statusEmbed(interaction.user.tag, user2)], flags: import_discord69.MessageFlags.Ephemeral });
       return;
     }
     if (sub === "upgrade") {
       const user2 = await getEconomyUser(userId);
       const nextLimit = Math.min(MAX_LIMIT, (user2.bankLimit ?? 0) + LIMIT_STEP);
       if (nextLimit <= (user2.bankLimit ?? 0)) {
-        await interaction.reply({ content: "\u274C Your bank is already at the maximum limit.", flags: import_discord68.MessageFlags.Ephemeral });
+        await interaction.reply({ content: "\u274C Your bank is already at the maximum limit.", flags: import_discord69.MessageFlags.Ephemeral });
         return;
       }
-      const upgraded = await User.findOneAndUpdate(
-        { userId, bankLimit: { $lt: MAX_LIMIT }, balance: { $gte: LIMIT_UPGRADE_COST } },
-        {
-          $inc: { balance: -LIMIT_UPGRADE_COST, bankLimit: LIMIT_STEP },
-          $min: { bankLimit: MAX_LIMIT }
-        },
-        { new: true }
-      );
+      let upgraded = null;
+      try {
+        upgraded = await User.findOneAndUpdate(
+          { userId, bankLimit: { $lt: MAX_LIMIT }, balance: { $gte: LIMIT_UPGRADE_COST } },
+          [
+            {
+              $set: {
+                balance: { $subtract: ["$balance", LIMIT_UPGRADE_COST] },
+                bankLimit: {
+                  $min: [{ $add: [{ $ifNull: ["$bankLimit", 0] }, LIMIT_STEP] }, MAX_LIMIT]
+                }
+              }
+            }
+          ],
+          { new: true }
+        );
+      } catch (err) {
+        await interaction.reply({
+          content: "\u274C Upgrade failed due to a database error. Please try again.",
+          flags: import_discord69.MessageFlags.Ephemeral
+        });
+        return;
+      }
       if (!upgraded) {
         await interaction.reply({
           content: `\u274C You need **${formatCoins(LIMIT_UPGRADE_COST)}** coins to upgrade.`,
-          flags: import_discord68.MessageFlags.Ephemeral
+          flags: import_discord69.MessageFlags.Ephemeral
         });
         return;
       }
@@ -189415,7 +190040,7 @@ var bankCommand = {
     const requested = sub === "all" ? user.balance : interaction.options.getInteger("amount", true);
     if (sub === "deposit" || sub === "all") {
       if (requested <= 0) {
-        await interaction.reply({ content: "\u274C Your wallet is empty.", flags: import_discord68.MessageFlags.Ephemeral });
+        await interaction.reply({ content: "\u274C Your wallet is empty.", flags: import_discord69.MessageFlags.Ephemeral });
         return;
       }
       const updated2 = await User.findOneAndUpdate(
@@ -189424,14 +190049,20 @@ var bankCommand = {
         { new: true }
       );
       if (!updated2) {
-        await interaction.reply({ content: "\u274C You do not have that many coins.", flags: import_discord68.MessageFlags.Ephemeral });
+        await interaction.reply({ content: "\u274C You do not have that many coins.", flags: import_discord69.MessageFlags.Ephemeral });
         return;
       }
       if (updated2.bank > updated2.bankLimit) {
-        const overflow = updated2.bank - updated2.bankLimit;
-        await User.updateOne({ userId }, { $inc: { bank: -overflow, balance: overflow } });
+        const overflow = Math.max(0, Math.min(updated2.bank - updated2.bankLimit, updated2.bank));
+        if (overflow > 0) {
+          await User.updateOne(
+            { userId, bank: { $gte: overflow } },
+            { $inc: { bank: -overflow, balance: overflow } }
+          );
+        }
+        const deposited = Math.max(0, requested - overflow);
         await interaction.reply({
-          content: `\u{1F3E6} Deposited **${formatCoins(requested - overflow)}** (your bank holds **${formatCoins(updated2.bankLimit)}** at most).`
+          content: `\u{1F3E6} Deposited **${formatCoins(deposited)}** (your bank holds **${formatCoins(updated2.bankLimit)}** at most).`
         });
         return;
       }
@@ -189446,7 +190077,7 @@ var bankCommand = {
     if (!updated) {
       await interaction.reply({
         content: "\u274C You do not have that many coins in the bank.",
-        flags: import_discord68.MessageFlags.Ephemeral
+        flags: import_discord69.MessageFlags.Ephemeral
       });
       return;
     }
@@ -189455,7 +190086,7 @@ var bankCommand = {
 };
 function statusEmbed(tag, user) {
   const used = user.bankLimit > 0 ? user.bank / user.bankLimit * 100 : 0;
-  return new import_discord68.EmbedBuilder().setColor(import_discord68.Colors.Blurple).setTitle(`\u{1F3E6} ${tag}'s Bank`).addFields(
+  return new import_discord69.EmbedBuilder().setColor(import_discord69.Colors.Blurple).setTitle(`\u{1F3E6} ${tag}'s Bank`).addFields(
     { name: "\u{1F4B5} Wallet", value: formatCoins(user.balance), inline: true },
     { name: "\u{1F3E6} Bank", value: formatCoins(user.bank), inline: true },
     { name: "\u{1F4CF} Limit", value: formatCoins(user.bankLimit), inline: true },
@@ -189464,16 +190095,16 @@ function statusEmbed(tag, user) {
       value: `${used.toFixed(1)}% \u2014 \`${Math.max(0, user.bankLimit - user.bank).toLocaleString()}\` capacity left`,
       inline: false
     }
-  ).setFooter({ text: "\u7231 Doctora \u2022 Bank" });
+  ).setFooter({ text: "\u611B Bella Star \u2022 Bank" });
 }
 __name(statusEmbed, "statusEmbed");
 
 // src/commands/economy/inventory.ts
-var import_discord69 = __toESM(require_src());
+var import_discord70 = __toESM(require_src());
 var inventoryCommand = {
-  data: new import_discord69.SlashCommandBuilder().setName("inventory").setDescription("View your coins, bank and owned items.").addUserOption(
+  data: new import_discord70.SlashCommandBuilder().setName("inventory").setDescription("View your coins, bank and owned items.").addUserOption(
     (option) => option.setName("user").setDescription("Whose inventory to inspect").setRequired(false)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord69.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord70.PermissionFlagsBits.SendMessages),
   category: "economy",
   cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -189481,7 +190112,7 @@ var inventoryCommand = {
     const target = interaction.options.getUser("user") ?? interaction.user;
     const user = await getEconomyUser(target.id);
     const owned = SHOP_ITEMS.map((item) => ({ item, quantity: itemCount(user, item.id) })).filter((entry) => entry.quantity > 0);
-    const embed = new import_discord69.EmbedBuilder().setColor(import_discord69.Colors.Blurple).setTitle(`\u{1F392} ${target.tag}'s Inventory`).addFields(
+    const embed = new import_discord70.EmbedBuilder().setColor(import_discord70.Colors.Blurple).setTitle(`\u{1F392} ${target.tag}'s Inventory`).addFields(
       { name: "\u{1F4B5} Wallet", value: formatCoins(user.balance), inline: true },
       {
         name: "\u{1F3E6} Bank",
@@ -189502,20 +190133,20 @@ var inventoryCommand = {
     if (user.streakFreeze) flags.push("\u{1F9CA} Streak Freeze armed");
     if (user.luckyClover) flags.push("\u{1F340} Lucky Clover active");
     if (flags.length) embed.addFields({ name: "\u2728 Active effects", value: flags.join("\n") });
-    embed.setFooter({ text: "\u7231 Doctora \u2022 Inventory" }).setTimestamp();
-    await interaction.reply({ embeds: [embed], flags: import_discord69.MessageFlags.Ephemeral });
+    embed.setFooter({ text: "\u611B Bella Star \u2022 Inventory" }).setTimestamp();
+    await interaction.reply({ embeds: [embed], flags: import_discord70.MessageFlags.Ephemeral });
   }, "execute")
 };
 
 // src/commands/economy/give.ts
-var import_discord70 = __toESM(require_src());
+var import_discord71 = __toESM(require_src());
 var MAX_TRANSFER = 1e6;
 var giveCommand = {
-  data: new import_discord70.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
+  data: new import_discord71.SlashCommandBuilder().setName("give").setDescription("Give coins to another member.").addUserOption(
     (option) => option.setName("user").setDescription("The user to give coins to").setRequired(true)
   ).addIntegerOption(
     (option) => option.setName("amount").setDescription("Amount of coins to give").setMinValue(1).setMaxValue(MAX_TRANSFER).setRequired(true)
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord70.PermissionFlagsBits.SendMessages),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord71.PermissionFlagsBits.SendMessages),
   category: "economy",
   cooldownSeconds: 5,
   execute: /* @__PURE__ */ __name(async (context) => {
@@ -189523,11 +190154,11 @@ var giveCommand = {
     const target = interaction.options.getUser("user", true);
     const amount = interaction.options.getInteger("amount", true);
     if (target.id === interaction.user.id) {
-      await interaction.reply({ content: "\u274C You cannot give coins to yourself.", flags: import_discord70.MessageFlags.Ephemeral });
+      await interaction.reply({ content: "\u274C You cannot give coins to yourself.", flags: import_discord71.MessageFlags.Ephemeral });
       return;
     }
     if (target.bot) {
-      await interaction.reply({ content: "\u274C Bots cannot hold coins.", flags: import_discord70.MessageFlags.Ephemeral });
+      await interaction.reply({ content: "\u274C Bots cannot hold coins.", flags: import_discord71.MessageFlags.Ephemeral });
       return;
     }
     await getEconomyUser(interaction.user.id);
@@ -189535,27 +190166,27 @@ var giveCommand = {
     const result = await transferCoins(interaction.user.id, target.id, amount);
     if (!result.ok) {
       const reason = result.reason === "self" ? "You cannot give coins to yourself." : result.reason === "bot" ? "Bots cannot hold coins." : "\u274C You do not have that many coins.";
-      await interaction.reply({ content: reason, flags: import_discord70.MessageFlags.Ephemeral });
+      await interaction.reply({ content: reason, flags: import_discord71.MessageFlags.Ephemeral });
       return;
     }
     recordActivity("command", `${interaction.user.tag} gave ${amount} coins to ${target.tag}`, {
       meta: { guildId: interaction.guildId, from: interaction.user.id, to: target.id, amount }
     });
-    const embed = new import_discord70.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
+    const embed = new import_discord71.EmbedBuilder().setColor(2278750).setTitle("\u{1F4B8} Coin Transfer").addFields(
       { name: "From", value: interaction.user.tag, inline: true },
       { name: "To", value: target.tag, inline: true },
       { name: "Amount", value: formatCoins(amount), inline: true },
       { name: "Your wallet after", value: formatCoins(result.fromBalance), inline: true }
-    ).setFooter({ text: "\u7231 Doctora \u2022 Coin Transfer" }).setTimestamp();
+    ).setFooter({ text: "\u611B Bella Star \u2022 Coin Transfer" }).setTimestamp();
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/economy/rich.ts
-var import_discord71 = __toESM(require_src());
+var import_discord72 = __toESM(require_src());
 var MAX_LEADERBOARD = 10;
 var richCommand = {
-  data: new import_discord71.SlashCommandBuilder().setName("rich").setDescription("See who holds the most coins.").addIntegerOption(
+  data: new import_discord72.SlashCommandBuilder().setName("rich").setDescription("See who holds the most coins.").addIntegerOption(
     (option) => option.setName("limit").setDescription("How many members to show").setMinValue(1).setMaxValue(MAX_LEADERBOARD)
   ),
   category: "economy",
@@ -189575,17 +190206,17 @@ var richCommand = {
     });
     const viewer = rows.findIndex((row) => row.userId === interaction.user.id);
     const footer = viewer >= 0 ? `Your rank: #${viewer + 1}` : "Earn coins with /daily, /work or the casino.";
-    const embed = new import_discord71.EmbedBuilder().setColor(import_discord71.Colors.Gold).setTitle("\u{1F4B0} Richest Members").setDescription(lines.join("\n")).setFooter({ text: footer });
+    const embed = new import_discord72.EmbedBuilder().setColor(import_discord72.Colors.Gold).setTitle("\u{1F4B0} Richest Members").setDescription(lines.join("\n")).setFooter({ text: footer });
     await interaction.reply({ embeds: [embed] });
   }, "execute")
 };
 
 // src/commands/tickets/quick-ticket.ts
-var import_discord72 = __toESM(require_src());
+var import_discord73 = __toESM(require_src());
 var quickticketCommand = {
-  data: new import_discord72.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
+  data: new import_discord73.SlashCommandBuilder().setName("quick-ticket").setDescription("Quickly create a ticket panel (owner only).").addChannelOption(
     (option) => option.setName("channel").setDescription("Channel to post the panel (default: current)")
-  ).setDMPermission(false).setDefaultMemberPermissions(import_discord72.PermissionFlagsBits.ManageGuild),
+  ).setDMPermission(false).setDefaultMemberPermissions(import_discord73.PermissionFlagsBits.ManageGuild),
   category: "moderation",
   execute: /* @__PURE__ */ __name(async (context) => {
     const { interaction, client, guild } = context;
@@ -189593,7 +190224,7 @@ var quickticketCommand = {
     if (!isOwner(interaction.user.id)) {
       await interaction.reply({
         content: "\u274C This command is owner-only.",
-        flags: import_discord72.MessageFlags.Ephemeral
+        flags: import_discord73.MessageFlags.Ephemeral
       });
       return;
     }
@@ -189605,10 +190236,10 @@ var quickticketCommand = {
         ...DEFAULT_DEPARTMENT
       });
     }
-    const embed = new import_discord72.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription("Click a department below to open a private support ticket.\n\n\u{1F3AB} **Support** \u2014 General support").setThumbnail(g.iconURL()).setFooter({ text: "\u7231 Doctora \u2022 Quick Tickets" }).setTimestamp();
-    const row = new import_discord72.ActionRowBuilder();
+    const embed = new import_discord73.EmbedBuilder().setColor(5793266).setTitle("\u{1F3AB} Quick Ticket Panel").setDescription("Click a department below to open a private support ticket.\n\n\u{1F3AB} **Support** \u2014 General support").setThumbnail(g.iconURL()).setFooter({ text: "\u611B Bella Star \u2022 Quick Tickets" }).setTimestamp();
+    const row = new import_discord73.ActionRowBuilder();
     row.addComponents(
-      new import_discord72.ButtonBuilder().setCustomId(`ticket_create:${department._id}`).setLabel(department.name).setStyle(import_discord72.ButtonStyle.Primary).setEmoji(department.emoji)
+      new import_discord73.ButtonBuilder().setCustomId(`ticket_create:${department._id}`).setLabel(department.name).setStyle(import_discord73.ButtonStyle.Primary).setEmoji(department.emoji)
     );
     const message = await channel.send({
       embeds: [embed],
@@ -189624,7 +190255,7 @@ var quickticketCommand = {
     });
     await interaction.reply({
       content: `\u2705 Quick ticket panel posted in ${channel}`,
-      flags: import_discord72.MessageFlags.Ephemeral
+      flags: import_discord73.MessageFlags.Ephemeral
     });
   }, "execute")
 };
@@ -189715,8 +190346,8 @@ function stopSettingsPoller(client) {
 __name(stopSettingsPoller, "stopSettingsPoller");
 
 // src/core/client.ts
-var import_discord73 = __toESM(require_src());
-var SukunaClient = class extends import_discord73.Client {
+var import_discord74 = __toESM(require_src());
+var SukunaClient = class extends import_discord74.Client {
   static {
     __name(this, "SukunaClient");
   }
@@ -189731,15 +190362,15 @@ var SukunaClient = class extends import_discord73.Client {
   constructor() {
     super({
       intents: [
-        import_discord73.GatewayIntentBits.Guilds,
-        import_discord73.GatewayIntentBits.GuildMembers,
-        import_discord73.GatewayIntentBits.GuildMessages,
-        import_discord73.GatewayIntentBits.MessageContent,
-        import_discord73.GatewayIntentBits.DirectMessages,
-        import_discord73.GatewayIntentBits.GuildVoiceStates,
-        import_discord73.GatewayIntentBits.GuildMessageReactions
+        import_discord74.GatewayIntentBits.Guilds,
+        import_discord74.GatewayIntentBits.GuildMembers,
+        import_discord74.GatewayIntentBits.GuildMessages,
+        import_discord74.GatewayIntentBits.MessageContent,
+        import_discord74.GatewayIntentBits.DirectMessages,
+        import_discord74.GatewayIntentBits.GuildVoiceStates,
+        import_discord74.GatewayIntentBits.GuildMessageReactions
       ],
-      partials: [import_discord73.Partials.Message, import_discord73.Partials.Channel, import_discord73.Partials.GuildMember, import_discord73.Partials.Reaction],
+      partials: [import_discord74.Partials.Message, import_discord74.Partials.Channel, import_discord74.Partials.GuildMember, import_discord74.Partials.Reaction],
       allowedMentions: { parse: ["users"], repliedUser: false },
       // Always appear as "Do Not Disturb" with no activity text. Sent with the
       // IDENTIFY payload, so it applies on login and on every reconnect.
@@ -189836,7 +190467,7 @@ function createLogger(level) {
 __name(createLogger, "createLogger");
 
 // src/events/interactionCreate.ts
-var import_discord74 = __toESM(require_src());
+var import_discord75 = __toESM(require_src());
 
 // src/core/cooldowns.ts
 var cooldowns = /* @__PURE__ */ new Map();
@@ -189883,10 +190514,11 @@ function newErrorId() {
 __name(newErrorId, "newErrorId");
 
 // src/events/interactionCreate.ts
+var import_mongoose34 = __toESM(require_mongoose2());
 init_manager();
 var ticketCreateCooldowns = /* @__PURE__ */ new Map();
 var interactionCreate = {
-  name: import_discord74.Events.InteractionCreate,
+  name: import_discord75.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     const allowedGuildId = client.env?.GUILD_ID;
     if (allowedGuildId && interaction.guildId && interaction.guildId !== allowedGuildId) {
@@ -189913,19 +190545,27 @@ var interactionCreate = {
     if (!command) return;
     const guildId = interaction.guildId;
     if (!guildId) {
-      await replyError(interaction, "\u7231 Doctora only works inside a Discord server.");
+      await replyError(interaction, "\u611B Bella Star only works inside a Discord server.");
       return;
     }
     const errorId = newErrorId();
-    const config2 = await client.getConfig(guildId);
     const premium = false;
+    let config2 = null;
     try {
+      config2 = await client.getConfig(guildId);
       if (!client.isCategoryEnabled(command.category, config2) && !command.allowWhenDisabled) {
         await replyError(interaction, `**/${command.data.name}** is disabled on this server.`);
         return;
       }
       if (command.userPermissions?.length) {
-        const missing = interaction.memberPermissions?.missing(command.userPermissions) ?? [];
+        if (!interaction.memberPermissions) {
+          await replyError(
+            interaction,
+            "I could not verify your permissions. Please try again."
+          );
+          return;
+        }
+        const missing = interaction.memberPermissions.missing(command.userPermissions);
         if (missing.length > 0) {
           await replyError(
             interaction,
@@ -189934,7 +190574,14 @@ var interactionCreate = {
           return;
         }
       }
-      if (command.botPermissions?.length && interaction.appPermissions) {
+      if (command.botPermissions?.length) {
+        if (!interaction.appPermissions) {
+          await replyError(
+            interaction,
+            "I could not verify my own permissions. Please try again."
+          );
+          return;
+        }
         const missing = interaction.appPermissions.missing(command.botPermissions);
         if (missing.length > 0) {
           await replyError(
@@ -190078,12 +190725,16 @@ async function handleTicketCreate(client, interaction) {
     return;
   }
   const deptId = interaction.customId.split(":")[1];
-  if (!deptId) {
+  if (!deptId || !import_mongoose34.Types.ObjectId.isValid(deptId)) {
     await interaction.editReply({ content: "\u274C Invalid ticket department." });
     return;
   }
-  const department = await TicketDepartment.findById(deptId);
-  if (!department || !department.isActive) {
+  const department = await TicketDepartment.findOne({
+    _id: deptId,
+    guildId: guild.id,
+    isActive: true
+  }).catch(() => null);
+  if (!department) {
     await interaction.editReply({ content: "\u274C That department is not available." });
     return;
   }
@@ -190153,9 +190804,13 @@ async function handleTicketCreate(client, interaction) {
     }
   }
   let channel = null;
+  let ticketCreated = false;
   try {
+    const safeDept = department.name.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").slice(0, 30);
+    const safeUser = user.username.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 20);
+    const channelName = `ticket-${safeDept || "support"}-${safeUser || "user"}`.slice(0, 100);
     channel = await guild.channels.create({
-      name: `ticket-${department.name.toLowerCase().replace(/\s+/g, "-")}-${user.username}`,
+      name: channelName,
       type: 0,
       // GuildText
       topic: `Support ticket for ${user.tag} (${user.id}) \u2022 ${department.name}`,
@@ -190169,13 +190824,14 @@ async function handleTicketCreate(client, interaction) {
       departmentId: department._id.toString(),
       departmentName: department.name
     });
+    ticketCreated = true;
     if (cooldownSeconds > 0) {
       ticketCreateCooldowns.set(`${guild.id}:${user.id}`, Date.now());
     }
-    const closeButton = new import_discord74.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord74.ButtonStyle.Danger).setEmoji("\u{1F512}");
-    const closeRow = new import_discord74.ActionRowBuilder().addComponents(closeButton);
-    const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
-    const welcomeEmbed = new import_discord74.EmbedBuilder().setColor(department.color).setTitle(`${department.emoji} Ticket Opened \u2014 ${department.name}`).setDescription(welcome).setFooter({ text: "\u611B Doctora \u2022 Tickets" }).setTimestamp();
+    const closeButton = new import_discord75.ButtonBuilder().setCustomId("ticket_close").setLabel("Close Ticket").setStyle(import_discord75.ButtonStyle.Danger).setEmoji("\u{1F512}");
+    const closeRow = new import_discord75.ActionRowBuilder().addComponents(closeButton);
+    const welcome = (department.welcomeMessage ?? "").replace(/\{user\}/g, `<@${user.id}>`);
+    const welcomeEmbed = new import_discord75.EmbedBuilder().setColor(department.color ?? 5793266).setTitle(`${department.emoji ?? "\u{1F3AB}"} Ticket Opened \u2014 ${department.name}`).setDescription(welcome || `Ticket # opened for ${user.tag}.`).setFooter({ text: "\u611B Bella Star \u2022 Tickets" }).setTimestamp();
     await channel.send({
       content: `<@${user.id}> Your ticket has been opened. Support staff will be with you shortly.`,
       embeds: [welcomeEmbed],
@@ -190190,6 +190846,13 @@ async function handleTicketCreate(client, interaction) {
         await channel.delete();
       } catch {
       }
+    }
+    if (ticketCreated && channel) {
+      await OpenTicket.deleteOne({
+        guildId: guild.id,
+        channelId: channel.id,
+        closedAt: null
+      }).catch(() => void 0);
     }
     await interaction.editReply({
       content: "\u274C Failed to create ticket channel."
@@ -190210,6 +190873,14 @@ async function handleTicketCloseButton(interaction) {
     return;
   }
   const config2 = await TicketConfig.findOne({ guildId: guild.id });
+  const member = interaction.member;
+  if (!canCloseTicket(member, ticket, config2?.staffRoleIds ?? [])) {
+    await interaction.editReply({
+      content: "\u274C Only the ticket owner or support staff can close this ticket.",
+      flags: 64
+    });
+    return;
+  }
   await closeTicket(interaction.client, ticket, {
     reason: "Manual close",
     closedBy: interaction.user.id,
@@ -190239,7 +190910,7 @@ async function handleVcJoin(client, interaction) {
     await interaction.editReply({ content: "\u274C That VC panel no longer exists." });
     return;
   }
-  const channelId = member.voice?.channel?.id ?? null;
+  const channelId = member?.voice?.channel?.id ?? null;
   if (!channelId) {
     await interaction.editReply({
       content: "\u274C You are not in a voice channel. Join one first, then tap again."
@@ -190265,7 +190936,7 @@ async function handleVcJoin(client, interaction) {
   try {
     await connectVoice(guild, channelId);
     await interaction.editReply({
-      content: `\u{1F50A} \u611B Doctora has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`
+      content: `\u{1F50A} \u611B Bella Star has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`
     });
   } catch (error62) {
     await interaction.editReply({
@@ -190276,7 +190947,7 @@ async function handleVcJoin(client, interaction) {
 __name(handleVcJoin, "handleVcJoin");
 
 // src/events/ready.ts
-var import_discord76 = __toESM(require_src());
+var import_discord77 = __toESM(require_src());
 
 // dashboard/server.ts
 var import_node_http = __toESM(require("node:http"));
@@ -190287,8 +190958,8 @@ init_zod();
 init_config();
 
 // src/db/models/SukunaMemory.ts
-var import_mongoose34 = __toESM(require_mongoose2());
-var memorySchema = new import_mongoose34.Schema({
+var import_mongoose35 = __toESM(require_mongoose2());
+var memorySchema = new import_mongoose35.Schema({
   guildId: { type: String, required: true, index: true },
   fact: { type: String, required: true },
   aboutUserId: { type: String, default: null },
@@ -190296,7 +190967,7 @@ var memorySchema = new import_mongoose34.Schema({
   createdAt: { type: Number, required: true, default: Date.now }
 });
 memorySchema.index({ guildId: 1, fact: 1, aboutUserId: 1 }, { unique: true });
-var SukunaMemory = (0, import_mongoose34.model)("SukunaMemory", memorySchema);
+var SukunaMemory = (0, import_mongoose35.model)("SukunaMemory", memorySchema);
 
 // src/utils/sukuna-memory.ts
 var MAX_NOTES_PER_GUILD = 300;
@@ -190351,16 +191022,16 @@ async function clearMemories(guildId) {
 __name(clearMemories, "clearMemories");
 
 // src/utils/sukuna-storage.ts
-var import_mongoose35 = __toESM(require_mongoose2());
-var announcementSchema = new import_mongoose35.Schema({
+var import_mongoose36 = __toESM(require_mongoose2());
+var announcementSchema = new import_mongoose36.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   content: { type: String, required: true },
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaAnnouncement = (0, import_mongoose35.model)("SukunaAnnouncement", announcementSchema);
-var faqSchema = new import_mongoose35.Schema({
+var SukunaAnnouncement = (0, import_mongoose36.model)("SukunaAnnouncement", announcementSchema);
+var faqSchema = new import_mongoose36.Schema({
   guildId: { type: String, required: true },
   question: { type: String, required: true, index: "text" },
   answer: { type: String, required: true },
@@ -190368,8 +191039,8 @@ var faqSchema = new import_mongoose35.Schema({
   createdAt: { type: Number, required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaFaq = (0, import_mongoose35.model)("SukunaFaq", faqSchema);
-var eventSchema = new import_mongoose35.Schema({
+var SukunaFaq = (0, import_mongoose36.model)("SukunaFaq", faqSchema);
+var eventSchema = new import_mongoose36.Schema({
   guildId: { type: String, required: true, index: true },
   title: { type: String, required: true },
   description: { type: String },
@@ -190378,8 +191049,8 @@ var eventSchema = new import_mongoose35.Schema({
   pinned: { type: Boolean, default: false },
   createdAt: { type: Number, required: true }
 });
-var SukunaEvent = (0, import_mongoose35.model)("SukunaEvent", eventSchema);
-var scheduledSchema = new import_mongoose35.Schema({
+var SukunaEvent = (0, import_mongoose36.model)("SukunaEvent", eventSchema);
+var scheduledSchema = new import_mongoose36.Schema({
   guildId: { type: String, required: true, index: true },
   channelId: { type: String, required: true },
   content: { type: String, required: true },
@@ -190388,13 +191059,13 @@ var scheduledSchema = new import_mongoose35.Schema({
   messageId: { type: String },
   createdAt: { type: Number, required: true }
 });
-var SukunaScheduled = (0, import_mongoose35.model)("SukunaScheduled", scheduledSchema);
-var rulesSchema = new import_mongoose35.Schema({
+var SukunaScheduled = (0, import_mongoose36.model)("SukunaScheduled", scheduledSchema);
+var rulesSchema = new import_mongoose36.Schema({
   guildId: { type: String, required: true, unique: true },
   rules: { type: [String], required: true },
   updatedAt: { type: Number, required: true }
 });
-var SukunaRules = (0, import_mongoose35.model)("SukunaRules", rulesSchema);
+var SukunaRules = (0, import_mongoose36.model)("SukunaRules", rulesSchema);
 async function createAnnouncement(guildId, input2) {
   return SukunaAnnouncement.create({
     guildId,
@@ -193286,29 +193957,41 @@ __name(toPlainObject, "toPlainObject");
 init_config();
 
 // src/events/voiceStateUpdate.ts
-var import_discord75 = __toESM(require_src());
+var import_discord76 = __toESM(require_src());
 init_manager();
 var voiceSessions = /* @__PURE__ */ new Map();
 var tickInterval = null;
 var ticking = false;
-async function awardVoiceXp(client, userId, minutes, guild, user, settings) {
-  if (minutes <= 0 || !guild || !user) return;
+function isVoiceActive(state) {
+  if (!state) return false;
+  return !(state.selfMute || state.serverMute || state.selfDeaf || state.serverDeaf || state.suppress);
+}
+__name(isVoiceActive, "isVoiceActive");
+async function awardVoiceXp(client, userId, minutes, guild, user, settings, voiceState, channelId) {
+  if (minutes <= 0 || !guild || !user) return false;
+  if (voiceState && !isVoiceActive(voiceState)) return false;
   let cfg = settings;
   if (!cfg) {
     const row = await loadGuildConfig(client, guild.id);
     cfg = readLevelSettings(row ?? {});
   }
-  if (!cfg.enabled) return;
-  if (cfg.ignoreBots && user.bot) return;
+  if (!cfg.enabled) return false;
+  if (cfg.ignoreBots && user.bot) return false;
+  if (channelId) {
+    if (cfg.noXpChannels.includes(channelId)) return false;
+    if (cfg.xpChannel && channelId !== cfg.xpChannel) return false;
+  }
   const amount = randomXp(cfg.perVoiceMinuteMin, cfg.perVoiceMinuteMax) * minutes;
-  if (amount <= 0) return;
+  if (amount <= 0) return false;
   try {
     const result = await addXp(userId, amount, "voice", minutes);
     if (result.leveledUp) {
       await handleLevelUp(guild, user, result.newLevel, result.oldLevel, void 0, cfg);
     }
+    return true;
   } catch (err) {
     console.error(`Failed to award voice XP to ${userId}:`, err);
+    return false;
   }
 }
 __name(awardVoiceXp, "awardVoiceXp");
@@ -193334,7 +194017,10 @@ function setUserSession(guildId, userId, ts) {
 }
 __name(setUserSession, "setUserSession");
 function deleteUserSession(guildId, userId) {
-  voiceSessions.get(guildId)?.delete(userId);
+  const byUser = voiceSessions.get(guildId);
+  if (!byUser) return;
+  byUser.delete(userId);
+  if (byUser.size === 0) voiceSessions.delete(guildId);
 }
 __name(deleteUserSession, "deleteUserSession");
 async function handleVoiceStateUpdate(client, oldState, newState) {
@@ -193342,9 +194028,17 @@ async function handleVoiceStateUpdate(client, oldState, newState) {
   if (!userId) return;
   const now = Date.now();
   const changedChannel = oldState.channelId !== newState.channelId;
-  await handleTempVCJoin(client, newState);
+  try {
+    await handleTempVCJoin(client, newState);
+  } catch (err) {
+    console.error("[TempVC] join failed:", err);
+  }
   if (oldState.channelId && changedChannel) {
-    await handleTempVCLeave(oldState);
+    try {
+      await handleTempVCLeave(oldState);
+    } catch (err) {
+      console.error("[TempVC] leave failed:", err);
+    }
   }
   const selfId = client.user?.id;
   if (selfId && userId === selfId && changedChannel) {
@@ -193354,20 +194048,29 @@ async function handleVoiceStateUpdate(client, oldState, newState) {
   if (oldState.channelId && changedChannel) {
     const guildId = oldState.guild?.id ?? newState.guild?.id;
     const joinTs = guildId ? getUserSession(guildId, userId) : void 0;
-    if (joinTs) {
+    if (joinTs && guildId) {
       const minutes = Math.floor((now - joinTs) / 6e4);
-      deleteUserSession(guildId, userId);
-      await awardVoiceXp(
-        client,
-        userId,
-        minutes,
-        newState.guild ?? oldState.guild,
-        newState.member?.user ?? oldState.member?.user
-      );
+      if (!isVoiceActive(oldState)) {
+        deleteUserSession(guildId, userId);
+      } else {
+        deleteUserSession(guildId, userId);
+        await awardVoiceXp(
+          client,
+          userId,
+          minutes,
+          newState.guild ?? oldState.guild,
+          newState.member?.user ?? oldState.member?.user,
+          void 0,
+          oldState,
+          oldState.channelId
+        );
+      }
     }
   }
   if (changedChannel && newState.channelId && newState.member?.user && newState.guild) {
-    setUserSession(newState.guild.id, userId, now);
+    if (isVoiceActive(newState)) {
+      setUserSession(newState.guild.id, userId, now);
+    }
   }
 }
 __name(handleVoiceStateUpdate, "handleVoiceStateUpdate");
@@ -193395,13 +194098,13 @@ async function handleTempVCJoin(client, newState) {
     deleteCachedActiveTempVC(existing.channelId);
   }
   const createChannel = guild.channels.cache.get(config2.createChannelId);
-  const category = config2.categoryId && guild.channels.cache.get(config2.categoryId)?.type === import_discord75.ChannelType.GuildCategory ? guild.channels.cache.get(config2.categoryId) : createChannel?.parent;
+  const category = config2.categoryId && guild.channels.cache.get(config2.categoryId)?.type === import_discord76.ChannelType.GuildCategory ? guild.channels.cache.get(config2.categoryId) : createChannel?.parent;
   const name = config2.nameTemplate.replace(/\{user\}/g, member.user.username).replace(/\{guild\}/g, guild.name);
   let newChannel;
   try {
     newChannel = await guild.channels.create({
       name,
-      type: import_discord75.ChannelType.GuildVoice,
+      type: import_discord76.ChannelType.GuildVoice,
       parent: category?.id ?? void 0,
       bitrate: config2.bitrate ?? void 0,
       userLimit: config2.userLimit ?? void 0,
@@ -193461,18 +194164,36 @@ async function handleVoiceTick(client) {
       const byUser = voiceSessions.get(guildId);
       if (!byUser) continue;
       const guild = client.guilds.cache.get(guildId);
-      if (!guild) continue;
+      if (!guild) {
+        voiceSessions.delete(guildId);
+        continue;
+      }
       const entries = [...byUser.entries()];
       for (const [userId, joinTs] of entries) {
+        if (byUser.get(userId) !== joinTs) continue;
         const minutesElapsed = Math.floor((now - joinTs) / 6e4);
         if (minutesElapsed < 1) continue;
-        const member = guild.voiceStates.cache.get(userId)?.member ?? guild.members.cache.get(userId) ?? null;
-        if (!member?.voice?.channelId) {
+        const voiceState = guild.voiceStates.cache.get(userId) ?? null;
+        const member = voiceState?.member ?? guild.members.cache.get(userId) ?? null;
+        if (!member?.voice?.channelId || !voiceState?.channelId) {
           byUser.delete(userId);
           continue;
         }
-        await awardVoiceXp(client, userId, minutesElapsed, guild, member.user);
-        setUserSession(guildId, userId, now - (now - joinTs) % 6e4);
+        if (!isVoiceActive(voiceState)) continue;
+        const awarded = await awardVoiceXp(
+          client,
+          userId,
+          minutesElapsed,
+          guild,
+          member.user,
+          void 0,
+          voiceState,
+          voiceState.channelId
+        );
+        if (!awarded) continue;
+        if (byUser.get(userId) === joinTs) {
+          setUserSession(guildId, userId, now - (now - joinTs) % 6e4);
+        }
       }
       if (byUser.size === 0) voiceSessions.delete(guildId);
     }
@@ -193489,6 +194210,7 @@ function startVoiceTracking(client) {
   tickInterval = setInterval(() => {
     void handleVoiceTick(client);
   }, 6e4);
+  tickInterval.unref?.();
 }
 __name(startVoiceTracking, "startVoiceTracking");
 function stopVoiceTracking() {
@@ -193506,6 +194228,8 @@ function seedVoiceSessions(client) {
     const byUser = /* @__PURE__ */ new Map();
     for (const state of guild.voiceStates.cache.values()) {
       if (!state.channelId || !state.member?.user) continue;
+      if (state.member.user.bot) continue;
+      if (!isVoiceActive(state)) continue;
       if (!byUser.has(state.id)) byUser.set(state.id, now);
     }
     if (byUser.size > 0) voiceSessions.set(guild.id, byUser);
@@ -193513,7 +194237,7 @@ function seedVoiceSessions(client) {
 }
 __name(seedVoiceSessions, "seedVoiceSessions");
 var voiceStateUpdate = {
-  name: import_discord75.Events.VoiceStateUpdate,
+  name: import_discord76.Events.VoiceStateUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldState, newState) => {
     await handleVoiceStateUpdate(client, oldState, newState);
   }, "execute")
@@ -193527,7 +194251,7 @@ function stopReminderChecker() {
 }
 __name(stopReminderChecker, "stopReminderChecker");
 var ready2 = {
-  name: import_discord76.Events.ClientReady,
+  name: import_discord77.Events.ClientReady,
   once: true,
   execute: /* @__PURE__ */ __name(async (client) => {
     client.logger.info(
@@ -193602,16 +194326,16 @@ var ready2 = {
 };
 
 // src/events/messageCreate.ts
-var import_discord79 = __toESM(require_src());
+var import_discord80 = __toESM(require_src());
 
 // src/utils/sukuna.ts
-var import_discord78 = __toESM(require_src());
+var import_discord79 = __toESM(require_src());
 init_config();
 init_sukuna();
 
 // src/utils/sukuna-tools.ts
 var import_genai4 = require("@google/genai");
-var import_discord77 = __toESM(require_src());
+var import_discord78 = __toESM(require_src());
 var DM_MAX_CHARS = 1500;
 var DM_RATE_LIMIT_PER_HOUR = 10;
 var DM_MIN_INTERVAL_PER_USER_MS = 6e4;
@@ -193728,8 +194452,8 @@ function createSukunaToolExecutor(context) {
     try {
       return await handleTool(name, args, context);
     } catch (error62) {
-      console.error("[Sukuna Tool] Failed: " + String(error62));
-      return { ok: false, error: String(error62) };
+      console.error("[Sukuna Tool] Failed:", error62);
+      return { ok: false, error: "That tool call failed." };
     }
   };
 }
@@ -193773,7 +194497,13 @@ async function handleTool(name, args, context) {
         return { ok: false, error: "Member details need a shared server; this DM has none." };
       }
       const raw = typeof args.user === "string" ? args.user : "";
-      const member = (raw ? await resolveMember(guild, raw) : null) ?? trigger?.member ?? (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      let member;
+      if (raw) {
+        member = await resolveMember(guild, raw);
+        if (!member) return { ok: false, error: `Member "${raw}" not found in this server.` };
+      } else {
+        member = trigger?.member ?? (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      }
       if (!member) return { ok: false, error: "Member not found." };
       return {
         ok: true,
@@ -193796,7 +194526,7 @@ async function handleTool(name, args, context) {
           id: m.id,
           authorId: m.author.id,
           authorName: m.member?.displayName ?? m.author.username,
-          content: m.content,
+          content: (m.content ?? "").slice(0, 300),
           timestamp: m.createdTimestamp
         }))
       };
@@ -193840,7 +194570,13 @@ async function handleTool(name, args, context) {
       const text = typeof args.message === "string" ? args.message.trim() : "";
       if (!text) return { ok: false, error: "The message argument is required." };
       const rawTarget = typeof args.user === "string" ? args.user.trim() : "";
-      const member = (rawTarget ? await resolveMember(guild, rawTarget) : null) ?? trigger?.member ?? null;
+      let member;
+      if (rawTarget) {
+        member = await resolveMember(guild, rawTarget);
+        if (!member) return { ok: false, error: `Member "${rawTarget}" not found in this server.` };
+      } else {
+        member = trigger?.member ?? null;
+      }
       if (!member) return { ok: false, error: "Member not found in this server." };
       if (member.id === context.client.user?.id) {
         return { ok: false, error: "You cannot DM yourself." };
@@ -193884,7 +194620,12 @@ async function handleTool(name, args, context) {
       const fact = typeof args.fact === "string" ? args.fact.trim() : "";
       if (!fact) return { ok: false, error: "Fact is required" };
       const rawAbout = typeof args.about === "string" ? args.about.trim() : "";
-      const member = rawAbout ? await resolveMember(guild, rawAbout) : trigger?.member ?? (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      let member;
+      if (rawAbout) {
+        member = await resolveMember(guild, rawAbout);
+      } else {
+        member = trigger?.member ?? (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      }
       const aboutName = member?.displayName ?? (rawAbout || void 0);
       const note = await addMemory(guild.id, {
         fact,
@@ -193919,12 +194660,7 @@ function isDmTargetAllowed(member, trigger) {
   if (!trigger) return false;
   if (trigger.author.id === member.id) return true;
   if (trigger.mentions.members?.has(member.id)) return true;
-  const haystack = trigger.content?.toLowerCase() ?? "";
-  for (const candidate of [member.user.username, member.displayName]) {
-    const needle = candidate.toLowerCase();
-    if (needle.length >= 3 && haystack.includes(needle)) return true;
-  }
-  return trigger.member?.permissions.has(import_discord77.PermissionFlagsBits.ManageGuild) ?? false;
+  return trigger.member?.permissions.has(import_discord78.PermissionFlagsBits.ManageGuild) ?? false;
 }
 __name(isDmTargetAllowed, "isDmTargetAllowed");
 function checkDmLimit(guildId, userId) {
@@ -194041,7 +194777,7 @@ function handleMessage(message) {
   if (!cfg.enabled) return;
   if (message.channel.isDMBased()) {
     if (!cfg.dmEnabled) return;
-    if (message.channel.type !== import_discord78.ChannelType.DM) return;
+    if (message.channel.type !== import_discord79.ChannelType.DM) return;
     if (message.author.bot) return;
     if (!message.content?.trim() && message.attachments.size === 0) return;
     addToHistory(message, cfg);
@@ -194460,15 +195196,21 @@ __name(addHistoryEntry, "addHistoryEntry");
 
 // src/events/messageCreate.ts
 var messageCreate = {
-  name: import_discord79.Events.MessageCreate,
+  name: import_discord80.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     try {
-      handleMessage(message);
+      const maybePromise = handleMessage(message);
+      if (maybePromise && typeof maybePromise.catch === "function") {
+        maybePromise.catch(
+          (err) => client.logger?.warn({ err }, "sukuna handler failed")
+        );
+      }
     } catch (err) {
       client.logger?.warn({ err }, "sukuna handler failed");
     }
     if (!message.guild) return;
-    if (!message.author?.bot) bumpCounter("messagesSeen");
+    if (!message.author) return;
+    if (!message.author.bot) bumpCounter("messagesSeen");
     let config2 = null;
     let configLoaded = true;
     try {
@@ -194484,7 +195226,7 @@ var messageCreate = {
     }
     let tagHandled = false;
     try {
-      const prefixMatch = message.content.match(PREFIX_COMMAND_RE);
+      const prefixMatch = (message.content ?? "").match(PREFIX_COMMAND_RE);
       if (prefixMatch && !message.author.bot) {
         const commandName = prefixMatch[2].toLowerCase();
         const args = message.content.slice(prefixMatch[0].length).trim().split(/\s+/);
@@ -194510,11 +195252,14 @@ var messageCreate = {
     const guildId = message.guild.id;
     const now = Date.now();
     const cooldownMs = Math.max(0, settings.cooldownSeconds) * 1e3;
-    const xpCooldowns = client.xpCooldowns || /* @__PURE__ */ new Map();
-    client.xpCooldowns = xpCooldowns;
+    if (!client.xpCooldowns) client.xpCooldowns = /* @__PURE__ */ new Map();
+    const xpCooldowns = client.xpCooldowns;
     const cooldownKey = `xp_${guildId}_${userId}`;
     const memoryExpiry = xpCooldowns.get(cooldownKey) ?? 0;
     if (memoryExpiry > now) return;
+    if (cooldownMs > 0) {
+      xpCooldowns.set(cooldownKey, now + cooldownMs);
+    }
     let storedExpiry = 0;
     if (cooldownMs > 0) {
       try {
@@ -194529,10 +195274,13 @@ var messageCreate = {
       return;
     }
     const amount = randomXp(settings.perMessageMin, settings.perMessageMax);
-    if (amount <= 0) return;
+    if (amount <= 0) {
+      if (cooldownMs > 0) xpCooldowns.delete(cooldownKey);
+      return;
+    }
     try {
       const result = await addXp(userId, amount, "message");
-      xpCooldowns.set(cooldownKey, now + cooldownMs);
+      if (cooldownMs > 0) xpCooldowns.set(cooldownKey, Date.now() + cooldownMs);
       if (result.leveledUp) {
         await handleLevelUp(
           message.guild,
@@ -194545,6 +195293,9 @@ var messageCreate = {
       }
     } catch (err) {
       client.logger?.error({ err, userId }, "failed to process XP for message");
+      if (cooldownMs > 0 && (xpCooldowns.get(cooldownKey) ?? 0) !== storedExpiry) {
+        xpCooldowns.delete(cooldownKey);
+      }
     }
     if (xpCooldowns.size > XP_COOLDOWN_SOFT_CAP) cleanupCooldowns(xpCooldowns, now);
   }, "execute")
@@ -194555,13 +195306,22 @@ function cleanupCooldowns(cooldowns2, now) {
   for (const [key, expiry] of cooldowns2.entries()) {
     if (expiry <= now) cooldowns2.delete(key);
   }
+  if (cooldowns2.size > XP_COOLDOWN_SOFT_CAP * 2) {
+    const excess = cooldowns2.size - XP_COOLDOWN_SOFT_CAP;
+    let removed = 0;
+    for (const key of cooldowns2.keys()) {
+      if (removed >= excess) break;
+      cooldowns2.delete(key);
+      removed++;
+    }
+  }
 }
 __name(cleanupCooldowns, "cleanupCooldowns");
 
 // src/events/guildMemberAdd.ts
-var import_discord80 = __toESM(require_src());
+var import_discord81 = __toESM(require_src());
 var guildMemberAdd = {
-  name: import_discord80.Events.GuildMemberAdd,
+  name: import_discord81.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     if (!member || member.user?.bot) return;
     try {
@@ -194577,9 +195337,9 @@ var guildMemberAdd = {
 };
 
 // src/events/channelDelete.ts
-var import_discord81 = __toESM(require_src());
+var import_discord82 = __toESM(require_src());
 var channelDelete = {
-  name: import_discord81.Events.ChannelDelete,
+  name: import_discord82.Events.ChannelDelete,
   execute: /* @__PURE__ */ __name(async (client, channel) => {
     if (!channel?.guildId) return;
     try {
@@ -194608,9 +195368,9 @@ var channelDelete = {
 };
 
 // src/events/guildDelete.ts
-var import_discord82 = __toESM(require_src());
+var import_discord83 = __toESM(require_src());
 var guildDelete = {
-  name: import_discord82.Events.GuildDelete,
+  name: import_discord83.Events.GuildDelete,
   execute: /* @__PURE__ */ __name(async (client, guild) => {
     try {
       await OpenTicket.updateMany(
@@ -194629,9 +195389,9 @@ var guildDelete = {
 };
 
 // src/events/reactionEvents.ts
-var import_discord83 = __toESM(require_src());
+var import_discord84 = __toESM(require_src());
 var reactionAdd = {
-  name: import_discord83.Events.MessageReactionAdd,
+  name: import_discord84.Events.MessageReactionAdd,
   execute: /* @__PURE__ */ __name(async (client, reaction, user) => {
     if (user.bot) return;
     try {
@@ -194647,7 +195407,7 @@ var reactionAdd = {
   }, "execute")
 };
 var reactionRemove = {
-  name: import_discord83.Events.MessageReactionRemove,
+  name: import_discord84.Events.MessageReactionRemove,
   execute: /* @__PURE__ */ __name(async (client, reaction, user) => {
     if (user.bot) return;
     try {
@@ -194662,7 +195422,7 @@ var reactionRemove = {
   }, "execute")
 };
 var guildMemberAdd2 = {
-  name: import_discord83.Events.GuildMemberAdd,
+  name: import_discord84.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     try {
       await trackInviteJoin(member);
@@ -194672,7 +195432,7 @@ var guildMemberAdd2 = {
   }, "execute")
 };
 var guildMemberRemove = {
-  name: import_discord83.Events.GuildMemberRemove,
+  name: import_discord84.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     try {
       await trackInviteLeave(member);
@@ -194683,34 +195443,34 @@ var guildMemberRemove = {
 };
 
 // src/events/welcomeEvents.ts
-var import_discord87 = __toESM(require_src());
+var import_discord88 = __toESM(require_src());
 
 // src/systems/verification/index.ts
-var import_discord85 = __toESM(require_src());
+var import_discord86 = __toESM(require_src());
 
 // src/utils/shared-embeds.ts
-var import_discord84 = __toESM(require_src());
+var import_discord85 = __toESM(require_src());
 var EmbedBuilderUtil = class {
   static {
     __name(this, "EmbedBuilderUtil");
   }
   static success(title, description, fields = []) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
   static error(title, description, fields = []) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
   static warning(title, description, fields = []) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
   static info(title, description, fields = []) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
   static ticketPanel(title, description, options = []) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
   }
   static ticketControl(ticketData) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
       { name: "\u{1F464} Created by", value: `<@${ticketData.user_id}>`, inline: true },
       { name: "\u{1F4C2} Type", value: ticketData.type, inline: true },
       { name: "\u{1F4CA} Status", value: ticketData.status, inline: true },
@@ -194720,13 +195480,13 @@ var EmbedBuilderUtil = class {
   }
   static suggestion(suggestion) {
     const colors = {
-      pending: import_discord84.Colors.Blue,
-      noted: import_discord84.Colors.Yellow,
-      approved: import_discord84.Colors.Green,
-      denied: import_discord84.Colors.Red,
-      under_review: import_discord84.Colors.Orange
+      pending: import_discord85.Colors.Blue,
+      noted: import_discord85.Colors.Yellow,
+      approved: import_discord85.Colors.Green,
+      denied: import_discord85.Colors.Red,
+      under_review: import_discord85.Colors.Orange
     };
-    return new import_discord84.EmbedBuilder().setColor(colors[suggestion.status] || import_discord84.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
+    return new import_discord85.EmbedBuilder().setColor(colors[suggestion.status] || import_discord85.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
       { name: "\u{1F464} Author", value: `<@${suggestion.user_id}>`, inline: true },
       { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
       { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
@@ -194734,7 +195494,7 @@ var EmbedBuilderUtil = class {
     ).setFooter({ text: `ID: ${suggestion.id} | Thread: ${suggestion.thread_id}` }).setTimestamp();
   }
   static suggestionReview(suggestion) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
       { name: "\u{1F464} Author", value: `<@${suggestion.user_id}> (${suggestion.user_id})`, inline: true },
       { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
       { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
@@ -194749,17 +195509,17 @@ var EmbedBuilderUtil = class {
       inline: false
     }));
     const colors = {
-      pending: import_discord84.Colors.Blue,
-      approved: import_discord84.Colors.Green,
-      denied: import_discord84.Colors.Red,
-      changes_requested: import_discord84.Colors.Orange
+      pending: import_discord85.Colors.Blue,
+      approved: import_discord85.Colors.Green,
+      denied: import_discord85.Colors.Red,
+      changes_requested: import_discord85.Colors.Orange
     };
-    return new import_discord84.EmbedBuilder().setColor(colors[presentation.status] || import_discord84.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(colors[presentation.status] || import_discord85.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
   }
   static serverStatus(server2, status) {
     const isOnline = status?.online;
     const proxyOffline = !isOnline && !!status?.motd;
-    return new import_discord84.EmbedBuilder().setColor(isOnline ? import_discord84.Colors.Green : import_discord84.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
+    return new import_discord85.EmbedBuilder().setColor(isOnline ? import_discord85.Colors.Green : import_discord85.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
       isOnline ? "Server is online" : status?.error ? `Server is offline \u2014 ${status.error}` : "Server is offline"
     ).addFields(
       { name: "\u{1F310} Address", value: `${server2?.host ?? "?"}:${server2?.port ?? "?"}`, inline: true },
@@ -194776,17 +195536,17 @@ var EmbedBuilderUtil = class {
     return JSON.stringify(motd).replace(/§[0-9a-fk-or]/gi, "");
   }
   static welcome(member, guild, memberCount) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
       { name: "\u{1F4CB} Read Rules", value: "See the rules channels", inline: true },
       { name: "\u{1F3AE} Servers", value: "Check server status", inline: true },
       { name: "\u{1F3AB} Support", value: "Open a ticket", inline: true }
     ).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
   }
   static goodbye(member, guild, memberCount) {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
   }
   static modpackTutorial() {
-    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
       {
         name: "\u{1F4BB} PC - SKLauncher 4.0",
         value: '1. Download SKLauncher 4.0 from [sklauncher.net](https://sklauncher.net)\n2. Install and open the launcher\n3. Go to "Content Hub" tab\n4. Search for our modpack\n5. Click "Install" and then "Play"'
@@ -194901,7 +195661,7 @@ var VerificationSystem = class {
       "3\uFE0F\u20E3 A staff member joins you in a short private voice call to confirm you are a real person and agree to the rules.",
       "4\uFE0F\u20E3 On approval you instantly get access to the rest of the server."
     ].join("\n");
-    const embed = new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
+    const embed = new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
       `Before you can chat you need to accept our rules.
 
 ${steps}` + (unverified ? `
@@ -194916,9 +195676,9 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
   }
   buildPanelRow(_guild, _settings) {
     const buttons = [
-      new import_discord85.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord85.ButtonStyle.Success)
+      new import_discord86.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord86.ButtonStyle.Success)
     ];
-    return new import_discord85.ActionRowBuilder().addComponents(buttons);
+    return new import_discord86.ActionRowBuilder().addComponents(buttons);
   }
   async postPanel(channel) {
     const guild = channel.guild;
@@ -194946,20 +195706,20 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     const member = interaction.member;
     const settings = await this.getSettings(guild.id);
     if (!settings.enabled) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Verification disabled", "Verification is currently disabled.") ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Verification disabled").setDescription("Verification is currently disabled.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Verification disabled", "Verification is currently disabled.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Verification disabled").setDescription("Verification is currently disabled.")] });
       return;
     }
     if (!settings.unverifiedRoleId) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Not configured", "No unverified role is set.") ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Not configured").setDescription("No unverified role is set.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Not configured", "No unverified role is set.") ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Not configured").setDescription("No unverified role is set.")] });
       return;
     }
     if (this.isVerified(member, settings)) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Already verified", "You already have full access.") ?? new import_discord85.EmbedBuilder().setColor(5763719).setTitle("Already verified").setDescription("You already have full access.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Already verified", "You already have full access.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Already verified").setDescription("You already have full access.")] });
       return;
     }
     const ageBlock = this.accountAgeBlock(member, settings);
     if (ageBlock) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Account too new", ageBlock) ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Account too new").setDescription(ageBlock)] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Account too new", ageBlock) ?? new import_discord86.EmbedBuilder().setColor(15548997).setTitle("Account too new").setDescription(ageBlock)] });
       return;
     }
     const retry = this.manageableRoles(member, this.missingAutoRoles(member, settings));
@@ -194969,7 +195729,7 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     }
     const live = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
     if (live) {
-      await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Already requested", "Your request is already waiting for staff review.") ?? new import_discord85.EmbedBuilder().setColor(5793266).setTitle("Already requested").setDescription("Your request is already waiting for staff review.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Already requested", "Your request is already waiting for staff review.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Already requested").setDescription("Your request is already waiting for staff review.")] });
       return;
     }
     const request = await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: "pending" });
@@ -194993,7 +195753,7 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
       });
     } catch {
     }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Request sent", "A staff member will invite you to a short private voice call to complete verification.") ?? new import_discord85.EmbedBuilder().setColor(5793266).setTitle("Request sent").setDescription("A staff member will invite you to a short private voice call to complete verification.")] });
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Request sent", "A staff member will invite you to a short private voice call to complete verification.") ?? new import_discord86.EmbedBuilder().setColor(5793266).setTitle("Request sent").setDescription("A staff member will invite you to a short private voice call to complete verification.")] });
   }
   async approveMember(member, settings) {
     const add = [];
@@ -195007,11 +195767,19 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     if (add.length) await member.roles.add(add, "Verification completed");
   }
   denyModal(requestId) {
-    return new import_discord85.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
-      new import_discord85.ActionRowBuilder().addComponents(
-        new import_discord85.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord85.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+    return new import_discord86.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
+      new import_discord86.ActionRowBuilder().addComponents(
+        new import_discord86.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord86.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
       )
     );
+  }
+  hasStaff(interaction, settings) {
+    const member = interaction.member;
+    if (!member) return false;
+    if (member.permissions?.has("ManageGuild")) return true;
+    if (member.permissions?.has("ManageMessages")) return true;
+    if (settings.staffRoleId && member.roles?.cache.has(settings.staffRoleId)) return true;
+    return false;
   }
   async handleApprove(interaction, requestId) {
     const request = await VerificationRequest.findById(requestId);
@@ -195019,9 +195787,13 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
       await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
       return;
     }
-    await interaction.deferReply({ flags: 64 });
     const guild = interaction.guild;
     const settings = await this.getSettings(guild.id);
+    if (!this.hasStaff(interaction, settings)) {
+      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+      return;
+    }
+    await interaction.deferReply({ flags: 64 });
     const member = await guild.members.fetch(request.userId).catch(() => null);
     if (member) {
       await this.approveMember(member, settings);
@@ -195035,9 +195807,9 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     request.reviewedBy = interaction.user.id;
     request.reviewedAt = /* @__PURE__ */ new Date();
     await request.save();
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", member ? `<@${request.userId}> has been verified.` : "Approved.") ?? new import_discord85.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(member ? `<@${request.userId}> has been verified.` : "Approved.")] });
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", member ? `<@${request.userId}> has been verified.` : "Approved.") ?? new import_discord86.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(member ? `<@${request.userId}> has been verified.` : "Approved.")] });
     if (interaction.message) {
-      await interaction.message.edit({ content: null, embeds: [new import_discord85.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {
+      await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {
       });
     }
   }
@@ -195047,9 +195819,21 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
       await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
       return;
     }
+    const guild = interaction.guild;
+    const settings = await this.getSettings(guild.id);
+    if (!this.hasStaff(interaction, settings)) {
+      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+      return;
+    }
     await interaction.showModal(this.denyModal(requestId));
   }
   async handleDenyModal(interaction, requestId) {
+    const guild = interaction.guild;
+    const settings = await this.getSettings(guild.id);
+    if (!this.hasStaff(interaction, settings)) {
+      await interaction.reply({ content: "\u274C Only staff can review verifications.", flags: 64 });
+      return;
+    }
     await interaction.deferReply({ flags: 64 });
     const request = await VerificationRequest.findById(requestId);
     if (!request || request.status !== "pending") {
@@ -195057,8 +195841,6 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
       return;
     }
     const reason = interaction.fields.getTextInputValue("deny_reason");
-    const guild = interaction.guild;
-    const settings = await this.getSettings(guild.id);
     request.status = "denied";
     request.reviewedBy = interaction.user.id;
     request.reviewedAt = /* @__PURE__ */ new Date();
@@ -195072,7 +195854,7 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     }
     await interaction.editReply({ content: "\u2705 Request denied." });
     if (interaction.message) {
-      await interaction.message.edit({ content: null, embeds: [new import_discord85.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}
+      await interaction.message.edit({ content: null, embeds: [new import_discord86.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}
 **Reason:** ${reason}`)], components: [] }).catch(() => {
       });
     }
@@ -195124,13 +195906,13 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     }
   }
   pendingRequests(guildId, limit = 25) {
-    return VerificationRequest.find({ guildId, status: "pending" }).sort({ createdAt: -1 }).limit(limit).lean();
+    return VerificationRequest.find({ guildId, status: { $in: ["pending", "claimed"] } }).sort({ createdAt: -1 }).limit(limit).lean();
   }
   pendingCount(guildId) {
     return VerificationRequest.countDocuments({ guildId, status: "pending" });
   }
   reviewEmbed(request, member, _settings) {
-    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
+    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
       `<@${request.userId}> is waiting to be verified.
 
 Press **Claim & verify** to take this request.`
@@ -195141,8 +195923,8 @@ ${member.user.username}` : `<@${request.userId}>`, inline: true },
     ).setFooter({ text: `Request ID: ${request._id}` }).setTimestamp();
   }
   reviewRow(requestId) {
-    return new import_discord85.ActionRowBuilder().addComponents(
-      new import_discord85.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord85.ButtonStyle.Primary)
+    return new import_discord86.ActionRowBuilder().addComponents(
+      new import_discord86.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord86.ButtonStyle.Primary)
     );
   }
   async log(guild, _settings, embed) {
@@ -195158,7 +195940,7 @@ ${member.user.username}` : `<@${request.userId}>`, inline: true },
 var verification = new VerificationSystem();
 
 // src/systems/welcomer/index.ts
-var import_discord86 = __toESM(require_src());
+var import_discord87 = __toESM(require_src());
 var WelcomerSystem = class {
   static {
     __name(this, "WelcomerSystem");
@@ -195196,7 +195978,7 @@ var WelcomerSystem = class {
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.welcomeMessage, member, guild, memberCount);
-    const embed = EmbedBuilderUtil.welcome?.(member, guild, memberCount) ?? new import_discord86.EmbedBuilder().setColor("#5865F2").setTitle("Welcome!").setDescription(`Welcome to ${guild.name}, ${member}!`).setTimestamp();
+    const embed = EmbedBuilderUtil.welcome?.(member, guild, memberCount) ?? new import_discord87.EmbedBuilder().setColor("#5865F2").setTitle("Welcome!").setDescription(`Welcome to ${guild.name}, ${member}!`).setTimestamp();
     await channel.send({ content: content ?? void 0, embeds: [embed] });
   }
   async sendGoodbye(member) {
@@ -195207,13 +195989,13 @@ var WelcomerSystem = class {
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.goodbyeMessage, member, guild, memberCount);
-    const embed = EmbedBuilderUtil.goodbye?.(member, guild, memberCount) ?? new import_discord86.EmbedBuilder().setColor("#ED4245").setTitle("Goodbye").setDescription(`${member.user.tag} left ${guild.name}.`).setTimestamp();
+    const embed = EmbedBuilderUtil.goodbye?.(member, guild, memberCount) ?? new import_discord87.EmbedBuilder().setColor("#ED4245").setTitle("Goodbye").setDescription(`${member.user.tag} left ${guild.name}.`).setTimestamp();
     await channel.send({ content: content ?? void 0, embeds: [embed] });
   }
 };
 var welcomer = new WelcomerSystem();
 var guildMemberAddWelcomer = {
-  name: import_discord86.Events.GuildMemberAdd,
+  name: import_discord87.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     try {
       await welcomer.sendWelcome(member).catch(() => {
@@ -195223,7 +196005,7 @@ var guildMemberAddWelcomer = {
   }, "execute")
 };
 var guildMemberRemoveWelcomer = {
-  name: import_discord86.Events.GuildMemberRemove,
+  name: import_discord87.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
     try {
       await welcomer.sendGoodbye(member).catch(() => {
@@ -195235,7 +196017,7 @@ var guildMemberRemoveWelcomer = {
 
 // src/events/welcomeEvents.ts
 var welcomeMemberAddEvent = {
-  name: import_discord87.Events.GuildMemberAdd,
+  name: import_discord88.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
     await verification.handleMemberAdd(member).catch(() => {
@@ -195245,7 +196027,7 @@ var welcomeMemberAddEvent = {
   }, "execute")
 };
 var welcomeMemberRemoveEvent = {
-  name: import_discord87.Events.GuildMemberRemove,
+  name: import_discord88.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
     await welcomer.sendGoodbye(member).catch(() => {
@@ -195254,11 +196036,11 @@ var welcomeMemberRemoveEvent = {
 };
 
 // src/events/boosterEvents.ts
-var import_discord90 = __toESM(require_src());
+var import_discord91 = __toESM(require_src());
 
 // src/systems/boosters/index.ts
-var import_discord88 = __toESM(require_src());
 var import_discord89 = __toESM(require_src());
+var import_discord90 = __toESM(require_src());
 var BoosterSystem = class {
   static {
     __name(this, "BoosterSystem");
@@ -195307,7 +196089,7 @@ var BoosterSystem = class {
         return;
       }
       const boosts = guild.premiumSubscriptionCount ?? 0;
-      const embed = new import_discord89.EmbedBuilder().setColor(16023551).setTitle("\u{1F48E} New Server Boost!").setDescription(`Huge thanks to ${member} for boosting **${guild.name}**!${cfg.roleId ? `
+      const embed = new import_discord90.EmbedBuilder().setColor(16023551).setTitle("\u{1F48E} New Server Boost!").setDescription(`Huge thanks to ${member} for boosting **${guild.name}**!${cfg.roleId ? `
 They've received the <@&${cfg.roleId}> role as a reward.` : ""}`).setThumbnail(member.user.displayAvatarURL({ size: 256 })).addFields(
         { name: "Booster", value: `${member.user.tag}`, inline: true },
         { name: "Total boosts", value: `${boosts}`, inline: true },
@@ -195326,7 +196108,7 @@ They've received the <@&${cfg.roleId}> role as a reward.` : ""}`).setThumbnail(m
 };
 var boosters = new BoosterSystem();
 var guildMemberUpdateBoosters = {
-  name: import_discord88.Events.GuildMemberUpdate,
+  name: import_discord89.Events.GuildMemberUpdate,
   execute: /* @__PURE__ */ __name(async (_client, oldMember, newMember) => {
     try {
       await boosters.handleMemberUpdate(oldMember, newMember).catch(() => {
@@ -195338,7 +196120,7 @@ var guildMemberUpdateBoosters = {
 
 // src/events/boosterEvents.ts
 var boosterMemberUpdateEvent = {
-  name: import_discord90.Events.GuildMemberUpdate,
+  name: import_discord91.Events.GuildMemberUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldMember, newMember) => {
     await boosters.handleMemberUpdate(oldMember, newMember).catch(() => {
     });
@@ -195346,8 +196128,8 @@ var boosterMemberUpdateEvent = {
 };
 
 // src/systems/verification/vc.ts
-var import_discord91 = __toESM(require_src());
 var import_discord92 = __toESM(require_src());
+var import_discord93 = __toESM(require_src());
 var DM_TIMEOUT_MS = 10 * 6e4;
 var VcVerificationSystem = class {
   static {
@@ -195355,9 +196137,9 @@ var VcVerificationSystem = class {
   }
   timers = /* @__PURE__ */ new Map();
   hasVerificationStaff(member) {
-    if (member.permissions.has(import_discord91.PermissionFlagsBits.Administrator)) return true;
-    if (member.permissions.has(import_discord91.PermissionFlagsBits.ManageGuild)) return true;
-    if (member.permissions.has(import_discord91.PermissionFlagsBits.ManageMessages)) return true;
+    if (member.permissions.has(import_discord92.PermissionFlagsBits.Administrator)) return true;
+    if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageGuild)) return true;
+    if (member.permissions.has(import_discord92.PermissionFlagsBits.ManageMessages)) return true;
     return false;
   }
   async handleClaim(interaction, requestId) {
@@ -195372,39 +196154,43 @@ var VcVerificationSystem = class {
       await interaction.reply({ content: "\u274C Only staff can claim a verification.", flags: 64 });
       return;
     }
-    request.status = "claimed";
-    request.claimedBy = claimant.id;
-    request.claimedAt = /* @__PURE__ */ new Date();
-    await request.save();
+    await VerificationRequest.updateOne(
+      { _id: request._id, status: "pending" },
+      { status: "claimed", claimedBy: claimant.id, claimedAt: /* @__PURE__ */ new Date() }
+    );
+    const claimedDoc = await VerificationRequest.findById(request._id).lean();
+    if (claimedDoc) Object.assign(request, claimedDoc);
     await interaction.reply({
       embeds: [EmbedBuilderUtil.info?.("Verification claimed", `You are now verifying <@${request.userId}>.
-Join the verification VC and talk to them, then press Approve or Deny.`) ?? new import_discord92.EmbedBuilder().setColor(5793266).setTitle("Verification claimed").setDescription(`You are now verifying <@${request.userId}>.`)],
+Join the verification VC and talk to them, then press Approve or Deny.`) ?? new import_discord93.EmbedBuilder().setColor(5793266).setTitle("Verification claimed").setDescription(`You are now verifying <@${request.userId}>.`)],
       components: [this.decisionRow(requestId)],
       flags: 64
     });
     this.armTimeout(guild, request, claimant);
   }
   decisionRow(requestId) {
-    return new import_discord91.ActionRowBuilder().addComponents(
-      new import_discord91.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord91.ButtonStyle.Success),
-      new import_discord91.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord91.ButtonStyle.Danger)
+    return new import_discord92.ActionRowBuilder().addComponents(
+      new import_discord92.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord92.ButtonStyle.Success),
+      new import_discord92.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord92.ButtonStyle.Danger)
     );
   }
-  armTimeout(guild, request, staff) {
+  armTimeout(guild, request, _staff) {
     const existing = this.timers.get(request._id.toString());
     if (existing) clearTimeout(existing);
     const timer = setTimeout(async () => {
       this.timers.delete(request._id.toString());
-      const current = await verification["pendingCount"](guild.id).then(() => request);
-      const fresh = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r._id.toString() === request._id.toString()));
-      if (!fresh || fresh.status !== "claimed") return;
-      fresh.status = "pending";
-      fresh.claimedBy = null;
-      fresh.claimedAt = null;
-      await fresh.save();
       try {
-        await guild.client.users.fetch(request.userId).then((u) => u.send("\u23F3 Your verification was put back in the queue.").catch(() => {
-        }));
+        const fresh = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r._id.toString() === request._id.toString()));
+        if (!fresh || fresh.status !== "claimed") return;
+        await VerificationRequest.updateOne(
+          { _id: fresh._id, status: "claimed" },
+          { status: "pending", claimedBy: null, claimedAt: null }
+        );
+        try {
+          await guild.client.users.fetch(request.userId).then((u) => u.send("\u23F3 Your verification was put back in the queue.").catch(() => {
+          }));
+        } catch {
+        }
       } catch {
       }
     }, DM_TIMEOUT_MS);
@@ -195419,8 +196205,10 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
     const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
     if (!request) return;
     if (request.vcInvitedAt) return;
-    request.vcInvitedAt = /* @__PURE__ */ new Date();
-    await request.save();
+    await VerificationRequest.updateOne(
+      { _id: request._id },
+      { vcInvitedAt: /* @__PURE__ */ new Date() }
+    );
     const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
     const link = vc ? `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}` : `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}`;
     try {
@@ -195429,16 +196217,17 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
     } catch {
     }
   }
-  async handleVoiceLeave(member) {
+  async handleVoiceLeave(member, previousChannelId) {
     const guild = member.guild;
     const settings = await verification.getSettings(guild.id);
-    if (!settings.voiceChannelId || member.voice.channelId !== settings.voiceChannelId) return;
+    const leftFrom = previousChannelId ?? member.voice.channelId;
+    if (!settings.voiceChannelId || leftFrom !== settings.voiceChannelId) return;
     const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
     if (request) {
-      request.status = "pending";
-      request.claimedBy = null;
-      request.claimedAt = null;
-      await request.save();
+      await VerificationRequest.updateOne(
+        { _id: request._id, status: "claimed" },
+        { status: "pending", claimedBy: null, claimedAt: null }
+      );
       const timer = this.timers.get(request._id.toString());
       if (timer) {
         clearTimeout(timer);
@@ -195461,10 +196250,10 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
     const settings = await verification.getSettings(guild.id);
     const member = await guild.members.fetch(request.userId).catch(() => null);
     if (member) await verification.approveMember(member, settings);
-    request.status = "approved";
-    request.reviewedBy = interaction.user.id;
-    request.reviewedAt = /* @__PURE__ */ new Date();
-    await request.save();
+    await VerificationRequest.updateOne(
+      { _id: request._id, status: "claimed" },
+      { status: "approved", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date() }
+    );
     const timer = this.timers.get(requestId);
     if (timer) {
       clearTimeout(timer);
@@ -195475,7 +196264,7 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
       }));
     } catch {
     }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", "<@" + request.userId + "> is verified and the VC has been cleared.") ?? new import_discord92.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription("<@" + request.userId + "> is verified and the VC has been cleared.")] });
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", "<@" + request.userId + "> is verified and the VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription("<@" + request.userId + "> is verified and the VC has been cleared.")] });
   }
   async handleDeny(interaction, requestId) {
     const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
@@ -195487,8 +196276,8 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
       await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
       return;
     }
-    const modal = new import_discord91.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(new import_discord91.ActionRowBuilder().addComponents(
-      new import_discord91.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason").setStyle(import_discord91.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+    const modal = new import_discord92.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(new import_discord92.ActionRowBuilder().addComponents(
+      new import_discord92.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason").setStyle(import_discord92.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
     ));
     await interaction.showModal(modal);
   }
@@ -195501,12 +196290,10 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
     }
     const reason = interaction.fields.getTextInputValue("deny_reason");
     const guild = interaction.guild;
-    const settings = await verification.getSettings(guild.id);
-    request.status = "denied";
-    request.reviewedBy = interaction.user.id;
-    request.reviewedAt = /* @__PURE__ */ new Date();
-    request.reason = reason;
-    await request.save();
+    await VerificationRequest.updateOne(
+      { _id: request._id, status: "claimed" },
+      { status: "denied", reviewedBy: interaction.user.id, reviewedAt: /* @__PURE__ */ new Date(), reason }
+    );
     const timer = this.timers.get(requestId);
     if (timer) {
       clearTimeout(timer);
@@ -195518,7 +196305,7 @@ Join the verification VC and talk to them, then press Approve or Deny.`) ?? new 
       }));
     } catch {
     }
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Denied", "The VC has been cleared.") ?? new import_discord92.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription("The VC has been cleared.")] });
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Denied", "The VC has been cleared.") ?? new import_discord93.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription("The VC has been cleared.")] });
   }
   clearTimer(requestId) {
     const timer = this.timers.get(requestId);
@@ -195545,51 +196332,61 @@ var voiceStateUpdateVerification = {
   name: "voiceStateUpdate",
   execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
     if (!newState.member || newState.member.user.bot) return;
-    try {
-      await vcVerification.handleVoiceJoin(newState.member).catch(() => {
-      });
-    } catch {
+    const settings = await verification.getSettings(newState.guild?.id ?? oldState.guild?.id).catch(() => null);
+    const vcId = settings?.voiceChannelId;
+    if (!vcId) return;
+    if (newState.channelId === vcId && oldState.channelId !== vcId) {
+      try {
+        await vcVerification.handleVoiceJoin(newState.member).catch(() => {
+        });
+      } catch {
+      }
     }
-    try {
-      await vcVerification.handleVoiceLeave(oldState.member).catch(() => {
-      });
-    } catch {
+    if (oldState.channelId === vcId && newState.channelId !== vcId) {
+      const member = newState.member ?? oldState.member;
+      if (member) {
+        try {
+          await vcVerification.handleVoiceLeave(member, oldState.channelId).catch(() => {
+          });
+        } catch {
+        }
+      }
     }
   }, "execute")
 };
 
 // src/events/antinukeEvents.ts
-var import_discord95 = __toESM(require_src());
+var import_discord96 = __toESM(require_src());
 
 // src/systems/antinuke/index.ts
-var import_discord93 = __toESM(require_src());
 var import_discord94 = __toESM(require_src());
+var import_discord95 = __toESM(require_src());
 var WATCHED = {
-  [import_discord93.AuditLogEvent.MemberBanAdd]: "ban",
-  [import_discord93.AuditLogEvent.MemberKick]: "kick",
-  [import_discord93.AuditLogEvent.ChannelDelete]: "channelDelete",
-  [import_discord93.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
-  [import_discord93.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
-  [import_discord93.AuditLogEvent.RoleDelete]: "roleDelete",
-  [import_discord93.AuditLogEvent.WebhookDelete]: "webhookDelete",
-  [import_discord93.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
+  [import_discord94.AuditLogEvent.MemberBanAdd]: "ban",
+  [import_discord94.AuditLogEvent.MemberKick]: "kick",
+  [import_discord94.AuditLogEvent.ChannelDelete]: "channelDelete",
+  [import_discord94.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
+  [import_discord94.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
+  [import_discord94.AuditLogEvent.RoleDelete]: "roleDelete",
+  [import_discord94.AuditLogEvent.WebhookDelete]: "webhookDelete",
+  [import_discord94.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
 };
 var DANGEROUS_PERMISSIONS = [
-  import_discord93.PermissionFlagsBits.Administrator,
-  import_discord93.PermissionFlagsBits.ManageGuild,
-  import_discord93.PermissionFlagsBits.ManageRoles,
-  import_discord93.PermissionFlagsBits.ManageChannels,
-  import_discord93.PermissionFlagsBits.ManageWebhooks,
-  import_discord93.PermissionFlagsBits.ManageMessages,
-  import_discord93.PermissionFlagsBits.BanMembers,
-  import_discord93.PermissionFlagsBits.KickMembers,
-  import_discord93.PermissionFlagsBits.ManageThreads,
-  import_discord93.PermissionFlagsBits.ManageNicknames,
-  import_discord93.PermissionFlagsBits.MuteMembers,
-  import_discord93.PermissionFlagsBits.ModerateMembers,
-  import_discord93.PermissionFlagsBits.MoveMembers,
-  import_discord93.PermissionFlagsBits.CreateInstantInvite,
-  import_discord93.PermissionFlagsBits.ManageEvents
+  import_discord94.PermissionFlagsBits.Administrator,
+  import_discord94.PermissionFlagsBits.ManageGuild,
+  import_discord94.PermissionFlagsBits.ManageRoles,
+  import_discord94.PermissionFlagsBits.ManageChannels,
+  import_discord94.PermissionFlagsBits.ManageWebhooks,
+  import_discord94.PermissionFlagsBits.ManageMessages,
+  import_discord94.PermissionFlagsBits.BanMembers,
+  import_discord94.PermissionFlagsBits.KickMembers,
+  import_discord94.PermissionFlagsBits.ManageThreads,
+  import_discord94.PermissionFlagsBits.ManageNicknames,
+  import_discord94.PermissionFlagsBits.MuteMembers,
+  import_discord94.PermissionFlagsBits.ModerateMembers,
+  import_discord94.PermissionFlagsBits.MoveMembers,
+  import_discord94.PermissionFlagsBits.CreateInstantInvite,
+  import_discord94.PermissionFlagsBits.ManageEvents
 ];
 var DEFAULT_THRESHOLDS = {
   ban: 3,
@@ -195641,7 +196438,7 @@ var AntiNukeSystem = class {
     let action = null;
     if (WATCHED[entry.action] !== void 0) {
       action = WATCHED[entry.action];
-    } else if (entry.action === import_discord93.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
+    } else if (entry.action === import_discord94.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
       const key = c.key;
       const newId = c?.new?.id;
       return (key === "$" || key === "id") && newId === guild.id;
@@ -195722,7 +196519,7 @@ var AntiNukeSystem = class {
     try {
       const channel = await guild.channels.fetch(cfg.alertChannelId).catch(() => null);
       if (!channel || !channel.isTextBased()) return;
-      const embed = new import_discord94.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
+      const embed = new import_discord95.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
         `<@${member.id}> performed **${count}\xD7** \`${action}\` within ${cfg.windowSec}s (limit: ${limit}).
 Treated as a compromised or malicious account.`
       ).addFields(
@@ -195776,7 +196573,7 @@ Treated as a compromised or malicious account.`
 };
 var antinuke = new AntiNukeSystem();
 var guildAuditLogEntryCreate = {
-  name: import_discord93.Events.GuildAuditLogEntryCreate,
+  name: import_discord94.Events.GuildAuditLogEntryCreate,
   execute: /* @__PURE__ */ __name(async (_client, entry, guild) => {
     try {
       await antinuke.handleAuditEntry(entry, guild).catch(() => {
@@ -195788,7 +196585,7 @@ var guildAuditLogEntryCreate = {
 
 // src/events/antinukeEvents.ts
 var antinukeAuditLogEvent = {
-  name: import_discord95.Events.GuildAuditLogEntryCreate,
+  name: import_discord96.Events.GuildAuditLogEntryCreate,
   execute: /* @__PURE__ */ __name(async (client, entry, guild) => {
     await antinuke.handleAuditEntry(entry, guild).catch(() => {
     });
@@ -195796,10 +196593,10 @@ var antinukeAuditLogEvent = {
 };
 
 // src/events/messageSystemsEvent.ts
-var import_discord98 = __toESM(require_src());
+var import_discord99 = __toESM(require_src());
 
 // src/systems/autoreply/index.ts
-var import_discord96 = __toESM(require_src());
+var import_discord97 = __toESM(require_src());
 var IP_KEYWORDS = ["ip", "server ip", "address", "connect", "server address", "ip address"];
 var STATUS_KEYWORDS = ["status", "online?", "is the server up", "server status", "server online"];
 var MODPACK_KEYWORDS = [
@@ -195959,7 +196756,7 @@ Use this IP to connect to the server!`,
 };
 var autoReply = new AutoReplySystem();
 var messageCreateAutoreply = {
-  name: import_discord96.Events.MessageCreate,
+  name: import_discord97.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (_client, message) => {
     try {
       await autoReply.processMessage(message).catch(() => {
@@ -195970,7 +196767,7 @@ var messageCreateAutoreply = {
 };
 
 // src/systems/mediareactions/index.ts
-var import_discord97 = __toESM(require_src());
+var import_discord98 = __toESM(require_src());
 var IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|heic|heif|tiff?)$/i;
 var VIDEO_EXT = /\.(mp4|mov|webm|mkv|avi|m4v|flac)$/i;
 var DEFAULT_CONFIG = {
@@ -196084,7 +196881,7 @@ var MediaReactionSystem = class _MediaReactionSystem {
     if (mode === "off") return;
     const notice = "\u{1F4CE} This channel only accepts images and videos.";
     if (mode === "warn") {
-      await message.reply({ content: notice, flags: import_discord97.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
+      await message.reply({ content: notice, flags: import_discord98.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
       }), 4e3).unref?.()).catch(() => {
       });
       return;
@@ -196104,7 +196901,7 @@ This channel is for images and videos only.` }).catch(() => {
 };
 var mediaReactions = new MediaReactionSystem();
 var messageCreateMediaReactions = {
-  name: import_discord97.Events.MessageCreate,
+  name: import_discord98.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (_client, message) => {
     try {
       await mediaReactions.processMessage(message).catch(() => {
@@ -196116,7 +196913,7 @@ var messageCreateMediaReactions = {
 
 // src/events/messageSystemsEvent.ts
 var messageSystemsEvent = {
-  name: import_discord98.Events.MessageCreate,
+  name: import_discord99.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     if (message.author?.bot || !message.guild) return;
     await autoReply.processMessage(message).catch(() => {
@@ -196127,10 +196924,10 @@ var messageSystemsEvent = {
 };
 
 // src/events/systemsInteractionEvent.ts
-var import_discord100 = __toESM(require_src());
+var import_discord101 = __toESM(require_src());
 
 // src/systems/presentations/index.ts
-var import_discord99 = __toESM(require_src());
+var import_discord100 = __toESM(require_src());
 var PresentationSystem = class {
   static {
     __name(this, "PresentationSystem");
@@ -196158,20 +196955,20 @@ var PresentationSystem = class {
     };
   }
   async createPresentationPanel(channel) {
-    const embed = new import_discord99.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F46E} Staff Applications").setDescription(
+    const embed = new import_discord100.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F46E} Staff Applications").setDescription(
       "We're looking for dedicated members to join our staff team!\n\n**Requirements:**\n\u2022 Be active in the community\n\u2022 Know our rules and guidelines\n\u2022 Have a mature and professional attitude\n\u2022 Be able to dedicate time weekly\n\nClick the button below to submit your application."
     ).setFooter({ text: "Staff Team" }).setTimestamp();
-    const row = new import_discord99.ActionRowBuilder().addComponents(
-      new import_discord99.ButtonBuilder().setCustomId("presentation_apply_button").setLabel("Apply for Staff").setEmoji("\u{1F4DD}").setStyle(import_discord99.ButtonStyle.Primary)
+    const row = new import_discord100.ActionRowBuilder().addComponents(
+      new import_discord100.ButtonBuilder().setCustomId("presentation_apply_button").setLabel("Apply for Staff").setEmoji("\u{1F4DD}").setStyle(import_discord100.ButtonStyle.Primary)
     );
     await channel.send({ embeds: [embed], components: [row] });
   }
   async createApplicationModal() {
     const questions = this.getQuestions();
-    const modal = new import_discord99.ModalBuilder().setCustomId("presentation_apply").setTitle("Staff Application");
+    const modal = new import_discord100.ModalBuilder().setCustomId("presentation_apply").setTitle("Staff Application");
     questions.slice(0, 5).forEach((q, i) => {
-      const input2 = new import_discord99.TextInputBuilder().setCustomId(`q${i + 1}`).setLabel(q.length > 45 ? q.substring(0, 42) + "..." : q).setStyle(import_discord99.TextInputStyle.Paragraph).setPlaceholder("Your answer...").setRequired(true).setMaxLength(1e3);
-      modal.addComponents(new import_discord99.ActionRowBuilder().addComponents(input2));
+      const input2 = new import_discord100.TextInputBuilder().setCustomId(`q${i + 1}`).setLabel(q.length > 45 ? q.substring(0, 42) + "..." : q).setStyle(import_discord100.TextInputStyle.Paragraph).setPlaceholder("Your answer...").setRequired(true).setMaxLength(1e3);
+      modal.addComponents(new import_discord100.ActionRowBuilder().addComponents(input2));
     });
     return modal;
   }
@@ -196209,11 +197006,11 @@ var PresentationSystem = class {
           answers: JSON.stringify(answers),
           status: "pending",
           created_at: (/* @__PURE__ */ new Date()).toISOString()
-        }) ?? new import_discord99.EmbedBuilder().setColor("#5865F2").setTitle("New Staff Application").setDescription(`New application from <@${interaction.user.id}>`).addFields(answers.map((a) => ({ name: a.question, value: a.answer, inline: false }))).setTimestamp();
-        const row = new import_discord99.ActionRowBuilder().addComponents(
-          new import_discord99.ButtonBuilder().setCustomId("presentation_approve").setLabel("\u2705 Approve").setStyle(import_discord99.ButtonStyle.Success),
-          new import_discord99.ButtonBuilder().setCustomId("presentation_deny").setLabel("\u274C Deny").setStyle(import_discord99.ButtonStyle.Danger),
-          new import_discord99.ButtonBuilder().setCustomId("presentation_changes").setLabel("\u{1F4DD} Request Changes").setStyle(import_discord99.ButtonStyle.Secondary)
+        }) ?? new import_discord100.EmbedBuilder().setColor("#5865F2").setTitle("New Staff Application").setDescription(`New application from <@${interaction.user.id}>`).addFields(answers.map((a) => ({ name: a.question, value: a.answer, inline: false }))).setTimestamp();
+        const row = new import_discord100.ActionRowBuilder().addComponents(
+          new import_discord100.ButtonBuilder().setCustomId("presentation_approve").setLabel("\u2705 Approve").setStyle(import_discord100.ButtonStyle.Success),
+          new import_discord100.ButtonBuilder().setCustomId("presentation_deny").setLabel("\u274C Deny").setStyle(import_discord100.ButtonStyle.Danger),
+          new import_discord100.ButtonBuilder().setCustomId("presentation_changes").setLabel("\u{1F4DD} Request Changes").setStyle(import_discord100.ButtonStyle.Secondary)
         );
         void staffChannel.send({
           content: `\u{1F4DD} New staff application from <@${interaction.user.id}>!`,
@@ -196230,7 +197027,7 @@ var PresentationSystem = class {
     const member = interaction.member;
     if (!member) return;
     const isStaff = staffRoleId && member.roles.cache.has(staffRoleId);
-    if (!isStaff && !member.permissions.has(import_discord99.PermissionFlagsBits.Administrator)) {
+    if (!isStaff && !member.permissions.has(import_discord100.PermissionFlagsBits.Administrator)) {
       void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
       return;
     }
@@ -196250,7 +197047,7 @@ var PresentationSystem = class {
       return;
     }
     const isStaff2 = staffRoleId && member.roles.cache.has(staffRoleId);
-    if (!isStaff2 && !member.permissions.has(import_discord99.PermissionFlagsBits.Administrator)) {
+    if (!isStaff2 && !member.permissions.has(import_discord100.PermissionFlagsBits.Administrator)) {
       void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
       return;
     }
@@ -196277,20 +197074,20 @@ var PresentationSystem = class {
       } catch {
       }
       void message.edit({
-        embeds: [EmbedBuilderUtil.success?.("Approved", `Application approved by ${interaction.user}`) ?? new import_discord99.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(`Application approved by ${interaction.user}`)],
+        embeds: [EmbedBuilderUtil.success?.("Approved", `Application approved by ${interaction.user}`) ?? new import_discord100.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(`Application approved by ${interaction.user}`)],
         components: []
       });
     } else if (action === "deny") {
-      const modal = new import_discord99.ModalBuilder().setCustomId(`presentation_deny_reason_${presentation.id}`).setTitle("Deny Application - Reason").addComponents(
-        new import_discord99.ActionRowBuilder().addComponents(
-          new import_discord99.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason for denial").setStyle(import_discord99.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+      const modal = new import_discord100.ModalBuilder().setCustomId(`presentation_deny_reason_${presentation.id}`).setTitle("Deny Application - Reason").addComponents(
+        new import_discord100.ActionRowBuilder().addComponents(
+          new import_discord100.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason for denial").setStyle(import_discord100.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
         )
       );
       await interaction.showModal(modal);
     } else if (action === "changes") {
-      const modal = new import_discord99.ModalBuilder().setCustomId(`presentation_changes_reason_${presentation.id}`).setTitle("Request Changes - Feedback").addComponents(
-        new import_discord99.ActionRowBuilder().addComponents(
-          new import_discord99.TextInputBuilder().setCustomId("changes_reason").setLabel("What needs to be changed?").setStyle(import_discord99.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+      const modal = new import_discord100.ModalBuilder().setCustomId(`presentation_changes_reason_${presentation.id}`).setTitle("Request Changes - Feedback").addComponents(
+        new import_discord100.ActionRowBuilder().addComponents(
+          new import_discord100.TextInputBuilder().setCustomId("changes_reason").setLabel("What needs to be changed?").setStyle(import_discord100.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
         )
       );
       await interaction.showModal(modal);
@@ -196318,7 +197115,7 @@ var PresentationSystem = class {
     if (message) {
       void message.edit({
         embeds: [EmbedBuilderUtil.error?.("Denied", `Application denied by ${interaction.user}
-Reason: ${reason}`) ?? new import_discord99.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription(`Application denied by ${interaction.user}
+Reason: ${reason}`) ?? new import_discord100.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription(`Application denied by ${interaction.user}
 Reason: ${reason}`)],
         components: []
       });
@@ -196349,7 +197146,7 @@ You can re-apply with the improved answers.` }).catch(() => {
     if (message) {
       void message.edit({
         embeds: [EmbedBuilderUtil.warning?.("Changes Requested", `Changes requested by ${interaction.user}
-Feedback: ${reason}`) ?? new import_discord99.EmbedBuilder().setColor(16705372).setTitle("Changes Requested").setDescription(`Changes requested by ${interaction.user}
+Feedback: ${reason}`) ?? new import_discord100.EmbedBuilder().setColor(16705372).setTitle("Changes Requested").setDescription(`Changes requested by ${interaction.user}
 Feedback: ${reason}`)],
         components: []
       });
@@ -196361,7 +197158,7 @@ var presentations = new PresentationSystem();
 
 // src/events/systemsInteractionEvent.ts
 var systemsInteractionEvent = {
-  name: import_discord100.Events.InteractionCreate,
+  name: import_discord101.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
     const { customId } = interaction;
@@ -196458,7 +197255,7 @@ var systemsInteractionEvent = {
 };
 
 // src/systems/presentations/autostatus.ts
-var import_discord101 = __toESM(require_src());
+var import_discord102 = __toESM(require_src());
 var PresentationAutoStatus = class {
   static {
     __name(this, "PresentationAutoStatus");
@@ -196577,9 +197374,9 @@ var PresentationAutoStatus = class {
       const channel = await guild.channels.fetch(cfg.announcementsChannelId).catch(() => null);
       if (!channel || !channel.isTextBased() || channel.isThread()) return;
       const count = this.available.get(guild.id)?.size ?? 0;
-      const embed = open2 ? new import_discord101.EmbedBuilder().setColor(5763719).setTitle("\u{1F7E2} Presentations are OPEN").setDescription(`Staff ${count === 1 ? "is" : "are"} online \u2014 staff applications are now being reviewed!
+      const embed = open2 ? new import_discord102.EmbedBuilder().setColor(5763719).setTitle("\u{1F7E2} Presentations are OPEN").setDescription(`Staff ${count === 1 ? "is" : "are"} online \u2014 staff applications are now being reviewed!
 
-Submit yours with the application panel.`).setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()} \xB7 ${count} staff available` }) : new import_discord101.EmbedBuilder().setColor(15548997).setTitle("\u{1F534} Presentations are CLOSED").setDescription("No staff members are online right now.\n\nYou can still submit an application \u2014 it will be reviewed as soon as staff return!").setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()}` });
+Submit yours with the application panel.`).setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()} \xB7 ${count} staff available` }) : new import_discord102.EmbedBuilder().setColor(15548997).setTitle("\u{1F534} Presentations are CLOSED").setDescription("No staff members are online right now.\n\nYou can still submit an application \u2014 it will be reviewed as soon as staff return!").setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()}` });
       const payload = {
         embeds: [embed],
         content: open2 && cfg.pingRoleId ? `<@&${cfg.pingRoleId}>` : "",
@@ -196606,7 +197403,7 @@ Submit yours with the application panel.`).setFooter({ text: `Updated ${(/* @__P
 };
 var presentationAutoStatus = new PresentationAutoStatus();
 var presentationPresenceUpdate = {
-  name: import_discord101.Events.PresenceUpdate,
+  name: import_discord102.Events.PresenceUpdate,
   execute: /* @__PURE__ */ __name(async (_client, _old, cur) => {
     try {
       await presentationAutoStatus.handlePresenceUpdate(_old, cur).catch(() => {
@@ -196617,8 +197414,8 @@ var presentationPresenceUpdate = {
 };
 
 // src/systems/suggestions/index.ts
-var import_discord102 = __toESM(require_src());
 var import_discord103 = __toESM(require_src());
+var import_discord104 = __toESM(require_src());
 var SuggestionSystem = class {
   static {
     __name(this, "SuggestionSystem");
@@ -196696,12 +197493,12 @@ var SuggestionSystem = class {
     }
     if (cfg.staffChannelId) {
       const staffChannel = thread.client.channels.cache.get(cfg.staffChannelId);
-      if (staffChannel?.isTextBased() && !(staffChannel instanceof import_discord103.PartialGroupDMChannel)) {
-        const embed = EmbedBuilderUtil.suggestionReview?.(suggestion) ?? new import_discord103.EmbedBuilder().setColor("#FEE75C").setTitle("Suggestion Under Review").setDescription(suggestion.description).setFooter({ text: `Suggestion ID: ${suggestion._id}` }).setTimestamp();
-        const row = new import_discord103.ActionRowBuilder().addComponents(
-          new import_discord103.ButtonBuilder().setCustomId("suggestion_approve").setLabel("\u2705 APPROVED").setStyle(import_discord103.ButtonStyle.Success),
-          new import_discord103.ButtonBuilder().setCustomId("suggestion_deny").setLabel("\u274C DENIED").setStyle(import_discord103.ButtonStyle.Danger),
-          new import_discord103.ButtonBuilder().setCustomId("suggestion_under_review").setLabel("\u23F8\uFE0F UNDER REVIEW").setStyle(import_discord103.ButtonStyle.Secondary)
+      if (staffChannel?.isTextBased() && !(staffChannel instanceof import_discord104.PartialGroupDMChannel)) {
+        const embed = EmbedBuilderUtil.suggestionReview?.(suggestion) ?? new import_discord104.EmbedBuilder().setColor("#FEE75C").setTitle("Suggestion Under Review").setDescription(suggestion.description).setFooter({ text: `Suggestion ID: ${suggestion._id}` }).setTimestamp();
+        const row = new import_discord104.ActionRowBuilder().addComponents(
+          new import_discord104.ButtonBuilder().setCustomId("suggestion_approve").setLabel("\u2705 APPROVED").setStyle(import_discord104.ButtonStyle.Success),
+          new import_discord104.ButtonBuilder().setCustomId("suggestion_deny").setLabel("\u274C DENIED").setStyle(import_discord104.ButtonStyle.Danger),
+          new import_discord104.ButtonBuilder().setCustomId("suggestion_under_review").setLabel("\u23F8\uFE0F UNDER REVIEW").setStyle(import_discord104.ButtonStyle.Secondary)
         );
         await staffChannel.send({
           content: `\u{1F4CB} **Suggestion reached ${cfg.reactionThreshold} upvotes!**`,
@@ -196721,7 +197518,7 @@ var SuggestionSystem = class {
     const cfg = await this.getConfig(interaction.guild.id);
     const staffRoleId = cfg.staffRoleId;
     const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
-    if (!isStaff && !interaction.member.permissions.has(import_discord103.PermissionFlagsBits.Administrator)) {
+    if (!isStaff && !interaction.member.permissions.has(import_discord104.PermissionFlagsBits.Administrator)) {
       return interaction.reply({ content: "\u274C Only staff can review suggestions.", flags: 64 });
     }
     const message = interaction.message;
@@ -196783,7 +197580,7 @@ var SuggestionSystem = class {
     const statusColors = { approved: "#57F287", denied: "#ED4245", pending: "#FEE75C" };
     await message.edit({
       embeds: [
-        new import_discord103.EmbedBuilder().setColor(statusColors[newStatus]).setTitle(`${action === "approve" ? "\u2705" : action === "deny" ? "\u274C" : "\u23F8\uFE0F"} ${embed.title}`).setDescription(embed.description).addFields(
+        new import_discord104.EmbedBuilder().setColor(statusColors[newStatus]).setTitle(`${action === "approve" ? "\u2705" : action === "deny" ? "\u274C" : "\u23F8\uFE0F"} ${embed.title}`).setDescription(embed.description).addFields(
           { name: "Status", value: newStatus.toUpperCase(), inline: true },
           { name: "Reviewed by", value: `<@${interaction.user.id}>`, inline: true }
         ).setFooter({ text: embed.footer?.text }).setTimestamp()
@@ -196795,7 +197592,7 @@ var SuggestionSystem = class {
 };
 var suggestions = new SuggestionSystem();
 var threadCreateSuggestions = {
-  name: import_discord102.Events.ThreadCreate,
+  name: import_discord103.Events.ThreadCreate,
   execute: /* @__PURE__ */ __name(async (_client, thread) => {
     try {
       await suggestions.handleThreadCreate(thread).catch(() => {
@@ -196805,7 +197602,7 @@ var threadCreateSuggestions = {
   }, "execute")
 };
 var messageReactionAddSuggestions = {
-  name: import_discord102.Events.MessageReactionAdd,
+  name: import_discord103.Events.MessageReactionAdd,
   execute: /* @__PURE__ */ __name(async (_client, reaction, user) => {
     try {
       await suggestions.handleReactionAdd(reaction, user).catch(() => {
@@ -196830,7 +197627,7 @@ var interactionCreateSuggestions = {
 };
 
 // src/systems/tempvc/index.ts
-var import_discord104 = __toESM(require_src());
+var import_discord105 = __toESM(require_src());
 var PANEL_ACTIONS = [
   "rename",
   "limit",
@@ -196904,7 +197701,7 @@ var TempVCSystem = class {
     const vcCategory = cfg.categoryId ? guild.channels.cache.get(cfg.categoryId) : void 0;
     const voiceChannel = await guild.channels.create({
       name: voiceName,
-      type: import_discord104.ChannelType.GuildVoice,
+      type: import_discord105.ChannelType.GuildVoice,
       parent: vcCategory?.id,
       userLimit,
       permissionOverwrites: [
@@ -197004,16 +197801,16 @@ var TempVCSystem = class {
           break;
         }
         case "limit": {
-          const modal = new import_discord104.ModalBuilder().setCustomId(`tempvc_limit_${vcId}`).setTitle("\u{1F465} Set User Limit");
-          const input2 = new import_discord104.TextInputBuilder().setCustomId("tempvc_limit_input").setLabel("User limit (0 = unlimited, max 99)").setStyle(import_discord104.TextInputStyle.Short).setValue("0").setRequired(true);
-          modal.addComponents(new import_discord104.ActionRowBuilder().addComponents(input2));
+          const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_limit_${vcId}`).setTitle("\u{1F465} Set User Limit");
+          const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_limit_input").setLabel("User limit (0 = unlimited, max 99)").setStyle(import_discord105.TextInputStyle.Short).setValue("0").setRequired(true);
+          modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
           await interaction.showModal(modal);
           break;
         }
         case "rename": {
-          const modal = new import_discord104.ModalBuilder().setCustomId(`tempvc_rename_${vcId}`).setTitle("\u270F\uFE0F Rename VC");
-          const input2 = new import_discord104.TextInputBuilder().setCustomId("tempvc_rename_input").setLabel("New VC name (max 100 chars)").setStyle(import_discord104.TextInputStyle.Short).setValue(voiceChannel.name).setMaxLength(100).setRequired(true);
-          modal.addComponents(new import_discord104.ActionRowBuilder().addComponents(input2));
+          const modal = new import_discord105.ModalBuilder().setCustomId(`tempvc_rename_${vcId}`).setTitle("\u270F\uFE0F Rename VC");
+          const input2 = new import_discord105.TextInputBuilder().setCustomId("tempvc_rename_input").setLabel("New VC name (max 100 chars)").setStyle(import_discord105.TextInputStyle.Short).setValue(voiceChannel.name).setMaxLength(100).setRequired(true);
+          modal.addComponents(new import_discord105.ActionRowBuilder().addComponents(input2));
           await interaction.showModal(modal);
           break;
         }
@@ -197095,15 +197892,15 @@ var TempVCSystem = class {
     await this.runAction(interaction, action, vcId);
   }
   panelEmbed(_guild, _activeCount) {
-    return new import_discord104.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AE} Temp VC Control Panel").setDescription("Join the creator voice channel to get your own temporary voice channel!").setTimestamp();
+    return new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AE} Temp VC Control Panel").setDescription("Join the creator voice channel to get your own temporary voice channel!").setTimestamp();
   }
   panelRows() {
-    const row1 = new import_discord104.ActionRowBuilder().addComponents(
-      this.btn("tempvc_rename", "\u270F\uFE0F Rename", import_discord104.ButtonStyle.Secondary),
-      this.btn("tempvc_limit", "\u{1F465} Limit", import_discord104.ButtonStyle.Secondary),
-      this.btn("tempvc_lock", "\u{1F512} Lock", import_discord104.ButtonStyle.Primary),
-      this.btn("tempvc_unlock", "\u{1F513} Unlock", import_discord104.ButtonStyle.Secondary),
-      this.btn("tempvc_hide", "\u{1F441}\uFE0F Hide", import_discord104.ButtonStyle.Secondary)
+    const row1 = new import_discord105.ActionRowBuilder().addComponents(
+      this.btn("tempvc_rename", "\u270F\uFE0F Rename", import_discord105.ButtonStyle.Secondary),
+      this.btn("tempvc_limit", "\u{1F465} Limit", import_discord105.ButtonStyle.Secondary),
+      this.btn("tempvc_lock", "\u{1F512} Lock", import_discord105.ButtonStyle.Primary),
+      this.btn("tempvc_unlock", "\u{1F513} Unlock", import_discord105.ButtonStyle.Secondary),
+      this.btn("tempvc_hide", "\u{1F441}\uFE0F Hide", import_discord105.ButtonStyle.Secondary)
     );
     return [row1];
   }
@@ -197119,7 +197916,7 @@ var TempVCSystem = class {
     }
   }
   btn(customId, label, style) {
-    return new import_discord104.ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style);
+    return new import_discord105.ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style);
   }
   async setOverwrite(channel, id, options) {
     const existing = channel.permissionOverwrites.cache.get(id);
@@ -197167,7 +197964,7 @@ var interactionCreateTempvc = {
 };
 
 // src/systems/tickets/index.ts
-var import_discord105 = __toESM(require_src());
+var import_discord106 = __toESM(require_src());
 var TicketSystem = class {
   static {
     __name(this, "TicketSystem");
@@ -197190,12 +197987,12 @@ var TicketSystem = class {
     };
   }
   async createTicketPanel(channel) {
-    const embed = new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AB} Support Tickets").setDescription("Select a category below to create a ticket. Our staff will assist you shortly.").setTimestamp();
-    const row = new import_discord105.ActionRowBuilder().addComponents(
-      new import_discord105.ButtonBuilder().setCustomId("ticket_create_general").setLabel("General Support").setEmoji("\u{1F3AB}").setStyle(import_discord105.ButtonStyle.Primary),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_create_modpack").setLabel("Modpack Help").setEmoji("\u{1F4E6}").setStyle(import_discord105.ButtonStyle.Secondary),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_create_report").setLabel("Report Player").setEmoji("\u{1F6A8}").setStyle(import_discord105.ButtonStyle.Danger),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_create_other").setLabel("Other").setEmoji("\u2753").setStyle(import_discord105.ButtonStyle.Secondary)
+    const embed = new import_discord106.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AB} Support Tickets").setDescription("Select a category below to create a ticket. Our staff will assist you shortly.").setTimestamp();
+    const row = new import_discord106.ActionRowBuilder().addComponents(
+      new import_discord106.ButtonBuilder().setCustomId("ticket_create_general").setLabel("General Support").setEmoji("\u{1F3AB}").setStyle(import_discord106.ButtonStyle.Primary),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_create_modpack").setLabel("Modpack Help").setEmoji("\u{1F4E6}").setStyle(import_discord106.ButtonStyle.Secondary),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_create_report").setLabel("Report Player").setEmoji("\u{1F6A8}").setStyle(import_discord106.ButtonStyle.Danger),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_create_other").setLabel("Other").setEmoji("\u2753").setStyle(import_discord106.ButtonStyle.Secondary)
     );
     await channel.send({ embeds: [embed], components: [row] });
   }
@@ -197214,21 +198011,21 @@ var TicketSystem = class {
     }
     await interaction.deferReply({ flags: 64 });
     const category = guild.channels.cache.get(categoryId);
-    if (!category || category.type !== import_discord105.ChannelType.GuildCategory) {
+    if (!category || category.type !== import_discord106.ChannelType.GuildCategory) {
       return interaction.editReply({ content: "\u274C Ticket category not found." });
     }
     const ticketId = Math.random().toString(36).substring(2, 8).toUpperCase();
     const channelName = `ticket-${type}-${user.username}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
     const overwrites = [
-      { id: guild.id, deny: [import_discord105.PermissionFlagsBits.ViewChannel] },
-      { id: user.id, allow: [import_discord105.PermissionFlagsBits.ViewChannel, import_discord105.PermissionFlagsBits.SendMessages, import_discord105.PermissionFlagsBits.AttachFiles, import_discord105.PermissionFlagsBits.EmbedLinks] }
+      { id: guild.id, deny: [import_discord106.PermissionFlagsBits.ViewChannel] },
+      { id: user.id, allow: [import_discord106.PermissionFlagsBits.ViewChannel, import_discord106.PermissionFlagsBits.SendMessages, import_discord106.PermissionFlagsBits.AttachFiles, import_discord106.PermissionFlagsBits.EmbedLinks] }
     ];
     if (cfg.staffRoleId) {
-      overwrites.push({ id: cfg.staffRoleId, allow: [import_discord105.PermissionFlagsBits.ViewChannel, import_discord105.PermissionFlagsBits.SendMessages, import_discord105.PermissionFlagsBits.ManageMessages] });
+      overwrites.push({ id: cfg.staffRoleId, allow: [import_discord106.PermissionFlagsBits.ViewChannel, import_discord106.PermissionFlagsBits.SendMessages, import_discord106.PermissionFlagsBits.ManageMessages] });
     }
     const ticketChannel = await guild.channels.create({
       name: channelName,
-      type: import_discord105.ChannelType.GuildText,
+      type: import_discord106.ChannelType.GuildText,
       parent: category,
       permissionOverwrites: overwrites,
       topic: `Ticket #${ticketId} | Type: ${type} | Owner: ${user.id}`
@@ -197240,15 +198037,15 @@ var TicketSystem = class {
       departmentId: type,
       departmentName: this.getTypeLabel(type)
     });
-    const ticketEmbed = new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle(`\u{1F3AB} Ticket #${ticketId} - ${this.getTypeLabel(type)}`).setDescription(`**Created by:** ${user}
+    const ticketEmbed = new import_discord106.EmbedBuilder().setColor("#5865F2").setTitle(`\u{1F3AB} Ticket #${ticketId} - ${this.getTypeLabel(type)}`).setDescription(`**Created by:** ${user}
 **Type:** ${this.getTypeLabel(type)}
 
 Please describe your issue. Staff will be with you shortly.`).setFooter({ text: `Ticket ID: ${ticketId} | User: ${user.id}` }).setTimestamp();
-    const controlRow = new import_discord105.ActionRowBuilder().addComponents(
-      new import_discord105.ButtonBuilder().setCustomId("ticket_claim").setLabel("Claim").setEmoji("\u{1F46E}").setStyle(import_discord105.ButtonStyle.Primary),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_close").setLabel("Close").setEmoji("\u{1F512}").setStyle(import_discord105.ButtonStyle.Danger),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_add_user").setLabel("Add User").setEmoji("\u2795").setStyle(import_discord105.ButtonStyle.Secondary),
-      new import_discord105.ButtonBuilder().setCustomId("ticket_priority").setLabel("Priority").setEmoji("\u26A1").setStyle(import_discord105.ButtonStyle.Secondary)
+    const controlRow = new import_discord106.ActionRowBuilder().addComponents(
+      new import_discord106.ButtonBuilder().setCustomId("ticket_claim").setLabel("Claim").setEmoji("\u{1F46E}").setStyle(import_discord106.ButtonStyle.Primary),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_close").setLabel("Close").setEmoji("\u{1F512}").setStyle(import_discord106.ButtonStyle.Danger),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_add_user").setLabel("Add User").setEmoji("\u2795").setStyle(import_discord106.ButtonStyle.Secondary),
+      new import_discord106.ButtonBuilder().setCustomId("ticket_priority").setLabel("Priority").setEmoji("\u26A1").setStyle(import_discord106.ButtonStyle.Secondary)
     );
     const pingContent = cfg.staffRoleId ? `<@&${cfg.staffRoleId}>` : "Staff";
     await ticketChannel.send({
@@ -197313,9 +198110,9 @@ Please describe your issue. Staff will be with you shortly.`).setFooter({ text: 
       }
       case "ticket_close": {
         if (!isStaff && ticket.userId !== user.id) return interaction.reply({ content: "\u274C Only staff or ticket owner can close.", flags: 64 });
-        const modal = new import_discord105.ModalBuilder().setCustomId(`ticket_close_modal_${ticket._id}`).setTitle("Close Ticket").addComponents(
-          new import_discord105.ActionRowBuilder().addComponents(
-            new import_discord105.TextInputBuilder().setCustomId("close_reason").setLabel("Reason for closing").setStyle(import_discord105.TextInputStyle.Paragraph).setPlaceholder("Issue resolved, duplicate, etc.").setRequired(true).setMaxLength(500)
+        const modal = new import_discord106.ModalBuilder().setCustomId(`ticket_close_modal_${ticket._id}`).setTitle("Close Ticket").addComponents(
+          new import_discord106.ActionRowBuilder().addComponents(
+            new import_discord106.TextInputBuilder().setCustomId("close_reason").setLabel("Reason for closing").setStyle(import_discord106.TextInputStyle.Paragraph).setPlaceholder("Issue resolved, duplicate, etc.").setRequired(true).setMaxLength(500)
           )
         );
         await interaction.showModal(modal);
@@ -197323,9 +198120,9 @@ Please describe your issue. Staff will be with you shortly.`).setFooter({ text: 
       }
       case "ticket_add_user": {
         if (!isStaff && ticket.userId !== user.id) return interaction.reply({ content: "\u274C Only staff or ticket owner can add users.", flags: 64 });
-        const modal = new import_discord105.ModalBuilder().setCustomId(`ticket_add_user_modal_${ticket._id}`).setTitle("Add User to Ticket").addComponents(
-          new import_discord105.ActionRowBuilder().addComponents(
-            new import_discord105.TextInputBuilder().setCustomId("user_id").setLabel("User ID or mention").setStyle(import_discord105.TextInputStyle.Short).setPlaceholder("123456789012345678 or @user").setRequired(true)
+        const modal = new import_discord106.ModalBuilder().setCustomId(`ticket_add_user_modal_${ticket._id}`).setTitle("Add User to Ticket").addComponents(
+          new import_discord106.ActionRowBuilder().addComponents(
+            new import_discord106.TextInputBuilder().setCustomId("user_id").setLabel("User ID or mention").setStyle(import_discord106.TextInputStyle.Short).setPlaceholder("123456789012345678 or @user").setRequired(true)
           )
         );
         await interaction.showModal(modal);
@@ -197385,12 +198182,12 @@ Please describe your issue. Staff will be with you shortly.`).setFooter({ text: 
     if (logChannelId) {
       const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
       if (transcriptChannel && transcriptChannel.isTextBased()) {
-        const embed = new import_discord105.EmbedBuilder().setTitle(`\u{1F4DD} Ticket Transcript - #${ticketId}`).setColor("#ED4245").addFields(
+        const embed = new import_discord106.EmbedBuilder().setTitle(`\u{1F4DD} Ticket Transcript - #${ticketId}`).setColor("#ED4245").addFields(
           { name: "Closed by", value: closer.tag, inline: true },
           { name: "Reason", value: reason, inline: true },
           { name: "Messages", value: messages.size.toString(), inline: true }
         ).setTimestamp();
-        const attachment = new import_discord105.AttachmentBuilder(Buffer.from(transcript), { name: `ticket-${ticketId}.txt` });
+        const attachment = new import_discord106.AttachmentBuilder(Buffer.from(transcript), { name: `ticket-${ticketId}.txt` });
         await transcriptChannel.send({ embeds: [embed], files: [attachment] });
       }
     }

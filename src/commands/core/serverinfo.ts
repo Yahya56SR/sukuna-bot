@@ -13,6 +13,7 @@ export const serverinfoCommand: Command = {
     .setDescription('View server information: member count, channels, roles, boosts, and more.')
     .setDMPermission(false),
   category: 'utility',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction, guild } = context;
     if (!guild) {
@@ -51,7 +52,7 @@ export const serverinfoCommand: Command = {
         },
         { name: 'Verification Level', value: String(guild.verificationLevel), inline: true },
       )
-      .setFooter({ text: '爱 Doctora • Server Info' })
+      .setFooter({ text: '愛 Bella Star • Server Info' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

@@ -29,11 +29,16 @@ const JOBS: readonly Job[] = [
 export const workCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('work')
-    .setDescription('Work a shift to earn some coins.'),
+    .setDescription('Work a shift to earn some coins.')
+    .setDMPermission(false),
   category: 'economy',
   cooldownSeconds: 3600,
   execute: async (context) => {
     const { interaction } = context;
+    if (!interaction.guildId) {
+      await interaction.reply({ content: '❌ Server-only.', ephemeral: true });
+      return;
+    }
     const now = Date.now();
     const user = await getEconomyUser(interaction.user.id);
 
@@ -69,14 +74,26 @@ export const workCommand: Command = {
     }
 
     if (!failed) {
-      void GameProfile.updateOne(
+      // Track the highest-paying job: compare against the stored best payout
+      // so `bestJob` is genuinely the best, not just the most recent (the old
+      // code overwrote it every shift). Work's 1h cooldown makes the
+      // read-then-write race window negligible.
+      const existing = await GameProfile.findOne(
+        { userId: interaction.user.id, guildId: interaction.guildId },
+        { 'work.bestReward': 1 },
+      )
+        .lean()
+        .catch(() => null);
+      const prevBest = (existing as any)?.work?.bestReward ?? 0;
+      const isNewBest = reward > prevBest;
+      await GameProfile.updateOne(
         { userId: interaction.user.id, guildId: interaction.guildId },
         {
           $inc: { 'work.timesWorked': 1, 'work.totalEarned': reward },
-          $set: { 'work.bestJob': job.name },
+          ...(isNewBest ? { $set: { 'work.bestJob': job.name, 'work.bestReward': reward } } : {}),
           $setOnInsert: { userId: interaction.user.id, guildId: interaction.guildId },
         },
-        { upsert: true },
+        { upsert: true, setDefaultsOnInsert: true },
       ).catch(() => undefined);
     }
 
@@ -92,7 +109,7 @@ export const workCommand: Command = {
       .setColor(failed ? Colors.Red : Colors.Green)
       .setTitle(failed ? '💼 Shift gone wrong' : '💼 Shift complete')
       .setDescription(description)
-      .setFooter({ text: '爱 Doctora • Economy' });
+      .setFooter({ text: '愛 Bella Star • Economy' });
 
     await interaction.reply({ embeds: [embed] });
   },

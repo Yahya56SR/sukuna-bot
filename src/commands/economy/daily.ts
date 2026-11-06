@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, Colors } from 'discord.js';
 import type { Command } from '../../core/commands.js';
 import { User } from '../../db/models/User.js';
-import { adjustBalance, formatCoins, getEconomyUser } from '../../utils/economy.js';
+import { formatCoins, getEconomyUser } from '../../utils/economy.js';
 import { recordActivity } from '../../core/metrics.js';
 
 const DAY_MS = 86_400_000;
@@ -15,11 +15,16 @@ const STREAK_GRACE_MS = DAY_MS * 2;
 export const dailyCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('daily')
-    .setDescription('Claim your daily reward.'),
+    .setDescription('Claim your daily reward.')
+    .setDMPermission(false),
   category: 'economy',
   cooldownSeconds: 86400,
   execute: async (context) => {
     const { interaction } = context;
+    if (!interaction.guildId) {
+      await interaction.reply({ content: '❌ Server-only.', ephemeral: true });
+      return;
+    }
     const now = Date.now();
     const user = await getEconomyUser(interaction.user.id);
 
@@ -35,7 +40,7 @@ export const dailyCommand: Command = {
       return;
     }
 
-    const previousStreak = user.dailyStreak ?? 0;
+    const previousStreak = Math.max(0, user.dailyStreak ?? 0);
     const sinceLast = user.lastDaily ? now - user.lastDaily.getTime() : Number.POSITIVE_INFINITY;
     const freezeArmed = user.streakFreeze === true;
 
@@ -53,7 +58,11 @@ export const dailyCommand: Command = {
       streak = 1;
     }
 
-    const bonus = Math.min(streak - 1, STREAK_BONUS_CAP / STREAK_BONUS_PER_DAY) * STREAK_BONUS_PER_DAY;
+    streak = Math.max(1, streak);
+    const bonus = Math.max(
+      0,
+      Math.min(streak - 1, STREAK_BONUS_CAP / STREAK_BONUS_PER_DAY) * STREAK_BONUS_PER_DAY,
+    );
     const reward = BASE_REWARD + bonus;
 
     // Claim is guarded on `lastDaily` so two concurrent claims cannot both pay.
@@ -96,7 +105,7 @@ export const dailyCommand: Command = {
       .setDescription(
         `You claimed **${formatCoins(reward)}** coins.\n${streakLine}\nWallet: **${formatCoins(claimed.balance)}**`,
       )
-      .setFooter({ text: '爱 Doctora • Economy' });
+      .setFooter({ text: '愛 Bella Star • Economy' });
 
     await interaction.reply({ embeds: [embed] });
   },

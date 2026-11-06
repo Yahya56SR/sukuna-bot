@@ -13,6 +13,8 @@ import { bumpCounter, recordActivity } from '../core/metrics.js';
 import { replyError } from '../core/respond.js';
 import { TicketPanel, TicketDepartment, OpenTicket, TicketConfig } from '../db/models/Ticket.js';
 import { getTicketByChannel, closeTicket, startTicketScheduler, stopTicketScheduler } from '../utils/ticketScheduler.js';
+import { Types } from 'mongoose';
+import { canCloseTicket } from '../commands/tickets/ticket.js';
 import { readVcPanelById } from '../db/models/Vc.js';
 import { connectVoice, disconnectVoice, isVoiceConnected } from '../voice/manager.js';
 import { handleButtonInteraction as handleReactionRoleButton, handleSelectMenuInteraction as handleReactionRoleSelect } from '../handlers/reactionRoles.js';
@@ -63,22 +65,32 @@ export const interactionCreate = {
 
     const guildId = interaction.guildId;
     if (!guildId) {
-      await replyError(interaction, "爱 Doctora only works inside a Discord server.");
+      await replyError(interaction, "愛 Bella Star only works inside a Discord server.");
       return;
     }
 
     const errorId = newErrorId();
-    const config = await client.getConfig(guildId);
     const premium = false; // kept for parity; premium system not ported yet
+    let config: any = null;
 
     try {
+      config = await client.getConfig(guildId);
       if (!client.isCategoryEnabled(command.category, config) && !command.allowWhenDisabled) {
         await replyError(interaction, `**/${command.data.name}** is disabled on this server.`);
         return;
       }
 
       if (command.userPermissions?.length) {
-        const missing = interaction.memberPermissions?.missing(command.userPermissions) ?? [];
+        // `memberPermissions` is null for uncached/partial members — fail
+        // closed instead of treating "unknown" as "allowed".
+        if (!interaction.memberPermissions) {
+          await replyError(
+            interaction,
+            'I could not verify your permissions. Please try again.',
+          );
+          return;
+        }
+        const missing = interaction.memberPermissions.missing(command.userPermissions);
         if (missing.length > 0) {
           await replyError(
             interaction,
@@ -88,7 +100,14 @@ export const interactionCreate = {
         }
       }
 
-      if (command.botPermissions?.length && interaction.appPermissions) {
+      if (command.botPermissions?.length) {
+        if (!interaction.appPermissions) {
+          await replyError(
+            interaction,
+            'I could not verify my own permissions. Please try again.',
+          );
+          return;
+        }
         const missing = interaction.appPermissions.missing(command.botPermissions);
         if (missing.length > 0) {
           await replyError(
@@ -289,13 +308,17 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
 
   // Parse department id from custom id: ticket_create:<departmentId>
   const deptId = interaction.customId.split(':')[1];
-  if (!deptId) {
+  if (!deptId || !Types.ObjectId.isValid(deptId)) {
     await interaction.editReply({ content: '❌ Invalid ticket department.' });
     return;
   }
 
-  const department = await TicketDepartment.findById(deptId);
-  if (!department || !department.isActive) {
+  const department = await TicketDepartment.findOne({
+    _id: deptId,
+    guildId: guild.id,
+    isActive: true,
+  }).catch(() => null);
+  if (!department) {
     await interaction.editReply({ content: '❌ That department is not available.' });
     return;
   }
@@ -376,9 +399,23 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
   }
 
   let channel: TextChannel | null = null;
+  let ticketCreated = false;
   try {
+    // Sanitize the channel name: Discord limits (100 chars, lowercase,
+    // [a-z0-9-]) apply to the *whole* name, not just the department part —
+    // a raw username with spaces/unicode would 400 the create.
+    const safeDept = department.name
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 30);
+    const safeUser = user.username
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '')
+      .slice(0, 20);
+    const channelName = `ticket-${safeDept || 'support'}-${safeUser || 'user'}`.slice(0, 100);
     channel = (await guild.channels.create({
-      name: `ticket-${department.name.toLowerCase().replace(/\s+/g, '-')}-${user.username}`,
+      name: channelName,
       type: 0, // GuildText
       topic: `Support ticket for ${user.tag} (${user.id}) • ${department.name}`,
       permissionOverwrites: overwrites,
@@ -394,6 +431,7 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
       departmentId: department._id.toString(),
       departmentName: department.name,
     });
+    ticketCreated = true;
 
     // Record the cooldown timestamp only after a successful create.
     if (cooldownSeconds > 0) {
@@ -409,13 +447,13 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
     const closeRow = new ActionRowBuilder().addComponents(closeButton);
 
     // Department welcome message, with {user} placeholder
-    const welcome = department.welcomeMessage.replace(/\{user\}/g, `<@${user.id}>`);
+    const welcome = (department.welcomeMessage ?? '').replace(/\{user\}/g, `<@${user.id}>`);
 
     const welcomeEmbed = new EmbedBuilder()
-      .setColor(department.color)
-      .setTitle(`${department.emoji} Ticket Opened — ${department.name}`)
-      .setDescription(welcome)
-      .setFooter({ text: '愛 Doctora • Tickets' })
+      .setColor(department.color ?? 0x5865f2)
+      .setTitle(`${department.emoji ?? '🎫'} Ticket Opened — ${department.name}`)
+      .setDescription(welcome || `Ticket # opened for ${user.tag}.`)
+      .setFooter({ text: '愛 Bella Star • Tickets' })
       .setTimestamp();
 
     await channel!.send({
@@ -432,6 +470,16 @@ async function handleTicketCreate(client: any, interaction: any): Promise<void> 
       try {
         await (channel as any).delete();
       } catch {}
+    }
+    // If the ticket row was created but channel send failed afterwards,
+    // delete the row too — otherwise the user is permanently locked out
+    // ("already have an open ticket" with no visible channel).
+    if (ticketCreated && channel) {
+      await OpenTicket.deleteOne({
+        guildId: guild.id,
+        channelId: channel.id,
+        closedAt: null,
+      }).catch(() => undefined);
     }
     await interaction.editReply({
       content: '❌ Failed to create ticket channel.',
@@ -455,6 +503,16 @@ async function handleTicketCloseButton(interaction: any): Promise<void> {
   }
 
   const config = await TicketConfig.findOne({ guildId: guild.id });
+  // Same gate as `/ticket close`: only the owner or staff may close.
+  const member = interaction.member as any;
+  if (!canCloseTicket(member, ticket, config?.staffRoleIds ?? [])) {
+    await interaction.editReply({
+      content: '❌ Only the ticket owner or support staff can close this ticket.',
+      flags: 64,
+    });
+    return;
+  }
+
   await closeTicket(interaction.client, ticket, {
     reason: 'Manual close',
     closedBy: interaction.user.id,
@@ -490,7 +548,7 @@ async function handleVcJoin(client: any, interaction: any): Promise<void> {
   }
 
   // One panel serves all voice channels: join the tapping user's current VC.
-  const channelId = member.voice?.channel?.id ?? null;
+  const channelId = member?.voice?.channel?.id ?? null;
   if (!channelId) {
     await interaction.editReply({
       content: '❌ You are not in a voice channel. Join one first, then tap again.',
@@ -521,7 +579,7 @@ async function handleVcJoin(client: any, interaction: any): Promise<void> {
   try {
     await connectVoice(guild as any, channelId);
     await interaction.editReply({
-      content: `🔊 愛 Doctora has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`,
+      content: `🔊 愛 Bella Star has joined **${channel.name}**! Use \`/voice leave\` to disconnect.`,
     });
   } catch (error) {
     await interaction.editReply({

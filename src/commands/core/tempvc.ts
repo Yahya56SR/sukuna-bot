@@ -64,6 +64,7 @@ export const tempvcCommand: Command = {
         .addStringOption((o) => o.setName('value').setDescription('New value').setRequired(true)),
     ),
   category: 'utility',
+  userPermissions: [PermissionFlagsBits.ManageGuild],
   botPermissions: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect],
   execute: async (context) => {
     const { interaction, guild } = context;
@@ -200,7 +201,7 @@ async function handleStatus(context: { interaction: any; guild: Guild }) {
         inline: true,
       },
     )
-    .setFooter({ text: '愛 Doctora • Temp VC' })
+    .setFooter({ text: '愛 Bella Star • Temp VC' })
     .setTimestamp();
 
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

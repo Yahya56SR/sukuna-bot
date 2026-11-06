@@ -1,5 +1,5 @@
 /**
- * Ticket system models for the 愛 Doctora feature-rich ticket system.
+ * Ticket system models for the 愛 Bella Star feature-rich ticket system.
  *
  * TicketPanel: a posted, decorated panel with per-department "Create Ticket" buttons.
  * TicketDepartment: a ticket category with its own staff role, welcome message and styling.
@@ -41,7 +41,7 @@ const ticketPanelSchema = new Schema<ITicketPanel>(
     embedColor: { type: Number, required: true, default: 0x5865f2 },
     embedImage: { type: String },
     embedThumbnail: { type: String },
-    embedFooter: { type: String, default: '愛 Doctora • Tickets' },
+    embedFooter: { type: String, default: '愛 Bella Star • Tickets' },
   },
   { timestamps: true },
 );

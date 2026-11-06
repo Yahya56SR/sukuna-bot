@@ -44,7 +44,7 @@ export const levelupCommand: Command = {
           .replace('{xp}', '1500')
           .replace('{xpneeded}', '500'),
       )
-      .setFooter({ text: '爱 Doctora • Level Up Test' })
+      .setFooter({ text: '愛 Bella Star • Level Up Test' })
       .setTimestamp();
 
     const channel = interaction.guild?.channels.cache.get(levelUpChannel);

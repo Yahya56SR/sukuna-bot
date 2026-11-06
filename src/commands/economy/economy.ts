@@ -60,7 +60,7 @@ export const economyCommand: Command = {
           inline: true,
         },
       )
-      .setFooter({ text: '爱 Doctora • Economy' })
+      .setFooter({ text: '愛 Bella Star • Economy' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

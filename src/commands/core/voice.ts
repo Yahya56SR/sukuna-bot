@@ -5,7 +5,8 @@ import type { Command } from '../../core/commands.js';
 export const voiceCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('voice')
-    .setDescription('Make 爱 Doctora join a voice channel and talk there.')
+    .setDescription('Make 愛 Bella Star join a voice channel and talk there.')
+    .setDMPermission(false)
     .addSubcommand((sub) =>
       sub.setName('join').setDescription('Join your voice channel: hear members and answer out loud'),
     )
@@ -20,7 +21,10 @@ export const voiceCommand: Command = {
         ),
     ),
   category: 'utility',
-  botPermissions: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],  execute: async (context) => {
+  // NOTE: no command-level botPermissions — `leave`/`status` must work even
+  // after Connect/Speak were revoked from the bot role. `join` checks the
+  // channel permissions itself.
+  execute: async (context) => {
     const { interaction, guild, member } = context;
     const subcommand = interaction.options.getSubcommand(true);
 

@@ -57,7 +57,7 @@ export const serverinfoEnhancedCommand: Command = {
         { name: '📅 Created', value: `<t:${createdTimestamp}:R>`, inline: true },
         { name: '🛡️ Verification', value: String(guild.verificationLevel), inline: true },
       )
-      .setFooter({ text: '爱 Doctora • Server Info' })
+      .setFooter({ text: '愛 Bella Star • Server Info' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

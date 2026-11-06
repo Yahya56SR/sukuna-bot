@@ -17,6 +17,7 @@ export const leaderboardCommand: Command = {
         .setMaxValue(25),
     ),
   category: 'leveling',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const limit = interaction.options.getInteger('limit') ?? 10;

@@ -20,6 +20,7 @@ export const rpsCommand: Command = {
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'fun',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const userChoice = interaction.options.getString('choice', true).toLowerCase();

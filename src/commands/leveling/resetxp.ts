@@ -6,7 +6,7 @@ import {
 } from 'discord.js';
 import type { Command } from '../../core/commands.js';
 import { setUserXp } from '../../db/index.js';
-import { handleLevelUp } from '../../handlers/levelUp.js';
+import { syncLevelRoles } from '../../handlers/levelUp.js';
 import { readLevelSettings } from '../../utils/levelSettings.js';
 import { isOwner } from '../../core/owner.js';
 
@@ -36,13 +36,15 @@ export const resetXpCommand: Command = {
     const result = await setUserXp(targetUser.id, 0);
 
     // Re-derive level (now 0) and sync roles so a reset strips any level rewards.
+    // Use role sync (silent) — announcing "Congratulations, level 0!" via
+    // handleLevelUp is noise and previously used empty settings (no-op).
     if (guild) {
       const member =
         guild.members.cache.get(targetUser.id) ??
         (await guild.members.fetch(targetUser.id).catch(() => null));
-      const settings = readLevelSettings({});
+      const settings = readLevelSettings((context as any).settings ?? {});
       if (member) {
-        await handleLevelUp(guild, targetUser, result.newLevel, result.oldLevel, undefined, settings);
+        await syncLevelRoles(guild, member, result.newLevel, settings.levelRoles).catch(() => undefined);
       }
     }
 
@@ -50,7 +52,7 @@ export const resetXpCommand: Command = {
       .setColor(0x22c55e)
       .setTitle('✅ XP Reset')
       .setDescription(`XP has been reset for **${targetUser.tag}**`)
-      .setFooter({ text: '爱 Doctora • XP Reset' })
+      .setFooter({ text: '愛 Bella Star • XP Reset' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

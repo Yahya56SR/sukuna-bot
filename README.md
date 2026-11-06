@@ -1,4 +1,4 @@
-# 爱 Doctora — All-in-One Discord Bot
+# 愛 Bella Star — All-in-One Discord Bot
 
 A modular, slash-command-first Discord bot with moderation, economy, leveling, tickets, fun, utility, and more — inspired by PeakBot and similar all-in-one bots.
 
@@ -19,7 +19,7 @@ A modular, slash-command-first Discord bot with moderation, economy, leveling, t
 ### 1. Create a Discord Application
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click **New Application** → give it a name (e.g., "爱 Doctora")
+2. Click **New Application** → give it a name (e.g., "愛 Bella Star")
 3. Go to **Bot** → **Reset Token** to get your `DISCORD_TOKEN`
 4. Copy the **Application ID** → that's your `DISCORD_CLIENT_ID`
 5. Under **Privileged Gateway Intents**, enable:
@@ -42,7 +42,7 @@ Or use the **OAuth2 → URL Generator** in the Developer Portal with:
 
 ### 3. Set Up MongoDB Atlas
 
-爱 Doctora uses **MongoDB Atlas** (cloud) by default.
+愛 Bella Star uses **MongoDB Atlas** (cloud) by default.
 
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and create a free account
 2. Create a **Shared Cluster** (free tier M0/M2/M5)
@@ -202,7 +202,7 @@ Changes made in the dashboard are persisted in MongoDB (`bot_configs` for the pe
 
 ## 🎙️ Voice
 
-`/voice join` puts 爱 Doctora in your voice channel and opens a duplex Gemini Live session:
+`/voice join` puts 愛 Bella Star in your voice channel and opens a duplex Gemini Live session:
 
 - **Listening** – every member who speaks is decoded (Opus → 48 kHz stereo PCM), downmixed to 16 kHz mono and streamed to the Live API in 20 ms frames, with silence padding so the server-side VAD can end a turn.
 - **Talking** – the model's audio (24 kHz PCM) is converted to 48 kHz stereo and played with `@discordjs/voice` (`StreamType.Raw`, so no ffmpeg). Talking over her sends `interrupted`, which flushes playback (barge-in).

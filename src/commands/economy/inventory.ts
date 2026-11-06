@@ -57,7 +57,7 @@ export const inventoryCommand: Command = {
     if (user.luckyClover) flags.push('🍀 Lucky Clover active');
     if (flags.length) embed.addFields({ name: '✨ Active effects', value: flags.join('\n') });
 
-    embed.setFooter({ text: '爱 Doctora • Inventory' }).setTimestamp();
+    embed.setFooter({ text: '愛 Bella Star • Inventory' }).setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   },

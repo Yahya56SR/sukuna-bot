@@ -161,8 +161,10 @@ export function createSukunaToolExecutor(context: SukunaToolContext): SukunaTool
     try {
       return await handleTool(name, args, context);
     } catch (error) {
-      console.error('[Sukuna Tool] Failed: ' + String(error));
-      return { ok: false, error: String(error) };
+      // Do not leak internal (Mongo/Discord) details to the model where it
+      // could quote them back to users.
+      console.error('[Sukuna Tool] Failed:', error);
+      return { ok: false, error: 'That tool call failed.' };
     }
   };
 }
@@ -216,10 +218,17 @@ async function handleTool(
       }
 
       const raw = typeof args.user === 'string' ? args.user : '';
-      const member =
-        (raw ? await resolveMember(guild, raw) : null) ??
-        trigger?.member ??
-        (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      let member: GuildMember | null;
+      if (raw) {
+        // Named target must resolve — silently falling back to the trigger
+        // returned the *wrong* person's info when the name didn't match.
+        member = await resolveMember(guild, raw);
+        if (!member) return { ok: false, error: `Member "${raw}" not found in this server.` };
+      } else {
+        member =
+          trigger?.member ??
+          (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      }
       if (!member) return { ok: false, error: 'Member not found.' };
 
       return {
@@ -248,7 +257,7 @@ async function handleTool(
           id: m.id,
           authorId: m.author.id,
           authorName: m.member?.displayName ?? m.author.username,
-          content: m.content,
+          content: (m.content ?? '').slice(0, 300),
           timestamp: m.createdTimestamp,
         })),
       };
@@ -304,8 +313,15 @@ async function handleTool(
       if (!text) return { ok: false, error: 'The message argument is required.' };
 
       const rawTarget = typeof args.user === 'string' ? args.user.trim() : '';
-      const member =
-        (rawTarget ? await resolveMember(guild, rawTarget) : null) ?? trigger?.member ?? null;
+      let member: GuildMember | null;
+      if (rawTarget) {
+        // Named target must resolve — falling back to the trigger would DM
+        // the trigger author instead of the intended recipient.
+        member = await resolveMember(guild, rawTarget);
+        if (!member) return { ok: false, error: `Member "${rawTarget}" not found in this server.` };
+      } else {
+        member = trigger?.member ?? null;
+      }
 
       if (!member) return { ok: false, error: 'Member not found in this server.' };
       if (member.id === context.client.user?.id) {
@@ -363,10 +379,14 @@ async function handleTool(
       if (!fact) return { ok: false, error: 'Fact is required' };
 
       const rawAbout = typeof args.about === 'string' ? args.about.trim() : '';
-      const member = rawAbout
-        ? await resolveMember(guild, rawAbout)
-        : trigger?.member ??
+      let member: GuildMember | null;
+      if (rawAbout) {
+        member = await resolveMember(guild, rawAbout);
+      } else {
+        member =
+          trigger?.member ??
           (trigger ? guild.members.cache.get(trigger.author.id) ?? null : null);
+      }
       const aboutName = member?.displayName ?? (rawAbout || undefined);
 
       const note = await addMemory(guild.id, {
@@ -412,12 +432,9 @@ function isDmTargetAllowed(member: GuildMember, trigger?: Message | null): boole
   if (trigger.author.id === member.id) return true;
   if (trigger.mentions.members?.has(member.id)) return true;
 
-  const haystack = trigger.content?.toLowerCase() ?? '';
-  for (const candidate of [member.user.username, member.displayName]) {
-    const needle = candidate.toLowerCase();
-    if (needle.length >= 3 && haystack.includes(needle)) return true;
-  }
-
+  // NOTE: a substring check (`content.includes(username)`) previously let any
+  // user authorize a DM to any victim just by typing their name. Moderator
+  // request is the only remaining non-mention path.
   return trigger.member?.permissions.has(PermissionFlagsBits.ManageGuild) ?? false;
 }
 

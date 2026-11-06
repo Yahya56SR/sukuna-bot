@@ -22,7 +22,7 @@ export const vcCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('vc')
     .setDescription(
-      'One-tap voice: post a panel that lets members summon 愛 Doctora to their own voice channel.',
+      'One-tap voice: post a panel that lets members summon 愛 Bella Star to their own voice channel.',
     )
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
@@ -61,6 +61,7 @@ export const vcCommand: Command = {
         ),
     ),
   category: 'utility',
+  userPermissions: [PermissionFlagsBits.ManageGuild],
   botPermissions: [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
   execute: async (context) => {
     const { interaction } = context;
@@ -92,7 +93,7 @@ async function handleSetup(context: {
   const title = interaction.options.getString('title') ?? '🔊 One Tap Voice';
   const description =
     interaction.options.getString('description') ??
-    'Click **Join VC** below to have 愛 Doctora join **your** voice channel.\n\n' +
+    'Click **Join VC** below to have 愛 Bella Star join **your** voice channel.\n\n' +
     'Make sure you are in a voice channel before tapping. Works for any voice channel in this server.';
 
   const embed = new EmbedBuilder()
@@ -100,7 +101,7 @@ async function handleSetup(context: {
     .setTitle(title)
     .setDescription(description)
     .setThumbnail(guild.iconURL())
-    .setFooter({ text: '愛 Doctora • One Tap VC' })
+    .setFooter({ text: '愛 Bella Star • One Tap VC' })
     .setTimestamp();
 
   // Create the panel record first so we have a stable _id for the button customId.
@@ -111,7 +112,7 @@ async function handleSetup(context: {
     embedTitle: title,
     embedDescription: description,
     embedColor: 0x5865f2,
-    embedFooter: '愛 Doctora • One Tap VC',
+    embedFooter: '愛 Bella Star • One Tap VC',
   });
 
   const panelId = panel._id.toString();
@@ -139,7 +140,7 @@ async function handleSetup(context: {
   await updateVcPanelById(panelId, { messageId: message.id });
 
   await interaction.reply({
-    content: `✅ One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon 愛 Doctora.`,
+    content: `✅ One-tap VC panel posted in ${targetChannel}. Members can tap **Join VC** from any voice channel to summon 愛 Bella Star.`,
     flags: MessageFlags.Ephemeral,
   });
 }

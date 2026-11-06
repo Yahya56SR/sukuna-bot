@@ -61,7 +61,7 @@ export const quickticketCommand: Command = {
       .setTitle('🎫 Quick Ticket Panel')
       .setDescription('Click a department below to open a private support ticket.\n\n🎫 **Support** — General support')
       .setThumbnail(g.iconURL())
-      .setFooter({ text: '爱 Doctora • Quick Tickets' })
+      .setFooter({ text: '愛 Bella Star • Quick Tickets' })
       .setTimestamp();
 
     const row = new ActionRowBuilder();

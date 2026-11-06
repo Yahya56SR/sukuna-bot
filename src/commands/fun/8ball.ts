@@ -9,6 +9,7 @@ export const eightBallCommand: Command = {
       option.setName("question").setDescription("Your question").setRequired(true),
     ),
   category: "fun",
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const question = interaction.options.getString("question")!;

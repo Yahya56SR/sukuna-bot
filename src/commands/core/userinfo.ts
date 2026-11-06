@@ -17,6 +17,7 @@ export const userinfoCommand: Command = {
       option.setName('user').setDescription('The member to check').setRequired(false),
     ),
   category: 'utility',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction, guild } = context;
     const target = interaction.options.getUser('user') ?? interaction.user;
@@ -76,7 +77,7 @@ export const userinfoCommand: Command = {
       .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
       .setThumbnail(target.displayAvatarURL({ size: 256 }))
       .addFields(fields)
-      .setFooter({ text: '爱 Doctora • User Profile' })
+      .setFooter({ text: '愛 Bella Star • User Profile' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

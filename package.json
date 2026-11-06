@@ -2,7 +2,7 @@
   "name": "sukuna-bot",
   "version": "1.0.0",
   "private": true,
-  "description": "爱 Doctora - all-in-one Discord bot (moderation, economy, leveling, tickets, fun, utility)",
+  "description": "愛 Bella Star - all-in-one Discord bot (moderation, economy, leveling, tickets, fun, utility)",
   "license": "MIT",
   "engines": {
     "node": ">=20"

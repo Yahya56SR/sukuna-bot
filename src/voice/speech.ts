@@ -55,7 +55,7 @@ export function sanitizeForSpeech(text: string): string {
     .slice(0, MAX_SPEECH_CHARS);
 }
 
-const SPEECH_INSTRUCTION = `You are the voice of 爱 Doctora, a girl talking with friends in a Discord server.
+const SPEECH_INSTRUCTION = `You are the voice of 愛 Bella Star, a girl talking with friends in a Discord server.
 
 You will receive exactly one message. Read it out loud, word for word, like you are saying it in a voice call:
 - Keep the same words, the same order and the same tone. Do not add, remove, shorten or explain anything.

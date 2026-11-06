@@ -16,6 +16,7 @@ export const complimentCommand: Command = {
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'fun',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const target = interaction.options.getUser('user') ?? interaction.user;
@@ -40,7 +41,7 @@ export const complimentCommand: Command = {
       .setColor(0x22c55e)
       .setTitle('💖 Compliment')
       .setDescription(`**${target.username}**, ${compliment}`)
-      .setFooter({ text: '爱 Doctora • Compliment' })
+      .setFooter({ text: '愛 Bella Star • Compliment' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

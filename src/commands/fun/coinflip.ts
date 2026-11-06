@@ -6,6 +6,7 @@ export const coinflipCommand: Command = {
     .setName("coinflip")
     .setDescription("Flip a coin."),
   category: "fun",
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const result = Math.random() < 0.5 ? "Heads" : "Tails";

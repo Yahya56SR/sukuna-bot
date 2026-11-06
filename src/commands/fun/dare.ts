@@ -25,6 +25,7 @@ export const dareCommand: Command = {
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'fun',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const dare = darePrompts[Math.floor(Math.random() * darePrompts.length)];

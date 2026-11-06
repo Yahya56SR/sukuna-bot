@@ -1,4 +1,4 @@
-# 爱 Doctora Bot - Implementation Progress
+# 愛 Bella Star Bot - Implementation Progress
 
 ## ✅ COMPLETED FEATURES
 

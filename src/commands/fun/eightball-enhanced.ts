@@ -45,7 +45,7 @@ export const eightBallEnhancedCommand: Command = {
         { name: 'Question', value: question, inline: false },
         { name: 'Answer', value: answer, inline: false },
       )
-      .setFooter({ text: '爱 Doctora • 8-Ball' })
+      .setFooter({ text: '愛 Bella Star • 8-Ball' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });

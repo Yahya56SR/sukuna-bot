@@ -37,7 +37,7 @@ export const shopCommand: Command = {
         name: 'How to buy',
         value: 'Use `/buy item:<name>` to purchase, then `/use item:<name>` to activate consumables. `/inventory` shows what you own.',
       })
-      .setFooter({ text: '爱 Doctora • Shop' })
+      .setFooter({ text: '愛 Bella Star • Shop' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });

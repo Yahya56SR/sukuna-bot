@@ -1,5 +1,5 @@
 /* ==========================================================================
-   爱 Doctora Control Panel — frontend
+   愛 Bella Star Control Panel — frontend
    Vanilla JS. No build step, no framework, CSP-safe event delegation.
    ========================================================================== */
 
@@ -70,7 +70,7 @@ const COMMAND_TONES = {
 const ROUTES = {
   overview: { title: 'Overview', subtitle: 'Bot health and live activity', render: renderOverview },
   guilds: { title: 'Guilds', subtitle: 'Per-server modules, XP and content', render: renderGuilds },
-  persona: { title: 'Persona', subtitle: '爱 Doctora AI identity, behavior and limits', render: renderPersona },
+  persona: { title: 'Persona', subtitle: '愛 Bella Star AI identity, behavior and limits', render: renderPersona },
   users: { title: 'Economy', subtitle: 'User balances, XP and levels', render: renderUsers },
   commands: { title: 'Commands', subtitle: 'Everything registered on the bot', render: renderCommands },
   activity: { title: 'Activity', subtitle: 'Live commands, AI replies, warnings and errors', render: renderActivity },
@@ -398,7 +398,7 @@ function refreshOverviewHeader() {
   if (pill) {
     pill.className = 'pill ' + (overview.persona.enabled ? 'amber' : 'red');
     pill.innerHTML = '<span class="dot"></span>' +
-      (overview.bot ? esc(overview.bot.username) : '爱 Doctora') +
+      (overview.bot ? esc(overview.bot.username) : '愛 Bella Star') +
       ' · ' + (overview.persona.enabled ? 'AI on' : 'AI off');
   }
 }
@@ -588,7 +588,7 @@ async function renderOverview(token) {
       ? '<img class="avatar lg" src="' + esc(bot.avatar) + '" alt="">'
       : '<span class="brand-mark large">爱</span>') +
     '<div class="bot-meta grow">' +
-    '<h2>' + esc(bot ? bot.tag : '爱 Doctora') + '</h2>' +
+    '<h2>' + esc(bot ? bot.tag : '愛 Bella Star') + '</h2>' +
     '<p>Application ID <span class="mono">' + esc(bot ? bot.id : '—') + '</span> · created ' + esc(fmtDate(bot && bot.createdAt)) + '</p>' +
     '<div class="row wrap" style="margin-top:9px">' +
     '<span class="pill green"><span class="dot"></span>Gateway online</span>' +
@@ -689,7 +689,7 @@ async function renderGuilds(token) {
 
   if (!state.guilds.length) {
     setView('<div class="card pad"><div class="empty-state"><span class="big">▦</span>' +
-      '<strong>No guilds</strong><p class="muted small">Invite 爱 Doctora to a server to manage it here.</p></div></div>');
+      '<strong>No guilds</strong><p class="muted small">Invite 愛 Bella Star to a server to manage it here.</p></div></div>');
     return;
   }
 
@@ -1133,7 +1133,7 @@ function guildMemoriesHtml() {
 
 function memoryListHtml(data) {
   if (!data.memories.length) {
-    return '<div class="empty-state"><span class="big">✦</span><span>No memories yet. 爱 Doctora writes these as she learns about the server.</span></div>';
+    return '<div class="empty-state"><span class="big">✦</span><span>No memories yet. 愛 Bella Star writes these as she learns about the server.</span></div>';
   }
   return data.memories.map((memory) =>
     '<div class="memory"><div class="memory-body"><p>' + esc(memory.fact) + '</p>' +
@@ -1172,7 +1172,7 @@ function updateGuildMemoriesTabLabel() {
 }
 
 async function deleteMemory(memoryId) {
-  const confirmed = await confirmAction('Delete memory', 'Remove this fact from 爱 Doctora\'s long-term memory?', 'Delete');
+  const confirmed = await confirmAction('Delete memory', 'Remove this fact from 愛 Bella Star\'s long-term memory?', 'Delete');
   if (!confirmed) return;
   try {
     await api('/api/guilds/' + encodeURIComponent(state.selectedGuildId) + '/memories/' + encodeURIComponent(memoryId), {
@@ -1188,7 +1188,7 @@ async function deleteMemory(memoryId) {
 async function clearMemories() {
   const confirmed = await confirmAction(
     'Clear all memories',
-    'This deletes every memory 爱 Doctora has stored for this guild. This cannot be undone.',
+    'This deletes every memory 愛 Bella Star has stored for this guild. This cannot be undone.',
     'Clear memories',
   );
   if (!confirmed) return;
@@ -1219,7 +1219,7 @@ function guildContentHtml() {
   return '<div class="content-grid">' +
 
     '<div class="card content-card"><div class="card-head"><div><h3>Server rules</h3>' +
-    '<p>One rule per line. 爱 Doctora can quote these.</p></div></div>' +
+    '<p>One rule per line. 愛 Bella Star can quote these.</p></div></div>' +
     '<div class="card-body"><form id="guild-rules-form" class="stack">' +
     '<textarea class="textarea" name="rules" rows="8" placeholder="Be respectful.&#10;No spam.&#10;Keep it on topic.">' +
     esc((rules || []).join('\n')) + '</textarea>' +
@@ -1246,7 +1246,7 @@ function guildContentHtml() {
     '</div></div>' +
 
     '<div class="card content-card"><div class="card-head"><div><h3>Announcements</h3>' +
-    '<p>Reusable announcements stored for 爱 Doctora.</p></div><span class="badge">' + (announcements || []).length + '</span></div>' +
+    '<p>Reusable announcements stored for 愛 Bella Star.</p></div><span class="badge">' + (announcements || []).length + '</span></div>' +
     '<div class="card-body">' +
     '<form id="guild-ann-form" class="inline-form">' +
     '<input class="input sm" name="title" placeholder="Title" maxlength="200" required>' +
@@ -1352,7 +1352,7 @@ function personaHtml() {
 
     '<div class="card pad">' +
     '<div class="section-head"><div><p class="eyebrow">Identity</p><h2>' + esc(config.displayName) + '</h2>' +
-    '<p>How 爱 Doctora presents herself and which model powers replies.</p></div>' +
+    '<p>How 愛 Bella Star presents herself and which model powers replies.</p></div>' +
     '<span class="pill ' + (config.enabled ? 'green' : 'red') + '"><span class="dot"></span>' +
     (config.enabled ? 'Active' : 'Disabled') + '</span></div>' +
     '<div class="form-grid" style="margin-top:16px">' +
@@ -1380,9 +1380,9 @@ function personaHtml() {
     '</div>' +
     '<div class="field" style="margin-top:16px"><div class="field-label"><span>System prompt</span>' +
     '<button class="btn ghost small" type="button" data-action="default-prompt">Load default prompt</button></div>' +
-    '<textarea class="textarea code" id="f-systemPrompt" name="systemPrompt" rows="10" placeholder="Leave empty to use the default 爱 Doctora prompt.">' +
+    '<textarea class="textarea code" id="f-systemPrompt" name="systemPrompt" rows="10" placeholder="Leave empty to use the default 愛 Bella Star prompt.">' +
     esc(config.systemPrompt || '') + '</textarea>' +
-    '<span class="field-hint">Leave empty to use the built-in 爱 Doctora prompt. The runtime integration contract is appended automatically.</span></div>' +
+    '<span class="field-hint">Leave empty to use the built-in 愛 Bella Star prompt. The runtime integration contract is appended automatically.</span></div>' +
     '</div>' +
 
     '<div class="grid cols-2">' +
@@ -1415,7 +1415,7 @@ function personaHtml() {
     '</div>' +
 
     '<div class="card pad">' +
-    '<div class="section-head"><div><p class="eyebrow">Activation</p><h2>Channels where 爱 Doctora replies</h2>' +
+    '<div class="section-head"><div><p class="eyebrow">Activation</p><h2>Channels where 愛 Bella Star replies</h2>' +
     '<p><span id="persona-channel-count">' + selectedCount + '</span> <span id="persona-channel-label">channel' +
     (selectedCount === 1 ? '' : 's') + '</span> selected across all guilds.</p></div>' +
     '<span class="badge">' + num(config.channelIds.length) + ' saved</span></div>' +
@@ -1439,7 +1439,7 @@ function personaHtml() {
     '<div class="section-head"><div><p class="eyebrow">Sandbox</p><h2>Test the persona</h2>' +
     '<p>Runs one real Gemini call using the saved configuration.</p></div></div>' +
     '<form id="persona-test-form" class="stack" style="margin-top:14px">' +
-    '<textarea class="textarea" name="prompt" rows="3" maxlength="4000" placeholder="Ask 爱 Doctora something, e.g. “someone just said the server is dead, roast them gently”" required></textarea>' +
+    '<textarea class="textarea" name="prompt" rows="3" maxlength="4000" placeholder="Ask 愛 Bella Star something, e.g. “someone just said the server is dead, roast them gently”" required></textarea>' +
     '<div class="row"><span class="muted tiny grow">The test uses the current saved model, prompt and temperature.</span>' +
     '<button class="btn primary" type="submit">Run test</button></div>' +
     '</form>' +
@@ -1579,7 +1579,7 @@ async function testPersona(form) {
 async function resetPersona() {
   const confirmed = await confirmAction(
     'Reset persona configuration',
-    'Restore the default 爱 Doctora prompt, model, limits and disable all activation channels?',
+    'Restore the default 愛 Bella Star prompt, model, limits and disable all activation channels?',
     'Reset settings',
   );
   if (!confirmed) return;
@@ -1935,7 +1935,7 @@ async function renderSystem(token) {
     '<section class="grid side">' +
     '<div class="stack">' +
     '<div class="card pad"><div class="section-head"><div><p class="eyebrow">Runtime</p><h2>Bot process</h2>' +
-    '<p>Live values from the Node.js process hosting 爱 Doctora.</p></div>' +
+    '<p>Live values from the Node.js process hosting 愛 Bella Star.</p></div>' +
     '<span class="badge ' + (db.state === 'connected' ? 'green' : 'red') + '">' + esc(db.state) + '</span></div>' +
     '<div class="kv" style="margin-top:12px">' +
     kvRow('Bot', esc(overview.bot ? overview.bot.tag : '—')) +

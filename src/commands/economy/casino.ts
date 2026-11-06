@@ -83,13 +83,18 @@ export const casinoCommand: Command = {
             .setRequired(false),
         ),
     )
-    .addSubcommand((sub) => sub.setName('stats').setDescription('View casino stats')),
+    .addSubcommand((sub) => sub.setName('stats').setDescription('View casino stats'))
+    .setDMPermission(false),
 
   category: 'economy',
   cooldownSeconds: 3,
 
   async execute(context) {
     const { interaction, guild } = context;
+    if (!guild) {
+      await interaction.reply({ content: '❌ Server-only.', ephemeral: true });
+      return;
+    }
     const guildId = guild.id;
     const userId = interaction.user.id;
     const sub = interaction.options.getSubcommand();
@@ -115,33 +120,56 @@ export const casinoCommand: Command = {
     const cloverArmed = user.luckyClover === true;
 
     const outcome = play(sub, interaction, bet);
-    if (!outcome) return;
+    if (!outcome) {
+      await interaction.reply({ content: '❌ Unknown game.', ephemeral: true });
+      return;
+    }
 
     let { winnings, description, color, extra } = outcome;
     let cloverUsed = false;
+    let cloverClaimed = false;
     if (cloverArmed && winnings < bet) {
-      winnings = Math.floor(bet / 2);
-      cloverUsed = true;
-      description += '\n🍀 Your Lucky Clover refunded half the stake!';
+      // Atomically claim the clover *before* applying any refund: only the
+      // one concurrent game that wins the claim gets the refund (the old
+      // read-then-refund let a single clover refund two losses).
+      const claimed = await User.updateOne(
+        { userId, luckyClover: true },
+        { $set: { luckyClover: false } },
+      );
+      if (claimed.modifiedCount === 1) {
+        cloverClaimed = true;
+        // Bet of 1 halves to 0 — don't burn the clover for nothing.
+        if (bet >= 2) {
+          winnings = Math.floor(bet / 2);
+          cloverUsed = true;
+          description += '\n🍀 Your Lucky Clover refunded half the stake!';
+        } else {
+          // No benefit on a 1-coin bet; restore the clover.
+          await User.updateOne({ userId, luckyClover: false }, { $set: { luckyClover: true } }).catch(
+            () => undefined,
+          );
+          cloverClaimed = false;
+        }
+      }
     }
 
     // One atomic step: the wallet must cover the bet before the net applies, so
     // two games landing together cannot double-spend the same coins.
     const balance = await settleWager(userId, bet, winnings);
     if (balance === null) {
+      // The wager never happened — restore the clover claim.
+      if (cloverClaimed) {
+        await User.updateOne({ userId, luckyClover: false }, { $set: { luckyClover: true } }).catch(
+          () => undefined,
+        );
+      }
       await interaction.reply({ content: '❌ Insufficient balance.', ephemeral: true });
       return;
     }
 
-    if (cloverUsed) {
-      await User.updateOne({ userId, luckyClover: true }, { $set: { luckyClover: false } });
-    }
-
-    recordGame(profile, sub as GameKey, bet, winnings, extra);
-    if (outcome.crashPoint && outcome.crashPoint > profile.casino.crash.highestMultiplier) {
-      profile.casino.crash.highestMultiplier = Number(outcome.crashPoint.toFixed(2));
-    }
-    await profile.save();
+    // Atomic stats update — the old read-then-`save()` lost one game's stats
+    // whenever two games landed together (money itself was already atomic).
+    await recordGameAtomic(profile, sub as GameKey, bet, winnings, extra, outcome.crashPoint);
 
     const net = winnings - bet;
     recordActivity('command', `${interaction.user.tag} played ${sub}`, {
@@ -155,10 +183,10 @@ export const casinoCommand: Command = {
       .addFields(
         { name: 'Bet', value: formatCoins(bet), inline: true },
         { name: 'Won', value: formatCoins(winnings), inline: true },
-        { name: 'Net', value: (net >= 0 ? '+' : '') + formatCoins(Math.abs(net)), inline: true },
+        { name: 'Net', value: (net < 0 ? '-' : '+') + formatCoins(Math.abs(net)), inline: true },
         { name: 'Wallet', value: formatCoins(balance), inline: true },
       )
-      .setFooter({ text: '爱 Doctora • Casino' });
+      .setFooter({ text: '愛 Bella Star • Casino' });
 
     await interaction.reply({ embeds: [embed] });
   },
@@ -350,7 +378,12 @@ function playRoulette(interaction: any, bet: number): GameOutcome {
 }
 
 function playCrash(interaction: any, bet: number): GameOutcome {
-  const target = interaction.options.getNumber('target') ?? 2;
+  let target = interaction.options.getNumber('target') ?? 2;
+  // Re-validate beyond Discord min/max so a crafted value cannot force a
+  // guaranteed win/loss or inject NaN into the wallet.
+  if (!Number.isFinite(target) || target < MIN_CRASH_TARGET || target > MAX_CRASH_TARGET) {
+    target = 2;
+  }
 
   // `0.97 / (1 - u)` gives P(crash > x) = 0.97 / x, so cashing out at `target`
   // returns 97% of stake in expectation — a real 3% edge. The old version drew
@@ -419,6 +452,83 @@ function recordGame(
   }
 }
 
+/**
+ * Atomic equivalent of `recordGame`: all counters via `$inc`/`$max`/pipeline
+ * so concurrent games cannot clobber each other's stats.
+ */
+async function recordGameAtomic(
+  profile: IGameProfile,
+  game: GameKey,
+  bet: number,
+  winnings: number,
+  extra?: Record<string, number>,
+  crashPoint?: number,
+): Promise<void> {
+  const net = winnings - bet;
+  const inc: Record<string, number> = {
+    'casino.gamesPlayed': 1,
+    'casino.wagered': bet,
+    [`casino.${game}.played`]: 1,
+  };
+  if (net > 0) {
+    inc['casino.won'] = net;
+    inc[`casino.${game}.won`] = 1;
+  } else if (net < 0) {
+    inc['casino.lost'] = -net;
+    inc[`casino.${game}.lost`] = 1;
+  }
+  for (const [key, by] of Object.entries(extra ?? {})) {
+    if (Number.isFinite(by) && by !== 0) {
+      inc[`casino.${game}.${key}`] = (inc[`casino.${game}.${key}`] ?? 0) + by;
+    }
+  }
+
+  const maxUpdates: Record<string, number> = {};
+  if (net > 0) maxUpdates['casino.biggestWin'] = net;
+  if (net < 0) maxUpdates['casino.biggestLoss'] = -net;
+  if (crashPoint && Number.isFinite(crashPoint)) {
+    maxUpdates['casino.crash.highestMultiplier'] = Number(crashPoint.toFixed(2));
+  }
+
+  // Coinflip streak needs conditional logic: reset on loss, increment on win.
+  // Single $set stage so both fields are computed from the *old* document.
+  if (game === 'coinflip') {
+    const newStreakExpr = {
+      $cond: [net > 0, { $add: [{ $ifNull: ['$casino.coinflip.streak', 0] }, 1] }, 0],
+    };
+    await GameProfile.updateOne(
+      { userId: profile.userId, guildId: profile.guildId },
+      [
+        {
+          $set: {
+            'casino.coinflip.streak': newStreakExpr,
+            'casino.coinflip.maxStreak': {
+              $cond: [
+                net > 0,
+                {
+                  $max: [
+                    { $ifNull: ['$casino.coinflip.maxStreak', 0] },
+                    { $add: [{ $ifNull: ['$casino.coinflip.streak', 0] }, 1] },
+                  ],
+                },
+                { $ifNull: ['$casino.coinflip.maxStreak', 0] },
+              ],
+            },
+            ...maxUpdates,
+          },
+        },
+        { $inc: inc },
+      ],
+    ).catch(() => undefined);
+    return;
+  }
+
+  await GameProfile.updateOne(
+    { userId: profile.userId, guildId: profile.guildId },
+    { $inc: inc, $max: maxUpdates },
+  ).catch(() => undefined);
+}
+
 async function getProfile(userId: string, guildId: string): Promise<IGameProfile> {
   const existing = await GameProfile.findOne({ userId, guildId });
   if (existing) return existing;
@@ -451,7 +561,7 @@ async function sendStats(interaction: any, userId: string, guildId: string): Pro
       { name: 'Best Crash', value: `${c.crash.highestMultiplier.toFixed(2)}x`, inline: true },
       { name: 'Coinflip Streak', value: `${c.coinflip.streak} (best ${c.coinflip.maxStreak})`, inline: true },
     )
-    .setFooter({ text: '爱 Doctora • Casino' });
+    .setFooter({ text: '愛 Bella Star • Casino' });
 
   await interaction.reply({ embeds: [embed] });
 }

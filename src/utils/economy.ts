@@ -34,18 +34,30 @@ export async function adjustBalance(userId: string, delta: number): Promise<numb
   const change = Math.trunc(Number.isFinite(delta) ? delta : 0);
   if (change === 0) return (await getEconomyUser(userId)).balance;
 
+  // Single aggregation-pipeline update: clamp at zero in the same atomic step
+  // so a negative balance is never visible and never persists if we crash
+  // between two writes (the old $inc-then-clamp was two round trips).
+  // Defaults for the rest of the row are seeded in-pipeline so an upsert
+  // creates a complete document (setDefaultsOnInsert does not apply to
+  // pipeline updates in the same way).
   const doc = await User.findOneAndUpdate(
     { userId },
-    { $inc: { balance: change }, $setOnInsert: { userId } },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    [
+      {
+        $set: {
+          balance: {
+            $max: [0, { $add: [{ $ifNull: ['$balance', 0] }, change] }],
+          },
+          userId: { $ifNull: ['$userId', userId] },
+          bank: { $ifNull: ['$bank', 0] },
+          bankLimit: { $ifNull: ['$bankLimit', 0] },
+        },
+      },
+    ],
+    { upsert: true, new: true },
   );
 
-  const balance = Math.max(0, Math.floor(doc!.balance ?? 0));
-  if (balance !== doc!.balance) {
-    // An incoming negative push would otherwise leave a negative wallet.
-    await User.updateOne({ userId, balance: doc!.balance }, { $set: { balance } });
-  }
-  return balance;
+  return Math.max(0, Math.floor(doc!.balance ?? 0));
 }
 
 /**
@@ -60,7 +72,12 @@ export async function settleWager(
   bet: number,
   winnings: number,
 ): Promise<number | null> {
-  const stake = Math.max(0, Math.trunc(bet));
+  // Reject non-finite / non-positive stakes explicitly: clamping a negative
+  // bet to 0 previously turned `settleWager(id, -1000, 500)` into a free
+  // payout of 500, and NaN propagated into a `$inc: { balance: NaN }`.
+  if (!Number.isFinite(bet) || !Number.isFinite(winnings)) return null;
+  const stake = Math.trunc(bet);
+  if (stake < 1) return null;
   const payout = Math.max(0, Math.trunc(winnings));
   const net = payout - stake;
 
@@ -129,7 +146,7 @@ export function hasItem(
   doc: { inventory?: InventoryEntry[] | null },
   itemId: string,
 ): boolean {
-  return readInventory(doc).some((entry) => entry.itemId === itemId);
+  return readInventory(doc).some((entry) => entry.itemId === itemId && entry.quantity > 0);
 }
 
 export function itemCount(
@@ -161,8 +178,10 @@ export async function addItem(
       );
     }
   } else if (change < 0) {
+    // Guard against underflow: only decrement when the slot has enough.
+    // Without this, `addItem(id, -5)` with qty 1 drove quantity to -4.
     await User.updateOne(
-      { userId, 'inventory.itemId': itemId },
+      { userId, 'inventory.itemId': itemId, 'inventory.quantity': { $gte: -change } },
       { $inc: { 'inventory.$.quantity': change } },
     );
     // Drop exhausted slots so they do not linger at zero.

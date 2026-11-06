@@ -16,6 +16,7 @@ export const chooseCommand: Command = {
     .setDMPermission(true)
     .setDefaultMemberPermissions(PermissionFlagsBits.SendMessages),
   category: 'fun',
+  cooldownSeconds: 5,
   execute: async (context) => {
     const { interaction } = context;
     const optionsStr = interaction.options.getString('options', true);
@@ -35,7 +36,7 @@ export const chooseCommand: Command = {
       .setColor(0x5865f2)
       .setTitle('🎯 Choice')
       .setDescription(`I choose: **${choice}**`)
-      .setFooter({ text: '爱 Doctora • Choose' })
+      .setFooter({ text: '愛 Bella Star • Choose' })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
