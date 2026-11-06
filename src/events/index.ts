@@ -8,28 +8,41 @@ import { guildDelete } from './guildDelete.js';
 import { reactionAdd, reactionRemove, guildMemberAdd as memberAdd, guildMemberRemove } from './reactionEvents.js';
 import { welcomeMemberAddEvent, welcomeMemberRemoveEvent } from './welcomeEvents.js';
 import { boosterMemberUpdateEvent } from './boosterEvents.js';
-import { verificationVoiceStateEvent } from './verificationVoiceEvents.js';
+import { voiceStateUpdateVerification } from './verificationVoiceEvents.js';
 import { antinukeAuditLogEvent } from './antinukeEvents.js';
 import { messageSystemsEvent } from './messageSystemsEvent.js';
 import { systemsInteractionEvent } from './systemsInteractionEvent.js';
 
+// New systems ported from astralcraft
+import { presentationPresenceUpdate } from '../systems/presentations/autostatus.js';
+import { threadCreateSuggestions, messageReactionAddSuggestions, interactionCreateSuggestions } from '../systems/suggestions/index.js';
+import { voiceStateUpdateTempvc, interactionCreateTempvc } from '../systems/tempvc/index.js';
+import { interactionCreateTickets } from '../systems/tickets/index.js';
+
 export const events = [
-  ready,
-  interactionCreate,
-  systemsInteractionEvent,
-  messageCreate,
-  messageSystemsEvent,
-  guildMemberAdd,
-  welcomeMemberAddEvent,
-  memberAdd,
-  guildMemberRemove,
-  welcomeMemberRemoveEvent,
-  reactionAdd,
-  reactionRemove,
-  voiceStateUpdate,
-  verificationVoiceStateEvent,
-  channelDelete,
-  guildDelete,
-  antinukeAuditLogEvent,
-  boosterMemberUpdateEvent,
+	ready,
+	interactionCreate,
+	systemsInteractionEvent,
+	messageCreate,
+	messageSystemsEvent,
+	guildMemberAdd,
+	welcomeMemberAddEvent,
+	memberAdd,
+	guildMemberRemove,
+	welcomeMemberRemoveEvent,
+	reactionAdd,
+	reactionRemove,
+	voiceStateUpdate,
+	voiceStateUpdateVerification,
+	voiceStateUpdateTempvc,
+	channelDelete,
+	guildDelete,
+	antinukeAuditLogEvent,
+	boosterMemberUpdateEvent,
+	presentationPresenceUpdate,
+	threadCreateSuggestions,
+	messageReactionAddSuggestions,
+	interactionCreateSuggestions,
+	interactionCreateTempvc,
+	interactionCreateTickets,
 ];

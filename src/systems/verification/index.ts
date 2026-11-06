@@ -1,5 +1,4 @@
-import type { Guild, GuildMember, User, Role, TextChannel, ButtonInteraction, ModalSubmitInteraction } from 'discord.js';
-import { Events } from 'discord.js';
+import type { ButtonInteraction, Guild, GuildMember, ModalSubmitInteraction, Role, TextChannel } from 'discord.js';
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -11,7 +10,7 @@ import {
 	TextInputStyle,
 } from 'discord.js';
 import { VerificationConfig, VerificationRequest } from '../../db/models/Verification.js';
-import { Helpers } from '../../utils/shared-helpers.js';
+import EmbedBuilderUtil from '../../utils/shared-embeds.js';
 
 export interface VerificationSettings {
 	enabled: boolean;
@@ -35,7 +34,12 @@ export interface JoinRoleResult {
 
 function parseRoleIds(raw: string | null | undefined): string[] {
 	if (!raw) return [];
-	if (Array.isArray(raw)) return raw.filter((id): id is string => typeof id === 'string');
+	try {
+		const parsed = JSON.parse(raw);
+		if (Array.isArray(parsed)) {
+			return parsed.filter((id): id is string => typeof id === 'string');
+		}
+	} catch {}
 	return [];
 }
 
@@ -43,69 +47,58 @@ export class VerificationSystem {
 	async getSettings(guildId: string): Promise<VerificationSettings> {
 		let row = await VerificationConfig.findOne({ guildId }).lean();
 		if (!row) {
-			row = await VerificationConfig.create({ guildId });
+			row = await VerificationConfig.create({ guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 });
 		}
+		const r = row as any;
 		return {
-			enabled: row.enabled === true,
-			unverifiedRoleId: row.unverifiedRoleId ?? null,
-			verifiedRoleId: row.verifiedRoleId ?? null,
-			rulesChannelId: row.rulesChannelId ?? null,
-			panelMessageId: row.panelMessageId ?? null,
-			autoRoleIds: Array.isArray(row.autoRoleIds) ? row.autoRoleIds : parseRoleIds(row.autoRoleIds ?? null),
-			requireApproval: row.requireApproval === true,
-			logChannelId: row.logChannelId ?? null,
-			minAccountAgeDays: row.minAccountAgeDays ?? 0,
-			voiceChannelId: row.voiceChannelId ?? null,
-			staffRoleId: row.staffRoleId ?? null,
+			enabled: r.enabled === true,
+			unverifiedRoleId: r.unverifiedRoleId ?? null,
+			verifiedRoleId: r.verifiedRoleId ?? null,
+			rulesChannelId: r.rulesChannelId ?? null,
+			panelMessageId: r.panelMessageId ?? null,
+			autoRoleIds: Array.isArray(r.autoRoleIds) ? r.autoRoleIds : [],
+			requireApproval: r.requireApproval === true,
+			logChannelId: r.logChannelId ?? null,
+			minAccountAgeDays: r.minAccountAgeDays ?? 0,
+			voiceChannelId: r.voiceChannelId ?? null,
+			staffRoleId: r.staffRoleId ?? null,
 		};
 	}
 
-	setSettings(guildId: string, data: Partial<VerificationSettings>): Promise<any> {
-		return VerificationConfig.findOneAndUpdate({ guildId }, data, { upsert: true, new: true, setDefaultsOnInsert: true });
+	async setSettings(guildId: string, data: Partial<any>): Promise<void> {
+		await VerificationConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
 	}
 
-	setPanelMessage(guildId: string, messageId: string | null): Promise<any> {
-		return VerificationConfig.findOneAndUpdate(
-			{ guildId },
-			{ panelMessageId: messageId },
-			{ upsert: true, new: true, setDefaultsOnInsert: true },
-		);
+	async setPanelMessage(guildId: string, messageId: string | null): Promise<void> {
+		await this.setSettings(guildId, { panelMessageId: messageId });
 	}
 
-	addAutoRole(guildId: string, roleId: string): Promise<boolean> {
-		return this._modifyAutoRole(guildId, roleId, true);
+	async setAutoRoles(guildId: string, roleIds: string[]): Promise<void> {
+		await this.setSettings(guildId, { autoRoleIds: [...new Set(roleIds)] });
 	}
 
-	removeAutoRole(guildId: string, roleId: string): Promise<boolean> {
-		return this._modifyAutoRole(guildId, roleId, false);
-	}
-
-	private async _modifyAutoRole(guildId: string, roleId: string, add: boolean): Promise<boolean> {
+	async addAutoRole(guildId: string, roleId: string): Promise<boolean> {
 		const settings = await this.getSettings(guildId);
-		if (add) {
-			if (settings.autoRoleIds.includes(roleId)) return false;
-			await this.setSettings(guildId, { autoRoleIds: [...new Set([...settings.autoRoleIds, roleId])] });
-			return true;
-		}
-		if (!settings.autoRoleIds.includes(roleId)) return false;
-		await this.setSettings(guildId, { autoRoleIds: settings.autoRoleIds.filter((id) => id !== roleId) });
+		if (settings.autoRoleIds.includes(roleId)) return false;
+		await this.setAutoRoles(guildId, [...settings.autoRoleIds, roleId]);
 		return true;
 	}
 
-	isConfigured(guildId: string): Promise<boolean> {
-		return this.getSettings(guildId).then((s) => !!s.unverifiedRoleId);
+	async removeAutoRole(guildId: string, roleId: string): Promise<boolean> {
+		const settings = await this.getSettings(guildId);
+		if (!settings.autoRoleIds.includes(roleId)) return false;
+		await this.setAutoRoles(guildId, settings.autoRoleIds.filter((id) => id !== roleId));
+		return true;
 	}
 
-	isVerified(member: GuildMember, settings?: VerificationSettings): boolean {
-		const s = settings ?? {
-			enabled: false, unverifiedRoleId: null, verifiedRoleId: null,
-			rulesChannelId: null, panelMessageId: null, autoRoleIds: [],
-			requireApproval: false, logChannelId: null, minAccountAgeDays: 0,
-			voiceChannelId: null, staffRoleId: null,
-		};
-		if (s.verifiedRoleId && member.roles.cache.has(s.verifiedRoleId)) return true;
-		if (!s.unverifiedRoleId) return true;
-		return !member.roles.cache.has(s.unverifiedRoleId);
+	isConfigured(settings: VerificationSettings): boolean {
+		return !!settings.unverifiedRoleId;
+	}
+
+	isVerified(member: GuildMember, settings: VerificationSettings): boolean {
+		if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return true;
+		if (!settings.unverifiedRoleId) return true;
+		return !member.roles.cache.has(settings.unverifiedRoleId);
 	}
 
 	private manageableRoles(member: GuildMember, roleIds: string[]): Role[] {
@@ -115,7 +108,6 @@ export class VerificationSystem {
 	}
 
 	async handleMemberAdd(member: GuildMember): Promise<JoinRoleResult> {
-		console.log(`[Verify] handleMemberAdd member=${member.id} guild=${member.guild.id} bot=${member.user.bot}`);
 		const result: JoinRoleResult = { granted: [], ungranted: [], unverifiedGranted: false };
 		const settings = await this.getSettings(member.guild.id);
 		if (!settings.enabled || !settings.unverifiedRoleId) return result;
@@ -125,26 +117,29 @@ export class VerificationSystem {
 		const autoRoles = settings.autoRoleIds.filter(
 			(id) => id !== settings.unverifiedRoleId && id !== settings.verifiedRoleId,
 		);
-
 		const toAdd = this.manageableRoles(member, autoRoles).filter((role) => !member.roles.cache.has(role.id));
 		result.granted = toAdd.map((role) => role.id);
 		result.ungranted = autoRoles.filter((id) => !this.manageableRoles(member, [id]).length);
 
-		if (toAdd.length) await member.roles.add(toAdd, 'Automatic newbie roles').catch(() => {});
+		if (toAdd.length) {
+			await member.roles.add(toAdd, 'Automatic newbie roles').catch(() => {});
+		}
 
 		const unverifiedRole = member.guild.roles.cache.get(settings.unverifiedRoleId);
 		if (unverifiedRole?.editable && !member.roles.cache.has(unverifiedRole.id)) {
 			await member.roles.add(unverifiedRole, 'Awaiting newbie verification').catch(() => {});
 			result.unverifiedGranted = true;
 		}
+
 		return result;
 	}
 
-	missingAutoRoles(member: GuildMember): Promise<string[]> {
-		return this.getSettings(member.guild.id).then((s) =>
-			s.autoRoleIds.filter(
-				(roleId) => roleId !== s.unverifiedRoleId && roleId !== s.verifiedRoleId && !member.roles.cache.has(roleId),
-			),
+	missingAutoRoles(member: GuildMember, settings: VerificationSettings): string[] {
+		return settings.autoRoleIds.filter(
+			(roleId) =>
+				roleId !== settings.unverifiedRoleId &&
+				roleId !== settings.verifiedRoleId &&
+				!member.roles.cache.has(roleId),
 		);
 	}
 
@@ -157,15 +152,7 @@ export class VerificationSystem {
 	}
 
 	buildPanel(guild: Guild, settings: VerificationSettings): EmbedBuilder {
-		const autoText = settings.autoRoleIds
-			.map((id) => {
-				const role = guild.roles.cache.get(id);
-				return role ? `<@&${role.id}>` : id;
-			})
-			.join(', ') || '_none yet_';
-		const unverified = settings.unverifiedRoleId
-			? (guild.roles.cache.has(settings.unverifiedRoleId) ? `<@&${settings.unverifiedRoleId}>` : 'unverified role')
-			: null;
+		const unverified = guild.roles.cache.get(settings.unverifiedRoleId ?? '');
 		const rulesTarget = settings.rulesChannelId ? `in <#${settings.rulesChannelId}>` : 'in the rules channel';
 
 		const steps = [
@@ -183,11 +170,6 @@ export class VerificationSystem {
 				(unverified ? `\n\nRight now you have ${unverified}, so you can only see the rules channels.` : ''),
 			)
 			.addFields({
-				name: '🎁 Roles you already received',
-				value: autoText,
-				inline: false,
-			})
-			.addFields({
 				name: '⚠️ By verifying you agree to',
 				value: 'Follow the server rules, stay respectful, and no spam or NSFW content.',
 				inline: false,
@@ -196,7 +178,7 @@ export class VerificationSystem {
 		return embed.setFooter({ text: `Verification • ${guild.name}` }).setTimestamp();
 	}
 
-	buildPanelRow(guild: Guild, settings: VerificationSettings): ActionRowBuilder<ButtonBuilder> {
+	buildPanelRow(_guild: Guild, _settings: VerificationSettings): ActionRowBuilder<ButtonBuilder> {
 		const buttons: ButtonBuilder[] = [
 			new ButtonBuilder()
 				.setCustomId('verification_agree')
@@ -204,15 +186,6 @@ export class VerificationSystem {
 				.setEmoji('✅')
 				.setStyle(ButtonStyle.Success),
 		];
-		if (settings.rulesChannelId) {
-			buttons.push(
-				new ButtonBuilder()
-					.setLabel('Read the rules')
-					.setEmoji('📜')
-					.setStyle(ButtonStyle.Link)
-					.setURL(`https://discord.com/channels/${guild.id}/${settings.rulesChannelId}`),
-			);
-		}
 		return new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
 	}
 
@@ -222,81 +195,82 @@ export class VerificationSystem {
 		if (!settings.unverifiedRoleId) {
 			throw new Error('No unverified role configured. Run `/verify setup` first.');
 		}
+
 		await guild.roles.fetch().catch(() => {});
+
 		if (settings.panelMessageId) {
 			const old = await channel.messages.fetch(settings.panelMessageId).catch(() => null);
 			await old?.delete().catch(() => {});
 		}
+
 		const message = await channel.send({
 			embeds: [this.buildPanel(guild, settings)],
 			components: [this.buildPanelRow(guild, settings)],
 		});
+
 		await this.setPanelMessage(guild.id, message.id);
 		return message.id;
 	}
 
 	async handleVerifyButton(interaction: ButtonInteraction): Promise<void> {
-		console.log(`[Verify] handleVerifyButton user=${interaction.user.id} guild=${interaction.guildId}`);
 		await interaction.deferReply({ flags: 64 });
 		const guild = interaction.guild as Guild;
 		const member = interaction.member as GuildMember;
 		const settings = await this.getSettings(guild.id);
-		console.log(`[Verify] settings.enabled=${settings.enabled} unverifiedRoleId=${settings.unverifiedRoleId} isVerified=${this.isVerified(member, settings)}`);
 
 		if (!settings.enabled) {
-			await interaction.editReply({ embeds: [this._errorEmbed('Verification disabled', 'Verification is currently disabled. Ask a staff member for help.')] });
+			await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.('Verification disabled', 'Verification is currently disabled.') ?? new EmbedBuilder().setColor(0xED4245).setTitle('Verification disabled').setDescription('Verification is currently disabled.')] });
 			return;
 		}
 		if (!settings.unverifiedRoleId) {
-			await interaction.editReply({ embeds: [this._errorEmbed('Not configured', 'No unverified role is set. Ask an admin to run `/verify setup`.')] });
+			await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.('Not configured', 'No unverified role is set.') ?? new EmbedBuilder().setColor(0xED4245).setTitle('Not configured').setDescription('No unverified role is set.')] });
 			return;
 		}
 		if (this.isVerified(member, settings)) {
-			await interaction.editReply({ embeds: [this._successEmbed('Already verified', 'You already have full access to the server.')] });
+			await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.('Already verified', 'You already have full access.') ?? new EmbedBuilder().setColor(0x57F287).setTitle('Already verified').setDescription('You already have full access.')] });
 			return;
 		}
 
 		const ageBlock = this.accountAgeBlock(member, settings);
 		if (ageBlock) {
-			await interaction.editReply({ embeds: [this._errorEmbed('Account too new', ageBlock)] });
+			await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.('Account too new', ageBlock) ?? new EmbedBuilder().setColor(0xED4245).setTitle('Account too new').setDescription(ageBlock)] });
 			return;
 		}
 
-		const retry = this.manageableRoles(member, await this.missingAutoRoles(member));
-		if (retry.length) await member.roles.add(retry, 'Automatic newbie roles').catch(() => {});
-
-		const stillMissing = await this.missingAutoRoles(member);
-		if (stillMissing.length) {
-			await interaction.editReply({
-				embeds: [this._errorEmbed('Missing required roles', 'You are still missing some required roles. Please contact a staff member.')],
-			});
-			return;
+		const retry = this.manageableRoles(member, this.missingAutoRoles(member, settings));
+		if (retry.length) {
+			await member.roles.add(retry, 'Automatic newbie roles').catch(() => {});
 		}
 
-		const live = await VerificationRequest.findOne({
-			guildId: guild.id, userId: member.id, status: 'pending',
-		}) || await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: 'claimed' });
+		const live = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ['pending', 'claimed'] } });
 		if (live) {
-			await interaction.editReply({
-				embeds: [this._infoEmbed(
-					'Already requested',
-					live.status === 'claimed'
-						? 'A staff member is already verifying you — join the voice call they invite you to.'
-						: `Your request is already waiting for staff review (#${live.id}).`,
-				)],
-			});
+			await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.('Already requested', 'Your request is already waiting for staff review.') ?? new EmbedBuilder().setColor(0x5865F2).setTitle('Already requested').setDescription('Your request is already waiting for staff review.')] });
 			return;
 		}
 
-		const request = await VerificationRequest.create({
-			guildId: guild.id, userId: member.id, status: 'pending',
-		});
-		await this.sendToStaff(guild, settings, member, request);
-		await this.dm(guild, member.id,
-			`⏳ Your verification request was sent to the staff team.\n\nWhen a staff member is available they will invite you to a private voice call to verify you. Please keep your DMs open so you receive the invite.`);
-		await interaction.editReply({
-			embeds: [this._infoEmbed('Request sent', 'A staff member will invite you to a short private voice call to complete verification.')],
-		});
+		const request = await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: 'pending' });
+
+		// Send to staff log channel
+		const channelId = settings.logChannelId || settings.rulesChannelId;
+		if (channelId) {
+			const channel = guild.channels.cache.get(channelId);
+			if (channel?.isTextBased() && !channel.isThread()) {
+				const staffRoleId = settings.staffRoleId;
+				await channel.send({
+					content: staffRoleId ? `<@&${staffRoleId}>` : undefined,
+					allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
+					embeds: [this.reviewEmbed(request, member, settings)],
+					components: [this.reviewRow(request.id.toString())],
+				}).catch(() => {});
+			}
+		}
+
+		try {
+			const user = await guild.client.users.fetch(member.id);
+			await user.send({ content: '⏳ Your verification request was sent to the staff team. When a staff member is available they will invite you to a short private voice call to verify you.' }).catch(() => {});
+		} catch {}
+
+		await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.('Request sent', 'A staff member will invite you to a short private voice call to complete verification.') ?? new EmbedBuilder().setColor(0x5865F2).setTitle('Request sent').setDescription('A staff member will invite you to a short private voice call to complete verification.')] });
 	}
 
 	async approveMember(member: GuildMember, settings: VerificationSettings): Promise<void> {
@@ -307,194 +281,11 @@ export class VerificationSystem {
 			const role = member.guild.roles.cache.get(settings.verifiedRoleId);
 			if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
 		}
-		if (remove.length) await member.roles.remove(remove, 'Verification completed').catch(() => {});
-		if (add.length) await member.roles.add(add, 'Verification completed').catch(() => {});
+		if (remove.length) await member.roles.remove(remove, 'Verification completed');
+		if (add.length) await member.roles.add(add, 'Verification completed');
 	}
 
-	async handleApprove(interaction: ButtonInteraction, requestId: number): Promise<void> {
-		const request = await VerificationRequest.findById(String(requestId));
-		if (!request || request.status !== 'pending') {
-			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
-			return;
-		}
-		await interaction.deferReply({ flags: 64 });
-		const guild = interaction.guild as Guild;
-		const settings = await this.getSettings(guild.id);
-		const member = await guild.members.fetch(request.userId).catch(() => null);
-		if (member) await this.approveMember(member, settings);
-
-		request.status = 'approved';
-		request.reviewedBy = interaction.user.id;
-		request.reviewedAt = new Date();
-		await request.save();
-
-		await this.log(guild, settings, this._successEmbed('Verification approved', `<@${request.userId}> was approved by ${interaction.user}.`));
-		await interaction.editReply({ embeds: [this._successEmbed('Approved', member ? `<@${request.userId}> has been verified.` : 'Approved, but member is not in the server.')] });
-		await this._retireMessage(interaction, request.id, `Approved by ${interaction.user}`);
-	}
-
-	async handleDenyButton(interaction: ButtonInteraction, requestId: number): Promise<void> {
-		const request = await VerificationRequest.findById(String(requestId));
-		if (!request || request.status !== 'pending') {
-			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
-			return;
-		}
-		await interaction.showModal(this._denyModal(request.id));
-	}
-
-	async handleDenyModal(interaction: ModalSubmitInteraction, requestId: number): Promise<void> {
-		await interaction.deferReply({ flags: 64 });
-		const request = await VerificationRequest.findById(String(requestId));
-		if (!request || request.status !== 'pending') {
-			await interaction.editReply({ content: '❌ This request is no longer pending.' });
-			return;
-		}
-		const reason = interaction.fields.getTextInputValue('deny_reason');
-		const guild = interaction.guild as Guild;
-		const settings = await this.getSettings(guild.id);
-
-		request.status = 'denied';
-		request.reviewedBy = interaction.user.id;
-		request.reviewedAt = new Date();
-		request.reason = reason;
-		await request.save();
-
-		await this.dm(guild, request.userId, `❌ Your verification was denied.\n**Reason:** ${reason}`);
-		await this.log(guild, settings, this._errorEmbed('Verification denied', `<@${request.userId}> was denied by ${interaction.user}.\n**Reason:** ${Helpers.truncate(reason, 500)}`));
-		await interaction.editReply({ content: '✅ Request denied.' });
-		await this._retireMessage(interaction, request.id, `Denied by ${interaction.user}\n**Reason:** ${reason}`);
-	}
-
-	async reviewUser(member: GuildMember, action: 'approve' | 'deny', reviewerId: string, reason?: string | null): Promise<void> {
-		const guild = member.guild as Guild;
-		const settings = await this.getSettings(guild.id);
-		if (action === 'approve') {
-			await this.approveMember(member, settings);
-			await this.dm(guild, member.id, `🎉 Welcome to **${guild.name}**! Your verification was approved.`);
-			await this.log(guild, settings, this._successEmbed('Verification approved', `<@${member.id}> was approved by <@${reviewerId}>.`));
-			return;
-		}
-		const pending = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: 'pending' });
-		if (pending) {
-			pending.status = 'denied';
-			pending.reviewedBy = reviewerId;
-			pending.reviewedAt = new Date();
-			pending.reason = reason ?? undefined;
-			await pending.save();
-		}
-		await this.dm(guild, member.id, `❌ Your verification was denied.\n**Reason:** ${reason || 'No reason given'}`);
-		await this.log(guild, settings, this._errorEmbed('Verification denied', `<@${member.id}> was denied by <@${reviewerId}>.\n**Reason:** ${reason || 'No reason given'}`));
-	}
-
-	async resetMember(member: GuildMember, actorId: string): Promise<void> {
-		const guild = member.guild as Guild;
-		const settings = await this.getSettings(guild.id);
-		await VerificationRequest.updateMany(
-			{ guildId: guild.id, userId: member.id, status: 'pending' },
-			{ status: 'revoked', reviewedAt: new Date() },
-		);
-		const remove: string[] = [];
-		const add: string[] = [];
-		if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) remove.push(settings.verifiedRoleId);
-		if (settings.unverifiedRoleId) {
-			const role = guild.roles.cache.get(settings.unverifiedRoleId);
-			if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
-		}
-		if (remove.length) await member.roles.remove(remove, 'Verification reset').catch(() => {});
-		if (add.length) await member.roles.add(add, 'Verification reset').catch(() => {});
-		await this.dm(guild, member.id, '🔄 Your verification was reset by the staff team. Please verify again using the panel.');
-		await this.log(guild, settings, this._warningEmbed('Verification reset', `<@${member.id}> was reset by <@${actorId}> and is unverified again.`));
-	}
-
-	pendingRequests(guildId: string, limit = 25): Promise<any[]> {
-		return VerificationRequest.find({ guildId, status: 'pending' }).sort({ createdAt: -1 }).limit(limit).lean();
-	}
-
-	pendingCount(guildId: string): Promise<number> {
-		return VerificationRequest.countDocuments({ guildId, status: 'pending' });
-	}
-
-	reviewEmbed(request: any, member: GuildMember | null, settings?: VerificationSettings): EmbedBuilder {
-		return new EmbedBuilder()
-			.setColor(Colors.Orange)
-			.setTitle('🎙️ Newbie verification request')
-			.setDescription(
-				`<@${request.userId}> is waiting to be verified.\n\nPress **Claim & verify** to take this request.` +
-				(settings?.voiceChannelId ? '' : '\n\n⚠️ No verification voice channel is configured — run `/verify vc`.'),
-			)
-			.addFields(
-				{ name: '👤 Member', value: member ? `<@${member.id}>\n${member.user.username}` : `<@${request.userId}>`, inline: true },
-				{
-					name: '📅 Account created',
-					value: member ? `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>` : 'Member left the server',
-					inline: true,
-				},
-				{ name: '⏳ Submitted', value: `<t:${Math.floor(new Date(request.submittedAt).getTime() / 1000)}:R>`, inline: true },
-			)
-			.setFooter({ text: `Request ID: ${request.id}` })
-			.setTimestamp();
-	}
-
-	reviewRow(requestId: number): ActionRowBuilder<ButtonBuilder> {
-		return new ActionRowBuilder<ButtonBuilder>().addComponents(
-			new ButtonBuilder()
-				.setCustomId(`vcverify_claim_${requestId}`)
-				.setLabel('Claim & verify')
-				.setEmoji('🎙️')
-				.setStyle(ButtonStyle.Primary),
-		);
-	}
-
-	private async sendToStaff(guild: Guild, settings: VerificationSettings, member: GuildMember, request: any): Promise<void> {
-		const channelId = settings.logChannelId || settings.rulesChannelId;
-		if (!channelId) return;
-		const channel = guild.channels.cache.get(channelId);
-		if (!channel?.isTextBased() || channel.isThread()) return;
-		const staffRoleId = settings.staffRoleId;
-		await channel.send({
-			content: staffRoleId ? `<@&${staffRoleId}>` : undefined,
-			allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
-			embeds: [this.reviewEmbed(request, member, settings)],
-			components: [this.reviewRow(request.id)],
-		}).catch((error) => console.error('[Verification] Failed to send staff request:', error));
-	}
-
-	private async _retireMessage(interaction: ButtonInteraction | ModalSubmitInteraction, requestId: string | number, result: string): Promise<void> {
-		if (!interaction.message) return;
-		await interaction.message.edit({
-			content: null,
-			embeds: [this._infoEmbed(`Request #${requestId}`, result)],
-			components: [],
-		}).catch(() => {});
-	}
-
-	async log(guild: Guild, settings: VerificationSettings, embed: EmbedBuilder): Promise<void> {
-		if (!settings.logChannelId) return;
-		const channel = guild.channels.cache.get(settings.logChannelId);
-		if (!channel?.isTextBased() || channel.isThread()) return;
-		await channel.send({ embeds: [embed] }).catch(() => {});
-	}
-
-	async dm(guild: Guild, userId: string, content: string): Promise<void> {
-		try {
-			const user = await guild.client.users.fetch(userId);
-			await user.send({ content }).catch(() => {});
-		} catch {}
-	}
-
-	private _errorEmbed(title: string, description: string): EmbedBuilder {
-		return new EmbedBuilder().setColor(Colors.Red).setTitle(`❌ ${title}`).setDescription(description).setTimestamp();
-	}
-	private _successEmbed(title: string, description: string): EmbedBuilder {
-		return new EmbedBuilder().setColor(Colors.Green).setTitle(`✅ ${title}`).setDescription(description).setTimestamp();
-	}
-	private _warningEmbed(title: string, description: string): EmbedBuilder {
-		return new EmbedBuilder().setColor(Colors.Yellow).setTitle(`⚠️ ${title}`).setDescription(description).setTimestamp();
-	}
-	private _infoEmbed(title: string, description: string): EmbedBuilder {
-		return new EmbedBuilder().setColor(Colors.Blue).setTitle(`ℹ️ ${title}`).setDescription(description).setTimestamp();
-	}
-	private _denyModal(requestId: string | number): ModalBuilder {
+	private denyModal(requestId: string): ModalBuilder {
 		return new ModalBuilder()
 			.setCustomId(`verification_deny_reason_${requestId}`)
 			.setTitle('Deny verification — reason')
@@ -509,15 +300,174 @@ export class VerificationSystem {
 				),
 			);
 	}
+
+	async handleApprove(interaction: ButtonInteraction, requestId: string): Promise<void> {
+		const request = await VerificationRequest.findById(requestId);
+		if (!request || request.status !== 'pending') {
+			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
+			return;
+		}
+		await interaction.deferReply({ flags: 64 });
+		const guild = interaction.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+		const member = await guild.members.fetch(request.userId).catch(() => null);
+
+		if (member) {
+			await this.approveMember(member, settings);
+			try { await guild.client.users.fetch(request.userId).then((u) => u.send('🎉 Welcome! Your verification was approved.').catch(() => {})); } catch {}
+		}
+
+		request.status = 'approved';
+		request.reviewedBy = interaction.user.id;
+		request.reviewedAt = new Date();
+		await request.save();
+
+		await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.('Approved', member ? `<@${request.userId}> has been verified.` : 'Approved.') ?? new EmbedBuilder().setColor(0x57F287).setTitle('Approved').setDescription(member ? `<@${request.userId}> has been verified.` : 'Approved.')] });
+		if (interaction.message) {
+			await interaction.message.edit({ content: null, embeds: [new EmbedBuilder().setColor(0x5865F2).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {});
+		}
+	}
+
+	async handleDenyButton(interaction: ButtonInteraction, requestId: string): Promise<void> {
+		const request = await VerificationRequest.findById(requestId);
+		if (!request || request.status !== 'pending') {
+			await interaction.reply({ content: '❌ This request is no longer pending.', flags: 64 });
+			return;
+		}
+		await interaction.showModal(this.denyModal(requestId));
+	}
+
+	async handleDenyModal(interaction: ModalSubmitInteraction, requestId: string): Promise<void> {
+		await interaction.deferReply({ flags: 64 });
+		const request = await VerificationRequest.findById(requestId);
+		if (!request || request.status !== 'pending') {
+			await interaction.editReply({ content: '❌ This request is no longer pending.' });
+			return;
+		}
+
+		const reason = interaction.fields.getTextInputValue('deny_reason');
+		const guild = interaction.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+
+		request.status = 'denied';
+		request.reviewedBy = interaction.user.id;
+		request.reviewedAt = new Date();
+		request.reason = reason;
+		await request.save();
+
+		try { await guild.client.users.fetch(request.userId).then((u) => u.send(`❌ Your verification was denied.\n**Reason:** ${reason}`).catch(() => {})); } catch {}
+
+		await interaction.editReply({ content: '✅ Request denied.' });
+		if (interaction.message) {
+			await interaction.message.edit({ content: null, embeds: [new EmbedBuilder().setColor(0x5865F2).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}\n**Reason:** ${reason}`)], components: [] }).catch(() => {});
+		}
+	}
+
+	async reviewUser(member: GuildMember, action: 'approve' | 'deny', reviewerId: string, reason?: string | null): Promise<void> {
+		const guild = member.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+		if (action === 'approve') {
+			await this.approveMember(member, settings);
+			try { await guild.client.users.fetch(member.id).then((u) => u.send('🎉 Welcome! Your verification was approved.').catch(() => {})); } catch {}
+			return;
+		}
+		const pending = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: 'pending' });
+		if (pending) {
+			pending.status = 'denied';
+			pending.reviewedBy = reviewerId;
+			pending.reviewedAt = new Date();
+			pending.reason = reason ?? undefined;
+			await pending.save();
+		}
+		try { await guild.client.users.fetch(member.id).then((u) => u.send(`❌ Your verification was denied.\n**Reason:** ${reason || 'No reason given'}`).catch(() => {})); } catch {}
+	}
+
+	async resetMember(member: GuildMember, actorId: string): Promise<void> {
+		const guild = member.guild as Guild;
+		const settings = await this.getSettings(guild.id);
+		await VerificationRequest.deleteMany({ guildId: guild.id, userId: member.id, status: 'pending' });
+
+		const remove: string[] = [];
+		const add: string[] = [];
+		if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) remove.push(settings.verifiedRoleId);
+		if (settings.unverifiedRoleId) {
+			const role = guild.roles.cache.get(settings.unverifiedRoleId);
+			if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
+		}
+		if (remove.length) await member.roles.remove(remove, 'Verification reset');
+		if (add.length) await member.roles.add(add, 'Verification reset');
+		try { await guild.client.users.fetch(member.id).then((u) => u.send('🔄 Your verification was reset by the staff team. Please verify again using the panel.').catch(() => {})); } catch {}
+	}
+
+	pendingRequests(guildId: string, limit = 25): Promise<any[]> {
+		return VerificationRequest.find({ guildId, status: 'pending' }).sort({ createdAt: -1 }).limit(limit).lean();
+	}
+
+	pendingCount(guildId: string): Promise<number> {
+		return VerificationRequest.countDocuments({ guildId, status: 'pending' });
+	}
+
+	reviewEmbed(request: any, member: GuildMember | null, _settings?: VerificationSettings): EmbedBuilder {
+		return new EmbedBuilder()
+			.setColor(Colors.Orange)
+			.setTitle('🎙️ Newbie verification request')
+			.setDescription(
+				`<@${request.userId}> is waiting to be verified.\n\nPress **Claim & verify** to take this request.`,
+			)
+			.addFields(
+				{ name: '👤 Member', value: member ? `<@${member.id}>\n${member.user.username}` : `<@${request.userId}>`, inline: true },
+				{ name: '⏳ Submitted', value: `<t:${Math.floor(new Date(request.submittedAt ?? request.createdAt).getTime() / 1000)}:R>`, inline: true },
+			)
+			.setFooter({ text: `Request ID: ${request._id}` })
+			.setTimestamp();
+	}
+
+	reviewRow(requestId: string): ActionRowBuilder<ButtonBuilder> {
+		return new ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel('Claim & verify').setEmoji('🎙️').setStyle(ButtonStyle.Primary),
+		);
+	}
+
+	async log(guild: Guild, _settings: VerificationSettings, embed: EmbedBuilder): Promise<void> {
+		// Best-effort log to log channel if configured elsewhere; no-op here.
+	}
+
+	async dm(guild: Guild, userId: string, content: string): Promise<void> {
+		try { await guild.client.users.fetch(userId).then((u) => u.send({ content }).catch(() => {})); } catch {}
+	}
 }
 
 export const verification = new VerificationSystem();
 
-export const verifyMemberAdd = {
-	name: Events.GuildMemberAdd as keyof import('discord.js').ClientEvents,
-	execute: async (_client: any, member: any) => {
-		try {
-			await verification.handleMemberAdd(member).catch(() => {});
-		} catch {}
+export const guildMemberAddVerification = {
+	name: 'guildMemberAdd' as const,
+	execute: async (_client: any, member: GuildMember) => {
+		try { await verification.handleMemberAdd(member).catch(() => {}); } catch {}
+	},
+};
+
+export const interactionCreateVerification = {
+	name: 'interactionCreate' as const,
+	execute: async (_client: any, interaction: any) => {
+		if (!interaction.isButton() && !interaction.isModalSubmit()) return;
+		if (interaction.isButton() && interaction.customId === 'verification_agree') {
+			try { await verification.handleVerifyButton(interaction).catch(() => {}); } catch {}
+		}
+		if (interaction.isButton() && interaction.customId.startsWith('vcverify_claim_')) {
+			const requestId = interaction.customId.replace('vcverify_claim_', '');
+			try { await verification.handleApprove(interaction, requestId).catch(() => {}); } catch {}
+		}
+		if (interaction.isButton() && interaction.customId.startsWith('vcverify_approve_')) {
+			const requestId = interaction.customId.replace('vcverify_approve_', '');
+			try { await verification.handleApprove(interaction, requestId).catch(() => {}); } catch {}
+		}
+		if (interaction.isButton() && interaction.customId.startsWith('vcverify_deny_')) {
+			const requestId = interaction.customId.replace('vcverify_deny_', '');
+			try { await verification.handleDenyButton(interaction, requestId).catch(() => {}); } catch {}
+		}
+		if (interaction.isModalSubmit() && interaction.customId.startsWith('verification_deny_reason_')) {
+			const requestId = interaction.customId.replace('verification_deny_reason_', '');
+			try { await verification.handleDenyModal(interaction, requestId).catch(() => {}); } catch {}
+		}
 	},
 };

@@ -4,7 +4,7 @@ import { EmbedBuilder } from 'discord.js';
 import { BoosterConfig } from '../../db/models/BoosterConfig.js';
 
 /**
- * Boosters system.
+ * Boosters system (ported from astralcraft).
  * Uses Mongoose (BoosterConfig).
  */
 export class BoosterSystem {
@@ -38,11 +38,14 @@ export class BoosterSystem {
 			const role = await guild.roles.fetch(cfg.roleId).catch(() => null);
 			if (!role) {
 				console.warn(`[Boosters] Reward role ${cfg.roleId} not found — skipping role grant.`);
-			} else if (role.managed) {
+			}
+			else if (role.managed) {
 				console.warn(`[Boosters] Reward role ${role.name} is managed by an integration.`);
-			} else if (role.position >= guild.members.me!.roles.highest.position) {
+			}
+			else if (role.position >= guild.members.me!.roles.highest.position) {
 				console.warn(`[Boosters] Reward role ${role.name} sits above my highest role — cannot grant it.`);
-			} else if (!member.roles.cache.has(role.id)) {
+			}
+			else if (!member.roles.cache.has(role.id)) {
 				await member.roles.add(role, 'Server boost reward').catch((e: any) => {
 					console.error('[Boosters] Failed to grant reward role:', e?.message || e);
 				});

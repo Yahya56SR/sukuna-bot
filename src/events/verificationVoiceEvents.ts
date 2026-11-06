@@ -1,1 +1,1 @@
-export { verificationVoiceStateEvent } from '../systems/verification/vc.js';
+export { voiceStateUpdateVerification } from '../systems/verification/vc.js';

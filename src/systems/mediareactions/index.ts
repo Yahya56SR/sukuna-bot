@@ -3,26 +3,45 @@ import { Events, MessageFlags } from 'discord.js';
 import { MediaReactionConfig, type MediaKind, type EnforceMode } from '../../db/models/MediaReaction.js';
 
 /**
- * Media Reactions system.
+ * Media Reactions system (ported from astralcraft).
  * Uses Mongoose (MediaReactionConfig).
  */
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|heic|heif|tiff?)$/i;
 const VIDEO_EXT = /\.(mp4|mov|webm|mkv|avi|m4v|flac)$/i;
 
+const DEFAULT_CONFIG: any = {
+	enabled: false,
+	memeChannels: [],
+	imageChannels: [],
+	memeReactions: ['⭐', '😂'],
+	imageReactions: ['📸'],
+	enforceMode: 'warn',
+};
+
 export class MediaReactionSystem {
-	private handled = new Set<string>();
+	private handled = new Set<string>(); // messageId -> true
 
 	async getConfig(guildId: string) {
 		let cfg = await MediaReactionConfig.findOne({ guildId }).lean();
 		if (!cfg) {
 			cfg = await MediaReactionConfig.create({
-				guildId, enabled: false,
-				memeChannels: [], imageChannels: [],
-				memeReactions: ['⭐', '😂'], imageReactions: ['📸'],
+				guildId,
+				enabled: false,
+				memeChannels: [],
+				imageChannels: [],
+				memeReactions: ['⭐', '😂'],
+				imageReactions: ['📸'],
 				enforceMode: 'warn',
 			});
 		}
-		return cfg;
+		return {
+			...DEFAULT_CONFIG,
+			...cfg,
+			memeChannels: Array.isArray(cfg?.memeChannels) ? cfg.memeChannels : [],
+			imageChannels: Array.isArray(cfg?.imageChannels) ? cfg.imageChannels : [],
+			memeReactions: Array.isArray(cfg?.memeReactions) && cfg.memeReactions.length ? cfg.memeReactions : DEFAULT_CONFIG.memeReactions,
+			imageReactions: Array.isArray(cfg?.imageReactions) && cfg.imageReactions.length ? cfg.imageReactions : DEFAULT_CONFIG.imageReactions,
+		};
 	}
 
 	isEnabled(cfg: any): boolean {

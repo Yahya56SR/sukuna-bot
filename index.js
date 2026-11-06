@@ -90379,20 +90379,20 @@ var require_message = __commonJS({
       ComponentType8[ComponentType8["Checkbox"] = 23] = "Checkbox";
       ComponentType8[ComponentType8["SelectMenu"] = 3] = "SelectMenu";
     })(ComponentType7 || (exports2.ComponentType = ComponentType7 = {}));
-    var ButtonStyle16;
-    (function(ButtonStyle17) {
-      ButtonStyle17[ButtonStyle17["Primary"] = 1] = "Primary";
-      ButtonStyle17[ButtonStyle17["Secondary"] = 2] = "Secondary";
-      ButtonStyle17[ButtonStyle17["Success"] = 3] = "Success";
-      ButtonStyle17[ButtonStyle17["Danger"] = 4] = "Danger";
-      ButtonStyle17[ButtonStyle17["Link"] = 5] = "Link";
-      ButtonStyle17[ButtonStyle17["Premium"] = 6] = "Premium";
-    })(ButtonStyle16 || (exports2.ButtonStyle = ButtonStyle16 = {}));
-    var TextInputStyle12;
-    (function(TextInputStyle13) {
-      TextInputStyle13[TextInputStyle13["Short"] = 1] = "Short";
-      TextInputStyle13[TextInputStyle13["Paragraph"] = 2] = "Paragraph";
-    })(TextInputStyle12 || (exports2.TextInputStyle = TextInputStyle12 = {}));
+    var ButtonStyle19;
+    (function(ButtonStyle20) {
+      ButtonStyle20[ButtonStyle20["Primary"] = 1] = "Primary";
+      ButtonStyle20[ButtonStyle20["Secondary"] = 2] = "Secondary";
+      ButtonStyle20[ButtonStyle20["Success"] = 3] = "Success";
+      ButtonStyle20[ButtonStyle20["Danger"] = 4] = "Danger";
+      ButtonStyle20[ButtonStyle20["Link"] = 5] = "Link";
+      ButtonStyle20[ButtonStyle20["Premium"] = 6] = "Premium";
+    })(ButtonStyle19 || (exports2.ButtonStyle = ButtonStyle19 = {}));
+    var TextInputStyle14;
+    (function(TextInputStyle15) {
+      TextInputStyle15[TextInputStyle15["Short"] = 1] = "Short";
+      TextInputStyle15[TextInputStyle15["Paragraph"] = 2] = "Paragraph";
+    })(TextInputStyle14 || (exports2.TextInputStyle = TextInputStyle14 = {}));
     var SelectMenuDefaultValueType2;
     (function(SelectMenuDefaultValueType3) {
       SelectMenuDefaultValueType3["Channel"] = "channel";
@@ -101720,7 +101720,7 @@ var require_Constants = __commonJS({
 var require_PermissionsBitField = __commonJS({
   "node_modules/discord.js/src/util/PermissionsBitField.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var BitField = require_BitField();
     var PermissionsBitField2 = class extends BitField {
       static {
@@ -101732,13 +101732,13 @@ var require_PermissionsBitField = __commonJS({
        * @memberof PermissionsBitField
        * @see {@link https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags}
        */
-      static Flags = PermissionFlagsBits37;
+      static Flags = PermissionFlagsBits38;
       /**
        * Bitfield representing every permission combined
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static All = Object.values(PermissionFlagsBits37).reduce((all, p) => all | p, 0n);
+      static All = Object.values(PermissionFlagsBits38).reduce((all, p) => all | p, 0n);
       /**
        * Bitfield representing the default permissions for users
        * @type {bigint}
@@ -101750,7 +101750,7 @@ var require_PermissionsBitField = __commonJS({
        * @type {bigint}
        * @memberof PermissionsBitField
        */
-      static StageModerator = PermissionFlagsBits37.ManageChannels | PermissionFlagsBits37.MuteMembers | PermissionFlagsBits37.MoveMembers;
+      static StageModerator = PermissionFlagsBits38.ManageChannels | PermissionFlagsBits38.MuteMembers | PermissionFlagsBits38.MoveMembers;
       /**
        * @type {bigint}
        * @memberof PermissionsBitField
@@ -101777,7 +101777,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {string[]}
        */
       missing(bits, checkAdmin = true) {
-        return checkAdmin && this.has(PermissionFlagsBits37.Administrator) ? [] : super.missing(bits);
+        return checkAdmin && this.has(PermissionFlagsBits38.Administrator) ? [] : super.missing(bits);
       }
       /**
        * Checks whether the bitfield has a permission, or any of multiple permissions.
@@ -101786,7 +101786,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       any(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits37.Administrator) || super.any(permission);
+        return checkAdmin && super.has(PermissionFlagsBits38.Administrator) || super.any(permission);
       }
       /**
        * Checks whether the bitfield has a permission, or multiple permissions.
@@ -101795,7 +101795,7 @@ var require_PermissionsBitField = __commonJS({
        * @returns {boolean}
        */
       has(permission, checkAdmin = true) {
-        return checkAdmin && super.has(PermissionFlagsBits37.Administrator) || super.has(permission);
+        return checkAdmin && super.has(PermissionFlagsBits38.Administrator) || super.has(permission);
       }
       /**
        * Gets an {@link Array} of bitfield names based on the permissions available.
@@ -102206,7 +102206,7 @@ var require_RoleFlagsBitField = __commonJS({
 var require_Role = __commonJS({
   "node_modules/discord.js/src/structures/Role.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var BaseRole = require_BaseRole();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionsBitField2 = require_PermissionsBitField();
@@ -102276,7 +102276,7 @@ var require_Role = __commonJS({
       get editable() {
         if (this.managed) return false;
         const clientMember = this.guild.members.resolve(this.client.user);
-        if (!clientMember.permissions.has(PermissionFlagsBits37.ManageRoles)) return false;
+        if (!clientMember.permissions.has(PermissionFlagsBits38.ManageRoles)) return false;
         return clientMember.roles.highest.comparePositionTo(this) > 0;
       }
       /**
@@ -102844,7 +102844,7 @@ var require_GuildChannel = __commonJS({
   "node_modules/discord.js/src/structures/GuildChannel.js"(exports2, module2) {
     "use strict";
     var { Snowflake } = require_cjs();
-    var { PermissionFlagsBits: PermissionFlagsBits37, ChannelType: ChannelType12 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38, ChannelType: ChannelType12 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PermissionOverwriteManager = require_PermissionOverwriteManager();
@@ -102988,7 +102988,7 @@ var require_GuildChannel = __commonJS({
         }
         const roles = member.roles.cache;
         const permissions = new PermissionsBitField2(roles.map((role) => role.permissions));
-        if (checkAdmin && permissions.has(PermissionFlagsBits37.Administrator)) {
+        if (checkAdmin && permissions.has(PermissionFlagsBits38.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const overwrites = this.overwritesFor(member, true, roles);
@@ -103003,7 +103003,7 @@ var require_GuildChannel = __commonJS({
        * @private
        */
       rolePermissions(role, checkAdmin) {
-        if (checkAdmin && role.permissions.has(PermissionFlagsBits37.Administrator)) {
+        if (checkAdmin && role.permissions.has(PermissionFlagsBits38.Administrator)) {
           return new PermissionsBitField2(PermissionsBitField2.All).freeze();
         }
         const basePermissions = new PermissionsBitField2([role.permissions, role.guild.roles.everyone.permissions]);
@@ -103029,7 +103029,7 @@ var require_GuildChannel = __commonJS({
        */
       get members() {
         return this.guild.members.cache.filter(
-          (member) => this.permissionsFor(member).has(PermissionFlagsBits37.ViewChannel, false)
+          (member) => this.permissionsFor(member).has(PermissionFlagsBits38.ViewChannel, false)
         );
       }
       /**
@@ -103163,10 +103163,10 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
         if (this.guild.members.me.communicationDisabledUntilTimestamp > Date.now()) return false;
-        const baseBitfield = PermissionFlagsBits37.ViewChannel | PermissionFlagsBits37.ManageChannels;
-        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits37.Connect : baseBitfield;
+        const baseBitfield = PermissionFlagsBits38.ViewChannel | PermissionFlagsBits38.ManageChannels;
+        const bitfield = VoiceBasedChannelTypes.includes(this.type) ? baseBitfield | PermissionFlagsBits38.Connect : baseBitfield;
         return permissions.has(bitfield, false);
       }
       /**
@@ -103178,7 +103178,7 @@ var require_GuildChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits37.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits38.ViewChannel, false);
       }
       /**
        * Deletes this channel.
@@ -105819,7 +105819,7 @@ var require_Invite = __commonJS({
     var { Buffer: Buffer10 } = require("node:buffer");
     var { Collection: Collection3 } = require_dist7();
     var { lazy: lazy2 } = require_dist2();
-    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { RouteBases: RouteBases2, Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var Base = require_Base();
     var { GuildScheduledEvent } = require_GuildScheduledEvent();
     var IntegrationApplication = require_IntegrationApplication();
@@ -105970,7 +105970,7 @@ var require_Invite = __commonJS({
         if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
         if (!guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
         return Boolean(
-          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits37.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits37.ManageGuild)
+          this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits38.ManageChannels, false) || guild.members.me.permissions.has(PermissionFlagsBits38.ManageGuild)
         );
       }
       /**
@@ -113619,14 +113619,14 @@ var require_dist9 = __commonJS({
     }, "__decorateClass");
     var index_exports = {};
     __export2(index_exports, {
-      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder18, "ActionRowBuilder"),
+      ActionRowBuilder: /* @__PURE__ */ __name(() => ActionRowBuilder21, "ActionRowBuilder"),
       ApplicationCommandNumericOptionMinMaxValueMixin: /* @__PURE__ */ __name(() => ApplicationCommandNumericOptionMinMaxValueMixin, "ApplicationCommandNumericOptionMinMaxValueMixin"),
       ApplicationCommandOptionBase: /* @__PURE__ */ __name(() => ApplicationCommandOptionBase, "ApplicationCommandOptionBase"),
       ApplicationCommandOptionChannelTypesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionChannelTypesMixin, "ApplicationCommandOptionChannelTypesMixin"),
       ApplicationCommandOptionWithAutocompleteMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithAutocompleteMixin, "ApplicationCommandOptionWithAutocompleteMixin"),
       ApplicationCommandOptionWithChoicesMixin: /* @__PURE__ */ __name(() => ApplicationCommandOptionWithChoicesMixin, "ApplicationCommandOptionWithChoicesMixin"),
       BaseSelectMenuBuilder: /* @__PURE__ */ __name(() => BaseSelectMenuBuilder, "BaseSelectMenuBuilder"),
-      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder15, "ButtonBuilder"),
+      ButtonBuilder: /* @__PURE__ */ __name(() => ButtonBuilder18, "ButtonBuilder"),
       ChannelSelectMenuBuilder: /* @__PURE__ */ __name(() => ChannelSelectMenuBuilder, "ChannelSelectMenuBuilder"),
       CheckboxAssertions: /* @__PURE__ */ __name(() => Assertions_exports3, "CheckboxAssertions"),
       CheckboxBuilder: /* @__PURE__ */ __name(() => CheckboxBuilder, "CheckboxBuilder"),
@@ -113639,7 +113639,7 @@ var require_dist9 = __commonJS({
       ContextMenuCommandAssertions: /* @__PURE__ */ __name(() => Assertions_exports11, "ContextMenuCommandAssertions"),
       ContextMenuCommandBuilder: /* @__PURE__ */ __name(() => ContextMenuCommandBuilder, "ContextMenuCommandBuilder"),
       EmbedAssertions: /* @__PURE__ */ __name(() => Assertions_exports, "EmbedAssertions"),
-      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder64, "EmbedBuilder"),
+      EmbedBuilder: /* @__PURE__ */ __name(() => EmbedBuilder68, "EmbedBuilder"),
       FileBuilder: /* @__PURE__ */ __name(() => FileBuilder, "FileBuilder"),
       FileUploadAssertions: /* @__PURE__ */ __name(() => Assertions_exports4, "FileUploadAssertions"),
       FileUploadBuilder: /* @__PURE__ */ __name(() => FileUploadBuilder, "FileUploadBuilder"),
@@ -113649,7 +113649,7 @@ var require_dist9 = __commonJS({
       MediaGalleryItemBuilder: /* @__PURE__ */ __name(() => MediaGalleryItemBuilder, "MediaGalleryItemBuilder"),
       MentionableSelectMenuBuilder: /* @__PURE__ */ __name(() => MentionableSelectMenuBuilder, "MentionableSelectMenuBuilder"),
       ModalAssertions: /* @__PURE__ */ __name(() => Assertions_exports9, "ModalAssertions"),
-      ModalBuilder: /* @__PURE__ */ __name(() => ModalBuilder11, "ModalBuilder"),
+      ModalBuilder: /* @__PURE__ */ __name(() => ModalBuilder13, "ModalBuilder"),
       RadioGroupBuilder: /* @__PURE__ */ __name(() => RadioGroupBuilder, "RadioGroupBuilder"),
       RadioGroupOptionBuilder: /* @__PURE__ */ __name(() => RadioGroupOptionBuilder, "RadioGroupOptionBuilder"),
       RoleSelectMenuBuilder: /* @__PURE__ */ __name(() => RoleSelectMenuBuilder, "RoleSelectMenuBuilder"),
@@ -113679,9 +113679,9 @@ var require_dist9 = __commonJS({
       StringSelectMenuOptionBuilder: /* @__PURE__ */ __name(() => StringSelectMenuOptionBuilder4, "StringSelectMenuOptionBuilder"),
       TextDisplayBuilder: /* @__PURE__ */ __name(() => TextDisplayBuilder, "TextDisplayBuilder"),
       TextInputAssertions: /* @__PURE__ */ __name(() => Assertions_exports5, "TextInputAssertions"),
-      TextInputBuilder: /* @__PURE__ */ __name(() => TextInputBuilder11, "TextInputBuilder"),
+      TextInputBuilder: /* @__PURE__ */ __name(() => TextInputBuilder13, "TextInputBuilder"),
       ThumbnailBuilder: /* @__PURE__ */ __name(() => ThumbnailBuilder, "ThumbnailBuilder"),
-      UserSelectMenuBuilder: /* @__PURE__ */ __name(() => UserSelectMenuBuilder, "UserSelectMenuBuilder"),
+      UserSelectMenuBuilder: /* @__PURE__ */ __name(() => UserSelectMenuBuilder2, "UserSelectMenuBuilder"),
       createComponentBuilder: /* @__PURE__ */ __name(() => createComponentBuilder, "createComponentBuilder"),
       disableValidators: /* @__PURE__ */ __name(() => disableValidators, "disableValidators"),
       embedLength: /* @__PURE__ */ __name(() => embedLength, "embedLength"),
@@ -113773,7 +113773,7 @@ var require_dist9 = __commonJS({
     }
     __name(normalizeArray, "normalizeArray");
     __name3(normalizeArray, "normalizeArray");
-    var EmbedBuilder64 = class {
+    var EmbedBuilder68 = class {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -114210,7 +114210,7 @@ var require_dist9 = __commonJS({
     };
     var import_v1027 = require_v106();
     var import_v1022 = require_v106();
-    var ButtonBuilder15 = class extends ComponentBuilder {
+    var ButtonBuilder18 = class extends ComponentBuilder {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -115589,7 +115589,7 @@ var require_dist9 = __commonJS({
       }
     };
     var import_v1015 = require_v106();
-    var UserSelectMenuBuilder = class extends BaseSelectMenuBuilder {
+    var UserSelectMenuBuilder2 = class extends BaseSelectMenuBuilder {
       static {
         __name(this, "UserSelectMenuBuilder");
       }
@@ -115656,7 +115656,7 @@ var require_dist9 = __commonJS({
     var import_util9 = require_dist2();
     var import_v1016 = require_v106();
     var import_fast_deep_equal = __toESM2(require_fast_deep_equal());
-    var TextInputBuilder11 = class extends ComponentBuilder {
+    var TextInputBuilder13 = class extends ComponentBuilder {
       static {
         __name(this, "TextInputBuilder");
       }
@@ -115886,7 +115886,7 @@ var require_dist9 = __commonJS({
        * @param input - A function that returns a component builder or an already built builder
        */
       setUserSelectMenuComponent(input2) {
-        this.data.component = resolveBuilder(input2, UserSelectMenuBuilder);
+        this.data.component = resolveBuilder(input2, UserSelectMenuBuilder2);
         return this;
       }
       /**
@@ -115922,7 +115922,7 @@ var require_dist9 = __commonJS({
        * @param input - A function that returns a component builder or an already built builder
        */
       setTextInputComponent(input2) {
-        this.data.component = resolveBuilder(input2, TextInputBuilder11);
+        this.data.component = resolveBuilder(input2, TextInputBuilder13);
         return this;
       }
       /**
@@ -116088,7 +116088,7 @@ var require_dist9 = __commonJS({
     var dividerPredicate = import_shapeshift9.s.boolean();
     var spacingPredicate = import_shapeshift9.s.nativeEnum(import_v1020.SeparatorSpacingSize);
     var textDisplayContentPredicate = import_shapeshift9.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(4e3).setValidationEnabled(isValidationEnabled);
-    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder15).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
+    var accessoryPredicate = import_shapeshift9.s.instance(ButtonBuilder18).or(import_shapeshift9.s.instance(ThumbnailBuilder)).setValidationEnabled(isValidationEnabled);
     var containerColorPredicate = colorPredicate.nullish();
     function assertReturnOfBuilder(input2, ExpectedInstanceOf) {
       import_shapeshift9.s.instance(ExpectedInstanceOf).setValidationEnabled(isValidationEnabled).parse(input2);
@@ -116355,7 +116355,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         this.components.push(
-          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder18))
+          ...normalizeArray(components).map((component) => resolveBuilder(component, ActionRowBuilder21))
         );
         return this;
       }
@@ -116686,7 +116686,7 @@ var require_dist9 = __commonJS({
        * @param accessory - The accessory to use
        */
       setButtonAccessory(accessory) {
-        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder15)));
+        Reflect.set(this, "accessory", accessoryPredicate.parse(resolveBuilder(accessory, ButtonBuilder18)));
         return this;
       }
       /**
@@ -116750,15 +116750,15 @@ var require_dist9 = __commonJS({
       }
       switch (data.type) {
         case import_v1027.ComponentType.ActionRow:
-          return new ActionRowBuilder18(data);
+          return new ActionRowBuilder21(data);
         case import_v1027.ComponentType.Button:
-          return new ButtonBuilder15(data);
+          return new ButtonBuilder18(data);
         case import_v1027.ComponentType.StringSelect:
           return new StringSelectMenuBuilder4(data);
         case import_v1027.ComponentType.TextInput:
-          return new TextInputBuilder11(data);
+          return new TextInputBuilder13(data);
         case import_v1027.ComponentType.UserSelect:
-          return new UserSelectMenuBuilder(data);
+          return new UserSelectMenuBuilder2(data);
         case import_v1027.ComponentType.RoleSelect:
           return new RoleSelectMenuBuilder(data);
         case import_v1027.ComponentType.MentionableSelect:
@@ -116811,7 +116811,7 @@ var require_dist9 = __commonJS({
     }
     __name(resolveBuilder, "resolveBuilder");
     __name3(resolveBuilder, "resolveBuilder");
-    var ActionRowBuilder18 = class extends ComponentBuilder {
+    var ActionRowBuilder21 = class extends ComponentBuilder {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -116897,7 +116897,7 @@ var require_dist9 = __commonJS({
     });
     var import_shapeshift10 = require_cjs3();
     var titleValidator = import_shapeshift10.s.string().lengthGreaterThanOrEqual(1).lengthLessThanOrEqual(45).setValidationEnabled(isValidationEnabled);
-    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder18), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
+    var componentsValidator = import_shapeshift10.s.union([import_shapeshift10.s.instance(ActionRowBuilder21), import_shapeshift10.s.instance(LabelBuilder), import_shapeshift10.s.instance(TextDisplayBuilder)]).array().lengthGreaterThanOrEqual(1).setValidationEnabled(isValidationEnabled);
     function validateRequiredParameters2(customId, title, components) {
       customIdValidator.parse(customId);
       titleValidator.parse(title);
@@ -116905,7 +116905,7 @@ var require_dist9 = __commonJS({
     }
     __name(validateRequiredParameters2, "validateRequiredParameters2");
     __name3(validateRequiredParameters2, "validateRequiredParameters");
-    var ModalBuilder11 = class {
+    var ModalBuilder13 = class {
       static {
         __name(this, "ModalBuilder");
       }
@@ -116956,15 +116956,15 @@ var require_dist9 = __commonJS({
       addComponents(...components) {
         this.components.push(
           ...normalizeArray(components).map((component, idx) => {
-            if (component instanceof ActionRowBuilder18 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
+            if (component instanceof ActionRowBuilder21 || component instanceof LabelBuilder || component instanceof TextDisplayBuilder) {
               return component;
             }
-            if (component instanceof TextInputBuilder11) {
-              return new ActionRowBuilder18().addComponents(component);
+            if (component instanceof TextInputBuilder13) {
+              return new ActionRowBuilder21().addComponents(component);
             }
             if ("type" in component) {
               if (component.type === import_v1029.ComponentType.ActionRow) {
-                return new ActionRowBuilder18(component);
+                return new ActionRowBuilder21(component);
               }
               if (component.type === import_v1029.ComponentType.Label) {
                 return new LabelBuilder(component);
@@ -116973,8 +116973,8 @@ var require_dist9 = __commonJS({
                 return new TextDisplayBuilder(component);
               }
               if (component.type === import_v1029.ComponentType.TextInput) {
-                return new ActionRowBuilder18().addComponents(
-                  new TextInputBuilder11(component)
+                return new ActionRowBuilder21().addComponents(
+                  new TextInputBuilder13(component)
                 );
               }
             }
@@ -117013,7 +117013,7 @@ var require_dist9 = __commonJS({
        */
       addActionRowComponents(...components) {
         const normalized = normalizeArray(components);
-        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder18));
+        const resolved = normalized.map((row) => resolveBuilder(row, ActionRowBuilder21));
         this.components.push(...resolved);
         return this;
       }
@@ -119337,7 +119337,7 @@ var require_GuildEmojiRoleManager = __commonJS({
 var require_GuildEmoji = __commonJS({
   "node_modules/discord.js/src/structures/GuildEmoji.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var BaseGuildEmoji = require_BaseGuildEmoji();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var GuildEmojiRoleManager = require_GuildEmojiRoleManager();
@@ -119373,7 +119373,7 @@ var require_GuildEmoji = __commonJS({
        */
       get deletable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits37.ManageGuildExpressions);
+        return !this.managed && this.guild.members.me.permissions.has(PermissionFlagsBits38.ManageGuildExpressions);
       }
       /**
        * A manager for roles this emoji is active for.
@@ -119838,7 +119838,7 @@ var require_ActionRowBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { createComponentBuilder } = require_Components();
     var { toSnakeCase } = require_Transformers();
-    var ActionRowBuilder18 = class extends BuildersActionRow {
+    var ActionRowBuilder21 = class extends BuildersActionRow {
       static {
         __name(this, "ActionRowBuilder");
       }
@@ -119857,7 +119857,7 @@ var require_ActionRowBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ActionRowBuilder18;
+    module2.exports = ActionRowBuilder21;
   }
 });
 
@@ -119869,7 +119869,7 @@ var require_ButtonBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolvePartialEmoji } = require_Util();
-    var ButtonBuilder15 = class extends BuildersButton {
+    var ButtonBuilder18 = class extends BuildersButton {
       static {
         __name(this, "ButtonBuilder");
       }
@@ -119896,7 +119896,7 @@ var require_ButtonBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ButtonBuilder15;
+    module2.exports = ButtonBuilder18;
   }
 });
 
@@ -120559,7 +120559,7 @@ var require_TextInputBuilder = __commonJS({
     var { TextInputBuilder: BuildersTextInput } = require_dist9();
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
-    var TextInputBuilder11 = class extends BuildersTextInput {
+    var TextInputBuilder13 = class extends BuildersTextInput {
       static {
         __name(this, "TextInputBuilder");
       }
@@ -120575,7 +120575,7 @@ var require_TextInputBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = TextInputBuilder11;
+    module2.exports = TextInputBuilder13;
   }
 });
 
@@ -120658,7 +120658,7 @@ var require_UserSelectMenuBuilder = __commonJS({
     var { UserSelectMenuBuilder: BuildersUserSelectMenu } = require_dist9();
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
-    var UserSelectMenuBuilder = class extends BuildersUserSelectMenu {
+    var UserSelectMenuBuilder2 = class extends BuildersUserSelectMenu {
       static {
         __name(this, "UserSelectMenuBuilder");
       }
@@ -120674,7 +120674,7 @@ var require_UserSelectMenuBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = UserSelectMenuBuilder;
+    module2.exports = UserSelectMenuBuilder2;
   }
 });
 
@@ -120725,8 +120725,8 @@ var require_Components = __commonJS({
     __name(findComponentByCustomId, "findComponentByCustomId");
     module2.exports = { createComponent, createComponentBuilder, findComponentByCustomId };
     var ActionRow = require_ActionRow();
-    var ActionRowBuilder18 = require_ActionRowBuilder();
-    var ButtonBuilder15 = require_ButtonBuilder();
+    var ActionRowBuilder21 = require_ActionRowBuilder();
+    var ButtonBuilder18 = require_ButtonBuilder();
     var ButtonComponent = require_ButtonComponent();
     var ChannelSelectMenuBuilder = require_ChannelSelectMenuBuilder();
     var ChannelSelectMenuComponent = require_ChannelSelectMenuComponent();
@@ -120744,10 +120744,10 @@ var require_Components = __commonJS({
     var StringSelectMenuBuilder4 = require_StringSelectMenuBuilder();
     var StringSelectMenuComponent = require_StringSelectMenuComponent();
     var TextDisplayComponent = require_TextDisplayComponent();
-    var TextInputBuilder11 = require_TextInputBuilder();
+    var TextInputBuilder13 = require_TextInputBuilder();
     var TextInputComponent = require_TextInputComponent();
     var ThumbnailComponent = require_ThumbnailComponent();
-    var UserSelectMenuBuilder = require_UserSelectMenuBuilder();
+    var UserSelectMenuBuilder2 = require_UserSelectMenuBuilder();
     var UserSelectMenuComponent = require_UserSelectMenuComponent();
     var ComponentTypeToComponent = {
       [ComponentType7.ActionRow]: ActionRow,
@@ -120768,11 +120768,11 @@ var require_Components = __commonJS({
       [ComponentType7.Label]: LabelComponent
     };
     var ComponentTypeToBuilder = {
-      [ComponentType7.ActionRow]: ActionRowBuilder18,
-      [ComponentType7.Button]: ButtonBuilder15,
+      [ComponentType7.ActionRow]: ActionRowBuilder21,
+      [ComponentType7.Button]: ButtonBuilder18,
       [ComponentType7.StringSelect]: StringSelectMenuBuilder4,
-      [ComponentType7.TextInput]: TextInputBuilder11,
-      [ComponentType7.UserSelect]: UserSelectMenuBuilder,
+      [ComponentType7.TextInput]: TextInputBuilder13,
+      [ComponentType7.UserSelect]: UserSelectMenuBuilder2,
       [ComponentType7.RoleSelect]: RoleSelectMenuBuilder,
       [ComponentType7.MentionableSelect]: MentionableSelectMenuBuilder,
       [ComponentType7.ChannelSelect]: ChannelSelectMenuBuilder
@@ -120792,7 +120792,7 @@ var require_Message = __commonJS({
       ChannelType: ChannelType12,
       MessageType: MessageType2,
       MessageFlags: MessageFlags36,
-      PermissionFlagsBits: PermissionFlagsBits37,
+      PermissionFlagsBits: PermissionFlagsBits38,
       MessageReferenceType: MessageReferenceType2
     } = require_v106();
     var Attachment = require_Attachment();
@@ -121251,7 +121251,7 @@ var require_Message = __commonJS({
           if (this.channel.archived) return false;
           if (this.channel.locked) {
             const permissions = this.channel.permissionsFor(this.client.user);
-            if (!permissions?.has(PermissionFlagsBits37.ManageThreads, true)) return false;
+            if (!permissions?.has(PermissionFlagsBits38.ManageThreads, true)) return false;
           }
         }
         return precheck;
@@ -121271,8 +121271,8 @@ var require_Message = __commonJS({
         }
         const permissions = this.channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
-        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits37.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        return this.type !== MessageType2.AutoModerationAction && this.author.id === this.client.user.id || permissions.has(PermissionFlagsBits38.ManageMessages, false) && !this.guild.members.me.isCommunicationDisabled();
       }
       /**
        * Whether the message is bulk deletable by the client user
@@ -121283,7 +121283,7 @@ var require_Message = __commonJS({
        * channel.bulkDelete(messages.filter(message => message.bulkDeletable));
        */
       get bulkDeletable() {
-        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits37.ManageMessages, false)) ?? false;
+        return (this.inGuild() && Date.now() - this.createdTimestamp < MaxBulkDeletableMessageAge && this.deletable && this.channel?.permissionsFor(this.client.user).has(PermissionFlagsBits38.ManageMessages, false)) ?? false;
       }
       /**
        * Whether the message is pinnable by the client user
@@ -121297,7 +121297,7 @@ var require_Message = __commonJS({
         if (!channel || channel.isVoiceBased() || !channel.viewable) return false;
         const permissions = channel?.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits37.ReadMessageHistory | PermissionFlagsBits37.PinMessages);
+        return permissions.has(PermissionFlagsBits38.ReadMessageHistory | PermissionFlagsBits38.PinMessages);
       }
       /**
        * Fetches the Message this crosspost/reply/pin-add references, if available to the client
@@ -121318,7 +121318,7 @@ var require_Message = __commonJS({
        * @readonly
        */
       get crosspostable() {
-        const bitfield = PermissionFlagsBits37.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits37.ManageMessages);
+        const bitfield = PermissionFlagsBits38.SendMessages | (this.author.id === this.client.user.id ? PermissionsBitField2.DefaultBit : PermissionFlagsBits38.ManageMessages);
         const { channel } = this;
         return Boolean(
           channel?.type === ChannelType12.GuildAnnouncement && !this.flags.has(MessageFlags36.Crossposted) && this.reference?.type !== MessageReferenceType2.Forward && this.type === MessageType2.Default && !this.poll && channel.viewable && channel.permissionsFor(this.client.user)?.has(bitfield, false)
@@ -122526,7 +122526,7 @@ var require_GuildMemberFlagsBitField = __commonJS({
 var require_GuildMember = __commonJS({
   "node_modules/discord.js/src/structures/GuildMember.js"(exports2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var Base = require_Base();
     var VoiceState = require_VoiceState();
     var TextBasedChannel = require_TextBasedChannel();
@@ -122781,7 +122781,7 @@ var require_GuildMember = __commonJS({
        */
       get kickable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits37.KickMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits38.KickMembers);
       }
       /**
        * Whether this member is bannable by the client user
@@ -122790,7 +122790,7 @@ var require_GuildMember = __commonJS({
        */
       get bannable() {
         if (!this.guild.members.me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits37.BanMembers);
+        return this.manageable && this.guild.members.me.permissions.has(PermissionFlagsBits38.BanMembers);
       }
       /**
        * Whether this member is moderatable by the client user
@@ -122798,7 +122798,7 @@ var require_GuildMember = __commonJS({
        * @readonly
        */
       get moderatable() {
-        return !this.permissions.has(PermissionFlagsBits37.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits37.ModerateMembers) ?? false);
+        return !this.permissions.has(PermissionFlagsBits38.Administrator) && this.manageable && (this.guild.members.me?.permissions.has(PermissionFlagsBits38.ModerateMembers) ?? false);
       }
       /**
        * Whether this member is currently timed out
@@ -125760,7 +125760,7 @@ var require_ThreadChannel = __commonJS({
     "use strict";
     var { DiscordAPIError } = require_dist6();
     var { lazy: lazy2 } = require_dist2();
-    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType12, PermissionFlagsBits: PermissionFlagsBits37, Routes: Routes3 } = require_v106();
+    var { RESTJSONErrorCodes: RESTJSONErrorCodes2, ChannelFlags: ChannelFlags2, ChannelType: ChannelType12, PermissionFlagsBits: PermissionFlagsBits38, Routes: Routes3 } = require_v106();
     var { BaseChannel } = require_BaseChannel();
     var getThreadOnlyChannel = lazy2(() => require_ThreadOnlyChannel());
     var TextBasedChannel = require_TextBasedChannel();
@@ -126123,7 +126123,7 @@ var require_ThreadChannel = __commonJS({
        */
       get joinable() {
         return !this.archived && !this.joined && this.permissionsFor(this.client.user)?.has(
-          this.type === ChannelType12.PrivateThread ? PermissionFlagsBits37.ManageThreads : PermissionFlagsBits37.ViewChannel,
+          this.type === ChannelType12.PrivateThread ? PermissionFlagsBits38.ManageThreads : PermissionFlagsBits38.ViewChannel,
           false
         );
       }
@@ -126135,8 +126135,8 @@ var require_ThreadChannel = __commonJS({
       get manageable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits37.ManageThreads, false);
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.ManageThreads, false);
       }
       /**
        * Whether the thread is viewable by the client user
@@ -126147,7 +126147,7 @@ var require_ThreadChannel = __commonJS({
         if (this.client.user.id === this.guild.ownerId) return true;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        return permissions.has(PermissionFlagsBits37.ViewChannel, false);
+        return permissions.has(PermissionFlagsBits38.ViewChannel, false);
       }
       /**
        * Whether the client user can send messages in this thread
@@ -126157,8 +126157,8 @@ var require_ThreadChannel = __commonJS({
       get sendable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
-        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType12.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits37.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        return !(this.archived && this.locked && !this.manageable) && (this.type !== ChannelType12.PrivateThread || this.joined || this.manageable) && permissions.has(PermissionFlagsBits38.SendMessagesInThreads, false) && this.guild.members.me.communicationDisabledUntilTimestamp < Date.now();
       }
       /**
        * Whether the thread is unarchivable by the client user
@@ -126667,7 +126667,7 @@ var require_BaseGuildVoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/BaseGuildVoiceChannel.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection3 } = require_dist7();
-    var { PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var GuildChannel = require_GuildChannel();
     var TextBasedChannel = require_TextBasedChannel();
     var GuildMessageManager = require_GuildMessageManager();
@@ -126741,8 +126741,8 @@ var require_BaseGuildVoiceChannel = __commonJS({
         if (!this.viewable) return false;
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits37.Connect, false);
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.Connect, false);
       }
       /**
        * Creates an invite to this guild channel.
@@ -126932,7 +126932,7 @@ var require_TextChannel = __commonJS({
 var require_VoiceChannel = __commonJS({
   "node_modules/discord.js/src/structures/VoiceChannel.js"(exports2, module2) {
     "use strict";
-    var { PermissionFlagsBits: PermissionFlagsBits37, Routes: Routes3 } = require_v106();
+    var { PermissionFlagsBits: PermissionFlagsBits38, Routes: Routes3 } = require_v106();
     var BaseGuildVoiceChannel = require_BaseGuildVoiceChannel();
     var VoiceChannel = class extends BaseGuildVoiceChannel {
       static {
@@ -126945,7 +126945,7 @@ var require_VoiceChannel = __commonJS({
        */
       get joinable() {
         if (!super.joinable) return false;
-        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits37.MoveMembers, false)) return false;
+        if (this.full && !this.permissionsFor(this.client.user).has(PermissionFlagsBits38.MoveMembers, false)) return false;
         return true;
       }
       /**
@@ -126956,8 +126956,8 @@ var require_VoiceChannel = __commonJS({
       get speakable() {
         const permissions = this.permissionsFor(this.client.user);
         if (!permissions) return false;
-        if (permissions.has(PermissionFlagsBits37.Administrator, false)) return true;
-        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits37.Speak, false);
+        if (permissions.has(PermissionFlagsBits38.Administrator, false)) return true;
+        return this.guild.members.me.communicationDisabledUntilTimestamp < Date.now() && permissions.has(PermissionFlagsBits38.Speak, false);
       }
       /**
        * @typedef {Object} SendSoundboardSoundOptions
@@ -127032,7 +127032,7 @@ var require_PartialGroupDMChannel = __commonJS({
     var TextBasedChannel = require_TextBasedChannel();
     var { DiscordjsError: DiscordjsError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var PartialGroupDMMessageManager = require_PartialGroupDMMessageManager();
-    var PartialGroupDMChannel = class extends BaseChannel {
+    var PartialGroupDMChannel2 = class extends BaseChannel {
       static {
         __name(this, "PartialGroupDMChannel");
       }
@@ -127095,7 +127095,7 @@ var require_PartialGroupDMChannel = __commonJS({
       awaitMessageComponent() {
       }
     };
-    TextBasedChannel.applyToClass(PartialGroupDMChannel, true, [
+    TextBasedChannel.applyToClass(PartialGroupDMChannel2, true, [
       "bulkDelete",
       "send",
       "sendTyping",
@@ -127106,7 +127106,7 @@ var require_PartialGroupDMChannel = __commonJS({
       "setRateLimitPerUser",
       "setNSFW"
     ]);
-    module2.exports = PartialGroupDMChannel;
+    module2.exports = PartialGroupDMChannel2;
   }
 });
 
@@ -141065,7 +141065,7 @@ var require_GuildEmojiManager = __commonJS({
   "node_modules/discord.js/src/managers/GuildEmojiManager.js"(exports2, module2) {
     "use strict";
     var { Collection: Collection3 } = require_dist7();
-    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits37 } = require_v106();
+    var { Routes: Routes3, PermissionFlagsBits: PermissionFlagsBits38 } = require_v106();
     var BaseGuildEmojiManager2 = require_BaseGuildEmojiManager();
     var { DiscordjsError: DiscordjsError2, DiscordjsTypeError: DiscordjsTypeError2, ErrorCodes: ErrorCodes2 } = require_errors4();
     var { resolveImage } = require_DataResolver();
@@ -141207,7 +141207,7 @@ var require_GuildEmojiManager = __commonJS({
         }
         const { me } = this.guild.members;
         if (!me) throw new DiscordjsError2(ErrorCodes2.GuildUncachedMe);
-        if (!me.permissions.any(PermissionFlagsBits37.CreateGuildExpressions | PermissionFlagsBits37.ManageGuildExpressions)) {
+        if (!me.permissions.any(PermissionFlagsBits38.CreateGuildExpressions | PermissionFlagsBits38.ManageGuildExpressions)) {
           throw new DiscordjsError2(ErrorCodes2.MissingManageGuildExpressionsPermission, this.guild);
         }
         const data = await this.client.rest.get(Routes3.guildEmoji(this.guild.id, emoji3.id));
@@ -147342,7 +147342,7 @@ var require_EmbedBuilder = __commonJS({
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
     var { resolveColor } = require_Util();
-    var EmbedBuilder64 = class extends BuildersEmbed {
+    var EmbedBuilder68 = class extends BuildersEmbed {
       static {
         __name(this, "EmbedBuilder");
       }
@@ -147374,7 +147374,7 @@ var require_EmbedBuilder = __commonJS({
         return embedLength(this.data);
       }
     };
-    module2.exports = EmbedBuilder64;
+    module2.exports = EmbedBuilder68;
   }
 });
 
@@ -147383,7 +147383,7 @@ var require_AttachmentBuilder = __commonJS({
   "node_modules/discord.js/src/structures/AttachmentBuilder.js"(exports2, module2) {
     "use strict";
     var { basename, flatten } = require_Util();
-    var AttachmentBuilder5 = class _AttachmentBuilder {
+    var AttachmentBuilder6 = class _AttachmentBuilder {
       static {
         __name(this, "AttachmentBuilder");
       }
@@ -147497,7 +147497,7 @@ var require_AttachmentBuilder = __commonJS({
         });
       }
     };
-    module2.exports = AttachmentBuilder5;
+    module2.exports = AttachmentBuilder6;
   }
 });
 
@@ -147508,7 +147508,7 @@ var require_ModalBuilder = __commonJS({
     var { ModalBuilder: BuildersModal, ComponentBuilder } = require_dist9();
     var { isJSONEncodable } = require_dist2();
     var { toSnakeCase } = require_Transformers();
-    var ModalBuilder11 = class extends BuildersModal {
+    var ModalBuilder13 = class extends BuildersModal {
       static {
         __name(this, "ModalBuilder");
       }
@@ -147529,7 +147529,7 @@ var require_ModalBuilder = __commonJS({
         return new this(isJSONEncodable(other) ? other.toJSON() : other);
       }
     };
-    module2.exports = ModalBuilder11;
+    module2.exports = ModalBuilder13;
   }
 });
 
@@ -182152,8 +182152,8 @@ async function handleTagEmbedModal(interaction) {
     image: image || void 0
   };
   await tag.save();
-  const { EmbedBuilder: EmbedBuilder64, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
-  const embed = new EmbedBuilder64().setColor(Colors31.Green).setTitle("\u2705 Embed Updated").setDescription(`Custom command **/${name}** now has a custom embed`);
+  const { EmbedBuilder: EmbedBuilder68, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
+  const embed = new EmbedBuilder68().setColor(Colors31.Green).setTitle("\u2705 Embed Updated").setDescription(`Custom command **/${name}** now has a custom embed`);
   await interaction.reply({ embeds: [embed], ephemeral: true });
 }
 __name(handleTagEmbedModal, "handleTagEmbedModal");
@@ -186500,9 +186500,9 @@ var suggestCommand = {
       const status = interaction.options.getString("status");
       const filter = { guildId: interaction.guildId };
       if (status) filter.status = status;
-      const suggestions = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(25).lean();
+      const suggestions2 = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(25).lean();
       await interaction.respond(
-        suggestions.filter((s) => String(s._id).includes(focused.value) || s.title.toLowerCase().includes(focused.value.toLowerCase())).map((s) => ({ name: `${s.title} (${s.status})`, value: String(s._id) }))
+        suggestions2.filter((s) => String(s._id).includes(focused.value) || s.title.toLowerCase().includes(focused.value.toLowerCase())).map((s) => ({ name: `${s.title} (${s.status})`, value: String(s._id) }))
       );
     }
   },
@@ -186547,18 +186547,18 @@ var suggestCommand = {
       const limit = interaction.options.getInteger("limit") ?? 10;
       const filter = { guildId };
       if (status) filter.status = status;
-      const suggestions = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
-      if (!suggestions.length) {
+      const suggestions2 = await Suggestion.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
+      if (!suggestions2.length) {
         await interaction.reply({ content: "No suggestions found", ephemeral: true });
         return;
       }
       const embed = new import_discord47.EmbedBuilder().setColor(import_discord47.Colors.Blurple).setTitle("\u{1F4CB} Suggestions").setDescription(
-        suggestions.map((s) => {
+        suggestions2.map((s) => {
           const statusEmoji = { pending: "\u23F3", approved: "\u2705", denied: "\u274C", implemented: "\u{1F680}", deferred: "\u23F8\uFE0F" }[s.status] || "\u2753";
           const votes = s.upvotes.length - s.downvotes.length;
           return `${statusEmoji} **${s.title}** \u2014 ${votes > 0 ? "+" : ""}${votes} votes \u2014 ID: \`${s._id}\``;
         }).join("\n")
-      ).setFooter({ text: `${suggestions.length} suggestion(s)` });
+      ).setFooter({ text: `${suggestions2.length} suggestion(s)` });
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
@@ -187603,8 +187603,8 @@ async function executeCustomCommand(message, commandName, args) {
   await tag.save();
   let content = tag.content.replace(/{user}/g, message.author.toString()).replace(/{user.name}/g, message.author.username).replace(/{user.id}/g, message.author.id).replace(/{server}/g, message.guild?.name || "DM").replace(/{channel}/g, message.channel.toString()).replace(/{args}/g, args.join(" ")).replace(/{random:(\d+)}/g, (_, max) => Math.floor(Math.random() * parseInt(max)).toString());
   if (tag.embed) {
-    const { EmbedBuilder: EmbedBuilder64, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
-    const embed = new EmbedBuilder64().setColor(tag.embed.color || Colors31.Blurple).setDescription(content);
+    const { EmbedBuilder: EmbedBuilder68, Colors: Colors31 } = await Promise.resolve().then(() => __toESM(require_src()));
+    const embed = new EmbedBuilder68().setColor(tag.embed.color || Colors31.Blurple).setDescription(content);
     if (tag.embed.title) embed.setTitle(tag.embed.title);
     if (tag.embed.description) embed.setDescription(tag.embed.description);
     if (tag.embed.footer) embed.setFooter({ text: tag.embed.footer });
@@ -194683,121 +194683,123 @@ var guildMemberRemove = {
 };
 
 // src/events/welcomeEvents.ts
-var import_discord89 = __toESM(require_src());
+var import_discord87 = __toESM(require_src());
 
 // src/systems/verification/index.ts
 var import_discord85 = __toESM(require_src());
-var import_discord86 = __toESM(require_src());
 
-// src/utils/shared-helpers.ts
+// src/utils/shared-embeds.ts
 var import_discord84 = __toESM(require_src());
-var Helpers = class {
+var EmbedBuilderUtil = class {
   static {
-    __name(this, "Helpers");
+    __name(this, "EmbedBuilderUtil");
   }
-  static formatDuration(ms2) {
-    if (ms2 < 1e3) return `${ms2}ms`;
-    const seconds = Math.floor(ms2 / 1e3);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ${minutes % 60}m`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ${hours % 24}h`;
+  static success(title, description, fields = []) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
-  static ordinal(num) {
-    const s = ["th", "st", "nd", "rd"];
-    const v = num % 100;
-    return num + (s[(v - 20) % 10] || s[v] || s[0]);
+  static error(title, description, fields = []) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
-  static truncate(str, length = 100) {
-    if (str.length <= length) return str;
-    return str.substring(0, length - 3) + "...";
+  static warning(title, description, fields = []) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
-  static cleanContent(content) {
-    return content.replace(/@everyone/g, "@\u200Beveryone").replace(/@here/g, "@\u200Bhere").replace(/<@&?\d+>/g, "");
+  static info(title, description, fields = []) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
   }
-  static parseTimeString(str) {
-    const regex = /(\d+)([smhd])/g;
-    let totalMs = 0;
-    let match;
-    while ((match = regex.exec(str)) !== null) {
-      const value = parseInt(match[1]);
-      const unit = match[2];
-      switch (unit) {
-        case "s":
-          totalMs += value * 1e3;
-          break;
-        case "m":
-          totalMs += value * 60 * 1e3;
-          break;
-        case "h":
-          totalMs += value * 60 * 60 * 1e3;
-          break;
-        case "d":
-          totalMs += value * 24 * 60 * 60 * 1e3;
-          break;
+  static ticketPanel(title, description, options = []) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
+  }
+  static ticketControl(ticketData) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
+      { name: "\u{1F464} Created by", value: `<@${ticketData.user_id}>`, inline: true },
+      { name: "\u{1F4C2} Type", value: ticketData.type, inline: true },
+      { name: "\u{1F4CA} Status", value: ticketData.status, inline: true },
+      { name: "\u{1F46E} Claimed by", value: ticketData.claimed_by ? `<@${ticketData.claimed_by}>` : "None", inline: true },
+      { name: "\u{1F4C5} Created", value: `<t:${Math.floor(new Date(ticketData.created_at).getTime() / 1e3)}:R>`, inline: true }
+    ).setTimestamp();
+  }
+  static suggestion(suggestion) {
+    const colors = {
+      pending: import_discord84.Colors.Blue,
+      noted: import_discord84.Colors.Yellow,
+      approved: import_discord84.Colors.Green,
+      denied: import_discord84.Colors.Red,
+      under_review: import_discord84.Colors.Orange
+    };
+    return new import_discord84.EmbedBuilder().setColor(colors[suggestion.status] || import_discord84.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
+      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}>`, inline: true },
+      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
+      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
+      { name: "\u{1F4CA} Status", value: suggestion.status, inline: true }
+    ).setFooter({ text: `ID: ${suggestion.id} | Thread: ${suggestion.thread_id}` }).setTimestamp();
+  }
+  static suggestionReview(suggestion) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
+      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}> (${suggestion.user_id})`, inline: true },
+      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
+      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
+      { name: "\u{1F4CA} Current Status", value: suggestion.status, inline: true }
+    ).setFooter({ text: `Suggestion ID: ${suggestion.id}` }).setTimestamp();
+  }
+  static presentation(presentation) {
+    const questions = typeof presentation.answers === "string" ? JSON.parse(presentation.answers) : presentation.answers;
+    const fields = questions.map((qa, i) => ({
+      name: `Q${i + 1}: ${qa.question}`,
+      value: qa.answer || "*No answer*",
+      inline: false
+    }));
+    const colors = {
+      pending: import_discord84.Colors.Blue,
+      approved: import_discord84.Colors.Green,
+      denied: import_discord84.Colors.Red,
+      changes_requested: import_discord84.Colors.Orange
+    };
+    return new import_discord84.EmbedBuilder().setColor(colors[presentation.status] || import_discord84.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
+  }
+  static serverStatus(server2, status) {
+    const isOnline = status?.online;
+    const proxyOffline = !isOnline && !!status?.motd;
+    return new import_discord84.EmbedBuilder().setColor(isOnline ? import_discord84.Colors.Green : import_discord84.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
+      isOnline ? "Server is online" : status?.error ? `Server is offline \u2014 ${status.error}` : "Server is offline"
+    ).addFields(
+      { name: "\u{1F310} Address", value: `${server2?.host ?? "?"}:${server2?.port ?? "?"}`, inline: true },
+      { name: "\u{1F465} Players", value: isOnline ? `${status.players?.online ?? 0}/${status.players?.max ?? 0}` : "N/A", inline: true },
+      { name: "\u{1F4E6} Version", value: isOnline ? status.version?.name ?? "N/A" : proxyOffline && status.version?.name ? status.version.name : "N/A", inline: true },
+      { name: "\u{1F4DD} MOTD", value: isOnline || proxyOffline ? this.cleanMotd(status.motd) : "N/A", inline: false }
+    ).setTimestamp().setFooter({ text: "Last updated" });
+  }
+  static cleanMotd(motd) {
+    if (!motd) return "N/A";
+    if (typeof motd === "string") return motd.replace(/§[0-9a-fk-or]/gi, "");
+    if (motd.clean) return motd.clean.replace(/§[0-9a-fk-or]/gi, "");
+    if (motd.raw) return motd.raw.replace(/§[0-9a-fk-or]/gi, "");
+    return JSON.stringify(motd).replace(/§[0-9a-fk-or]/gi, "");
+  }
+  static welcome(member, guild, memberCount) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
+      { name: "\u{1F4CB} Read Rules", value: "See the rules channels", inline: true },
+      { name: "\u{1F3AE} Servers", value: "Check server status", inline: true },
+      { name: "\u{1F3AB} Support", value: "Open a ticket", inline: true }
+    ).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
+  }
+  static goodbye(member, guild, memberCount) {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
+  }
+  static modpackTutorial() {
+    return new import_discord84.EmbedBuilder().setColor(import_discord84.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
+      {
+        name: "\u{1F4BB} PC - SKLauncher 4.0",
+        value: '1. Download SKLauncher 4.0 from [sklauncher.net](https://sklauncher.net)\n2. Install and open the launcher\n3. Go to "Content Hub" tab\n4. Search for our modpack\n5. Click "Install" and then "Play"'
+      },
+      {
+        name: "\u{1F4F1} Mobile - MJLauncher",
+        value: "1. Download MJLauncher from [mojolauncher.com/](https://mojolauncher.com/) or Play Store\n2. Open the app\n3. Create a new modpack instance\n4. Find our modpack\n5. Tap Install and Play"
       }
-    }
-    return totalMs > 0 ? totalMs : null;
-  }
-  static generateTicketId() {
-    return Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-  }
-  static hasPermission(member, permissions) {
-    if (member.permissions.has(import_discord84.PermissionFlagsBits.Administrator)) return true;
-    return permissions.every((p) => member.permissions.has(p));
-  }
-  static describeRoles(guild, roleIds) {
-    const roles = roleIds.map((id) => guild.roles.cache.get(id)).filter((role) => !!role);
-    const missing = roleIds.filter((id) => !guild.roles.cache.has(id));
-    const text = roles.map((role) => `<@&${role.id}>`).join(", ");
-    return { text, missing };
-  }
-  static describeRole(guild, roleId) {
-    if (!roleId) return null;
-    return guild.roles.cache.has(roleId) ? `<@&${roleId}>` : null;
-  }
-  static async createTranscript(channel, messages) {
-    const lines = messages.map((m) => {
-      const time3 = new Date(m.created_at || m.createdAt).toLocaleString();
-      const author = m.user_id ?? m.author?.id ?? "unknown";
-      const content = m.content || "";
-      return `[${time3}] ${author}: ${content}`;
-    });
-    return lines.join("\n");
-  }
-  static chunkArray(array2, size) {
-    const chunks = [];
-    for (let i = 0; i < array2.length; i += size) chunks.push(array2.slice(i, i + size));
-    return chunks;
-  }
-  static randomColor() {
-    return Math.floor(Math.random() * 16777215);
-  }
-  static sleep(ms2) {
-    return new Promise((resolve2) => setTimeout(resolve2, ms2));
-  }
-  static buildPermissionOverwrites(guild, allowedRoles = [], deniedRoles = [], allowedUsers = [], deniedUsers = []) {
-    const overwrites = [
-      { id: guild.id, deny: [import_discord84.PermissionFlagsBits.ViewChannel] }
-    ];
-    for (const roleId of allowedRoles) overwrites.push({ id: roleId, allow: [import_discord84.PermissionFlagsBits.ViewChannel] });
-    for (const roleId of deniedRoles) overwrites.push({ id: roleId, deny: [import_discord84.PermissionFlagsBits.ViewChannel] });
-    for (const userId of allowedUsers) overwrites.push({ id: userId, allow: [import_discord84.PermissionFlagsBits.ViewChannel, import_discord84.PermissionFlagsBits.SendMessages] });
-    for (const userId of deniedUsers) overwrites.push({ id: userId, deny: [import_discord84.PermissionFlagsBits.ViewChannel] });
-    return overwrites;
+    ).setFooter({ text: "Need help? Create a ticket in #\u{1F691}\u2802\u{1D531}\u{1D522}\u{1D520}\u{1D525}-\u{1D530}\u{1D532}\u{1D52D}\u{1D52D}\u{1D52C}\u{1D52F}\u{1D531}" }).setTimestamp();
   }
 };
 
 // src/systems/verification/index.ts
-function parseRoleIds(raw) {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw.filter((id) => typeof id === "string");
-  return [];
-}
-__name(parseRoleIds, "parseRoleIds");
 var VerificationSystem = class {
   static {
     __name(this, "VerificationSystem");
@@ -194805,69 +194807,51 @@ var VerificationSystem = class {
   async getSettings(guildId) {
     let row = await VerificationConfig.findOne({ guildId }).lean();
     if (!row) {
-      row = await VerificationConfig.create({ guildId });
+      row = await VerificationConfig.create({ guildId, enabled: false, autoRoleIds: [], requireApproval: false, minAccountAgeDays: 0 });
     }
+    const r = row;
     return {
-      enabled: row.enabled === true,
-      unverifiedRoleId: row.unverifiedRoleId ?? null,
-      verifiedRoleId: row.verifiedRoleId ?? null,
-      rulesChannelId: row.rulesChannelId ?? null,
-      panelMessageId: row.panelMessageId ?? null,
-      autoRoleIds: Array.isArray(row.autoRoleIds) ? row.autoRoleIds : parseRoleIds(row.autoRoleIds ?? null),
-      requireApproval: row.requireApproval === true,
-      logChannelId: row.logChannelId ?? null,
-      minAccountAgeDays: row.minAccountAgeDays ?? 0,
-      voiceChannelId: row.voiceChannelId ?? null,
-      staffRoleId: row.staffRoleId ?? null
+      enabled: r.enabled === true,
+      unverifiedRoleId: r.unverifiedRoleId ?? null,
+      verifiedRoleId: r.verifiedRoleId ?? null,
+      rulesChannelId: r.rulesChannelId ?? null,
+      panelMessageId: r.panelMessageId ?? null,
+      autoRoleIds: Array.isArray(r.autoRoleIds) ? r.autoRoleIds : [],
+      requireApproval: r.requireApproval === true,
+      logChannelId: r.logChannelId ?? null,
+      minAccountAgeDays: r.minAccountAgeDays ?? 0,
+      voiceChannelId: r.voiceChannelId ?? null,
+      staffRoleId: r.staffRoleId ?? null
     };
   }
-  setSettings(guildId, data) {
-    return VerificationConfig.findOneAndUpdate({ guildId }, data, { upsert: true, new: true, setDefaultsOnInsert: true });
+  async setSettings(guildId, data) {
+    await VerificationConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
   }
-  setPanelMessage(guildId, messageId) {
-    return VerificationConfig.findOneAndUpdate(
-      { guildId },
-      { panelMessageId: messageId },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+  async setPanelMessage(guildId, messageId) {
+    await this.setSettings(guildId, { panelMessageId: messageId });
   }
-  addAutoRole(guildId, roleId) {
-    return this._modifyAutoRole(guildId, roleId, true);
+  async setAutoRoles(guildId, roleIds) {
+    await this.setSettings(guildId, { autoRoleIds: [...new Set(roleIds)] });
   }
-  removeAutoRole(guildId, roleId) {
-    return this._modifyAutoRole(guildId, roleId, false);
-  }
-  async _modifyAutoRole(guildId, roleId, add) {
+  async addAutoRole(guildId, roleId) {
     const settings = await this.getSettings(guildId);
-    if (add) {
-      if (settings.autoRoleIds.includes(roleId)) return false;
-      await this.setSettings(guildId, { autoRoleIds: [.../* @__PURE__ */ new Set([...settings.autoRoleIds, roleId])] });
-      return true;
-    }
-    if (!settings.autoRoleIds.includes(roleId)) return false;
-    await this.setSettings(guildId, { autoRoleIds: settings.autoRoleIds.filter((id) => id !== roleId) });
+    if (settings.autoRoleIds.includes(roleId)) return false;
+    await this.setAutoRoles(guildId, [...settings.autoRoleIds, roleId]);
     return true;
   }
-  isConfigured(guildId) {
-    return this.getSettings(guildId).then((s) => !!s.unverifiedRoleId);
+  async removeAutoRole(guildId, roleId) {
+    const settings = await this.getSettings(guildId);
+    if (!settings.autoRoleIds.includes(roleId)) return false;
+    await this.setAutoRoles(guildId, settings.autoRoleIds.filter((id) => id !== roleId));
+    return true;
+  }
+  isConfigured(settings) {
+    return !!settings.unverifiedRoleId;
   }
   isVerified(member, settings) {
-    const s = settings ?? {
-      enabled: false,
-      unverifiedRoleId: null,
-      verifiedRoleId: null,
-      rulesChannelId: null,
-      panelMessageId: null,
-      autoRoleIds: [],
-      requireApproval: false,
-      logChannelId: null,
-      minAccountAgeDays: 0,
-      voiceChannelId: null,
-      staffRoleId: null
-    };
-    if (s.verifiedRoleId && member.roles.cache.has(s.verifiedRoleId)) return true;
-    if (!s.unverifiedRoleId) return true;
-    return !member.roles.cache.has(s.unverifiedRoleId);
+    if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) return true;
+    if (!settings.unverifiedRoleId) return true;
+    return !member.roles.cache.has(settings.unverifiedRoleId);
   }
   manageableRoles(member, roleIds) {
     return roleIds.map((id) => member.guild.roles.cache.get(id)).filter((role) => !!role && role.editable);
@@ -194884,8 +194868,10 @@ var VerificationSystem = class {
     const toAdd = this.manageableRoles(member, autoRoles).filter((role) => !member.roles.cache.has(role.id));
     result.granted = toAdd.map((role) => role.id);
     result.ungranted = autoRoles.filter((id) => !this.manageableRoles(member, [id]).length);
-    if (toAdd.length) await member.roles.add(toAdd, "Automatic newbie roles").catch(() => {
-    });
+    if (toAdd.length) {
+      await member.roles.add(toAdd, "Automatic newbie roles").catch(() => {
+      });
+    }
     const unverifiedRole = member.guild.roles.cache.get(settings.unverifiedRoleId);
     if (unverifiedRole?.editable && !member.roles.cache.has(unverifiedRole.id)) {
       await member.roles.add(unverifiedRole, "Awaiting newbie verification").catch(() => {
@@ -194894,11 +194880,9 @@ var VerificationSystem = class {
     }
     return result;
   }
-  missingAutoRoles(member) {
-    return this.getSettings(member.guild.id).then(
-      (s) => s.autoRoleIds.filter(
-        (roleId) => roleId !== s.unverifiedRoleId && roleId !== s.verifiedRoleId && !member.roles.cache.has(roleId)
-      )
+  missingAutoRoles(member, settings) {
+    return settings.autoRoleIds.filter(
+      (roleId) => roleId !== settings.unverifiedRoleId && roleId !== settings.verifiedRoleId && !member.roles.cache.has(roleId)
     );
   }
   accountAgeBlock(member, settings) {
@@ -194909,11 +194893,7 @@ var VerificationSystem = class {
     return `Your account must be at least **${settings.minAccountAgeDays} day(s)** old \u2014 try again in about **${remaining} day(s)**.`;
   }
   buildPanel(guild, settings) {
-    const autoText = settings.autoRoleIds.map((id) => {
-      const role = guild.roles.cache.get(id);
-      return role ? `<@&${role.id}>` : id;
-    }).join(", ") || "_none yet_";
-    const unverified = settings.unverifiedRoleId ? guild.roles.cache.has(settings.unverifiedRoleId) ? `<@&${settings.unverifiedRoleId}>` : "unverified role" : null;
+    const unverified = guild.roles.cache.get(settings.unverifiedRoleId ?? "");
     const rulesTarget = settings.rulesChannelId ? `in <#${settings.rulesChannelId}>` : "in the rules channel";
     const steps = [
       `1\uFE0F\u20E3 Read the rules ${rulesTarget}.`,
@@ -194921,33 +194901,24 @@ var VerificationSystem = class {
       "3\uFE0F\u20E3 A staff member joins you in a short private voice call to confirm you are a real person and agree to the rules.",
       "4\uFE0F\u20E3 On approval you instantly get access to the rest of the server."
     ].join("\n");
-    const embed = new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
+    const embed = new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Blue).setTitle(`\u{1F510} Welcome to ${guild.name}`).setDescription(
       `Before you can chat you need to accept our rules.
 
 ${steps}` + (unverified ? `
 
 Right now you have ${unverified}, so you can only see the rules channels.` : "")
     ).addFields({
-      name: "\u{1F381} Roles you already received",
-      value: autoText,
-      inline: false
-    }).addFields({
       name: "\u26A0\uFE0F By verifying you agree to",
       value: "Follow the server rules, stay respectful, and no spam or NSFW content.",
       inline: false
     });
     return embed.setFooter({ text: `Verification \u2022 ${guild.name}` }).setTimestamp();
   }
-  buildPanelRow(guild, settings) {
+  buildPanelRow(_guild, _settings) {
     const buttons = [
-      new import_discord86.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord86.ButtonStyle.Success)
+      new import_discord85.ButtonBuilder().setCustomId("verification_agree").setLabel("Verify me").setEmoji("\u2705").setStyle(import_discord85.ButtonStyle.Success)
     ];
-    if (settings.rulesChannelId) {
-      buttons.push(
-        new import_discord86.ButtonBuilder().setLabel("Read the rules").setEmoji("\u{1F4DC}").setStyle(import_discord86.ButtonStyle.Link).setURL(`https://discord.com/channels/${guild.id}/${settings.rulesChannelId}`)
-      );
-    }
-    return new import_discord86.ActionRowBuilder().addComponents(buttons);
+    return new import_discord85.ActionRowBuilder().addComponents(buttons);
   }
   async postPanel(channel) {
     const guild = channel.guild;
@@ -194975,62 +194946,54 @@ Right now you have ${unverified}, so you can only see the rules channels.` : "")
     const member = interaction.member;
     const settings = await this.getSettings(guild.id);
     if (!settings.enabled) {
-      await interaction.editReply({ embeds: [this._errorEmbed("Verification disabled", "Verification is currently disabled. Ask a staff member for help.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Verification disabled", "Verification is currently disabled.") ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Verification disabled").setDescription("Verification is currently disabled.")] });
       return;
     }
     if (!settings.unverifiedRoleId) {
-      await interaction.editReply({ embeds: [this._errorEmbed("Not configured", "No unverified role is set. Ask an admin to run `/verify setup`.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Not configured", "No unverified role is set.") ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Not configured").setDescription("No unverified role is set.")] });
       return;
     }
     if (this.isVerified(member, settings)) {
-      await interaction.editReply({ embeds: [this._successEmbed("Already verified", "You already have full access to the server.")] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Already verified", "You already have full access.") ?? new import_discord85.EmbedBuilder().setColor(5763719).setTitle("Already verified").setDescription("You already have full access.")] });
       return;
     }
     const ageBlock = this.accountAgeBlock(member, settings);
     if (ageBlock) {
-      await interaction.editReply({ embeds: [this._errorEmbed("Account too new", ageBlock)] });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Account too new", ageBlock) ?? new import_discord85.EmbedBuilder().setColor(15548997).setTitle("Account too new").setDescription(ageBlock)] });
       return;
     }
-    const retry = this.manageableRoles(member, await this.missingAutoRoles(member));
-    if (retry.length) await member.roles.add(retry, "Automatic newbie roles").catch(() => {
-    });
-    const stillMissing = await this.missingAutoRoles(member);
-    if (stillMissing.length) {
-      await interaction.editReply({
-        embeds: [this._errorEmbed("Missing required roles", "You are still missing some required roles. Please contact a staff member.")]
+    const retry = this.manageableRoles(member, this.missingAutoRoles(member, settings));
+    if (retry.length) {
+      await member.roles.add(retry, "Automatic newbie roles").catch(() => {
       });
-      return;
     }
-    const live = await VerificationRequest.findOne({
-      guildId: guild.id,
-      userId: member.id,
-      status: "pending"
-    }) || await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: "claimed" });
+    const live = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: { $in: ["pending", "claimed"] } });
     if (live) {
-      await interaction.editReply({
-        embeds: [this._infoEmbed(
-          "Already requested",
-          live.status === "claimed" ? "A staff member is already verifying you \u2014 join the voice call they invite you to." : `Your request is already waiting for staff review (#${live.id}).`
-        )]
-      });
+      await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Already requested", "Your request is already waiting for staff review.") ?? new import_discord85.EmbedBuilder().setColor(5793266).setTitle("Already requested").setDescription("Your request is already waiting for staff review.")] });
       return;
     }
-    const request = await VerificationRequest.create({
-      guildId: guild.id,
-      userId: member.id,
-      status: "pending"
-    });
-    await this.sendToStaff(guild, settings, member, request);
-    await this.dm(
-      guild,
-      member.id,
-      `\u23F3 Your verification request was sent to the staff team.
-
-When a staff member is available they will invite you to a private voice call to verify you. Please keep your DMs open so you receive the invite.`
-    );
-    await interaction.editReply({
-      embeds: [this._infoEmbed("Request sent", "A staff member will invite you to a short private voice call to complete verification.")]
-    });
+    const request = await VerificationRequest.create({ guildId: guild.id, userId: member.id, status: "pending" });
+    const channelId = settings.logChannelId || settings.rulesChannelId;
+    if (channelId) {
+      const channel = guild.channels.cache.get(channelId);
+      if (channel?.isTextBased() && !channel.isThread()) {
+        const staffRoleId = settings.staffRoleId;
+        await channel.send({
+          content: staffRoleId ? `<@&${staffRoleId}>` : void 0,
+          allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
+          embeds: [this.reviewEmbed(request, member, settings)],
+          components: [this.reviewRow(request.id.toString())]
+        }).catch(() => {
+        });
+      }
+    }
+    try {
+      const user = await guild.client.users.fetch(member.id);
+      await user.send({ content: "\u23F3 Your verification request was sent to the staff team. When a staff member is available they will invite you to a short private voice call to verify you." }).catch(() => {
+      });
+    } catch {
+    }
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.info?.("Request sent", "A staff member will invite you to a short private voice call to complete verification.") ?? new import_discord85.EmbedBuilder().setColor(5793266).setTitle("Request sent").setDescription("A staff member will invite you to a short private voice call to complete verification.")] });
   }
   async approveMember(member, settings) {
     const add = [];
@@ -195040,13 +195003,18 @@ When a staff member is available they will invite you to a private voice call to
       const role = member.guild.roles.cache.get(settings.verifiedRoleId);
       if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
     }
-    if (remove.length) await member.roles.remove(remove, "Verification completed").catch(() => {
-    });
-    if (add.length) await member.roles.add(add, "Verification completed").catch(() => {
-    });
+    if (remove.length) await member.roles.remove(remove, "Verification completed");
+    if (add.length) await member.roles.add(add, "Verification completed");
+  }
+  denyModal(requestId) {
+    return new import_discord85.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
+      new import_discord85.ActionRowBuilder().addComponents(
+        new import_discord85.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord85.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+      )
+    );
   }
   async handleApprove(interaction, requestId) {
-    const request = await VerificationRequest.findById(String(requestId));
+    const request = await VerificationRequest.findById(requestId);
     if (!request || request.status !== "pending") {
       await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
       return;
@@ -195055,26 +195023,35 @@ When a staff member is available they will invite you to a private voice call to
     const guild = interaction.guild;
     const settings = await this.getSettings(guild.id);
     const member = await guild.members.fetch(request.userId).catch(() => null);
-    if (member) await this.approveMember(member, settings);
+    if (member) {
+      await this.approveMember(member, settings);
+      try {
+        await guild.client.users.fetch(request.userId).then((u) => u.send("\u{1F389} Welcome! Your verification was approved.").catch(() => {
+        }));
+      } catch {
+      }
+    }
     request.status = "approved";
     request.reviewedBy = interaction.user.id;
     request.reviewedAt = /* @__PURE__ */ new Date();
     await request.save();
-    await this.log(guild, settings, this._successEmbed("Verification approved", `<@${request.userId}> was approved by ${interaction.user}.`));
-    await interaction.editReply({ embeds: [this._successEmbed("Approved", member ? `<@${request.userId}> has been verified.` : "Approved, but member is not in the server.")] });
-    await this._retireMessage(interaction, request.id, `Approved by ${interaction.user}`);
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", member ? `<@${request.userId}> has been verified.` : "Approved.") ?? new import_discord85.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(member ? `<@${request.userId}> has been verified.` : "Approved.")] });
+    if (interaction.message) {
+      await interaction.message.edit({ content: null, embeds: [new import_discord85.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Approved by ${interaction.user}`)], components: [] }).catch(() => {
+      });
+    }
   }
   async handleDenyButton(interaction, requestId) {
-    const request = await VerificationRequest.findById(String(requestId));
+    const request = await VerificationRequest.findById(requestId);
     if (!request || request.status !== "pending") {
       await interaction.reply({ content: "\u274C This request is no longer pending.", flags: 64 });
       return;
     }
-    await interaction.showModal(this._denyModal(request.id));
+    await interaction.showModal(this.denyModal(requestId));
   }
   async handleDenyModal(interaction, requestId) {
     await interaction.deferReply({ flags: 64 });
-    const request = await VerificationRequest.findById(String(requestId));
+    const request = await VerificationRequest.findById(requestId);
     if (!request || request.status !== "pending") {
       await interaction.editReply({ content: "\u274C This request is no longer pending." });
       return;
@@ -195087,21 +195064,29 @@ When a staff member is available they will invite you to a private voice call to
     request.reviewedAt = /* @__PURE__ */ new Date();
     request.reason = reason;
     await request.save();
-    await this.dm(guild, request.userId, `\u274C Your verification was denied.
-**Reason:** ${reason}`);
-    await this.log(guild, settings, this._errorEmbed("Verification denied", `<@${request.userId}> was denied by ${interaction.user}.
-**Reason:** ${Helpers.truncate(reason, 500)}`));
+    try {
+      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was denied.
+**Reason:** ${reason}`).catch(() => {
+      }));
+    } catch {
+    }
     await interaction.editReply({ content: "\u2705 Request denied." });
-    await this._retireMessage(interaction, request.id, `Denied by ${interaction.user}
-**Reason:** ${reason}`);
+    if (interaction.message) {
+      await interaction.message.edit({ content: null, embeds: [new import_discord85.EmbedBuilder().setColor(5793266).setTitle(`Request #${requestId}`).setDescription(`Denied by ${interaction.user}
+**Reason:** ${reason}`)], components: [] }).catch(() => {
+      });
+    }
   }
   async reviewUser(member, action, reviewerId, reason) {
     const guild = member.guild;
     const settings = await this.getSettings(guild.id);
     if (action === "approve") {
       await this.approveMember(member, settings);
-      await this.dm(guild, member.id, `\u{1F389} Welcome to **${guild.name}**! Your verification was approved.`);
-      await this.log(guild, settings, this._successEmbed("Verification approved", `<@${member.id}> was approved by <@${reviewerId}>.`));
+      try {
+        await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F389} Welcome! Your verification was approved.").catch(() => {
+        }));
+      } catch {
+      }
       return;
     }
     const pending = await VerificationRequest.findOne({ guildId: guild.id, userId: member.id, status: "pending" });
@@ -195112,18 +195097,17 @@ When a staff member is available they will invite you to a private voice call to
       pending.reason = reason ?? void 0;
       await pending.save();
     }
-    await this.dm(guild, member.id, `\u274C Your verification was denied.
-**Reason:** ${reason || "No reason given"}`);
-    await this.log(guild, settings, this._errorEmbed("Verification denied", `<@${member.id}> was denied by <@${reviewerId}>.
-**Reason:** ${reason || "No reason given"}`));
+    try {
+      await guild.client.users.fetch(member.id).then((u) => u.send(`\u274C Your verification was denied.
+**Reason:** ${reason || "No reason given"}`).catch(() => {
+      }));
+    } catch {
+    }
   }
   async resetMember(member, actorId) {
     const guild = member.guild;
     const settings = await this.getSettings(guild.id);
-    await VerificationRequest.updateMany(
-      { guildId: guild.id, userId: member.id, status: "pending" },
-      { status: "revoked", reviewedAt: /* @__PURE__ */ new Date() }
-    );
+    await VerificationRequest.deleteMany({ guildId: guild.id, userId: member.id, status: "pending" });
     const remove = [];
     const add = [];
     if (settings.verifiedRoleId && member.roles.cache.has(settings.verifiedRoleId)) remove.push(settings.verifiedRoleId);
@@ -195131,12 +195115,13 @@ When a staff member is available they will invite you to a private voice call to
       const role = guild.roles.cache.get(settings.unverifiedRoleId);
       if (role?.editable && !member.roles.cache.has(role.id)) add.push(role.id);
     }
-    if (remove.length) await member.roles.remove(remove, "Verification reset").catch(() => {
-    });
-    if (add.length) await member.roles.add(add, "Verification reset").catch(() => {
-    });
-    await this.dm(guild, member.id, "\u{1F504} Your verification was reset by the staff team. Please verify again using the panel.");
-    await this.log(guild, settings, this._warningEmbed("Verification reset", `<@${member.id}> was reset by <@${actorId}> and is unverified again.`));
+    if (remove.length) await member.roles.remove(remove, "Verification reset");
+    if (add.length) await member.roles.add(add, "Verification reset");
+    try {
+      await guild.client.users.fetch(member.id).then((u) => u.send("\u{1F504} Your verification was reset by the staff team. Please verify again using the panel.").catch(() => {
+      }));
+    } catch {
+    }
   }
   pendingRequests(guildId, limit = 25) {
     return VerificationRequest.find({ guildId, status: "pending" }).sort({ createdAt: -1 }).limit(limit).lean();
@@ -195144,109 +195129,59 @@ When a staff member is available they will invite you to a private voice call to
   pendingCount(guildId) {
     return VerificationRequest.countDocuments({ guildId, status: "pending" });
   }
-  reviewEmbed(request, member, settings) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
+  reviewEmbed(request, member, _settings) {
+    return new import_discord85.EmbedBuilder().setColor(import_discord85.Colors.Orange).setTitle("\u{1F399}\uFE0F Newbie verification request").setDescription(
       `<@${request.userId}> is waiting to be verified.
 
-Press **Claim & verify** to take this request.` + (settings?.voiceChannelId ? "" : "\n\n\u26A0\uFE0F No verification voice channel is configured \u2014 run `/verify vc`.")
+Press **Claim & verify** to take this request.`
     ).addFields(
       { name: "\u{1F464} Member", value: member ? `<@${member.id}>
 ${member.user.username}` : `<@${request.userId}>`, inline: true },
-      {
-        name: "\u{1F4C5} Account created",
-        value: member ? `<t:${Math.floor(member.user.createdTimestamp / 1e3)}:R>` : "Member left the server",
-        inline: true
-      },
-      { name: "\u23F3 Submitted", value: `<t:${Math.floor(new Date(request.submittedAt).getTime() / 1e3)}:R>`, inline: true }
-    ).setFooter({ text: `Request ID: ${request.id}` }).setTimestamp();
+      { name: "\u23F3 Submitted", value: `<t:${Math.floor(new Date(request.submittedAt ?? request.createdAt).getTime() / 1e3)}:R>`, inline: true }
+    ).setFooter({ text: `Request ID: ${request._id}` }).setTimestamp();
   }
   reviewRow(requestId) {
-    return new import_discord86.ActionRowBuilder().addComponents(
-      new import_discord86.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord86.ButtonStyle.Primary)
+    return new import_discord85.ActionRowBuilder().addComponents(
+      new import_discord85.ButtonBuilder().setCustomId(`vcverify_claim_${requestId}`).setLabel("Claim & verify").setEmoji("\u{1F399}\uFE0F").setStyle(import_discord85.ButtonStyle.Primary)
     );
   }
-  async sendToStaff(guild, settings, member, request) {
-    const channelId = settings.logChannelId || settings.rulesChannelId;
-    if (!channelId) return;
-    const channel = guild.channels.cache.get(channelId);
-    if (!channel?.isTextBased() || channel.isThread()) return;
-    const staffRoleId = settings.staffRoleId;
-    await channel.send({
-      content: staffRoleId ? `<@&${staffRoleId}>` : void 0,
-      allowedMentions: staffRoleId ? { roles: [staffRoleId] } : { parse: [] },
-      embeds: [this.reviewEmbed(request, member, settings)],
-      components: [this.reviewRow(request.id)]
-    }).catch((error62) => console.error("[Verification] Failed to send staff request:", error62));
-  }
-  async _retireMessage(interaction, requestId, result) {
-    if (!interaction.message) return;
-    await interaction.message.edit({
-      content: null,
-      embeds: [this._infoEmbed(`Request #${requestId}`, result)],
-      components: []
-    }).catch(() => {
-    });
-  }
-  async log(guild, settings, embed) {
-    if (!settings.logChannelId) return;
-    const channel = guild.channels.cache.get(settings.logChannelId);
-    if (!channel?.isTextBased() || channel.isThread()) return;
-    await channel.send({ embeds: [embed] }).catch(() => {
-    });
+  async log(guild, _settings, embed) {
   }
   async dm(guild, userId, content) {
     try {
-      const user = await guild.client.users.fetch(userId);
-      await user.send({ content }).catch(() => {
-      });
+      await guild.client.users.fetch(userId).then((u) => u.send({ content }).catch(() => {
+      }));
     } catch {
     }
-  }
-  _errorEmbed(title, description) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).setTimestamp();
-  }
-  _successEmbed(title, description) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).setTimestamp();
-  }
-  _warningEmbed(title, description) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).setTimestamp();
-  }
-  _infoEmbed(title, description) {
-    return new import_discord86.EmbedBuilder().setColor(import_discord86.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).setTimestamp();
-  }
-  _denyModal(requestId) {
-    return new import_discord86.ModalBuilder().setCustomId(`verification_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
-      new import_discord86.ActionRowBuilder().addComponents(
-        new import_discord86.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (shown to the member)").setStyle(import_discord86.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
-      )
-    );
   }
 };
 var verification = new VerificationSystem();
-var verifyMemberAdd = {
-  name: import_discord85.Events.GuildMemberAdd,
-  execute: /* @__PURE__ */ __name(async (_client, member) => {
-    try {
-      await verification.handleMemberAdd(member).catch(() => {
-      });
-    } catch {
-    }
-  }, "execute")
-};
 
 // src/systems/welcomer/index.ts
-var import_discord87 = __toESM(require_src());
-var import_discord88 = __toESM(require_src());
+var import_discord86 = __toESM(require_src());
 var WelcomerSystem = class {
   static {
     __name(this, "WelcomerSystem");
   }
   async getConfig(guildId) {
-    let cfg = await WelcomerConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await WelcomerConfig.create({ guildId });
+    let row = await WelcomerConfig.findOne({ guildId }).lean();
+    if (!row) {
+      row = await WelcomerConfig.create({ guildId, welcomeImageEnabled: true, goodbyeImageEnabled: true });
     }
-    return cfg;
+    const r = row;
+    return {
+      welcomeChannelId: r.welcomeChannelId ?? null,
+      goodbyeChannelId: r.goodbyeChannelId ?? null,
+      welcomeMessage: r.welcomeMessage ?? null,
+      goodbyeMessage: r.goodbyeMessage ?? null,
+      welcomeImageEnabled: r.welcomeImageEnabled !== void 0 ? r.welcomeImageEnabled : true,
+      goodbyeImageEnabled: r.goodbyeImageEnabled !== void 0 ? r.goodbyeImageEnabled : true,
+      backgroundImagePath: r.backgroundImagePath ?? null,
+      goodbyeBackgroundImagePath: r.goodbyeBackgroundImagePath ?? null
+    };
+  }
+  async setConfig(guildId, data) {
+    await WelcomerConfig.findOneAndUpdate({ guildId }, { $set: data }, { upsert: true, new: true, setDefaultsOnInsert: true });
   }
   renderMessage(template, member, guild, memberCount) {
     const raw = template?.trim();
@@ -195261,9 +195196,8 @@ var WelcomerSystem = class {
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.welcomeMessage, member, guild, memberCount);
-    const embed = new import_discord88.EmbedBuilder().setColor(5763719).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
-    await channel.send({ content: content || void 0, embeds: [embed] }).catch(() => {
-    });
+    const embed = EmbedBuilderUtil.welcome?.(member, guild, memberCount) ?? new import_discord86.EmbedBuilder().setColor("#5865F2").setTitle("Welcome!").setDescription(`Welcome to ${guild.name}, ${member}!`).setTimestamp();
+    await channel.send({ content: content ?? void 0, embeds: [embed] });
   }
   async sendGoodbye(member) {
     const guild = member.guild;
@@ -195273,42 +195207,45 @@ var WelcomerSystem = class {
     if (!channel) return;
     const memberCount = guild.memberCount;
     const content = this.renderMessage(cfg.goodbyeMessage, member, guild, memberCount);
-    const embed = new import_discord88.EmbedBuilder().setColor(15548997).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
-    await channel.send({ content: content || void 0, embeds: [embed] }).catch(() => {
-    });
+    const embed = EmbedBuilderUtil.goodbye?.(member, guild, memberCount) ?? new import_discord86.EmbedBuilder().setColor("#ED4245").setTitle("Goodbye").setDescription(`${member.user.tag} left ${guild.name}.`).setTimestamp();
+    await channel.send({ content: content ?? void 0, embeds: [embed] });
   }
 };
 var welcomer = new WelcomerSystem();
-var welcomeMemberAdd = {
-  name: import_discord87.Events.GuildMemberAdd,
+var guildMemberAddWelcomer = {
+  name: import_discord86.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
-    if (member.user?.bot) return;
-    await welcomer.sendWelcome(member).catch(() => {
-    });
+    try {
+      await welcomer.sendWelcome(member).catch(() => {
+      });
+    } catch {
+    }
   }, "execute")
 };
-var welcomeMemberRemove = {
-  name: import_discord87.Events.GuildMemberRemove,
+var guildMemberRemoveWelcomer = {
+  name: import_discord86.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (_client, member) => {
-    if (member.user?.bot) return;
-    await welcomer.sendGoodbye(member).catch(() => {
-    });
+    try {
+      await welcomer.sendGoodbye(member).catch(() => {
+      });
+    } catch {
+    }
   }, "execute")
 };
 
 // src/events/welcomeEvents.ts
 var welcomeMemberAddEvent = {
-  name: import_discord89.Events.GuildMemberAdd,
+  name: import_discord87.Events.GuildMemberAdd,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
-    await verifyMemberAdd.execute(client, member).catch(() => {
+    await verification.handleMemberAdd(member).catch(() => {
     });
     await welcomer.sendWelcome(member).catch(() => {
     });
   }, "execute")
 };
 var welcomeMemberRemoveEvent = {
-  name: import_discord89.Events.GuildMemberRemove,
+  name: import_discord87.Events.GuildMemberRemove,
   execute: /* @__PURE__ */ __name(async (client, member) => {
     if (member.user?.bot) return;
     await welcomer.sendGoodbye(member).catch(() => {
@@ -195317,11 +195254,11 @@ var welcomeMemberRemoveEvent = {
 };
 
 // src/events/boosterEvents.ts
-var import_discord92 = __toESM(require_src());
+var import_discord90 = __toESM(require_src());
 
 // src/systems/boosters/index.ts
-var import_discord90 = __toESM(require_src());
-var import_discord91 = __toESM(require_src());
+var import_discord88 = __toESM(require_src());
+var import_discord89 = __toESM(require_src());
 var BoosterSystem = class {
   static {
     __name(this, "BoosterSystem");
@@ -195370,7 +195307,7 @@ var BoosterSystem = class {
         return;
       }
       const boosts = guild.premiumSubscriptionCount ?? 0;
-      const embed = new import_discord91.EmbedBuilder().setColor(16023551).setTitle("\u{1F48E} New Server Boost!").setDescription(`Huge thanks to ${member} for boosting **${guild.name}**!${cfg.roleId ? `
+      const embed = new import_discord89.EmbedBuilder().setColor(16023551).setTitle("\u{1F48E} New Server Boost!").setDescription(`Huge thanks to ${member} for boosting **${guild.name}**!${cfg.roleId ? `
 They've received the <@&${cfg.roleId}> role as a reward.` : ""}`).setThumbnail(member.user.displayAvatarURL({ size: 256 })).addFields(
         { name: "Booster", value: `${member.user.tag}`, inline: true },
         { name: "Total boosts", value: `${boosts}`, inline: true },
@@ -195389,7 +195326,7 @@ They've received the <@&${cfg.roleId}> role as a reward.` : ""}`).setThumbnail(m
 };
 var boosters = new BoosterSystem();
 var guildMemberUpdateBoosters = {
-  name: import_discord90.Events.GuildMemberUpdate,
+  name: import_discord88.Events.GuildMemberUpdate,
   execute: /* @__PURE__ */ __name(async (_client, oldMember, newMember) => {
     try {
       await boosters.handleMemberUpdate(oldMember, newMember).catch(() => {
@@ -195401,7 +195338,7 @@ var guildMemberUpdateBoosters = {
 
 // src/events/boosterEvents.ts
 var boosterMemberUpdateEvent = {
-  name: import_discord92.Events.GuildMemberUpdate,
+  name: import_discord90.Events.GuildMemberUpdate,
   execute: /* @__PURE__ */ __name(async (client, oldMember, newMember) => {
     await boosters.handleMemberUpdate(oldMember, newMember).catch(() => {
     });
@@ -195409,324 +195346,139 @@ var boosterMemberUpdateEvent = {
 };
 
 // src/systems/verification/vc.ts
-var import_discord94 = __toESM(require_src());
-var import_discord95 = __toESM(require_src());
-
-// src/utils/shared-embeds.ts
-var import_discord93 = __toESM(require_src());
-var EmbedBuilderUtil = class {
-  static {
-    __name(this, "EmbedBuilderUtil");
-  }
-  static success(title, description, fields = []) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Green).setTitle(`\u2705 ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static error(title, description, fields = []) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Red).setTitle(`\u274C ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static warning(title, description, fields = []) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Yellow).setTitle(`\u26A0\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static info(title, description, fields = []) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Blue).setTitle(`\u2139\uFE0F ${title}`).setDescription(description).addFields(fields).setTimestamp();
-  }
-  static ticketPanel(title, description, options = []) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Purple).setTitle(`\u{1F3AB} ${title}`).setDescription(description).setFooter({ text: "Select a category below to create a ticket" }).setTimestamp();
-  }
-  static ticketControl(ticketData) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.DarkBlue).setTitle(`\u{1F3AB} Ticket #${ticketData.id}`).addFields(
-      { name: "\u{1F464} Created by", value: `<@${ticketData.user_id}>`, inline: true },
-      { name: "\u{1F4C2} Type", value: ticketData.type, inline: true },
-      { name: "\u{1F4CA} Status", value: ticketData.status, inline: true },
-      { name: "\u{1F46E} Claimed by", value: ticketData.claimed_by ? `<@${ticketData.claimed_by}>` : "None", inline: true },
-      { name: "\u{1F4C5} Created", value: `<t:${Math.floor(new Date(ticketData.created_at).getTime() / 1e3)}:R>`, inline: true }
-    ).setTimestamp();
-  }
-  static suggestion(suggestion) {
-    const colors = {
-      pending: import_discord93.Colors.Blue,
-      noted: import_discord93.Colors.Yellow,
-      approved: import_discord93.Colors.Green,
-      denied: import_discord93.Colors.Red,
-      under_review: import_discord93.Colors.Orange
-    };
-    return new import_discord93.EmbedBuilder().setColor(colors[suggestion.status] || import_discord93.Colors.Default).setTitle(`\u{1F4A1} ${suggestion.title}`).setDescription(suggestion.content).addFields(
-      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}>`, inline: true },
-      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
-      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
-      { name: "\u{1F4CA} Status", value: suggestion.status, inline: true }
-    ).setFooter({ text: `ID: ${suggestion.id} | Thread: ${suggestion.thread_id}` }).setTimestamp();
-  }
-  static suggestionReview(suggestion) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Gold).setTitle(`\u{1F4CB} Suggestion Review: ${suggestion.title}`).setDescription(suggestion.content).addFields(
-      { name: "\u{1F464} Author", value: `<@${suggestion.user_id}> (${suggestion.user_id})`, inline: true },
-      { name: "\u{1F44D} Upvotes", value: suggestion.votes_up?.toString() ?? "0", inline: true },
-      { name: "\u{1F44E} Downvotes", value: suggestion.votes_down?.toString() ?? "0", inline: true },
-      { name: "\u{1F4CA} Current Status", value: suggestion.status, inline: true }
-    ).setFooter({ text: `Suggestion ID: ${suggestion.id}` }).setTimestamp();
-  }
-  static presentation(presentation) {
-    const questions = typeof presentation.answers === "string" ? JSON.parse(presentation.answers) : presentation.answers;
-    const fields = questions.map((qa, i) => ({
-      name: `Q${i + 1}: ${qa.question}`,
-      value: qa.answer || "*No answer*",
-      inline: false
-    }));
-    const colors = {
-      pending: import_discord93.Colors.Blue,
-      approved: import_discord93.Colors.Green,
-      denied: import_discord93.Colors.Red,
-      changes_requested: import_discord93.Colors.Orange
-    };
-    return new import_discord93.EmbedBuilder().setColor(colors[presentation.status] || import_discord93.Colors.Default).setTitle(`\u{1F4DD} Staff Application - ${presentation.status.toUpperCase()}`).setDescription(`**Applicant:** <@${presentation.user_id}> (${presentation.user_id})`).addFields(fields).setFooter({ text: `Presentation ID: ${presentation.id} | User: ${presentation.user_id}` }).setTimestamp();
-  }
-  static serverStatus(server2, status) {
-    const isOnline = status?.online;
-    const proxyOffline = !isOnline && !!status?.motd;
-    return new import_discord93.EmbedBuilder().setColor(isOnline ? import_discord93.Colors.Green : import_discord93.Colors.Red).setTitle(`${isOnline ? "\u{1F7E2}" : "\u{1F534}"} ${server2?.name ?? "Server"}`).setDescription(
-      isOnline ? "Server is online" : status?.error ? `Server is offline \u2014 ${status.error}` : "Server is offline"
-    ).addFields(
-      { name: "\u{1F310} Address", value: `${server2?.host ?? "?"}:${server2?.port ?? "?"}`, inline: true },
-      { name: "\u{1F465} Players", value: isOnline ? `${status.players?.online ?? 0}/${status.players?.max ?? 0}` : "N/A", inline: true },
-      { name: "\u{1F4E6} Version", value: isOnline ? status.version?.name ?? "N/A" : proxyOffline && status.version?.name ? status.version.name : "N/A", inline: true },
-      { name: "\u{1F4DD} MOTD", value: isOnline || proxyOffline ? this.cleanMotd(status.motd) : "N/A", inline: false }
-    ).setTimestamp().setFooter({ text: "Last updated" });
-  }
-  static cleanMotd(motd) {
-    if (!motd) return "N/A";
-    if (typeof motd === "string") return motd.replace(/§[0-9a-fk-or]/gi, "");
-    if (motd.clean) return motd.clean.replace(/§[0-9a-fk-or]/gi, "");
-    if (motd.raw) return motd.raw.replace(/§[0-9a-fk-or]/gi, "");
-    return JSON.stringify(motd).replace(/§[0-9a-fk-or]/gi, "");
-  }
-  static welcome(member, guild, memberCount) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Green).setTitle("\u{1F44B} Welcome!").setDescription(`Welcome ${member}, we're glad to have you!`).addFields(
-      { name: "\u{1F4CB} Read Rules", value: "See the rules channels", inline: true },
-      { name: "\u{1F3AE} Servers", value: "Check server status", inline: true },
-      { name: "\u{1F3AB} Support", value: "Open a ticket", inline: true }
-    ).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member #${memberCount}` }).setTimestamp();
-  }
-  static goodbye(member, guild, memberCount) {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Red).setTitle("\u{1F44B} Goodbye!").setDescription(`**${member.user.tag}** has left the server.`).setThumbnail(member.displayAvatarURL()).setFooter({ text: `Member count: ${memberCount}` }).setTimestamp();
-  }
-  static modpackTutorial() {
-    return new import_discord93.EmbedBuilder().setColor(import_discord93.Colors.Gold).setTitle("\u{1F4E5} How to Install Modpacks").setDescription("Follow these steps to install any of our modpacks:").addFields(
-      {
-        name: "\u{1F4BB} PC - SKLauncher 4.0",
-        value: '1. Download SKLauncher 4.0 from [sklauncher.net](https://sklauncher.net)\n2. Install and open the launcher\n3. Go to "Content Hub" tab\n4. Search for our modpack\n5. Click "Install" and then "Play"'
-      },
-      {
-        name: "\u{1F4F1} Mobile - MJLauncher",
-        value: "1. Download MJLauncher from [mojolauncher.com/](https://mojolauncher.com/) or Play Store\n2. Open the app\n3. Create a new modpack instance\n4. Find our modpack\n5. Tap Install and Play"
-      }
-    ).setFooter({ text: "Need help? Create a ticket in #\u{1F691}\u2802\u{1D531}\u{1D522}\u{1D520}\u{1D525}-\u{1D530}\u{1D532}\u{1D52D}\u{1D52D}\u{1D52C}\u{1D52F}\u{1D531}" }).setTimestamp();
-  }
-};
-
-// src/systems/verification/vc.ts
+var import_discord91 = __toESM(require_src());
+var import_discord92 = __toESM(require_src());
 var DM_TIMEOUT_MS = 10 * 6e4;
 var VcVerificationSystem = class {
   static {
     __name(this, "VcVerificationSystem");
   }
   timers = /* @__PURE__ */ new Map();
-  /** requestId -> voice channel id of the temp VC created for that verification. */
-  tempVcs = /* @__PURE__ */ new Map();
-  _hasVerificationStaff(member, settings) {
-    if (member.permissions.has(import_discord95.PermissionFlagsBits.Administrator)) return true;
-    if (member.permissions.has(import_discord95.PermissionFlagsBits.ManageGuild)) return true;
-    if (member.permissions.has(import_discord95.PermissionFlagsBits.ManageMessages)) return true;
-    if (settings.staffRoleId && member.roles.cache.has(settings.staffRoleId)) return true;
+  hasVerificationStaff(member) {
+    if (member.permissions.has(import_discord91.PermissionFlagsBits.Administrator)) return true;
+    if (member.permissions.has(import_discord91.PermissionFlagsBits.ManageGuild)) return true;
+    if (member.permissions.has(import_discord91.PermissionFlagsBits.ManageMessages)) return true;
     return false;
   }
   async handleClaim(interaction, requestId) {
-    const request = await VerificationRequest.findById(requestId);
+    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
     if (!request || request.status !== "pending") {
       await interaction.reply({ content: "\u274C This request is no longer waiting.", flags: 64 });
       return;
     }
     const guild = interaction.guild;
     const claimant = interaction.member;
-    const settings = await verification.getSettings(guild.id);
-    if (!this._hasVerificationStaff(claimant, settings)) {
+    if (!this.hasVerificationStaff(claimant)) {
       await interaction.reply({ content: "\u274C Only staff can claim a verification.", flags: 64 });
-      return;
-    }
-    const existing = await VerificationRequest.findOne({
-      guildId: guild.id,
-      claimedBy: claimant.id,
-      status: "claimed"
-    });
-    if (existing) {
-      await interaction.reply({
-        content: `\u274C You are already verifying <@${existing.userId}>. Finish that one first.`,
-        flags: 64
-      });
-      return;
-    }
-    let vc = null;
-    try {
-      const category = settings.voiceChannelId ? guild.channels.cache.get(settings.voiceChannelId) : null;
-      vc = await guild.channels.create({
-        name: `verify-${request.userId.slice(-6)}`,
-        type: import_discord95.ChannelType.GuildVoice,
-        parent: category?.id ?? void 0,
-        permissionOverwrites: [
-          { id: guild.id, deny: [import_discord95.PermissionFlagsBits.ViewChannel] },
-          { id: claimant.id, allow: [import_discord95.PermissionFlagsBits.ViewChannel, import_discord95.PermissionFlagsBits.Connect, import_discord95.PermissionFlagsBits.Speak] },
-          { id: request.userId, allow: [import_discord95.PermissionFlagsBits.ViewChannel, import_discord95.PermissionFlagsBits.Connect, import_discord95.PermissionFlagsBits.Speak] },
-          { id: guild.members.me.id, allow: [import_discord95.PermissionFlagsBits.ViewChannel, import_discord95.PermissionFlagsBits.Connect, import_discord95.PermissionFlagsBits.Speak] }
-        ]
-      });
-      this.tempVcs.set(request.id, vc.id);
-    } catch (err) {
-      console.error("[Verification] Failed to create temp VC:", err);
-      await interaction.reply({ content: "\u274C Failed to create verification voice channel.", flags: 64 });
       return;
     }
     request.status = "claimed";
     request.claimedBy = claimant.id;
     request.claimedAt = /* @__PURE__ */ new Date();
     await request.save();
-    const vcLink = `https://discord.com/channels/${guild.id}/${vc.id}`;
     await interaction.reply({
-      embeds: [
-        EmbedBuilderUtil.info(
-          "Verification claimed",
-          `You are now verifying <@${request.userId}>.
-
-1. Join **<#${vc.id}>** \u2014 the moment you do, they are DM'd the channel and can join you.
-2. Talk to them and confirm they agree to the rules.
-3. Press **Approve** or **Deny** below (only you can see this message).`
-        )
-      ],
-      components: [this.decisionRow(request.id)],
+      embeds: [EmbedBuilderUtil.info?.("Verification claimed", `You are now verifying <@${request.userId}>.
+Join the verification VC and talk to them, then press Approve or Deny.`) ?? new import_discord92.EmbedBuilder().setColor(5793266).setTitle("Verification claimed").setDescription(`You are now verifying <@${request.userId}>.`)],
+      components: [this.decisionRow(requestId)],
       flags: 64
     });
     this.armTimeout(guild, request, claimant);
-    await this._retireRequestMessage(interaction, request.id, `Claimed by ${claimant.user.tag}`);
-    await verification.log(guild, settings, EmbedBuilderUtil.info(
-      "Verification claimed",
-      `<@${claimant.id}> claimed <@${request.userId}> for voice verification (temp VC: <#${vc.id}>).`
-    ));
   }
   decisionRow(requestId) {
-    return new import_discord95.ActionRowBuilder().addComponents(
-      new import_discord95.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord95.ButtonStyle.Success),
-      new import_discord95.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord95.ButtonStyle.Danger)
+    return new import_discord91.ActionRowBuilder().addComponents(
+      new import_discord91.ButtonBuilder().setCustomId(`vcverify_approve_${requestId}`).setLabel("Approve").setEmoji("\u2705").setStyle(import_discord91.ButtonStyle.Success),
+      new import_discord91.ButtonBuilder().setCustomId(`vcverify_deny_${requestId}`).setLabel("Deny").setEmoji("\u274C").setStyle(import_discord91.ButtonStyle.Danger)
     );
   }
   armTimeout(guild, request, staff) {
-    const existing = this.timers.get(request.id);
+    const existing = this.timers.get(request._id.toString());
     if (existing) clearTimeout(existing);
     const timer = setTimeout(async () => {
-      this.timers.delete(request.id);
-      const stillClaimed = await VerificationRequest.findById(request.id);
-      if (!stillClaimed || stillClaimed.status !== "claimed") return;
-      stillClaimed.status = "pending";
-      stillClaimed.claimedBy = void 0;
-      stillClaimed.claimedAt = void 0;
-      await stillClaimed.save();
-      await this.deleteTempVc(guild, request.id);
-      await verification.dm(guild, request.userId, "\u23F3 Your verification was put back in the queue \u2014 please wait for a staff member to reach you.");
-      const settings = await verification.getSettings(guild.id);
-      await verification.log(guild, settings, EmbedBuilderUtil.warning(
-        "Verification timed out",
-        `<@${staff.id}> did not decide within ${DM_TIMEOUT_MS / 6e4} minutes; <@${request.userId}> was returned to the queue.`
-      ));
+      this.timers.delete(request._id.toString());
+      const current = await verification["pendingCount"](guild.id).then(() => request);
+      const fresh = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r._id.toString() === request._id.toString()));
+      if (!fresh || fresh.status !== "claimed") return;
+      fresh.status = "pending";
+      fresh.claimedBy = null;
+      fresh.claimedAt = null;
+      await fresh.save();
+      try {
+        await guild.client.users.fetch(request.userId).then((u) => u.send("\u23F3 Your verification was put back in the queue.").catch(() => {
+        }));
+      } catch {
+      }
     }, DM_TIMEOUT_MS);
     timer.unref?.();
-    this.timers.set(request.id, timer);
+    this.timers.set(request._id.toString(), timer);
   }
   async handleVoiceJoin(member) {
     const guild = member.guild;
     const settings = await verification.getSettings(guild.id);
-    if (!this._hasVerificationStaff(member, settings)) return;
-    const request = await VerificationRequest.findOne({
-      guildId: guild.id,
-      claimedBy: member.id,
-      status: "claimed"
-    });
+    if (!settings.voiceChannelId || member.voice.channelId !== settings.voiceChannelId) return;
+    if (!this.hasVerificationStaff(member)) return;
+    const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
     if (!request) return;
     if (request.vcInvitedAt) return;
-    const vcId = this.tempVcs.get(request.id);
-    if (!vcId || member.voice.channelId !== vcId) return;
     request.vcInvitedAt = /* @__PURE__ */ new Date();
     await request.save();
-    const link = `https://discord.com/channels/${guild.id}/${vcId}`;
-    await verification.dm(
-      guild,
-      request.userId,
-      `\u{1F399}\uFE0F **A staff member is ready to verify you.**
-
-Join this private voice channel:
-${link}
-
-They will confirm you agree to the rules. This DM is only visible to you.`
-    );
-    await verification.log(guild, settings, EmbedBuilderUtil.info(
-      "Newbie invited to VC",
-      `<@${member.id}> joined the verification VC, so <@${request.userId}> was DM'd an invite.`
-    ));
+    const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
+    const link = vc ? `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}` : `https://discord.com/channels/${guild.id}/${settings.voiceChannelId}`;
+    try {
+      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u{1F399}\uFE0F A staff member is ready to verify you. Join: ${link}`).catch(() => {
+      }));
+    } catch {
+    }
   }
   async handleVoiceLeave(member) {
     const guild = member.guild;
     const settings = await verification.getSettings(guild.id);
-    if (!this._hasVerificationStaff(member, settings)) return;
-    const request = await VerificationRequest.findOne({
-      guildId: guild.id,
-      claimedBy: member.id,
-      status: "claimed"
-    });
-    if (!request) return;
-    const vcId = this.tempVcs.get(request.id);
-    if (vcId && member.voice.channelId !== vcId) return;
-    request.status = "pending";
-    request.claimedBy = void 0;
-    request.claimedAt = void 0;
-    await request.save();
-    const timer = this.timers.get(request.id);
-    if (timer) {
-      clearTimeout(timer);
-      this.timers.delete(request.id);
+    if (!settings.voiceChannelId || member.voice.channelId !== settings.voiceChannelId) return;
+    const request = await verification["pendingRequests"](guild.id).then((rows) => rows.find((r) => r.claimedBy === member.id && r.status === "claimed"));
+    if (request) {
+      request.status = "pending";
+      request.claimedBy = null;
+      request.claimedAt = null;
+      await request.save();
+      const timer = this.timers.get(request._id.toString());
+      if (timer) {
+        clearTimeout(timer);
+        this.timers.delete(request._id.toString());
+      }
     }
-    await this.deleteTempVc(guild, request.id);
-    await verification.dm(guild, request.userId, "\u23F3 Your verification was put back in the queue \u2014 a staff member will reach you again shortly.");
   }
   async handleApprove(interaction, requestId) {
-    const request = await VerificationRequest.findById(requestId);
+    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
     if (!request || request.status !== "claimed") {
       await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
       return;
     }
-    const guild = interaction.guild;
-    const settings = await verification.getSettings(guild.id);
     if (request.claimedBy !== interaction.user.id) {
       await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
       return;
     }
     await interaction.deferReply({ flags: 64 });
+    const guild = interaction.guild;
+    const settings = await verification.getSettings(guild.id);
     const member = await guild.members.fetch(request.userId).catch(() => null);
     if (member) await verification.approveMember(member, settings);
     request.status = "approved";
     request.reviewedBy = interaction.user.id;
     request.reviewedAt = /* @__PURE__ */ new Date();
     await request.save();
-    this.clearTimer(requestId);
-    await this.deleteTempVc(guild, requestId);
-    await verification.dm(
-      guild,
-      request.userId,
-      member ? `\u{1F389} Welcome to **${guild.name}**! Your voice verification was approved \u2014 you now have full access to the server.` : `\u{1F389} Your voice verification was approved.`
-    );
-    await verification.log(guild, settings, EmbedBuilderUtil.success(
-      "Verification approved",
-      `<@${request.userId}> was verified by <@${interaction.user.id}> over voice.` + (member ? "" : "\n\u26A0\uFE0F The member had left the server, so no roles were changed.")
-    ));
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.success("Approved", `<@${request.userId}> is verified and the VC has been cleared.`)] });
+    const timer = this.timers.get(requestId);
+    if (timer) {
+      clearTimeout(timer);
+      this.timers.delete(requestId);
+    }
+    try {
+      await guild.client.users.fetch(request.userId).then((u) => u.send(member ? `\u{1F389} Your voice verification was approved.` : "\u{1F389} Your voice verification was approved.").catch(() => {
+      }));
+    } catch {
+    }
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.success?.("Approved", "<@" + request.userId + "> is verified and the VC has been cleared.") ?? new import_discord92.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription("<@" + request.userId + "> is verified and the VC has been cleared.")] });
   }
   async handleDeny(interaction, requestId) {
-    const request = await VerificationRequest.findById(requestId);
+    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
     if (!request || request.status !== "claimed") {
       await interaction.reply({ content: "\u274C This verification is no longer active.", flags: 64 });
       return;
@@ -195735,16 +195487,14 @@ They will confirm you agree to the rules. This DM is only visible to you.`
       await interaction.reply({ content: "\u274C Only the staff member who claimed this can decide.", flags: 64 });
       return;
     }
-    const modal = new import_discord95.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(
-      new import_discord95.ActionRowBuilder().addComponents(
-        new import_discord95.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason (sent to the member in a DM)").setStyle(import_discord95.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
-      )
-    );
+    const modal = new import_discord91.ModalBuilder().setCustomId(`vcverify_deny_reason_${requestId}`).setTitle("Deny verification \u2014 reason").addComponents(new import_discord91.ActionRowBuilder().addComponents(
+      new import_discord91.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason").setStyle(import_discord91.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+    ));
     await interaction.showModal(modal);
   }
   async handleDenyModal(interaction, requestId) {
     await interaction.deferReply({ flags: 64 });
-    const request = await VerificationRequest.findById(requestId);
+    const request = await verification["pendingRequests"](interaction.guild.id).then((rows) => rows.find((r) => r._id.toString() === requestId));
     if (!request || request.status !== "claimed") {
       await interaction.editReply({ content: "\u274C This verification is no longer active." });
       return;
@@ -195757,23 +195507,18 @@ They will confirm you agree to the rules. This DM is only visible to you.`
     request.reviewedAt = /* @__PURE__ */ new Date();
     request.reason = reason;
     await request.save();
-    this.clearTimer(requestId);
-    await this.deleteTempVc(guild, requestId);
-    await verification.dm(
-      guild,
-      request.userId,
-      `\u274C **Your verification was not approved.**
-
-**Reason given:** ${reason}
-
-If you think this is a mistake, reply to a staff member.`
-    );
-    await verification.log(guild, settings, EmbedBuilderUtil.error(
-      "Verification denied",
-      `<@${request.userId}> was denied by <@${interaction.user.id}> over voice.
-**Reason:** ${reason.slice(0, 500)}`
-    ));
-    await interaction.editReply({ embeds: [EmbedBuilderUtil.error("Denied", "The VC has been cleared and the member was DM'd your reason.")] });
+    const timer = this.timers.get(requestId);
+    if (timer) {
+      clearTimeout(timer);
+      this.timers.delete(requestId);
+    }
+    try {
+      await guild.client.users.fetch(request.userId).then((u) => u.send(`\u274C Your verification was not approved.
+**Reason:** ${reason}`).catch(() => {
+      }));
+    } catch {
+    }
+    await interaction.editReply({ embeds: [EmbedBuilderUtil.error?.("Denied", "The VC has been cleared.") ?? new import_discord92.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription("The VC has been cleared.")] });
   }
   clearTimer(requestId) {
     const timer = this.timers.get(requestId);
@@ -195782,111 +195527,69 @@ If you think this is a mistake, reply to a staff member.`
       this.timers.delete(requestId);
     }
   }
-  /** Delete the temp VC for a verification request, if one exists. */
-  async deleteTempVc(guild, requestId) {
-    const vcId = this.tempVcs.get(requestId);
-    if (!vcId) return;
-    this.tempVcs.delete(requestId);
-    try {
-      const vc = await guild.channels.fetch(vcId).catch(() => null);
-      await vc?.delete("Voice verification finished").catch(() => {
-      });
-    } catch {
-    }
-  }
-  /** Delete a temp VC given its channel id and guild. Only touches verification temp VCs. */
-  async deleteTempVcByChannel(guild, channelId) {
-    const requestId = [...this.tempVcs.entries()].find(([, id]) => id === channelId)?.[0];
-    if (requestId === void 0) return;
-    this.tempVcs.delete(requestId);
-    const request = await VerificationRequest.findById(requestId);
-    if (request && request.status === "claimed") {
-      request.status = "pending";
-      request.claimedBy = void 0;
-      request.claimedAt = void 0;
-      await request.save();
-    }
-    try {
-      const vc = await guild.channels.fetch(channelId).catch(() => null);
-      await vc?.delete("Voice verification finished").catch(() => {
-      });
-    } catch {
-    }
-  }
-  async _retireRequestMessage(interaction, requestId, result) {
-    if (!interaction.message) return;
-    await interaction.message.edit({
-      embeds: [EmbedBuilderUtil.info(`Request #${requestId}`, result)],
-      components: []
-    }).catch(() => {
+  async emptyVc(guild) {
+    const settings = await verification.getSettings(guild.id);
+    if (!settings.voiceChannelId) return;
+    const vc = await guild.channels.fetch(settings.voiceChannelId).catch(() => null);
+    if (!vc) return;
+    for (const m of vc.members.values()) await m.voice.disconnect("Voice verification finished").catch(() => {
     });
   }
   shutdown() {
     for (const timer of this.timers.values()) clearTimeout(timer);
     this.timers.clear();
-    this.tempVcs.clear();
-  }
-  /** Called from voiceStateUpdate when a temp VC becomes empty — deletes it. */
-  async handleEmptyTempVc(guild, channelId) {
-    await this.deleteTempVcByChannel(guild, channelId);
   }
 };
 var vcVerification = new VcVerificationSystem();
-var verificationVoiceStateEvent = {
-  name: import_discord94.Events.VoiceStateUpdate,
+var voiceStateUpdateVerification = {
+  name: "voiceStateUpdate",
   execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
+    if (!newState.member || newState.member.user.bot) return;
     try {
-      if (!oldState.channelId && newState.channelId && newState.member) {
-        await vcVerification.handleVoiceJoin(newState.member).catch(() => {
-        });
-      } else if (oldState.channelId && !newState.channelId && newState.member) {
-        await vcVerification.handleVoiceLeave(newState.member).catch(() => {
-        });
-        if (oldState.channelId) {
-          await vcVerification.handleEmptyTempVc(oldState.guild, oldState.channelId).catch(() => {
-          });
-        }
-      } else if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId && newState.member) {
-        await vcVerification.handleEmptyTempVc(oldState.guild, oldState.channelId).catch(() => {
-        });
-      }
+      await vcVerification.handleVoiceJoin(newState.member).catch(() => {
+      });
+    } catch {
+    }
+    try {
+      await vcVerification.handleVoiceLeave(oldState.member).catch(() => {
+      });
     } catch {
     }
   }, "execute")
 };
 
 // src/events/antinukeEvents.ts
-var import_discord98 = __toESM(require_src());
+var import_discord95 = __toESM(require_src());
 
 // src/systems/antinuke/index.ts
-var import_discord96 = __toESM(require_src());
-var import_discord97 = __toESM(require_src());
+var import_discord93 = __toESM(require_src());
+var import_discord94 = __toESM(require_src());
 var WATCHED = {
-  [import_discord96.AuditLogEvent.MemberBanAdd]: "ban",
-  [import_discord96.AuditLogEvent.MemberKick]: "kick",
-  [import_discord96.AuditLogEvent.ChannelDelete]: "channelDelete",
-  [import_discord96.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
-  [import_discord96.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
-  [import_discord96.AuditLogEvent.RoleDelete]: "roleDelete",
-  [import_discord96.AuditLogEvent.WebhookDelete]: "webhookDelete",
-  [import_discord96.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
+  [import_discord93.AuditLogEvent.MemberBanAdd]: "ban",
+  [import_discord93.AuditLogEvent.MemberKick]: "kick",
+  [import_discord93.AuditLogEvent.ChannelDelete]: "channelDelete",
+  [import_discord93.AuditLogEvent.ChannelOverwriteCreate]: "channelOverwrite",
+  [import_discord93.AuditLogEvent.ChannelOverwriteDelete]: "channelOverwrite",
+  [import_discord93.AuditLogEvent.RoleDelete]: "roleDelete",
+  [import_discord93.AuditLogEvent.WebhookDelete]: "webhookDelete",
+  [import_discord93.AuditLogEvent.MessageBulkDelete]: "bulkDelete"
 };
 var DANGEROUS_PERMISSIONS = [
-  import_discord96.PermissionFlagsBits.Administrator,
-  import_discord96.PermissionFlagsBits.ManageGuild,
-  import_discord96.PermissionFlagsBits.ManageRoles,
-  import_discord96.PermissionFlagsBits.ManageChannels,
-  import_discord96.PermissionFlagsBits.ManageWebhooks,
-  import_discord96.PermissionFlagsBits.ManageMessages,
-  import_discord96.PermissionFlagsBits.BanMembers,
-  import_discord96.PermissionFlagsBits.KickMembers,
-  import_discord96.PermissionFlagsBits.ManageThreads,
-  import_discord96.PermissionFlagsBits.ManageNicknames,
-  import_discord96.PermissionFlagsBits.MuteMembers,
-  import_discord96.PermissionFlagsBits.ModerateMembers,
-  import_discord96.PermissionFlagsBits.MoveMembers,
-  import_discord96.PermissionFlagsBits.CreateInstantInvite,
-  import_discord96.PermissionFlagsBits.ManageEvents
+  import_discord93.PermissionFlagsBits.Administrator,
+  import_discord93.PermissionFlagsBits.ManageGuild,
+  import_discord93.PermissionFlagsBits.ManageRoles,
+  import_discord93.PermissionFlagsBits.ManageChannels,
+  import_discord93.PermissionFlagsBits.ManageWebhooks,
+  import_discord93.PermissionFlagsBits.ManageMessages,
+  import_discord93.PermissionFlagsBits.BanMembers,
+  import_discord93.PermissionFlagsBits.KickMembers,
+  import_discord93.PermissionFlagsBits.ManageThreads,
+  import_discord93.PermissionFlagsBits.ManageNicknames,
+  import_discord93.PermissionFlagsBits.MuteMembers,
+  import_discord93.PermissionFlagsBits.ModerateMembers,
+  import_discord93.PermissionFlagsBits.MoveMembers,
+  import_discord93.PermissionFlagsBits.CreateInstantInvite,
+  import_discord93.PermissionFlagsBits.ManageEvents
 ];
 var DEFAULT_THRESHOLDS = {
   ban: 3,
@@ -195916,7 +195619,8 @@ var AntiNukeSystem = class {
       windowSec: cfg.windowSec ?? 60,
       timeoutMinutes: cfg.timeoutMinutes ?? 1440,
       autoStrip: cfg.autoStrip ?? true,
-      exemptRoleIds: cfg.exemptRoleIds ?? []
+      exemptRoleIds: cfg.exemptRoleIds ?? [],
+      backup: cfg.backup ?? { enabled: false, intervalMin: 60, keep: 24 }
     };
   }
   isEnabled(cfg) {
@@ -195937,7 +195641,7 @@ var AntiNukeSystem = class {
     let action = null;
     if (WATCHED[entry.action] !== void 0) {
       action = WATCHED[entry.action];
-    } else if (entry.action === import_discord96.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
+    } else if (entry.action === import_discord93.AuditLogEvent.MemberRoleUpdate && entry.changes?.some((c) => {
       const key = c.key;
       const newId = c?.new?.id;
       return (key === "$" || key === "id") && newId === guild.id;
@@ -196018,7 +195722,7 @@ var AntiNukeSystem = class {
     try {
       const channel = await guild.channels.fetch(cfg.alertChannelId).catch(() => null);
       if (!channel || !channel.isTextBased()) return;
-      const embed = new import_discord97.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
+      const embed = new import_discord94.EmbedBuilder().setColor(15548997).setTitle("\u{1F6E1}\uFE0F Anti-nuke: staff member locked down").setDescription(
         `<@${member.id}> performed **${count}\xD7** \`${action}\` within ${cfg.windowSec}s (limit: ${limit}).
 Treated as a compromised or malicious account.`
       ).addFields(
@@ -196072,7 +195776,7 @@ Treated as a compromised or malicious account.`
 };
 var antinuke = new AntiNukeSystem();
 var guildAuditLogEntryCreate = {
-  name: import_discord96.Events.GuildAuditLogEntryCreate,
+  name: import_discord93.Events.GuildAuditLogEntryCreate,
   execute: /* @__PURE__ */ __name(async (_client, entry, guild) => {
     try {
       await antinuke.handleAuditEntry(entry, guild).catch(() => {
@@ -196084,7 +195788,7 @@ var guildAuditLogEntryCreate = {
 
 // src/events/antinukeEvents.ts
 var antinukeAuditLogEvent = {
-  name: import_discord98.Events.GuildAuditLogEntryCreate,
+  name: import_discord95.Events.GuildAuditLogEntryCreate,
   execute: /* @__PURE__ */ __name(async (client, entry, guild) => {
     await antinuke.handleAuditEntry(entry, guild).catch(() => {
     });
@@ -196092,16 +195796,34 @@ var antinukeAuditLogEvent = {
 };
 
 // src/events/messageSystemsEvent.ts
-var import_discord101 = __toESM(require_src());
+var import_discord98 = __toESM(require_src());
 
 // src/systems/autoreply/index.ts
-var import_discord99 = __toESM(require_src());
+var import_discord96 = __toESM(require_src());
+var IP_KEYWORDS = ["ip", "server ip", "address", "connect", "server address", "ip address"];
+var STATUS_KEYWORDS = ["status", "online?", "is the server up", "server status", "server online"];
+var MODPACK_KEYWORDS = [
+  "how to install",
+  "how to download",
+  "install modpack",
+  "download modpack",
+  "modpack install",
+  "modpack download",
+  "how install",
+  "how download",
+  "sklauncher",
+  "mjlauncher",
+  "launcher",
+  "modpack help"
+];
 var AutoReplySystem = class {
   static {
     __name(this, "AutoReplySystem");
   }
   cooldowns = /* @__PURE__ */ new Map();
+  // userId+trigger -> timestamp
   cooldownMs = 1e4;
+  // 10 seconds per user per trigger
   async getAutoReplies(guildId, channelId) {
     const query = { guildId, enabled: true };
     if (channelId) query.$or = [{ channelId }, { channelId: null }, { channelId: { $exists: false } }];
@@ -196117,11 +195839,15 @@ var AutoReplySystem = class {
     const key = `${userId}:${trigger}`;
     const now = Date.now();
     const lastUsed = this.cooldowns.get(key);
-    if (lastUsed && now - lastUsed < this.cooldownMs) return false;
+    if (lastUsed && now - lastUsed < this.cooldownMs) {
+      return false;
+    }
     this.cooldowns.set(key, now);
     if (this.cooldowns.size > 1e3) {
       for (const [k, v] of this.cooldowns.entries()) {
-        if (now - v > this.cooldownMs * 2) this.cooldowns.delete(k);
+        if (now - v > this.cooldownMs * 2) {
+          this.cooldowns.delete(k);
+        }
       }
     }
     return true;
@@ -196131,8 +195857,67 @@ var AutoReplySystem = class {
     const content = message.content.toLowerCase();
     const channelId = message.channel.id;
     const userId = message.author.id;
-    const replies = await this.getAutoReplies(message.guild.id, channelId);
+    const ipReply = await this.checkServerIP(content, channelId);
+    if (ipReply && this.checkCooldown(userId, `ip:${channelId}`)) {
+      await message.reply({ embeds: [ipReply], allowedMentions: { repliedUser: false } });
+      return true;
+    }
+    const statusReply = await this.checkServerStatus(content, channelId);
+    if (statusReply && this.checkCooldown(userId, `status:${channelId}`)) {
+      await message.reply({ embeds: [statusReply], allowedMentions: { repliedUser: false } });
+      return true;
+    }
+    const modpackReply = this.checkModpackHelp(content);
+    if (modpackReply && this.checkCooldown(userId, "modpack")) {
+      await message.reply({ embeds: [modpackReply], allowedMentions: { repliedUser: false } });
+      return true;
+    }
+    const dbReply = await this.checkDatabaseReplies(message.guild.id, content, channelId);
+    if (dbReply && this.checkCooldown(userId, `db:${dbReply.id}`)) {
+      await message.reply({ content: dbReply.response, allowedMentions: { repliedUser: false } });
+      return true;
+    }
+    return false;
+  }
+  async checkServerIP(content, channelId) {
+    const matched = IP_KEYWORDS.some((kw) => content.includes(kw));
+    if (!matched) return null;
+    const replies = await this.getAutoReplies("", channelId);
     for (const reply of replies) {
+      if (reply.channelId && reply.channelId !== channelId) continue;
+      if (reply.triggerType === "keyword" && reply.triggerValue.toLowerCase() === "ip") {
+        return EmbedBuilderUtil.info(
+          "\u{1F310} Server IP",
+          `**Server IP:** \`${reply.response.replace("Server IP: ", "").replace(/`/g, "")}\`
+
+Use this IP to connect to the server!`,
+          [{ name: "\u{1F4CB} Copy", value: reply.response, inline: false }]
+        );
+      }
+    }
+    return null;
+  }
+  async checkServerStatus(content, channelId) {
+    const matched = STATUS_KEYWORDS.some((kw) => content.includes(kw));
+    if (!matched) return null;
+    return EmbedBuilderUtil.info(
+      "\u{1F4CA} Server Status",
+      "Use `/serverstatus [server]` to check the status of a specific server.",
+      [{ name: "\u{1F4A1} Tip", value: "Each server has its own status channel with live updates!", inline: false }]
+    );
+  }
+  checkModpackHelp(content) {
+    const matched = MODPACK_KEYWORDS.some((kw) => content.includes(kw));
+    if (!matched) return null;
+    return EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
+      "\u{1F4E6} Modpack Help",
+      "Use a launcher like SKLauncher or MJLauncher to install modpacks."
+    );
+  }
+  async checkDatabaseReplies(guildId, content, channelId) {
+    const replies = await this.getAutoReplies(guildId, channelId);
+    for (const reply of replies) {
+      if (reply.channelId && reply.channelId !== channelId) continue;
       let matched = false;
       switch (reply.triggerType) {
         case "keyword":
@@ -196140,8 +195925,9 @@ var AutoReplySystem = class {
           break;
         case "regex":
           try {
-            matched = new RegExp(reply.triggerValue, "i").test(content);
-          } catch {
+            const regex = new RegExp(reply.triggerValue, "i");
+            matched = regex.test(content);
+          } catch (e) {
             continue;
           }
           break;
@@ -196149,17 +195935,31 @@ var AutoReplySystem = class {
           matched = content === reply.triggerValue.toLowerCase();
           break;
       }
-      if (matched && this.checkCooldown(userId, `db:${reply._id}`)) {
-        await message.reply({ content: reply.response, allowedMentions: { repliedUser: false } });
-        return true;
+      if (matched) {
+        return reply;
       }
     }
-    return false;
+    return null;
+  }
+  // For ticket auto-reply
+  async getTicketAutoReply(content) {
+    const matched = MODPACK_KEYWORDS.some((kw) => content.toLowerCase().includes(kw));
+    if (!matched) return null;
+    return {
+      embed: EmbedBuilderUtil.modpackTutorial?.() ?? EmbedBuilderUtil.info(
+        "\u{1F4E6} Modpack Help",
+        "Use a launcher like SKLauncher or MJLauncher to install modpacks."
+      ),
+      buttons: [
+        { customId: "ticket_modpack_helped_yes", label: "\u2705 Yes, it helped!", style: 3 },
+        { customId: "ticket_modpack_helped_no", label: "\u274C No, need staff", style: 4 }
+      ]
+    };
   }
 };
 var autoReply = new AutoReplySystem();
 var messageCreateAutoreply = {
-  name: import_discord99.Events.MessageCreate,
+  name: import_discord96.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (_client, message) => {
     try {
       await autoReply.processMessage(message).catch(() => {
@@ -196170,14 +195970,23 @@ var messageCreateAutoreply = {
 };
 
 // src/systems/mediareactions/index.ts
-var import_discord100 = __toESM(require_src());
+var import_discord97 = __toESM(require_src());
 var IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|avif|heic|heif|tiff?)$/i;
 var VIDEO_EXT = /\.(mp4|mov|webm|mkv|avi|m4v|flac)$/i;
+var DEFAULT_CONFIG = {
+  enabled: false,
+  memeChannels: [],
+  imageChannels: [],
+  memeReactions: ["\u2B50", "\u{1F602}"],
+  imageReactions: ["\u{1F4F8}"],
+  enforceMode: "warn"
+};
 var MediaReactionSystem = class _MediaReactionSystem {
   static {
     __name(this, "MediaReactionSystem");
   }
   handled = /* @__PURE__ */ new Set();
+  // messageId -> true
   async getConfig(guildId) {
     let cfg = await MediaReactionConfig.findOne({ guildId }).lean();
     if (!cfg) {
@@ -196191,7 +196000,14 @@ var MediaReactionSystem = class _MediaReactionSystem {
         enforceMode: "warn"
       });
     }
-    return cfg;
+    return {
+      ...DEFAULT_CONFIG,
+      ...cfg,
+      memeChannels: Array.isArray(cfg?.memeChannels) ? cfg.memeChannels : [],
+      imageChannels: Array.isArray(cfg?.imageChannels) ? cfg.imageChannels : [],
+      memeReactions: Array.isArray(cfg?.memeReactions) && cfg.memeReactions.length ? cfg.memeReactions : DEFAULT_CONFIG.memeReactions,
+      imageReactions: Array.isArray(cfg?.imageReactions) && cfg.imageReactions.length ? cfg.imageReactions : DEFAULT_CONFIG.imageReactions
+    };
   }
   isEnabled(cfg) {
     return cfg.enabled === true;
@@ -196268,7 +196084,7 @@ var MediaReactionSystem = class _MediaReactionSystem {
     if (mode === "off") return;
     const notice = "\u{1F4CE} This channel only accepts images and videos.";
     if (mode === "warn") {
-      await message.reply({ content: notice, flags: import_discord100.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
+      await message.reply({ content: notice, flags: import_discord97.MessageFlags.Ephemeral }).then((r) => setTimeout(() => r.delete().catch(() => {
       }), 4e3).unref?.()).catch(() => {
       });
       return;
@@ -196288,7 +196104,7 @@ This channel is for images and videos only.` }).catch(() => {
 };
 var mediaReactions = new MediaReactionSystem();
 var messageCreateMediaReactions = {
-  name: import_discord100.Events.MessageCreate,
+  name: import_discord97.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (_client, message) => {
     try {
       await mediaReactions.processMessage(message).catch(() => {
@@ -196300,7 +196116,7 @@ var messageCreateMediaReactions = {
 
 // src/events/messageSystemsEvent.ts
 var messageSystemsEvent = {
-  name: import_discord101.Events.MessageCreate,
+  name: import_discord98.Events.MessageCreate,
   execute: /* @__PURE__ */ __name(async (client, message) => {
     if (message.author?.bot || !message.guild) return;
     await autoReply.processMessage(message).catch(() => {
@@ -196311,34 +196127,16 @@ var messageSystemsEvent = {
 };
 
 // src/events/systemsInteractionEvent.ts
-var import_discord103 = __toESM(require_src());
+var import_discord100 = __toESM(require_src());
 
 // src/systems/presentations/index.ts
-var import_discord102 = __toESM(require_src());
+var import_discord99 = __toESM(require_src());
 var PresentationSystem = class {
   static {
     __name(this, "PresentationSystem");
   }
-  async getConfig(guildId) {
-    let cfg = await PresentationConfig.findOne({ guildId }).lean();
-    if (!cfg) {
-      cfg = await PresentationConfig.create({
-        guildId,
-        questions: [
-          "What is your name?",
-          "How old are you?",
-          "Why do you want to be staff?",
-          "Do you have previous moderation experience?",
-          "What timezone are you in?",
-          "How many hours can you dedicate per week?"
-        ]
-      });
-    }
-    return cfg;
-  }
-  async getQuestions(guildId) {
-    const cfg = await this.getConfig(guildId);
-    return cfg.questions || [
+  getQuestions() {
+    return [
       "What is your name?",
       "How old are you?",
       "Why do you want to be staff?",
@@ -196347,94 +196145,116 @@ var PresentationSystem = class {
       "How many hours can you dedicate per week?"
     ];
   }
-  async createPresentationPanel(channel, guildId) {
-    const embed = new import_discord102.EmbedBuilder().setColor(5793266).setTitle("\u{1F46E} Staff Applications").setDescription(
+  async getConfig(guildId) {
+    let cfg = await PresentationConfig.findOne({ guildId }).lean();
+    if (!cfg) {
+      cfg = await PresentationConfig.create({ guildId, questions: [] });
+    }
+    return {
+      categoryId: cfg.categoryId ?? void 0,
+      staffChannelId: cfg.staffChannelId ?? void 0,
+      staffRoleId: cfg.staffRoleId ?? void 0,
+      questions: Array.isArray(cfg.questions) && cfg.questions.length ? cfg.questions : this.getQuestions()
+    };
+  }
+  async createPresentationPanel(channel) {
+    const embed = new import_discord99.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F46E} Staff Applications").setDescription(
       "We're looking for dedicated members to join our staff team!\n\n**Requirements:**\n\u2022 Be active in the community\n\u2022 Know our rules and guidelines\n\u2022 Have a mature and professional attitude\n\u2022 Be able to dedicate time weekly\n\nClick the button below to submit your application."
     ).setFooter({ text: "Staff Team" }).setTimestamp();
-    const row = new import_discord102.ActionRowBuilder().addComponents(
-      new import_discord102.ButtonBuilder().setCustomId("presentation_apply_button").setLabel("Apply for Staff").setEmoji("\u{1F4DD}").setStyle(import_discord102.ButtonStyle.Primary)
+    const row = new import_discord99.ActionRowBuilder().addComponents(
+      new import_discord99.ButtonBuilder().setCustomId("presentation_apply_button").setLabel("Apply for Staff").setEmoji("\u{1F4DD}").setStyle(import_discord99.ButtonStyle.Primary)
     );
     await channel.send({ embeds: [embed], components: [row] });
   }
-  async createApplicationModal(guildId) {
-    const questions = await this.getQuestions(guildId);
-    const modal = new import_discord102.ModalBuilder().setCustomId("presentation_apply").setTitle("Staff Application");
+  async createApplicationModal() {
+    const questions = this.getQuestions();
+    const modal = new import_discord99.ModalBuilder().setCustomId("presentation_apply").setTitle("Staff Application");
     questions.slice(0, 5).forEach((q, i) => {
-      const input2 = new import_discord102.TextInputBuilder().setCustomId(`q${i + 1}`).setLabel(q.length > 45 ? q.substring(0, 42) + "..." : q).setStyle(import_discord102.TextInputStyle.Paragraph).setPlaceholder("Your answer...").setRequired(true).setMaxLength(1e3);
-      modal.addComponents(new import_discord102.ActionRowBuilder().addComponents(input2));
+      const input2 = new import_discord99.TextInputBuilder().setCustomId(`q${i + 1}`).setLabel(q.length > 45 ? q.substring(0, 42) + "..." : q).setStyle(import_discord99.TextInputStyle.Paragraph).setPlaceholder("Your answer...").setRequired(true).setMaxLength(1e3);
+      modal.addComponents(new import_discord99.ActionRowBuilder().addComponents(input2));
     });
     return modal;
   }
-  async handleApply(interaction, guildId) {
+  async handleApply(interaction) {
     const userId = interaction.user.id;
-    const existing = await PresentationApplication.findOne({ guildId, userId, status: "pending" });
+    const existing = await PresentationApplication.findOne({ userId, status: "pending" });
     if (existing) {
-      return interaction.reply({ content: "\u274C You already have a pending application!", flags: 64 });
+      void interaction.reply({ content: "\u274C You already have a pending application!", flags: 64 });
+      return;
     }
-    const modal = await this.createApplicationModal(guildId);
-    await interaction.showModal(modal);
+    const modal = await this.createApplicationModal();
+    void interaction.showModal(modal);
   }
-  async handleModalSubmit(interaction, guildId) {
-    const questions = await this.getQuestions(guildId);
-    const modalQuestions = questions.slice(0, 5);
+  async handleModalSubmit(interaction) {
     const answers = [];
+    const questions = this.getQuestions();
+    const modalQuestions = questions.slice(0, 5);
     for (let i = 0; i < modalQuestions.length; i++) {
       const answer = interaction.fields.getTextInputValue(`q${i + 1}`) || "";
       answers.push({ question: modalQuestions[i], answer });
     }
-    const presentation = await PresentationApplication.create({
-      guildId,
+    await PresentationApplication.create({
+      guildId: interaction.guildId,
       userId: interaction.user.id,
       answers,
       status: "pending"
     });
-    const cfg = await this.getConfig(guildId);
+    const cfg = await this.getConfig(interaction.guildId);
     if (cfg.staffChannelId) {
       const staffChannel = interaction.client.channels.cache.get(cfg.staffChannelId);
       if (staffChannel) {
-        const embed = EmbedBuilderUtil.presentation({
-          id: presentation.id,
-          userId: interaction.user.id,
+        const embed = EmbedBuilderUtil.presentation?.({
+          id: "new",
+          user_id: interaction.user.id,
           answers: JSON.stringify(answers),
           status: "pending",
-          createdAt: (/* @__PURE__ */ new Date()).toISOString()
-        });
-        const row = new import_discord102.ActionRowBuilder().addComponents(
-          new import_discord102.ButtonBuilder().setCustomId("presentation_approve").setLabel("\u2705 Approve").setStyle(import_discord102.ButtonStyle.Success),
-          new import_discord102.ButtonBuilder().setCustomId("presentation_deny").setLabel("\u274C Deny").setStyle(import_discord102.ButtonStyle.Danger),
-          new import_discord102.ButtonBuilder().setCustomId("presentation_changes").setLabel("\u{1F4DD} Request Changes").setStyle(import_discord102.ButtonStyle.Secondary)
+          created_at: (/* @__PURE__ */ new Date()).toISOString()
+        }) ?? new import_discord99.EmbedBuilder().setColor("#5865F2").setTitle("New Staff Application").setDescription(`New application from <@${interaction.user.id}>`).addFields(answers.map((a) => ({ name: a.question, value: a.answer, inline: false }))).setTimestamp();
+        const row = new import_discord99.ActionRowBuilder().addComponents(
+          new import_discord99.ButtonBuilder().setCustomId("presentation_approve").setLabel("\u2705 Approve").setStyle(import_discord99.ButtonStyle.Success),
+          new import_discord99.ButtonBuilder().setCustomId("presentation_deny").setLabel("\u274C Deny").setStyle(import_discord99.ButtonStyle.Danger),
+          new import_discord99.ButtonBuilder().setCustomId("presentation_changes").setLabel("\u{1F4DD} Request Changes").setStyle(import_discord99.ButtonStyle.Secondary)
         );
-        await staffChannel.send({
+        void staffChannel.send({
           content: `\u{1F4DD} New staff application from <@${interaction.user.id}>!`,
           embeds: [embed],
           components: [row]
         });
       }
     }
-    await interaction.reply({
-      content: "\u2705 Your application has been submitted! Staff will review it shortly.",
-      flags: 64
-    });
+    void interaction.reply({ content: "\u2705 Your application has been submitted! Staff will review it shortly.", flags: 64 });
   }
-  async handleReview(interaction, action, guildId) {
-    const cfg = await this.getConfig(guildId);
+  async handleReview(interaction, action) {
+    const cfg = await this.getConfig(interaction.guildId);
     const staffRoleId = cfg.staffRoleId;
-    const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
-    if (!isStaff && !interaction.member.permissions.has(import_discord102.PermissionFlagsBits.Administrator)) {
-      return interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+    const member = interaction.member;
+    if (!member) return;
+    const isStaff = staffRoleId && member.roles.cache.has(staffRoleId);
+    if (!isStaff && !member.permissions.has(import_discord99.PermissionFlagsBits.Administrator)) {
+      void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+      return;
     }
     const message = interaction.message;
     const embed = message.embeds[0];
     if (!embed) return;
     const footerText = embed.footer?.text || "";
     const userIdMatch = footerText.match(/User: (\d+)/);
-    if (!userIdMatch) return interaction.reply({ content: "\u274C Could not find applicant.", flags: 64 });
-    const applicantId = userIdMatch[1];
-    const presentation = await PresentationApplication.findOne({ guildId, userId: applicantId, status: "pending" });
-    if (!presentation) return interaction.reply({ content: "\u274C Application not found.", flags: 64 });
-    if (!isStaff && !interaction.member.permissions.has(import_discord102.PermissionFlagsBits.Administrator)) {
-      return interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+    if (!userIdMatch) {
+      void interaction.reply({ content: "\u274C Could not find applicant.", flags: 64 });
+      return;
     }
+    const applicantId = userIdMatch[1];
+    const presentation = await PresentationApplication.findOne({ userId: applicantId, status: "pending" });
+    if (!presentation) {
+      void interaction.reply({ content: "\u274C Application not found.", flags: 64 });
+      return;
+    }
+    const isStaff2 = staffRoleId && member.roles.cache.has(staffRoleId);
+    if (!isStaff2 && !member.permissions.has(import_discord99.PermissionFlagsBits.Administrator)) {
+      void interaction.reply({ content: "\u274C Only staff can review applications.", flags: 64 });
+      return;
+    }
+    const reason = action === "changes" ? "Changes requested by staff" : null;
     if (action === "approve") {
       await PresentationApplication.findByIdAndUpdate(presentation.id, {
         status: "approved",
@@ -196443,8 +196263,9 @@ var PresentationSystem = class {
       });
       if (staffRoleId) {
         try {
-          const member = await interaction.guild.members.fetch(applicantId);
-          await member.roles.add(staffRoleId);
+          const guild = interaction.guild;
+          const targetMember = await guild.members.fetch(applicantId);
+          await targetMember.roles.add(staffRoleId);
         } catch (e) {
           console.error("[Presentation] Error assigning role:", e);
         }
@@ -196455,14 +196276,21 @@ var PresentationSystem = class {
         });
       } catch {
       }
-      await message.edit({
-        embeds: [EmbedBuilderUtil.success("Approved", `Application approved by ${interaction.user}`)],
+      void message.edit({
+        embeds: [EmbedBuilderUtil.success?.("Approved", `Application approved by ${interaction.user}`) ?? new import_discord99.EmbedBuilder().setColor(5763719).setTitle("Approved").setDescription(`Application approved by ${interaction.user}`)],
         components: []
       });
-    } else if (action === "deny" || action === "changes") {
-      const modal = new import_discord102.ModalBuilder().setCustomId(`presentation_${action === "deny" ? "deny_reason" : "changes_reason"}_${presentation.id}`).setTitle(action === "deny" ? "Deny Application - Reason" : "Request Changes - Feedback").addComponents(
-        new import_discord102.ActionRowBuilder().addComponents(
-          new import_discord102.TextInputBuilder().setCustomId(action === "deny" ? "deny_reason" : "changes_reason").setLabel(action === "deny" ? "Reason for denial" : "What needs to be changed?").setStyle(import_discord102.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+    } else if (action === "deny") {
+      const modal = new import_discord99.ModalBuilder().setCustomId(`presentation_deny_reason_${presentation.id}`).setTitle("Deny Application - Reason").addComponents(
+        new import_discord99.ActionRowBuilder().addComponents(
+          new import_discord99.TextInputBuilder().setCustomId("deny_reason").setLabel("Reason for denial").setStyle(import_discord99.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
+        )
+      );
+      await interaction.showModal(modal);
+    } else if (action === "changes") {
+      const modal = new import_discord99.ModalBuilder().setCustomId(`presentation_changes_reason_${presentation.id}`).setTitle("Request Changes - Feedback").addComponents(
+        new import_discord99.ActionRowBuilder().addComponents(
+          new import_discord99.TextInputBuilder().setCustomId("changes_reason").setLabel("What needs to be changed?").setStyle(import_discord99.TextInputStyle.Paragraph).setRequired(true).setMaxLength(1e3)
         )
       );
       await interaction.showModal(modal);
@@ -196473,7 +196301,7 @@ var PresentationSystem = class {
     const reason = interaction.fields.getTextInputValue("deny_reason");
     const presentation = await PresentationApplication.findById(presentationId);
     if (!presentation) return;
-    await PresentationApplication.findByIdAndUpdate(presentationId, {
+    await PresentationApplication.findByIdAndUpdate(presentation.id, {
       status: "denied",
       reviewedBy: interaction.user.id,
       reviewedAt: /* @__PURE__ */ new Date(),
@@ -196486,19 +196314,23 @@ var PresentationSystem = class {
       });
     } catch {
     }
-    await interaction.message.edit({
-      embeds: [EmbedBuilderUtil.error("Denied", `Application denied by ${interaction.user}
+    const message = interaction.message;
+    if (message) {
+      void message.edit({
+        embeds: [EmbedBuilderUtil.error?.("Denied", `Application denied by ${interaction.user}
+Reason: ${reason}`) ?? new import_discord99.EmbedBuilder().setColor(15548997).setTitle("Denied").setDescription(`Application denied by ${interaction.user}
 Reason: ${reason}`)],
-      components: []
-    });
-    await interaction.editReply({ content: "\u2705 Application denied." });
+        components: []
+      });
+    }
+    void interaction.editReply({ content: "\u2705 Application denied." });
   }
   async handleChangesModal(interaction, presentationId) {
     await interaction.deferReply({ flags: 64 });
     const reason = interaction.fields.getTextInputValue("changes_reason");
     const presentation = await PresentationApplication.findById(presentationId);
     if (!presentation) return;
-    await PresentationApplication.findByIdAndUpdate(presentationId, {
+    await PresentationApplication.findByIdAndUpdate(presentation.id, {
       status: "changes_requested",
       reviewedBy: interaction.user.id,
       reviewedAt: /* @__PURE__ */ new Date(),
@@ -196513,40 +196345,51 @@ You can re-apply with the improved answers.` }).catch(() => {
       });
     } catch {
     }
-    await interaction.message.edit({
-      embeds: [EmbedBuilderUtil.warning("Changes Requested", `Changes requested by ${interaction.user}
+    const message = interaction.message;
+    if (message) {
+      void message.edit({
+        embeds: [EmbedBuilderUtil.warning?.("Changes Requested", `Changes requested by ${interaction.user}
+Feedback: ${reason}`) ?? new import_discord99.EmbedBuilder().setColor(16705372).setTitle("Changes Requested").setDescription(`Changes requested by ${interaction.user}
 Feedback: ${reason}`)],
-      components: []
-    });
-    await interaction.editReply({ content: "\u2705 Changes requested." });
+        components: []
+      });
+    }
+    void interaction.editReply({ content: "\u2705 Changes requested." });
   }
 };
 var presentations = new PresentationSystem();
 
 // src/events/systemsInteractionEvent.ts
 var systemsInteractionEvent = {
-  name: import_discord103.Events.InteractionCreate,
+  name: import_discord100.Events.InteractionCreate,
   execute: /* @__PURE__ */ __name(async (client, interaction) => {
     if (!interaction.isButton() && !interaction.isModalSubmit()) return;
     const { customId } = interaction;
     if (customId.startsWith("presentation_")) {
       try {
         if (customId === "presentation_apply_button") {
-          await presentations.handleApply(interaction, interaction.guildId);
+          await presentations.handleApply(interaction).catch(() => {
+          });
         } else if (customId === "presentation_apply") {
-          await presentations.handleModalSubmit(interaction, interaction.guildId);
+          await presentations.handleModalSubmit(interaction).catch(() => {
+          });
         } else if (customId === "presentation_approve") {
-          await presentations.handleReview(interaction, "approve", interaction.guildId);
+          await presentations.handleReview(interaction, "approve").catch(() => {
+          });
         } else if (customId === "presentation_deny") {
-          await presentations.handleReview(interaction, "deny", interaction.guildId);
+          await presentations.handleReview(interaction, "deny").catch(() => {
+          });
         } else if (customId === "presentation_changes") {
-          await presentations.handleReview(interaction, "changes", interaction.guildId);
+          await presentations.handleReview(interaction, "changes").catch(() => {
+          });
         } else if (customId.startsWith("presentation_deny_reason_")) {
           const id = customId.replace("presentation_deny_reason_", "");
-          await presentations.handleDenyModal(interaction, id);
+          await presentations.handleDenyModal(interaction, id).catch(() => {
+          });
         } else if (customId.startsWith("presentation_changes_reason_")) {
           const id = customId.replace("presentation_changes_reason_", "");
-          await presentations.handleChangesModal(interaction, id);
+          await presentations.handleChangesModal(interaction, id).catch(() => {
+          });
         }
       } catch (error62) {
         console.error("[Systems] Presentation interaction error:", error62);
@@ -196561,16 +196404,20 @@ var systemsInteractionEvent = {
     if (customId.startsWith("verification_")) {
       try {
         if (customId === "verification_agree") {
-          await verification.handleVerifyButton(interaction);
+          await verification.handleVerifyButton(interaction).catch(() => {
+          });
         } else if (customId.startsWith("verification_approve_")) {
-          const id = parseInt(customId.replace("verification_approve_", ""));
-          await verification.handleApprove(interaction, id);
+          const id = customId.replace("verification_approve_", "");
+          await verification.handleApprove(interaction, id).catch(() => {
+          });
         } else if (customId.startsWith("verification_deny_")) {
-          const id = parseInt(customId.replace("verification_deny_", ""));
-          await verification.handleDenyButton(interaction, id);
+          const id = customId.replace("verification_deny_", "");
+          await verification.handleDenyButton(interaction, id).catch(() => {
+          });
         } else if (customId.startsWith("verification_deny_reason_")) {
-          const id = parseInt(customId.replace("verification_deny_reason_", ""));
-          await verification.handleDenyModal(interaction, id);
+          const id = customId.replace("verification_deny_reason_", "");
+          await verification.handleDenyModal(interaction, id).catch(() => {
+          });
         }
       } catch (error62) {
         console.error("[Systems] Verification interaction error:", error62);
@@ -196585,13 +196432,17 @@ var systemsInteractionEvent = {
     if (customId.startsWith("vcverify_")) {
       try {
         if (customId.startsWith("vcverify_claim_")) {
-          await vcVerification.handleClaim(interaction, customId.replace("vcverify_claim_", ""));
+          await vcVerification.handleClaim(interaction, customId.replace("vcverify_claim_", "")).catch(() => {
+          });
         } else if (customId.startsWith("vcverify_approve_")) {
-          await vcVerification.handleApprove(interaction, customId.replace("vcverify_approve_", ""));
+          await vcVerification.handleApprove(interaction, customId.replace("vcverify_approve_", "")).catch(() => {
+          });
         } else if (customId.startsWith("vcverify_deny_")) {
-          await vcVerification.handleDeny(interaction, customId.replace("vcverify_deny_", ""));
+          await vcVerification.handleDeny(interaction, customId.replace("vcverify_deny_", "")).catch(() => {
+          });
         } else if (customId.startsWith("vcverify_deny_reason_")) {
-          await vcVerification.handleDenyModal(interaction, customId.replace("vcverify_deny_reason_", ""));
+          await vcVerification.handleDenyModal(interaction, customId.replace("vcverify_deny_reason_", "")).catch(() => {
+          });
         }
       } catch (error62) {
         console.error("[Systems] VC verification interaction error:", error62);
@@ -196602,6 +196453,983 @@ var systemsInteractionEvent = {
         }
       }
       return;
+    }
+  }, "execute")
+};
+
+// src/systems/presentations/autostatus.ts
+var import_discord101 = __toESM(require_src());
+var PresentationAutoStatus = class {
+  static {
+    __name(this, "PresentationAutoStatus");
+  }
+  /** guildId -> staff user ids currently counted as available. */
+  available = /* @__PURE__ */ new Map();
+  /** guildId -> pending close-announcement timer. */
+  closeTimers = /* @__PURE__ */ new Map();
+  /** guildId -> last announced state. */
+  lastAnnounced = /* @__PURE__ */ new Map();
+  async getCfg(guildId) {
+    let cfg = await PresentationConfig.findOne({ guildId }).lean();
+    if (!cfg) {
+      cfg = await PresentationConfig.create({ guildId, questions: [] });
+    }
+    return cfg.autoStatus ?? { enabled: false };
+  }
+  async saveCfg(guildId, autoStatus) {
+    await PresentationConfig.findOneAndUpdate(
+      { guildId },
+      { $set: { autoStatus } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+  staffRoleId(cfg) {
+    return cfg.staffRoleId ?? null;
+  }
+  isAvailable(status) {
+    return status === "online" || status === "idle" || status === "dnd";
+  }
+  /** Silent baseline at startup — never announce on (re)start. */
+  async initialize(client) {
+    const cfgs = await PresentationConfig.find({ "autoStatus.enabled": true }).lean();
+    for (const cfg of cfgs) {
+      const guildId = cfg.guildId;
+      try {
+        const guild = await client.guilds.fetch(guildId).catch(() => null);
+        if (!guild) continue;
+        await this.resync(guild, false);
+        console.log("[Presentations] Auto open/close baseline set (silent)");
+      } catch (error62) {
+        console.error("[Presentations] Autostatus init failed:", error62?.message || error62);
+      }
+    }
+  }
+  /** Rebuild the available set from current presences. */
+  async resync(guild, announce) {
+    const cfg = await this.getCfg(guild.id);
+    const roleId = this.staffRoleId(cfg);
+    if (!roleId) return;
+    const role = await guild.roles.fetch(roleId).catch(() => null);
+    if (!role) return;
+    await guild.members.fetch().catch(() => null);
+    const set2 = /* @__PURE__ */ new Set();
+    for (const [, member] of role.members) {
+      if (member.user.bot) continue;
+      if (this.isAvailable(member.presence?.status)) set2.add(member.id);
+    }
+    this.available.set(guild.id, set2);
+    if (announce) await this.evaluate(guild);
+    else this.lastAnnounced.set(guild.id, set2.size > 0);
+  }
+  async handlePresenceUpdate(_old, cur) {
+    const guild = cur.guild;
+    if (!guild) return;
+    const cfg = await this.getCfg(guild.id);
+    if (!cfg.enabled) return;
+    const roleId = this.staffRoleId(cfg);
+    if (!roleId) return;
+    let member = cur.member;
+    if (!member && cur.userId) {
+      member = await guild.members.fetch(cur.userId).catch(() => null);
+    }
+    if (!member || member.user.bot) return;
+    if (!member.roles.cache.has(roleId)) return;
+    let set2 = this.available.get(guild.id);
+    if (!set2) {
+      set2 = /* @__PURE__ */ new Set();
+      this.available.set(guild.id, set2);
+    }
+    if (this.isAvailable(cur.status)) set2.add(member.id);
+    else set2.delete(member.id);
+    await this.evaluate(guild);
+  }
+  async evaluate(guild) {
+    const cfg = await this.getCfg(guild.id);
+    const open2 = (this.available.get(guild.id)?.size ?? 0) > 0;
+    const last = this.lastAnnounced.get(guild.id);
+    if (open2) {
+      const timer2 = this.closeTimers.get(guild.id);
+      if (timer2) {
+        clearTimeout(timer2);
+        this.closeTimers.delete(guild.id);
+      }
+      if (last !== true) {
+        this.lastAnnounced.set(guild.id, true);
+        await this.announce(guild, true, cfg);
+      }
+      return;
+    }
+    if (last === false || this.closeTimers.has(guild.id)) return;
+    const waitMs = Math.max(10, cfg.debounceSec ?? 120) * 1e3;
+    const timer = setTimeout(async () => {
+      this.closeTimers.delete(guild.id);
+      const stillEmpty = (this.available.get(guild.id)?.size ?? 0) === 0;
+      if (!stillEmpty) return;
+      this.lastAnnounced.set(guild.id, false);
+      await this.announce(guild, false, cfg);
+    }, waitMs);
+    timer.unref?.();
+    this.closeTimers.set(guild.id, timer);
+  }
+  async announce(guild, open2, cfg) {
+    if (!cfg.announcementsChannelId) return;
+    try {
+      const channel = await guild.channels.fetch(cfg.announcementsChannelId).catch(() => null);
+      if (!channel || !channel.isTextBased() || channel.isThread()) return;
+      const count = this.available.get(guild.id)?.size ?? 0;
+      const embed = open2 ? new import_discord101.EmbedBuilder().setColor(5763719).setTitle("\u{1F7E2} Presentations are OPEN").setDescription(`Staff ${count === 1 ? "is" : "are"} online \u2014 staff applications are now being reviewed!
+
+Submit yours with the application panel.`).setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()} \xB7 ${count} staff available` }) : new import_discord101.EmbedBuilder().setColor(15548997).setTitle("\u{1F534} Presentations are CLOSED").setDescription("No staff members are online right now.\n\nYou can still submit an application \u2014 it will be reviewed as soon as staff return!").setFooter({ text: `Updated ${(/* @__PURE__ */ new Date()).toLocaleString()}` });
+      const payload = {
+        embeds: [embed],
+        content: open2 && cfg.pingRoleId ? `<@&${cfg.pingRoleId}>` : "",
+        allowedMentions: { roles: cfg.pingRoleId ? [cfg.pingRoleId] : [] }
+      };
+      if (cfg.panelMessageId) {
+        const existing = await channel.messages.fetch(cfg.panelMessageId).catch(() => null);
+        if (existing) {
+          await existing.edit(payload);
+          return;
+        }
+      }
+      const sent = await channel.send(payload);
+      await this.saveCfg(guild.id, { ...cfg, panelMessageId: sent.id });
+    } catch (error62) {
+      console.error("[Presentations] Autostatus announce failed:", error62?.message || error62);
+    }
+  }
+  status(guildId) {
+    const set2 = this.available.get(guildId);
+    if (!set2) return null;
+    return { open: set2.size > 0, available: set2.size };
+  }
+};
+var presentationAutoStatus = new PresentationAutoStatus();
+var presentationPresenceUpdate = {
+  name: import_discord101.Events.PresenceUpdate,
+  execute: /* @__PURE__ */ __name(async (_client, _old, cur) => {
+    try {
+      await presentationAutoStatus.handlePresenceUpdate(_old, cur).catch(() => {
+      });
+    } catch {
+    }
+  }, "execute")
+};
+
+// src/systems/suggestions/index.ts
+var import_discord102 = __toESM(require_src());
+var import_discord103 = __toESM(require_src());
+var SuggestionSystem = class {
+  static {
+    __name(this, "SuggestionSystem");
+  }
+  async getConfig(guildId) {
+    return {
+      forumChannelId: void 0,
+      staffChannelId: void 0,
+      reactionThreshold: 5,
+      approvedTagId: void 0,
+      deniedTagId: void 0,
+      notedTagId: void 0,
+      staffRoleId: void 0
+    };
+  }
+  async handleThreadCreate(thread) {
+    const cfg = await this.getConfig(thread.guild.id);
+    if (!cfg.forumChannelId || thread.parentId !== cfg.forumChannelId) return;
+    const existing = await Suggestion.findOne({ threadId: thread.id });
+    if (existing) return;
+    await new Promise((r) => setTimeout(r, 1e3));
+    try {
+      const messages = await thread.messages.fetch({ limit: 1 });
+      const firstMessage = messages.first();
+      if (!firstMessage || firstMessage.author.bot) return;
+      await Suggestion.create({
+        guildId: thread.guild.id,
+        channelId: thread.id,
+        messageId: firstMessage.id,
+        authorId: firstMessage.author.id,
+        title: thread.name,
+        description: firstMessage.content,
+        status: "pending",
+        upvotes: [],
+        downvotes: []
+      });
+      await firstMessage.react("\u{1F44D}");
+      await firstMessage.react("\u{1F44E}");
+      await firstMessage.reply({
+        content: `\u2705 Your suggestion has been submitted! Get ${cfg.reactionThreshold} \u{1F44D} reactions to have it reviewed by staff.`
+      });
+    } catch (error62) {
+      console.error("[Suggestion] Error handling thread create:", error62);
+    }
+  }
+  async handleReactionAdd(reaction, user) {
+    if (user.bot) return;
+    if (reaction.partial) await reaction.fetch().catch(() => {
+    });
+    const message = reaction.message;
+    const thread = message.channel;
+    const cfg = await this.getConfig(thread.guild.id);
+    if (!cfg.forumChannelId || thread.parentId !== cfg.forumChannelId) return;
+    if (message.id !== thread.id) return;
+    if (reaction.emoji.name !== "\u{1F44D}") return;
+    const suggestion = await Suggestion.findOne({ channelId: thread.id });
+    if (!suggestion) return;
+    if (suggestion.status !== "pending") return;
+    const upvotes = (reaction.count ?? 1) - 1;
+    suggestion.upvotes = suggestion.upvotes.filter((id) => id !== user.id);
+    suggestion.upvotes.push(user.id);
+    await suggestion.save();
+    if (upvotes >= cfg.reactionThreshold) {
+      await this.markAsNoted(thread, suggestion, cfg);
+    }
+  }
+  async markAsNoted(thread, suggestion, cfg) {
+    await suggestion.save();
+    if (cfg.notedTagId) {
+      try {
+        await thread.setAppliedTags([cfg.notedTagId]);
+      } catch (e) {
+        console.error("[Suggestion] Error adding NOTED tag:", e);
+      }
+    }
+    if (cfg.staffChannelId) {
+      const staffChannel = thread.client.channels.cache.get(cfg.staffChannelId);
+      if (staffChannel?.isTextBased() && !(staffChannel instanceof import_discord103.PartialGroupDMChannel)) {
+        const embed = EmbedBuilderUtil.suggestionReview?.(suggestion) ?? new import_discord103.EmbedBuilder().setColor("#FEE75C").setTitle("Suggestion Under Review").setDescription(suggestion.description).setFooter({ text: `Suggestion ID: ${suggestion._id}` }).setTimestamp();
+        const row = new import_discord103.ActionRowBuilder().addComponents(
+          new import_discord103.ButtonBuilder().setCustomId("suggestion_approve").setLabel("\u2705 APPROVED").setStyle(import_discord103.ButtonStyle.Success),
+          new import_discord103.ButtonBuilder().setCustomId("suggestion_deny").setLabel("\u274C DENIED").setStyle(import_discord103.ButtonStyle.Danger),
+          new import_discord103.ButtonBuilder().setCustomId("suggestion_under_review").setLabel("\u23F8\uFE0F UNDER REVIEW").setStyle(import_discord103.ButtonStyle.Secondary)
+        );
+        await staffChannel.send({
+          content: `\u{1F4CB} **Suggestion reached ${cfg.reactionThreshold} upvotes!**`,
+          embeds: [embed],
+          components: [row]
+        });
+      }
+    }
+    try {
+      const user = await thread.client.users.fetch(suggestion.authorId);
+      await user.send({ content: `\u{1F389} Your suggestion "**${suggestion.title}**" reached ${cfg.reactionThreshold} upvotes and has been sent to staff for review!` }).catch(() => {
+      });
+    } catch (e) {
+    }
+  }
+  async handleReview(interaction, action) {
+    const cfg = await this.getConfig(interaction.guild.id);
+    const staffRoleId = cfg.staffRoleId;
+    const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
+    if (!isStaff && !interaction.member.permissions.has(import_discord103.PermissionFlagsBits.Administrator)) {
+      return interaction.reply({ content: "\u274C Only staff can review suggestions.", flags: 64 });
+    }
+    const message = interaction.message;
+    const embed = message.embeds[0];
+    if (!embed) return interaction.reply({ content: "\u274C Invalid suggestion embed.", flags: 64 });
+    const footerText = embed.footer?.text || "";
+    const idMatch = footerText.match(/Suggestion ID: ([a-zA-Z0-9]+)/);
+    if (!idMatch) return interaction.reply({ content: "\u274C Could not find suggestion ID.", flags: 64 });
+    const suggestionId = idMatch[1];
+    const suggestion = await Suggestion.findById(suggestionId);
+    if (!suggestion) return interaction.reply({ content: "\u274C Suggestion not found.", flags: 64 });
+    const thread = interaction.client.channels.cache.get(suggestion.channelId);
+    let newStatus, tagId, notifyText;
+    switch (action) {
+      case "approve":
+        newStatus = "approved";
+        tagId = cfg.approvedTagId ?? null;
+        notifyText = "\u{1F389} Your suggestion has been **APPROVED**!";
+        break;
+      case "deny":
+        newStatus = "denied";
+        tagId = cfg.deniedTagId ?? null;
+        notifyText = "\u274C Your suggestion has been **DENIED**.";
+        break;
+      case "under_review":
+        newStatus = "pending";
+        tagId = null;
+        notifyText = "\u23F8\uFE0F Your suggestion is **UNDER REVIEW** by staff.";
+        break;
+      default:
+        return;
+    }
+    suggestion.status = newStatus;
+    suggestion.reviewedBy = interaction.user.id;
+    suggestion.reviewedAt = /* @__PURE__ */ new Date();
+    await suggestion.save();
+    if (tagId && thread) {
+      try {
+        await thread.setAppliedTags([tagId]);
+      } catch (e) {
+        console.error("[Suggestion] Error updating tag:", e);
+      }
+    }
+    if (thread) {
+      try {
+        const prefix = newStatus === "approved" ? "\u2705 " : newStatus === "denied" ? "\u274C " : "\u23F8\uFE0F ";
+        const cleanName = thread.name.replace(/^[✅❌⏸️] /, "");
+        await thread.setName(`${prefix}${cleanName}`);
+      } catch (e) {
+      }
+    }
+    try {
+      const user = await interaction.client.users.fetch(suggestion.authorId);
+      await user.send({ content: `${notifyText}
+**Suggestion:** ${suggestion.title}` }).catch(() => {
+      });
+    } catch (e) {
+    }
+    const statusColors = { approved: "#57F287", denied: "#ED4245", pending: "#FEE75C" };
+    await message.edit({
+      embeds: [
+        new import_discord103.EmbedBuilder().setColor(statusColors[newStatus]).setTitle(`${action === "approve" ? "\u2705" : action === "deny" ? "\u274C" : "\u23F8\uFE0F"} ${embed.title}`).setDescription(embed.description).addFields(
+          { name: "Status", value: newStatus.toUpperCase(), inline: true },
+          { name: "Reviewed by", value: `<@${interaction.user.id}>`, inline: true }
+        ).setFooter({ text: embed.footer?.text }).setTimestamp()
+      ],
+      components: []
+    });
+    await interaction.reply({ content: `\u2705 Suggestion ${action.toUpperCase()}!`, flags: 64 });
+  }
+};
+var suggestions = new SuggestionSystem();
+var threadCreateSuggestions = {
+  name: import_discord102.Events.ThreadCreate,
+  execute: /* @__PURE__ */ __name(async (_client, thread) => {
+    try {
+      await suggestions.handleThreadCreate(thread).catch(() => {
+      });
+    } catch {
+    }
+  }, "execute")
+};
+var messageReactionAddSuggestions = {
+  name: import_discord102.Events.MessageReactionAdd,
+  execute: /* @__PURE__ */ __name(async (_client, reaction, user) => {
+    try {
+      await suggestions.handleReactionAdd(reaction, user).catch(() => {
+      });
+    } catch {
+    }
+  }, "execute")
+};
+var interactionCreateSuggestions = {
+  name: "interactionCreate",
+  execute: /* @__PURE__ */ __name(async (_client, interaction) => {
+    if (!interaction.isButton()) return;
+    if (interaction.customId === "suggestion_approve" || interaction.customId === "suggestion_deny" || interaction.customId === "suggestion_under_review") {
+      const action = interaction.customId === "suggestion_approve" ? "approve" : interaction.customId === "suggestion_deny" ? "deny" : "under_review";
+      try {
+        await suggestions.handleReview(interaction, action).catch(() => {
+        });
+      } catch {
+      }
+    }
+  }, "execute")
+};
+
+// src/systems/tempvc/index.ts
+var import_discord104 = __toESM(require_src());
+var PANEL_ACTIONS = [
+  "rename",
+  "limit",
+  "lock",
+  "unlock",
+  "hide",
+  "show",
+  "trust",
+  "untrust",
+  "invite",
+  "kick",
+  "block",
+  "unblock",
+  "transfer",
+  "claim",
+  "delete",
+  "trust_all",
+  "untrust_all",
+  "info"
+];
+var TempVCSystem = class {
+  static {
+    __name(this, "TempVCSystem");
+  }
+  emptyTimeouts = /* @__PURE__ */ new Map();
+  async getConfig(guildId) {
+    const cfg = await readTempVCConfig(guildId);
+    if (!cfg) return null;
+    return {
+      creatorChannelId: cfg.createChannelId,
+      categoryId: cfg.categoryId,
+      defaultName: cfg.nameTemplate,
+      defaultLimit: cfg.userLimit ?? 0,
+      panelChannelId: void 0,
+      panelMessageId: void 0
+    };
+  }
+  async setConfig(guildId, data) {
+    const updates = {};
+    if (data.creatorChannelId !== void 0) updates.createChannelId = data.creatorChannelId;
+    if (data.categoryId !== void 0) updates.categoryId = data.categoryId;
+    if (data.defaultName !== void 0) updates.nameTemplate = data.defaultName;
+    if (data.defaultLimit !== void 0) updates.userLimit = data.defaultLimit;
+    await upsertTempVCConfig(guildId, updates);
+  }
+  async handleVoiceStateUpdate(oldState, newState) {
+    try {
+      const guild = newState.guild;
+      if (!guild) return;
+      const cfg = await this.getConfig(guild.id);
+      if (!cfg) return;
+      const creatorChannelId = cfg.creatorChannelId;
+      if (!oldState.channelId && newState.channelId === creatorChannelId && newState.member) {
+        await this.createTempVC(newState.member, guild, cfg);
+      }
+      if (oldState.channelId && !newState.channelId) {
+        const active = await readActiveTempVCByChannel(oldState.channelId);
+        if (active) {
+          await this.handleEmptyVC(guild, active.channelId);
+        }
+      }
+    } catch (error62) {
+      console.error("[TempVC] Voice state error:", error62);
+    }
+  }
+  async createTempVC(member, guild, cfg) {
+    const user = member.user;
+    if (!user) return;
+    const voiceName = (cfg.defaultName || "{user}'s VC").replace("{user}", user.username).slice(0, 100);
+    const userLimit = cfg.defaultLimit ?? 0;
+    const vcCategory = cfg.categoryId ? guild.channels.cache.get(cfg.categoryId) : void 0;
+    const voiceChannel = await guild.channels.create({
+      name: voiceName,
+      type: import_discord104.ChannelType.GuildVoice,
+      parent: vcCategory?.id,
+      userLimit,
+      permissionOverwrites: [
+        { id: user.id, allow: ["ManageChannels", "ManageRoles", "MuteMembers", "DeafenMembers", "MoveMembers", "Connect", "Speak", "UseSoundboard"] },
+        { id: guild.id, deny: ["ViewChannel"] }
+      ]
+    });
+    await createActiveTempVC({ guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
+    setCachedActiveTempVC(voiceChannel.id, { guildId: guild.id, channelId: voiceChannel.id, ownerId: user.id });
+    await member.voice.setChannel(voiceChannel.id).catch((e) => console.log("[TempVC] Could not move user to new VC:", e?.message || e));
+    await this.refreshPanel(guild);
+  }
+  async handleEmptyVC(guild, vcId) {
+    const active = await readActiveTempVCByChannel(vcId);
+    if (!active) return;
+    const voiceChannel = guild.channels.cache.get(active.channelId);
+    if (!voiceChannel) return;
+    if (voiceChannel.members.size > 0) return;
+    const existingTimeout = this.emptyTimeouts.get(vcId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      this.emptyTimeouts.delete(vcId);
+    }
+    const timeoutId = setTimeout(async () => {
+      this.emptyTimeouts.delete(vcId);
+      const currentVC = guild.channels.cache.get(vcId);
+      if (currentVC && currentVC.members.size === 0) {
+        await currentVC.delete().catch(() => {
+        });
+        await deleteActiveTempVC(vcId);
+        deleteCachedActiveTempVC(vcId);
+        await this.refreshPanel(guild);
+      }
+    }, 1e4);
+    this.emptyTimeouts.set(vcId, timeoutId);
+  }
+  async handleButton(interaction) {
+    const customId = interaction.customId;
+    const panelAction = PANEL_ACTIONS.find((a) => customId === `tempvc_${a}`);
+    if (panelAction) {
+      await this.handlePanelButton(interaction, panelAction);
+      return;
+    }
+    const match = customId.match(/tempvc_(\w+)_([\w-]+)/);
+    if (!match) return;
+    const [, action, vcId] = match;
+    await this.runAction(interaction, action, vcId);
+  }
+  panelChannelId(_guild) {
+    return null;
+  }
+  async handlePanelButton(interaction, action) {
+    const guild = interaction.guild;
+    if (!guild) {
+      await interaction.reply({ content: "\u274C This can only be used in a server.", flags: 64 });
+      return;
+    }
+    if (action === "info") {
+      await interaction.reply({ content: "\u{1F3AE} **Temp VC help**\nJoin the creator voice channel to get your own temp VC.", flags: 64 });
+      return;
+    }
+    if (action === "claim") {
+      const member = await guild.members.fetch(interaction.user.id).catch(() => null);
+      const inVcId = member?.voice.channelId;
+      await interaction.reply({ content: "\u274C Claim not yet supported in this port.", flags: 64 });
+      return;
+    }
+    await interaction.reply({ content: "\u274C You do not own a temp VC. Join the creator voice channel to get one!", flags: 64 });
+  }
+  async runAction(interaction, action, vcId) {
+    const active = await readActiveTempVCByChannel(vcId);
+    if (!active) {
+      await interaction.reply({ content: "\u274C This VC session has expired.", flags: 64 });
+      return;
+    }
+    if (interaction.user.id !== active.ownerId && action !== "claim") {
+      await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
+      return;
+    }
+    const guild = interaction.guild;
+    const voiceChannel = guild?.channels.cache.get(vcId);
+    if (!voiceChannel) {
+      await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
+      return;
+    }
+    const everyoneId = guild.id;
+    try {
+      switch (action) {
+        case "lock": {
+          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: false });
+          await interaction.reply({ content: "\u{1F512} VC **locked**!", flags: 64 });
+          break;
+        }
+        case "unlock": {
+          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { Connect: true });
+          await interaction.reply({ content: "\u{1F513} VC **unlocked**!", flags: 64 });
+          break;
+        }
+        case "limit": {
+          const modal = new import_discord104.ModalBuilder().setCustomId(`tempvc_limit_${vcId}`).setTitle("\u{1F465} Set User Limit");
+          const input2 = new import_discord104.TextInputBuilder().setCustomId("tempvc_limit_input").setLabel("User limit (0 = unlimited, max 99)").setStyle(import_discord104.TextInputStyle.Short).setValue("0").setRequired(true);
+          modal.addComponents(new import_discord104.ActionRowBuilder().addComponents(input2));
+          await interaction.showModal(modal);
+          break;
+        }
+        case "rename": {
+          const modal = new import_discord104.ModalBuilder().setCustomId(`tempvc_rename_${vcId}`).setTitle("\u270F\uFE0F Rename VC");
+          const input2 = new import_discord104.TextInputBuilder().setCustomId("tempvc_rename_input").setLabel("New VC name (max 100 chars)").setStyle(import_discord104.TextInputStyle.Short).setValue(voiceChannel.name).setMaxLength(100).setRequired(true);
+          modal.addComponents(new import_discord104.ActionRowBuilder().addComponents(input2));
+          await interaction.showModal(modal);
+          break;
+        }
+        case "hide": {
+          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: false });
+          await interaction.reply({ content: "\u{1F441}\uFE0F VC **hidden**", flags: 64 });
+          break;
+        }
+        case "show": {
+          if (everyoneId) await this.setOverwrite(voiceChannel, everyoneId, { ViewChannel: true });
+          await interaction.reply({ content: "\u{1F440} VC **shown**", flags: 64 });
+          break;
+        }
+        case "delete": {
+          await voiceChannel.delete().catch(() => {
+          });
+          await deleteActiveTempVC(vcId);
+          deleteCachedActiveTempVC(vcId);
+          await interaction.reply({ content: "\u274C VC deleted.", flags: 64 });
+          break;
+        }
+        default: {
+          await interaction.reply({ content: `\u274C Action "${action}" not yet implemented in this port.`, flags: 64 });
+        }
+      }
+    } catch (error62) {
+      console.error("[TempVC] runAction error:", error62);
+      if (!interaction.replied) {
+        await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
+        });
+      }
+    }
+  }
+  async handleModal(interaction) {
+    const customId = interaction.customId;
+    const match = customId.match(/tempvc_(rename|limit)_([\w-]+)/);
+    if (!match) return;
+    const [, action, vcId] = match;
+    const active = await readActiveTempVCByChannel(vcId);
+    if (!active || interaction.user.id !== active.ownerId) {
+      await interaction.reply({ content: "\u274C Only the VC owner can use these controls.", flags: 64 });
+      return;
+    }
+    const guild = interaction.guild;
+    const voiceChannel = guild?.channels.cache.get(vcId);
+    if (!voiceChannel) {
+      await interaction.reply({ content: "\u274C Voice channel not found.", flags: 64 });
+      return;
+    }
+    try {
+      if (action === "rename") {
+        const name = interaction.fields.getTextInputValue("tempvc_rename_input")?.trim();
+        if (!name) {
+          await interaction.reply({ content: "\u274C Name cannot be empty.", flags: 64 });
+          return;
+        }
+        await voiceChannel.setName(name.slice(0, 100));
+        await interaction.reply({ content: `\u270F\uFE0F VC renamed to **${name}**!`, flags: 64 });
+      } else if (action === "limit") {
+        const raw = interaction.fields.getTextInputValue("tempvc_limit_input")?.trim();
+        const limit = Number.parseInt(raw, 10);
+        if (Number.isNaN(limit) || limit < 0 || limit > 99) {
+          await interaction.reply({ content: "\u274C Invalid limit (0-99).", flags: 64 });
+          return;
+        }
+        await voiceChannel.setUserLimit(limit);
+        await interaction.reply({ content: `\u{1F465} User limit set to **${limit === 0 ? "\u221E" : limit}**!`, flags: 64 });
+      }
+    } catch (error62) {
+      await interaction.reply({ content: "\u274C An error occurred.", flags: 64 }).catch(() => {
+      });
+    }
+  }
+  async handleSelect(interaction) {
+    const customId = interaction.customId;
+    const match = customId.match(/tempvc_(\w+)_select_([\w-]+)/);
+    if (!match) return;
+    const [, action, vcId] = match;
+    await this.runAction(interaction, action, vcId);
+  }
+  panelEmbed(_guild, _activeCount) {
+    return new import_discord104.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AE} Temp VC Control Panel").setDescription("Join the creator voice channel to get your own temporary voice channel!").setTimestamp();
+  }
+  panelRows() {
+    const row1 = new import_discord104.ActionRowBuilder().addComponents(
+      this.btn("tempvc_rename", "\u270F\uFE0F Rename", import_discord104.ButtonStyle.Secondary),
+      this.btn("tempvc_limit", "\u{1F465} Limit", import_discord104.ButtonStyle.Secondary),
+      this.btn("tempvc_lock", "\u{1F512} Lock", import_discord104.ButtonStyle.Primary),
+      this.btn("tempvc_unlock", "\u{1F513} Unlock", import_discord104.ButtonStyle.Secondary),
+      this.btn("tempvc_hide", "\u{1F441}\uFE0F Hide", import_discord104.ButtonStyle.Secondary)
+    );
+    return [row1];
+  }
+  liveVcCount(_guild) {
+    return 0;
+  }
+  async postPanel(_guild, channel) {
+    await channel.send({ embeds: [this.panelEmbed(_guild, 0)], components: this.panelRows() });
+  }
+  async refreshPanel(guild) {
+    try {
+    } catch {
+    }
+  }
+  btn(customId, label, style) {
+    return new import_discord104.ButtonBuilder().setCustomId(customId).setLabel(label).setStyle(style);
+  }
+  async setOverwrite(channel, id, options) {
+    const existing = channel.permissionOverwrites.cache.get(id);
+    if (existing) await channel.permissionOverwrites.edit(id, options);
+    else await channel.permissionOverwrites.create(id, options);
+  }
+};
+var tempvc = new TempVCSystem();
+var voiceStateUpdateTempvc = {
+  name: "voiceStateUpdate",
+  execute: /* @__PURE__ */ __name(async (_client, oldState, newState) => {
+    try {
+      await tempvc.handleVoiceStateUpdate(oldState, newState).catch(() => {
+      });
+    } catch {
+    }
+  }, "execute")
+};
+var interactionCreateTempvc = {
+  name: "interactionCreate",
+  execute: /* @__PURE__ */ __name(async (_client, interaction) => {
+    if (!interaction.isButton() && !interaction.isStringSelectMenu() && !interaction.isModalSubmit()) return;
+    if (interaction.isButton() && interaction.customId.startsWith("tempvc_")) {
+      try {
+        await tempvc.handleButton(interaction).catch(() => {
+        });
+      } catch {
+      }
+    }
+    if (interaction.isStringSelectMenu() && interaction.customId.startsWith("tempvc_")) {
+      try {
+        await tempvc.handleSelect(interaction).catch(() => {
+        });
+      } catch {
+      }
+    }
+    if (interaction.isModalSubmit() && interaction.customId.startsWith("tempvc_")) {
+      try {
+        await tempvc.handleModal(interaction).catch(() => {
+        });
+      } catch {
+      }
+    }
+  }, "execute")
+};
+
+// src/systems/tickets/index.ts
+var import_discord105 = __toESM(require_src());
+var TicketSystem = class {
+  static {
+    __name(this, "TicketSystem");
+  }
+  ticketTypes = [
+    { id: "general", label: "General Support", emoji: "\u{1F3AB}", description: "General questions and support" },
+    { id: "modpack", label: "Modpack Help", emoji: "\u{1F4E6}", description: "Help installing/downloading modpacks" },
+    { id: "report", label: "Report Player", emoji: "\u{1F6A8}", description: "Report a player for rule violations" },
+    { id: "other", label: "Other", emoji: "\u2753", description: "Anything else" }
+  ];
+  async getConfig(guildId) {
+    let cfg = await TicketConfig.findOne({ guildId }).lean();
+    if (!cfg) {
+      cfg = await TicketConfig.create({ guildId });
+    }
+    return {
+      categoryId: void 0,
+      staffRoleId: cfg.staffRoleIds?.[0] ?? void 0,
+      logChannelId: cfg.transcriptChannelId ?? void 0
+    };
+  }
+  async createTicketPanel(channel) {
+    const embed = new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle("\u{1F3AB} Support Tickets").setDescription("Select a category below to create a ticket. Our staff will assist you shortly.").setTimestamp();
+    const row = new import_discord105.ActionRowBuilder().addComponents(
+      new import_discord105.ButtonBuilder().setCustomId("ticket_create_general").setLabel("General Support").setEmoji("\u{1F3AB}").setStyle(import_discord105.ButtonStyle.Primary),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_create_modpack").setLabel("Modpack Help").setEmoji("\u{1F4E6}").setStyle(import_discord105.ButtonStyle.Secondary),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_create_report").setLabel("Report Player").setEmoji("\u{1F6A8}").setStyle(import_discord105.ButtonStyle.Danger),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_create_other").setLabel("Other").setEmoji("\u2753").setStyle(import_discord105.ButtonStyle.Secondary)
+    );
+    await channel.send({ embeds: [embed], components: [row] });
+  }
+  async createTicket(interaction, type) {
+    const guild = interaction.guild;
+    const user = interaction.user;
+    const member = interaction.member;
+    const cfg = await this.getConfig(guild.id);
+    const categoryId = cfg.categoryId;
+    if (!categoryId) {
+      return interaction.reply({ content: "\u274C Ticket system not configured. Contact admin.", flags: 64 });
+    }
+    const existingOpen = await OpenTicket.find({ guildId: guild.id, userId: user.id, closedAt: null });
+    if (existingOpen.length > 0) {
+      return interaction.reply({ content: `\u274C You already have an open ticket: <#${existingOpen[0].channelId}>`, flags: 64 });
+    }
+    await interaction.deferReply({ flags: 64 });
+    const category = guild.channels.cache.get(categoryId);
+    if (!category || category.type !== import_discord105.ChannelType.GuildCategory) {
+      return interaction.editReply({ content: "\u274C Ticket category not found." });
+    }
+    const ticketId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const channelName = `ticket-${type}-${user.username}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const overwrites = [
+      { id: guild.id, deny: [import_discord105.PermissionFlagsBits.ViewChannel] },
+      { id: user.id, allow: [import_discord105.PermissionFlagsBits.ViewChannel, import_discord105.PermissionFlagsBits.SendMessages, import_discord105.PermissionFlagsBits.AttachFiles, import_discord105.PermissionFlagsBits.EmbedLinks] }
+    ];
+    if (cfg.staffRoleId) {
+      overwrites.push({ id: cfg.staffRoleId, allow: [import_discord105.PermissionFlagsBits.ViewChannel, import_discord105.PermissionFlagsBits.SendMessages, import_discord105.PermissionFlagsBits.ManageMessages] });
+    }
+    const ticketChannel = await guild.channels.create({
+      name: channelName,
+      type: import_discord105.ChannelType.GuildText,
+      parent: category,
+      permissionOverwrites: overwrites,
+      topic: `Ticket #${ticketId} | Type: ${type} | Owner: ${user.id}`
+    });
+    await OpenTicket.create({
+      guildId: guild.id,
+      channelId: ticketChannel.id,
+      userId: user.id,
+      departmentId: type,
+      departmentName: this.getTypeLabel(type)
+    });
+    const ticketEmbed = new import_discord105.EmbedBuilder().setColor("#5865F2").setTitle(`\u{1F3AB} Ticket #${ticketId} - ${this.getTypeLabel(type)}`).setDescription(`**Created by:** ${user}
+**Type:** ${this.getTypeLabel(type)}
+
+Please describe your issue. Staff will be with you shortly.`).setFooter({ text: `Ticket ID: ${ticketId} | User: ${user.id}` }).setTimestamp();
+    const controlRow = new import_discord105.ActionRowBuilder().addComponents(
+      new import_discord105.ButtonBuilder().setCustomId("ticket_claim").setLabel("Claim").setEmoji("\u{1F46E}").setStyle(import_discord105.ButtonStyle.Primary),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_close").setLabel("Close").setEmoji("\u{1F512}").setStyle(import_discord105.ButtonStyle.Danger),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_add_user").setLabel("Add User").setEmoji("\u2795").setStyle(import_discord105.ButtonStyle.Secondary),
+      new import_discord105.ButtonBuilder().setCustomId("ticket_priority").setLabel("Priority").setEmoji("\u26A1").setStyle(import_discord105.ButtonStyle.Secondary)
+    );
+    const pingContent = cfg.staffRoleId ? `<@&${cfg.staffRoleId}>` : "Staff";
+    await ticketChannel.send({
+      content: `${pingContent} ${user} created a ticket!`,
+      embeds: [ticketEmbed],
+      components: [controlRow]
+    });
+    await interaction.editReply({ content: `\u2705 Ticket created: ${ticketChannel}` });
+  }
+  getTypeLabel(type) {
+    const t = this.ticketTypes.find((x) => x.id === type);
+    return t ? `${t.emoji} ${t.label}` : type;
+  }
+  async checkOutage(guild, cfg) {
+    const maxClaims = cfg.maxClaimsPerStaff ?? 5;
+    const empty = { outage: false, maxClaims, perStaff: [] };
+    if (!cfg.staffRoleId || maxClaims <= 0) return empty;
+    let role = guild.roles.cache.get(cfg.staffRoleId) ?? await guild.roles.fetch(cfg.staffRoleId).catch(() => null);
+    if (!role) return empty;
+    let staff = [...role.members.values()].filter((m) => !m.user.bot);
+    if (!staff.length) {
+      await guild.members.fetch().catch(() => null);
+      role = guild.roles.cache.get(cfg.staffRoleId) ?? role;
+      staff = [...role.members.values()].filter((m) => !m.user.bot);
+    }
+    if (!staff.length) return { outage: true, maxClaims, perStaff: [] };
+    const claimedTickets = await OpenTicket.find({ guildId: guild.id, claimedBy: { $ne: null }, closedAt: null }).lean();
+    const claimed = /* @__PURE__ */ new Map();
+    for (const t of claimedTickets) {
+      if (t.claimedBy) claimed.set(t.claimedBy, (claimed.get(t.claimedBy) ?? 0) + 1);
+    }
+    const perStaff = staff.map((m) => {
+      const count = claimed.get(m.id) ?? 0;
+      return { staffId: m.id, claimed: count, atCap: count >= maxClaims };
+    });
+    return { outage: perStaff.every((s) => s.atCap), maxClaims, perStaff };
+  }
+  async handleButton(interaction) {
+    const customId = interaction.customId;
+    const channel = interaction.channel;
+    const user = interaction.user;
+    const topic = channel.topic || "";
+    const ticketIdMatch = topic.match(/Ticket #(\w+)/);
+    if (!ticketIdMatch) {
+      return interaction.reply({ content: "\u274C Not a valid ticket channel.", flags: 64 });
+    }
+    const ticket = await OpenTicket.findOne({ channelId: channel.id, closedAt: null });
+    if (!ticket) return interaction.reply({ content: "\u274C Ticket not found in database.", flags: 64 });
+    const cfg = await this.getConfig(interaction.guild.id);
+    const staffRoleId = cfg.staffRoleId;
+    const isStaff = staffRoleId && interaction.member.roles.cache.has(staffRoleId);
+    switch (customId) {
+      case "ticket_claim": {
+        if (!isStaff) return interaction.reply({ content: "\u274C Only staff can claim tickets.", flags: 64 });
+        if (ticket.claimedBy) return interaction.reply({ content: `\u274C Already claimed by <@${ticket.claimedBy}>.`, flags: 64 });
+        ticket.claimedBy = user.id;
+        ticket.claimedAt = /* @__PURE__ */ new Date();
+        await ticket.save();
+        await channel.send({ content: `\u{1F46E} **${user}** claimed this ticket!` });
+        await interaction.reply({ content: "\u2705 Ticket claimed!", flags: 64 });
+        break;
+      }
+      case "ticket_close": {
+        if (!isStaff && ticket.userId !== user.id) return interaction.reply({ content: "\u274C Only staff or ticket owner can close.", flags: 64 });
+        const modal = new import_discord105.ModalBuilder().setCustomId(`ticket_close_modal_${ticket._id}`).setTitle("Close Ticket").addComponents(
+          new import_discord105.ActionRowBuilder().addComponents(
+            new import_discord105.TextInputBuilder().setCustomId("close_reason").setLabel("Reason for closing").setStyle(import_discord105.TextInputStyle.Paragraph).setPlaceholder("Issue resolved, duplicate, etc.").setRequired(true).setMaxLength(500)
+          )
+        );
+        await interaction.showModal(modal);
+        break;
+      }
+      case "ticket_add_user": {
+        if (!isStaff && ticket.userId !== user.id) return interaction.reply({ content: "\u274C Only staff or ticket owner can add users.", flags: 64 });
+        const modal = new import_discord105.ModalBuilder().setCustomId(`ticket_add_user_modal_${ticket._id}`).setTitle("Add User to Ticket").addComponents(
+          new import_discord105.ActionRowBuilder().addComponents(
+            new import_discord105.TextInputBuilder().setCustomId("user_id").setLabel("User ID or mention").setStyle(import_discord105.TextInputStyle.Short).setPlaceholder("123456789012345678 or @user").setRequired(true)
+          )
+        );
+        await interaction.showModal(modal);
+        break;
+      }
+      case "ticket_priority": {
+        if (!isStaff) return interaction.reply({ content: "\u274C Only staff can change priority.", flags: 64 });
+        await interaction.reply({ content: "\u2705 Priority updated.", flags: 64 });
+        break;
+      }
+      case "ticket_modpack_helped_yes": {
+        await channel.send({ content: `\u2705 ${user} confirmed the modpack tutorial helped!` });
+        await interaction.reply({ content: "Great! Ticket will be closed shortly.", flags: 64 });
+        await this.closeTicket(ticket._id.toString(), channel, user, "Modpack tutorial helped");
+        break;
+      }
+      case "ticket_modpack_helped_no": {
+        await channel.send({ content: `\u274C ${user} needs further assistance. Notifying staff...` });
+        await interaction.reply({ content: "Staff has been notified.", flags: 64 });
+        break;
+      }
+    }
+  }
+  async handleModal(interaction) {
+    const customId = interaction.customId;
+    const channel = interaction.channel;
+    const user = interaction.user;
+    if (customId.startsWith("ticket_close_modal_")) {
+      const ticketId = customId.replace("ticket_close_modal_", "");
+      const reason = interaction.fields.getTextInputValue("close_reason");
+      await this.closeTicket(ticketId, channel, user, reason);
+      await interaction.reply({ content: "\u2705 Ticket closed!", flags: 64 });
+    } else if (customId.startsWith("ticket_add_user_modal_")) {
+      const ticketId = customId.replace("ticket_add_user_modal_", "");
+      const input2 = interaction.fields.getTextInputValue("user_id");
+      const userId = input2.replace(/[<@!>]/g, "");
+      const targetUser = await interaction.client.users.fetch(userId).catch(() => null);
+      if (!targetUser) {
+        return interaction.reply({ content: "\u274C User not found.", flags: 64 });
+        return;
+      }
+      await channel.permissionOverwrites.edit(userId, {
+        ViewChannel: true,
+        SendMessages: true,
+        AttachFiles: true,
+        EmbedLinks: true
+      });
+      await channel.send({ content: `\u2795 **${targetUser}** was added to the ticket by ${user}.` });
+      await interaction.reply({ content: `\u2705 Added ${targetUser} to ticket!`, flags: 64 });
+    }
+  }
+  async closeTicket(ticketId, channel, closer, reason) {
+    const cfg = await this.getConfig(channel.guild.id);
+    const logChannelId = cfg.logChannelId || "";
+    const messages = await channel.messages.fetch({ limit: 100 });
+    const transcript = messages.reverse().map((m) => `[${m.createdAt.toLocaleString()}] ${m.author.tag}: ${m.content}${m.attachments.size > 0 ? ` [${m.attachments.size} attachment(s)]` : ""}`).join("\n");
+    if (logChannelId) {
+      const transcriptChannel = channel.guild.channels.cache.get(logChannelId);
+      if (transcriptChannel && transcriptChannel.isTextBased()) {
+        const embed = new import_discord105.EmbedBuilder().setTitle(`\u{1F4DD} Ticket Transcript - #${ticketId}`).setColor("#ED4245").addFields(
+          { name: "Closed by", value: closer.tag, inline: true },
+          { name: "Reason", value: reason, inline: true },
+          { name: "Messages", value: messages.size.toString(), inline: true }
+        ).setTimestamp();
+        const attachment = new import_discord105.AttachmentBuilder(Buffer.from(transcript), { name: `ticket-${ticketId}.txt` });
+        await transcriptChannel.send({ embeds: [embed], files: [attachment] });
+      }
+    }
+    const ticket = await OpenTicket.findById(ticketId);
+    if (ticket) {
+      ticket.closedAt = /* @__PURE__ */ new Date();
+      ticket.closedBy = closer.id;
+      ticket.closeReason = reason;
+      await ticket.save();
+    }
+    await channel.delete(`Ticket closed by ${closer.tag}: ${reason}`);
+  }
+};
+var tickets = new TicketSystem();
+var interactionCreateTickets = {
+  name: "interactionCreate",
+  execute: /* @__PURE__ */ __name(async (_client, interaction) => {
+    if (!interaction.isButton() && !interaction.isModalSubmit()) return;
+    if (interaction.isButton() && interaction.customId.startsWith("ticket_create_")) {
+      const type = interaction.customId.replace("ticket_create_", "");
+      try {
+        await tickets.createTicket(interaction, type).catch(() => {
+        });
+      } catch {
+      }
+    }
+    if (interaction.isButton() && interaction.customId.startsWith("ticket_")) {
+      try {
+        await tickets.handleButton(interaction).catch(() => {
+        });
+      } catch {
+      }
+    }
+    if (interaction.isModalSubmit() && interaction.customId.startsWith("ticket_")) {
+      try {
+        await tickets.handleModal(interaction).catch(() => {
+        });
+      } catch {
+      }
     }
   }, "execute")
 };
@@ -196621,11 +197449,18 @@ var events2 = [
   reactionAdd,
   reactionRemove,
   voiceStateUpdate,
-  verificationVoiceStateEvent,
+  voiceStateUpdateVerification,
+  voiceStateUpdateTempvc,
   channelDelete,
   guildDelete,
   antinukeAuditLogEvent,
-  boosterMemberUpdateEvent
+  boosterMemberUpdateEvent,
+  presentationPresenceUpdate,
+  threadCreateSuggestions,
+  messageReactionAddSuggestions,
+  interactionCreateSuggestions,
+  interactionCreateTempvc,
+  interactionCreateTickets
 ];
 
 // src/index.ts

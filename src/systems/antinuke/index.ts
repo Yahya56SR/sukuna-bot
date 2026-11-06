@@ -4,9 +4,10 @@ import { AntinukeConfig, AntinukeIncident } from '../../db/models/Antinuke.js';
 import { EmbedBuilder } from 'discord.js';
 
 /**
- * Anti-nuke system.
+ * Anti-nuke system (ported from astralcraft).
  * Uses Mongoose (AntinukeConfig, AntinukeIncident).
- * Note: Config snapshot/backup layer is not ported.
+ * Keeps astralcraft's lockdown + incident-recording logic, minus the
+ * config-file snapshot/backup layer (not part of sukuna's data layer).
  */
 const WATCHED: Record<number, string> = {
 	[AuditLogEvent.MemberBanAdd]: 'ban',
@@ -59,6 +60,7 @@ export class AntiNukeSystem {
 			timeoutMinutes: cfg.timeoutMinutes ?? 1440,
 			autoStrip: cfg.autoStrip ?? true,
 			exemptRoleIds: cfg.exemptRoleIds ?? [],
+			backup: cfg.backup ?? { enabled: false, intervalMin: 60, keep: 24 },
 		};
 	}
 
