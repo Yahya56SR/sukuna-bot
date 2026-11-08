@@ -16,6 +16,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,6 +37,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Yahya56SR/sukuna-bot.git"
           git add dist/
           git commit -m "chore: update built dist [skip ci]" || echo "No changes to commit"
           git push

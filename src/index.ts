@@ -50,7 +50,7 @@ export class SukunaApp {
     this.events = new EventRegistry(this.logger);
     this.interactions = new InteractionRouter(this.commands);
     this.moderation = new ModerationService(this.logger);
-    this.leveling = new LevelingService(this.logger, {
+this.leveling = new LevelingService(this.logger, {
         enabled: process.env.LEVELING_ENABLED !== 'false',
         xpFormula: (process.env.LEVELING_XP_FORMULA || 'quadratic') as any,
         baseXpPerLevel: parseInt(process.env.LEVELING_BASE_XP_PER_LEVEL || '100'),
@@ -88,35 +88,39 @@ export class SukunaApp {
         ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
         maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
       });
-    this.economy = new EconomyService(this.logger);
-    this.ai = new AIService(this.logger, {
-      enabled: true,
-      displayName: process.env.AI_DISPLAY_NAME || 'Sukuna',
-      model: process.env.AI_MODEL || 'gemini-1.5-flash',
-      systemPrompt: process.env.AI_SYSTEM_PROMPT || 'You are Sukuna, a helpful and powerful Discord bot assistant.',
-      channelIds: process.env.AI_CHANNEL_IDS ? process.env.AI_CHANNEL_IDS.split(',') : [],
-      historySize: parseInt(process.env.AI_HISTORY_SIZE || '30'),
-      batchWindowMs: parseInt(process.env.AI_BATCH_WINDOW_MS || '2500'),
-      replyCooldownSeconds: parseInt(process.env.AI_REPLY_COOLDOWN_SECONDS || '25'),
-      decisionCooldownSeconds: parseInt(process.env.AI_DECISION_COOLDOWN_SECONDS || '10'),
-      maxRepliesPerHour: parseInt(process.env.AI_MAX_REPLIES_PER_HOUR || '40'),
-      maxMessageLength: parseInt(process.env.AI_MAX_MESSAGE_LENGTH || '500'),
-      showTyping: false,
-      temperature: parseFloat(process.env.AI_TEMPERATURE || '1'),
-      requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
-      apiKey: process.env.GEMINI_API_KEY || '',
-    });
-    this.music = new MusicService(this.logger, {
-      enabled: true,
-      lavalinkHost: 'localhost',
-      lavalinkPort: 2333,
-      lavalinkPassword: 'youshallnotpass',
-    });
-    this.automation = new AutomationService(this.logger);
-    this.analytics = new AnalyticsService(this.logger);
-    this.tempvc = new TempVCService(this.logger);
-    this.economyGames = new EconomyGamesService(this.logger);
-    this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.WEB_PORT || '3000'));
+      this.economy = new EconomyService(this.logger);
+      this.ai = new AIService(this.logger, {
+        enabled: true,
+        displayName: process.env.AI_DISPLAY_NAME || 'Sukuna',
+        model: process.env.AI_MODEL || 'gemini-1.5-flash',
+        systemPrompt: process.env.AI_SYSTEM_PROMPT || 'You are Sukuna, a helpful and powerful Discord bot assistant.',
+        channelIds: process.env.AI_CHANNEL_IDS ? process.env.AI_CHANNEL_IDS.split(',') : [],
+        historySize: parseInt(process.env.AI_HISTORY_SIZE || '30'),
+        batchWindowMs: parseInt(process.env.AI_BATCH_WINDOW_MS || '2500'),
+        replyCooldownSeconds: parseInt(process.env.AI_REPLY_COOLDOWN_SECONDS || '25'),
+        decisionCooldownSeconds: parseInt(process.env.AI_DECISION_COOLDOWN_SECONDS || '10'),
+        maxRepliesPerHour: parseInt(process.env.AI_MAX_REPLIES_PER_HOUR || '40'),
+        maxMessageLength: parseInt(process.env.AI_MAX_MESSAGE_LENGTH || '500'),
+        showTyping: false,
+        temperature: parseFloat(process.env.AI_TEMPERATURE || '1'),
+        requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
+        apiKey: process.env.GEMINI_API_KEY || '',
+      });
+      this.music = new MusicService(this.logger, {
+        enabled: this.config.services.music.enabled,
+        lavalinkHost: this.config.services.music.lavalinkHost,
+        lavalinkPort: this.config.services.music.lavalinkPort,
+        lavalinkPassword: this.config.services.music.lavalinkPassword,
+        defaultVolume: this.config.services.music.defaultVolume,
+        maxPlaylistSize: this.config.services.music.maxPlaylistSize,
+        allowSkip: this.config.services.music.allowSkip,
+        allowRepeat: this.config.services.music.allowRepeat,
+      });
+      this.automation = new AutomationService(this.logger);
+      this.analytics = new AnalyticsService(this.logger);
+      this.tempvc = new TempVCService(this.logger);
+      this.economyGames = new EconomyGamesService(this.logger);
+      this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || '3000'));
   }
 
   public static getInstance(): SukunaApp {
