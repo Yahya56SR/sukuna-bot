@@ -108,7 +108,7 @@ export class SukunaApp {
     this.analytics = new AnalyticsService(this.logger);
     this.tempvc = new TempVCService(this.logger);
     this.economyGames = new EconomyGamesService(this.logger);
-    this.web = new WebServer(this.logger, this, parseInt(process.env.WEB_PORT || '3000'));
+    this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.WEB_PORT || '3000'));
   }
 
   public static getInstance(): SukunaApp {
