@@ -33,15 +33,6 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Commit and push built dist
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Yahya56SR/sukuna-bot.git"
-          git add dist/
-          git commit -m "chore: update built dist [skip ci]" || echo "No changes to commit"
-          git push
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
