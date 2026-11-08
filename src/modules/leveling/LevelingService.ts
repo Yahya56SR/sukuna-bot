@@ -46,9 +46,9 @@ export interface LevelingConfig {
   };
   /** XP multipliers */
   xpMultipliers: {
-    weekend: number;      // Saturday/Sunday
-    booster: number;      // Server boosters
-    role: Record<string, number>;  // roleId -> multiplier
+    weekend: number;
+    booster: number;
+    role: Record<string, number>;
   };
   /** Channel blacklist (no XP earned here) */
   noXpChannels: string[];
@@ -76,6 +76,31 @@ export interface LevelUpResult {
   announcementChannelId: string | null;
 }
 
+const DEFAULT_LEVELING_CONFIG: LevelingConfig = {
+  enabled: true,
+  xpFormula: 'quadratic',
+  baseXpPerLevel: 100,
+  xpMultiplier: 1,
+  customXpTable: {},
+  xpSources: {
+    message: { enabled: true, min: 15, max: 25, cooldownSeconds: 60 },
+    voice: { enabled: true, perMinuteMin: 5, perMinuteMax: 8, cooldownSeconds: 60 },
+    command: { enabled: true, amount: 10, cooldownSeconds: 300 },
+  },
+  xpMultipliers: {
+    weekend: 1.5,
+    booster: 2.0,
+    role: {},
+  },
+  noXpChannels: [],
+  xpChannelWhitelist: [],
+  levelRoles: [],
+  announcementChannels: [],
+  defaultColor: '#0099ff',
+  ignoreBots: true,
+  maxLevel: 100,
+};
+
 export class LevelingService {
   private logger: Logger;
   private db: DrizzleDb | null = null;
@@ -84,9 +109,9 @@ export class LevelingService {
   private xpCooldowns: Map<string, number> = new Map();
   private voiceSessions: Map<string, number> = new Map();
 
-  constructor(logger: Logger, config: LevelingConfig) {
+  constructor(logger: Logger, config?: Partial<LevelingConfig>) {
     this.logger = logger;
-    this.config = config;
+    this.config = { ...DEFAULT_LEVELING_CONFIG, ...config } as LevelingConfig;
   }
 
   public setDb(db: DrizzleDb): void {
@@ -249,7 +274,7 @@ export class LevelingService {
     const cooldownConfig = this.getCooldownConfig(source);
     const lastXp = this.xpCooldowns.get(cooldownKey);
     if (lastXp && now - lastXp < cooldownConfig * 1000) {
-      return null;
+      return { leveledUp: false, oldLevel: 0, newLevel: 0, xpGained: 0, totalXP: 0, rolesGranted: [], announcementChannelId: null };
     }
     this.xpCooldowns.set(cooldownKey, now);
 
