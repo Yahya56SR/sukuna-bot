@@ -53,7 +53,8 @@ export class WebServer {
 
     this.app.get('/api/commands', (_req: any, res: any) => {
       const commands = this.appRef.commands.getCommands?.() ?? [];
-      res.json(commands.map((cmd: any) => ({
+      const cmdArray = commands instanceof Map ? [...commands.values()] : Array.isArray(commands) ? commands : [];
+      res.json(cmdArray.map((cmd: any) => ({
         name: cmd.data?.name ?? cmd.name ?? 'unknown',
         description: cmd.data?.description ?? cmd.description ?? '',
         category: cmd.category ?? 'General',
