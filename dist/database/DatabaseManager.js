@@ -40,6 +40,8 @@ exports.DatabaseManager = void 0;
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const better_sqlite3_2 = require("drizzle-orm/better-sqlite3");
 const schema = __importStar(require("./schema"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 class DatabaseManager {
     constructor(config) {
         this.db = null;
@@ -47,6 +49,11 @@ class DatabaseManager {
         this.config = config;
     }
     async initialize() {
+        // Ensure the database directory exists
+        const dbDir = path_1.default.dirname(this.config.path);
+        if (!fs_1.default.existsSync(dbDir)) {
+            fs_1.default.mkdirSync(dbDir, { recursive: true });
+        }
         this.sqlite = new better_sqlite3_1.default(this.config.path);
         this.sqlite.pragma('journal_mode = WAL');
         this.sqlite.pragma('foreign_keys = ON');

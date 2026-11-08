@@ -1,6 +1,8 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema';
+import fs from 'fs';
+import path from 'path';
 import type { DatabaseConfig } from '../config/AppConfig';
 
 export class DatabaseManager {
@@ -13,6 +15,12 @@ export class DatabaseManager {
   }
 
   public async initialize(): Promise<void> {
+    // Ensure the database directory exists
+    const dbDir = path.dirname(this.config.path);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+
     this.sqlite = new Database(this.config.path);
     this.sqlite.pragma('journal_mode = WAL');
     this.sqlite.pragma('foreign_keys = ON');
