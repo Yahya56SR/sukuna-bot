@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cpy src/web/views dist/web/views",
+    "build": "tsc && cpy \"src/web/views/*\" dist/web/views/",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
