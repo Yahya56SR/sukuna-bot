@@ -31,34 +31,72 @@ class SukunaApp {
         this.interactions = new InteractionRouter(this.commands);
         this.moderation = new ModerationService(this.logger);
         this.leveling = new LevelingService(this.logger, {
-            enabled: true,
-            xpFormula: 'quadratic',
-            baseXpPerLevel: 100,
-            xpMultiplier: 1,
-            customXpTable: {},
+            enabled: process.env.LEVELING_ENABLED !== 'false',
+            xpFormula: (process.env.LEVELING_XP_FORMULA || 'quadratic'),
+            baseXpPerLevel: parseInt(process.env.LEVELING_BASE_XP_PER_LEVEL || '100'),
+            xpMultiplier: parseFloat(process.env.LEVELING_XP_MULTIPLIER || '1'),
+            customXpTable: (() => { try {
+                return JSON.parse(process.env.LEVELING_CUSTOM_XP_TABLE || '{}');
+            }
+            catch {
+                return {};
+            } })(),
             xpSources: {
-                message: { enabled: true, min: 15, max: 25, cooldownSeconds: 60 },
-                voice: { enabled: true, perMinuteMin: 5, perMinuteMax: 8, cooldownSeconds: 60 },
-                command: { enabled: true, amount: 10, cooldownSeconds: 300 },
+                message: {
+                    enabled: process.env.XP_SOURCE_MESSAGE !== 'false',
+                    min: parseInt(process.env.XP_SOURCE_MESSAGE_MIN || '15'),
+                    max: parseInt(process.env.XP_SOURCE_MESSAGE_MAX || '25'),
+                    cooldownSeconds: parseInt(process.env.XP_SOURCE_MESSAGE_COOLDOWN || '60'),
+                },
+                voice: {
+                    enabled: process.env.XP_SOURCE_VOICE !== 'false',
+                    perMinuteMin: parseInt(process.env.XP_SOURCE_VOICE_MIN || '5'),
+                    perMinuteMax: parseInt(process.env.XP_SOURCE_VOICE_MAX || '8'),
+                    cooldownSeconds: parseInt(process.env.XP_SOURCE_VOICE_COOLDOWN || '60'),
+                },
+                command: {
+                    enabled: process.env.XP_SOURCE_COMMAND !== 'false',
+                    amount: parseInt(process.env.XP_SOURCE_COMMAND_AMOUNT || '10'),
+                    cooldownSeconds: parseInt(process.env.XP_SOURCE_COMMAND_COOLDOWN || '300'),
+                },
             },
             xpMultipliers: {
-                weekend: 1.5,
-                booster: 2.0,
-                role: {},
+                weekend: parseFloat(process.env.XP_MULTIPLIER_WEEKEND || '1.5'),
+                booster: parseFloat(process.env.XP_MULTIPLIER_BOOSTER || '2.0'),
+                role: (() => { try {
+                    return JSON.parse(process.env.XP_MULTIPLIER_ROLES || '{}');
+                }
+                catch {
+                    return {};
+                } })(),
             },
-            noXpChannels: [],
-            xpChannelWhitelist: [],
-            levelRoles: [
-                { level: 5, roleId: process.env.LEVELING_DISTINCT_ROLE_ID || '', replaceLower: false },
-                { level: 15, roleId: process.env.LEVELING_LOYAL_ROLE_ID || '', replaceLower: false },
-            ],
-            announcementChannels: [
-                { channelId: process.env.LEVELING_LEVELS_CHANNEL_ID || '', minLevel: 1, color: '#0099ff' },
-                { channelId: process.env.LEVELING_STAFF_CMD_CHANNEL_ID || '', minLevel: 1, color: '#ffd700' },
-            ],
-            defaultColor: '#0099ff',
-            ignoreBots: true,
-            maxLevel: 100,
+            noXpChannels: (() => { try {
+                return JSON.parse(process.env.XP_NO_CHANNELS || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            xpChannelWhitelist: (() => { try {
+                return JSON.parse(process.env.XP_CHANNEL_WHITELIST || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            levelRoles: (() => { try {
+                return JSON.parse(process.env.LEVELING_LEVEL_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            announcementChannels: (() => { try {
+                return JSON.parse(process.env.LEVELING_ANNOUNCEMENT_CHANNELS || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
+            ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
+            maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
         });
         this.economy = new EconomyService(this.logger);
         this.ai = new AIService(this.logger, {
@@ -113,34 +151,72 @@ class SukunaApp {
             this.leveling.setClient(this.client);
             this.logger.info('Sukuna Bot', 'Leveling service connected to database');
             const levelingCommands = new (require('./modules/leveling/LevelingService').LevelingCommands)(this.leveling, this.logger, {
-                enabled: true,
-                xpFormula: 'quadratic',
-                baseXpPerLevel: 100,
-                xpMultiplier: 1,
-                customXpTable: {},
+                enabled: process.env.LEVELING_ENABLED !== 'false',
+                xpFormula: (process.env.LEVELING_XP_FORMULA || 'quadratic'),
+                baseXpPerLevel: parseInt(process.env.LEVELING_BASE_XP_PER_LEVEL || '100'),
+                xpMultiplier: parseFloat(process.env.LEVELING_XP_MULTIPLIER || '1'),
+                customXpTable: (() => { try {
+                    return JSON.parse(process.env.LEVELING_CUSTOM_XP_TABLE || '{}');
+                }
+                catch {
+                    return {};
+                } })(),
                 xpSources: {
-                    message: { enabled: true, min: 15, max: 25, cooldownSeconds: 60 },
-                    voice: { enabled: true, perMinuteMin: 5, perMinuteMax: 8, cooldownSeconds: 60 },
-                    command: { enabled: true, amount: 10, cooldownSeconds: 300 },
+                    message: {
+                        enabled: process.env.XP_SOURCE_MESSAGE !== 'false',
+                        min: parseInt(process.env.XP_SOURCE_MESSAGE_MIN || '15'),
+                        max: parseInt(process.env.XP_SOURCE_MESSAGE_MAX || '25'),
+                        cooldownSeconds: parseInt(process.env.XP_SOURCE_MESSAGE_COOLDOWN || '60'),
+                    },
+                    voice: {
+                        enabled: process.env.XP_SOURCE_VOICE !== 'false',
+                        perMinuteMin: parseInt(process.env.XP_SOURCE_VOICE_MIN || '5'),
+                        perMinuteMax: parseInt(process.env.XP_SOURCE_VOICE_MAX || '8'),
+                        cooldownSeconds: parseInt(process.env.XP_SOURCE_VOICE_COOLDOWN || '60'),
+                    },
+                    command: {
+                        enabled: process.env.XP_SOURCE_COMMAND !== 'false',
+                        amount: parseInt(process.env.XP_SOURCE_COMMAND_AMOUNT || '10'),
+                        cooldownSeconds: parseInt(process.env.XP_SOURCE_COMMAND_COOLDOWN || '300'),
+                    },
                 },
                 xpMultipliers: {
-                    weekend: 1.5,
-                    booster: 2.0,
-                    role: {},
+                    weekend: parseFloat(process.env.XP_MULTIPLIER_WEEKEND || '1.5'),
+                    booster: parseFloat(process.env.XP_MULTIPLIER_BOOSTER || '2.0'),
+                    role: (() => { try {
+                        return JSON.parse(process.env.XP_MULTIPLIER_ROLES || '{}');
+                    }
+                    catch {
+                        return {};
+                    } })(),
                 },
-                noXpChannels: [],
-                xpChannelWhitelist: [],
-                levelRoles: [
-                    { level: 5, roleId: process.env.LEVELING_DISTINCT_ROLE_ID || '', replaceLower: false },
-                    { level: 15, roleId: process.env.LEVELING_LOYAL_ROLE_ID || '', replaceLower: false },
-                ],
-                announcementChannels: [
-                    { channelId: process.env.LEVELING_LEVELS_CHANNEL_ID || '', minLevel: 1, color: '#0099ff' },
-                    { channelId: process.env.LEVELING_STAFF_CMD_CHANNEL_ID || '', minLevel: 1, color: '#ffd700' },
-                ],
-                defaultColor: '#0099ff',
-                ignoreBots: true,
-                maxLevel: 100,
+                noXpChannels: (() => { try {
+                    return JSON.parse(process.env.XP_NO_CHANNELS || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                xpChannelWhitelist: (() => { try {
+                    return JSON.parse(process.env.XP_CHANNEL_WHITELIST || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                levelRoles: (() => { try {
+                    return JSON.parse(process.env.LEVELING_LEVEL_ROLES || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                announcementChannels: (() => { try {
+                    return JSON.parse(process.env.LEVELING_ANNOUNCEMENT_CHANNELS || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
+                ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
+                maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
             });
             for (const cmd of levelingCommands.getCommands()) {
                 this.commands.registerCommand(cmd);
