@@ -39,6 +39,7 @@ const app = {
     if (page === 'economy') this.loadEconomy();
     if (page === 'leveling') this.loadLeveling();
     if (page === 'system') this.fetchSystemInfo();
+    if (page === 'settings') this.loadSettings();
   },
 
   async request(endpoint, options = {}) {
@@ -496,11 +497,277 @@ const app = {
       if (service === 'web') {
         config.port = parseInt(document.getElementById('webPort').value);
       }
+      if (service === 'bot') {
+        config.prefix = document.getElementById('cmdPrefix').value;
+      }
       await this.request(`/config/${service}`, { method: 'POST', body: JSON.stringify(config) });
-      this.showAlert('Configuration saved', 'success');
+      this.showAlert(service === 'web' ? 'Web port saved (applies after restart)' : 'Configuration saved', 'success');
     } catch (err) {
       this.showAlert(err.message || 'Failed to save config');
     }
+  },
+
+  // ---------- Settings helpers ----------
+  el(id) { return document.getElementById(id); },
+  val(id) { const e = this.el(id); return e ? e.value : ''; },
+  num(id, fallback = 0) { const n = parseFloat(this.val(id)); return Number.isFinite(n) ? n : fallback; },
+  bool(id) { const e = this.el(id); return !!e && e.checked; },
+  setVal(id, v) { const e = this.el(id); if (e) e.value = v ?? ''; },
+  setBool(id, v) { const e = this.el(id); if (e) e.checked = !!v; },
+  setPlaceholder(id, text) { const e = this.el(id); if (e) e.placeholder = text; },
+  jsonText(id, fallback) {
+    const t = this.val(id).trim();
+    if (!t) return fallback;
+    try {
+      return JSON.parse(t);
+    } catch {
+      throw new Error(`${id}: invalid JSON`);
+    }
+  },
+  listText(id) {
+    return this.val(id).split(',').map(s => s.trim()).filter(Boolean);
+  },
+  dumpJson(v) {
+    if (v === undefined || v === null) return '';
+    return JSON.stringify(v);
+  },
+
+  async saveServiceConfig(service, label, payload) {
+    try {
+      await this.request(`/config/${service}`, { method: 'POST', body: JSON.stringify(payload) });
+      this.showAlert(`${label} settings saved`, 'success');
+    } catch (err) {
+      this.showAlert(err.message || `Failed to save ${label} settings`);
+    }
+  },
+
+  async loadSettings() {
+    // Module master toggles
+    try {
+      const g = await this.request('/config/guild_settings');
+      this.setBool('toggleLeveling', g.leveling_enabled);
+      this.setBool('toggleAI', g.ai_enabled);
+      this.setBool('toggleMusic', g.music_enabled);
+      this.setBool('toggleEconomy', g.economy_enabled);
+    } catch (err) {
+      console.error('Failed to load module settings:', err);
+    }
+    // Bot + web
+    try {
+      const b = await this.request('/config/bot');
+      this.setVal('cmdPrefix', b.prefix ?? '!');
+    } catch (err) { /* settings page still usable */ }
+    try {
+      const w = await this.request('/config/web');
+      this.setVal('webPort', w.port ?? '');
+    } catch (err) { /* keep default */ }
+    // Per-system cards
+    const loaders = [
+      ['leveling', (cfg) => this.fillLeveling(cfg)],
+      ['ai', (cfg) => this.fillAi(cfg)],
+      ['music', (cfg) => this.fillMusic(cfg)],
+      ['moderation', (cfg) => this.fillModeration(cfg)],
+      ['economy', (cfg) => this.fillEconomy(cfg)],
+      ['tempvc', (cfg) => this.fillTempvc(cfg)],
+      ['automation', (cfg) => this.fillAutomation(cfg)],
+    ];
+    for (const [service, fill] of loaders) {
+      try {
+        fill(await this.request(`/config/${service}`));
+      } catch (err) {
+        console.error(`Failed to load ${service} config:`, err);
+      }
+    }
+  },
+
+  fillLeveling(cfg) {
+    cfg = cfg || {};
+    const src = cfg.xpSources || {};
+    const mult = cfg.xpMultipliers || {};
+    this.setBool('lvl_enabled', cfg.enabled);
+    this.setVal('lvl_formula', cfg.xpFormula || 'quadratic');
+    this.setVal('lvl_baseXp', cfg.baseXpPerLevel ?? 100);
+    this.setVal('lvl_multiplier', cfg.xpMultiplier ?? 1);
+    this.setVal('lvl_maxLevel', cfg.maxLevel ?? 100);
+    this.setBool('lvl_ignoreBots', cfg.ignoreBots);
+    this.setVal('lvl_defaultColor', cfg.defaultColor || '#0099ff');
+    this.setBool('lvl_msg_enabled', src.message?.enabled);
+    this.setVal('lvl_msg_min', src.message?.min ?? 15);
+    this.setVal('lvl_msg_max', src.message?.max ?? 25);
+    this.setVal('lvl_msg_cooldown', src.message?.cooldownSeconds ?? 60);
+    this.setBool('lvl_voice_enabled', src.voice?.enabled);
+    this.setVal('lvl_voice_min', src.voice?.perMinuteMin ?? 5);
+    this.setVal('lvl_voice_max', src.voice?.perMinuteMax ?? 8);
+    this.setVal('lvl_voice_cooldown', src.voice?.cooldownSeconds ?? 60);
+    this.setBool('lvl_cmd_enabled', src.command?.enabled);
+    this.setVal('lvl_cmd_amount', src.command?.amount ?? 10);
+    this.setVal('lvl_cmd_cooldown', src.command?.cooldownSeconds ?? 300);
+    this.setVal('lvl_mult_weekend', mult.weekend ?? 1.5);
+    this.setVal('lvl_mult_booster', mult.booster ?? 2);
+    this.setVal('lvl_noXpChannels', this.dumpJson(cfg.noXpChannels) || '[]');
+    this.setVal('lvl_xpWhitelist', this.dumpJson(cfg.xpChannelWhitelist) || '[]');
+    this.setVal('lvl_customXpTable', this.dumpJson(cfg.customXpTable) || '{}');
+    this.setVal('lvl_levelRoles', this.dumpJson(cfg.levelRoles) || '[]');
+    this.setVal('lvl_announceChannels', this.dumpJson(cfg.announcementChannels) || '[]');
+  },
+
+  async saveLevelingConfig() {
+    let payload;
+    try {
+      payload = {
+        enabled: this.bool('lvl_enabled'),
+        xpFormula: this.val('lvl_formula') || 'quadratic',
+        baseXpPerLevel: this.num('lvl_baseXp', 100),
+        xpMultiplier: this.num('lvl_multiplier', 1),
+        maxLevel: this.num('lvl_maxLevel', 100),
+        ignoreBots: this.bool('lvl_ignoreBots'),
+        defaultColor: this.val('lvl_defaultColor') || '#0099ff',
+        xpSources: {
+          message: { enabled: this.bool('lvl_msg_enabled'), min: this.num('lvl_msg_min'), max: this.num('lvl_msg_max'), cooldownSeconds: this.num('lvl_msg_cooldown') },
+          voice: { enabled: this.bool('lvl_voice_enabled'), perMinuteMin: this.num('lvl_voice_min'), perMinuteMax: this.num('lvl_voice_max'), cooldownSeconds: this.num('lvl_voice_cooldown') },
+          command: { enabled: this.bool('lvl_cmd_enabled'), amount: this.num('lvl_cmd_amount'), cooldownSeconds: this.num('lvl_cmd_cooldown') },
+        },
+        xpMultipliers: { weekend: this.num('lvl_mult_weekend', 1.5), booster: this.num('lvl_mult_booster', 2) },
+        noXpChannels: this.jsonText('lvl_noXpChannels', []),
+        xpChannelWhitelist: this.jsonText('lvl_xpWhitelist', []),
+        customXpTable: this.jsonText('lvl_customXpTable', {}),
+        levelRoles: this.jsonText('lvl_levelRoles', []),
+        announcementChannels: this.jsonText('lvl_announceChannels', []),
+      };
+    } catch (err) {
+      return this.showAlert(err.message || 'Invalid leveling settings');
+    }
+    await this.saveServiceConfig('leveling', 'Leveling', payload);
+  },
+
+  fillAi(cfg) {
+    cfg = cfg || {};
+    this.setBool('ai_enabled', cfg.enabled);
+    this.setVal('ai_displayName', cfg.displayName || '');
+    this.setVal('ai_model', cfg.model || '');
+    this.setVal('ai_systemPrompt', cfg.systemPrompt || '');
+    this.setVal('ai_channelIds', (cfg.channelIds || []).join(', '));
+    this.setVal('ai_historySize', cfg.historySize ?? 30);
+    this.setVal('ai_batchWindowMs', cfg.batchWindowMs ?? 2500);
+    this.setVal('ai_replyCooldown', cfg.replyCooldownSeconds ?? 25);
+    this.setVal('ai_decisionCooldown', cfg.decisionCooldownSeconds ?? 10);
+    this.setVal('ai_maxReplies', cfg.maxRepliesPerHour ?? 40);
+    this.setVal('ai_maxMessageLength', cfg.maxMessageLength ?? 500);
+    this.setBool('ai_showTyping', cfg.showTyping);
+    this.setVal('ai_temperature', cfg.temperature ?? 1);
+    this.setVal('ai_requestTimeout', cfg.requestTimeoutMs ?? 20000);
+    this.setVal('ai_apiKey', '');
+    this.setPlaceholder('ai_apiKey', cfg.hasApiKey ? '•••••••• (set — leave empty to keep)' : 'Paste API key');
+  },
+
+  async saveAiConfig() {
+    const payload = {
+      enabled: this.bool('ai_enabled'),
+      displayName: this.val('ai_displayName'),
+      model: this.val('ai_model'),
+      systemPrompt: this.val('ai_systemPrompt'),
+      channelIds: this.listText('ai_channelIds'),
+      historySize: this.num('ai_historySize', 30),
+      batchWindowMs: this.num('ai_batchWindowMs', 2500),
+      replyCooldownSeconds: this.num('ai_replyCooldown', 25),
+      decisionCooldownSeconds: this.num('ai_decisionCooldown', 10),
+      maxRepliesPerHour: this.num('ai_maxReplies', 40),
+      maxMessageLength: this.num('ai_maxMessageLength', 500),
+      showTyping: this.bool('ai_showTyping'),
+      temperature: this.num('ai_temperature', 1),
+      requestTimeoutMs: this.num('ai_requestTimeout', 20000),
+    };
+    const apiKey = this.val('ai_apiKey').trim();
+    if (apiKey) payload.apiKey = apiKey;
+    await this.saveServiceConfig('ai', 'AI', payload);
+  },
+
+  fillMusic(cfg) {
+    cfg = cfg || {};
+    this.setBool('mus_enabled', cfg.enabled);
+    this.setVal('mus_host', cfg.lavalinkHost || '');
+    this.setVal('mus_port', cfg.lavalinkPort ?? 2333);
+    this.setVal('mus_volume', cfg.defaultVolume ?? 100);
+    this.setVal('mus_maxPlaylist', cfg.maxPlaylistSize ?? 50);
+    this.setBool('mus_allowSkip', cfg.allowSkip);
+    this.setBool('mus_allowRepeat', cfg.allowRepeat);
+    this.setVal('mus_password', '');
+    this.setPlaceholder('mus_password', cfg.hasLavalinkPassword ? '•••••••• (set — leave empty to keep)' : 'Lavalink password');
+  },
+
+  async saveMusicConfig() {
+    const payload = {
+      enabled: this.bool('mus_enabled'),
+      lavalinkHost: this.val('mus_host'),
+      lavalinkPort: this.num('mus_port', 2333),
+      defaultVolume: this.num('mus_volume', 100),
+      maxPlaylistSize: this.num('mus_maxPlaylist', 50),
+      allowSkip: this.bool('mus_allowSkip'),
+      allowRepeat: this.bool('mus_allowRepeat'),
+    };
+    const password = this.val('mus_password').trim();
+    if (password) payload.lavalinkPassword = password;
+    await this.saveServiceConfig('music', 'Music', payload);
+  },
+
+  fillModeration(cfg) {
+    cfg = cfg || {};
+    this.setBool('mod_enabled', cfg.enabled);
+    this.setVal('mod_logChannelId', cfg.logChannelId || '');
+    this.setVal('mod_defaultReason', cfg.defaultReason || '');
+  },
+
+  async saveModerationConfig() {
+    await this.saveServiceConfig('moderation', 'Moderation', {
+      enabled: this.bool('mod_enabled'),
+      logChannelId: this.val('mod_logChannelId'),
+      defaultReason: this.val('mod_defaultReason'),
+    });
+  },
+
+  fillEconomy(cfg) {
+    cfg = cfg || {};
+    this.setBool('eco_enabled', cfg.enabled);
+    this.setVal('eco_startingBalance', cfg.startingBalance ?? 0);
+    this.setVal('eco_currencyName', cfg.currencyName || 'coins');
+  },
+
+  async saveEconomyConfig() {
+    await this.saveServiceConfig('economy', 'Economy', {
+      enabled: this.bool('eco_enabled'),
+      startingBalance: this.num('eco_startingBalance', 0),
+      currencyName: this.val('eco_currencyName') || 'coins',
+    });
+  },
+
+  fillTempvc(cfg) {
+    cfg = cfg || {};
+    this.setBool('tvc_enabled', cfg.enabled);
+    this.setVal('tvc_createChannelId', cfg.createChannelId || '');
+    this.setVal('tvc_categoryId', cfg.categoryId || '');
+    this.setVal('tvc_panelChannelId', cfg.panelChannelId || '');
+    this.setVal('tvc_panelMessageId', cfg.panelMessageId || '');
+  },
+
+  async saveTempvcConfig() {
+    await this.saveServiceConfig('tempvc', 'TempVC', {
+      enabled: this.bool('tvc_enabled'),
+      createChannelId: this.val('tvc_createChannelId'),
+      categoryId: this.val('tvc_categoryId'),
+      panelChannelId: this.val('tvc_panelChannelId'),
+      panelMessageId: this.val('tvc_panelMessageId'),
+    });
+  },
+
+  fillAutomation(cfg) {
+    cfg = cfg || {};
+    this.setBool('auto_enabled', cfg.enabled);
+  },
+
+  async saveAutomationConfig() {
+    await this.saveServiceConfig('automation', 'Automation', {
+      enabled: this.bool('auto_enabled'),
+    });
   },
 
   async saveModuleConfig() {

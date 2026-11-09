@@ -152,6 +152,9 @@ class SukunaApp {
             this.logger.info('Sukuna Bot', 'Database initialized successfully');
             this.moderation.setDb(this.database.getDb());
             this.logger.info('Sukuna Bot', 'Moderation service connected to database');
+            // Apply dashboard-persisted config overrides (service_configs table) over env
+            // defaults NOW — before Discord login, so they apply even if login fails.
+            await this.web.loadPersistedConfigs();
             const moderationCommands = new (require('./modules/moderation/ModerationCommands').ModerationCommands)(this.moderation, this.logger);
             for (const cmd of moderationCommands.getCommands()) {
                 this.commands.registerCommand(cmd);
@@ -255,6 +258,9 @@ class SukunaApp {
             this.tempvc.setDb(this.database.getDb());
             this.tempvc.setClient(this.client);
             await this.tempvc.initialize();
+            // TempVC loads its own config from the DB in initialize() — re-apply
+            // persisted dashboard overrides afterwards (idempotent for other services).
+            await this.web.loadPersistedConfigs();
             this.interactions.setTempVCService(this.tempvc);
             this.logger.info('Sukuna Bot', 'Temp VC service linked to interaction router');
             const tempvcCommands = new (require('./modules/tempvc/TempVCCommands').TempVCCommands)(this.tempvc, this.logger);

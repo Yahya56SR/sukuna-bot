@@ -370,22 +370,30 @@ class WebServer {
         // ---- Config ----
         this.app.get('/api/config/:service', (_req, res) => {
             const service = _req.params.service;
+            if (!WebServer.CONFIG_SERVICES.includes(service)) {
+                return res.status(404).json({ error: `Unknown service: ${service}` });
+            }
             try {
                 const cfg = this.getServiceConfig(service);
                 res.json(cfg ?? {});
             }
             catch (err) {
+                this.logger.error('Web Server', `GET /api/config/${service} failed`, err);
                 res.status(500).json({ error: `Failed to fetch ${service} config` });
             }
         });
         this.app.post('/api/config/:service', (req, res) => {
             const service = req.params.service;
+            if (!WebServer.CONFIG_SERVICES.includes(service)) {
+                return res.status(404).json({ error: `Unknown service: ${service}` });
+            }
             try {
-                const config = req.body;
+                const config = req.body ?? {};
                 this.setServiceConfig(service, config);
-                res.json({ success: true, config: this.getServiceConfig(service) });
+                res.json({ success: true, config: this.getServiceConfig(service) ?? {} });
             }
             catch (err) {
+                this.logger.error('Web Server', `POST /api/config/${service} failed`, err);
                 res.status(500).json({ error: err.message || `Failed to update ${service} config` });
             }
         });
@@ -490,64 +498,208 @@ class WebServer {
             }
         });
     }
-    getServiceConfig(service) {
+    /** Raw (unmasked) config object for a service, or null if unavailable. */
+    rawServiceConfig(service) {
         const app = this.appRef;
         switch (service) {
+            case 'bot':
+                return { prefix: app.config?.commands?.prefix ?? '!' };
             case 'leveling':
-                return app.leveling?.config ?? {};
+                return app.leveling?.config ?? null;
             case 'ai':
-                return app.ai?.config ?? {};
+                return app.ai?.config ?? null;
             case 'music':
-                return app.music?.config ?? {};
+                return app.music?.getConfig?.() ?? null;
             case 'tempvc':
-                return app.tempvc?.getConfig?.() ?? {};
+                return app.tempvc?.getConfig?.() ?? null;
             case 'moderation':
-                return app.moderation?.config ?? {};
+                return app.moderation?.config ?? null;
             case 'economy':
-                return app.economy?.config ?? {};
+                return app.economy?.config ?? null;
             case 'automation':
-                return app.automation?.config ?? {};
+                return app.automation?.config ?? null;
             case 'analytics':
-                return app.analytics?.config ?? {};
+                return app.analytics?.config ?? null;
             case 'web':
                 return { port: this.port };
             default:
                 return null;
         }
     }
-    setServiceConfig(service, config) {
+    /** Config as exposed over HTTP: secrets are redacted, replaced with has* flags. */
+    getServiceConfig(service) {
+        const raw = this.rawServiceConfig(service);
+        if (raw === null || raw === undefined)
+            return null;
+        const copy = { ...raw };
+        if (service === 'ai' && 'apiKey' in copy) {
+            copy.hasApiKey = !!copy.apiKey;
+            delete copy.apiKey;
+        }
+        if (service === 'music' && 'lavalinkPassword' in copy) {
+            copy.hasLavalinkPassword = !!copy.lavalinkPassword;
+            delete copy.lavalinkPassword;
+        }
+        return copy;
+    }
+    /**
+     * Deep-merge `source` into `target`.
+     * Only keys that already exist on the target are applied (junk keys ignored),
+     * nested plain objects merge recursively, and values are coerced to the
+     * type of the existing value (boolean/number/string/array).
+     */
+    deepAssignConfig(target, source) {
+        if (!target || typeof target !== 'object' || !source || typeof source !== 'object' || Array.isArray(source))
+            return;
+        for (const key of Object.keys(source)) {
+            if (!(key in target))
+                continue;
+            const current = target[key];
+            const incoming = source[key];
+            if (current && typeof current === 'object' && !Array.isArray(current)) {
+                if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+                    this.deepAssignConfig(current, incoming);
+                }
+            }
+            else if (Array.isArray(current)) {
+                if (Array.isArray(incoming))
+                    target[key] = incoming;
+            }
+            else if (typeof current === 'boolean') {
+                target[key] = Boolean(incoming);
+            }
+            else if (typeof current === 'number') {
+                const n = Number(incoming);
+                if (Number.isFinite(n))
+                    target[key] = n;
+            }
+            else if (typeof current === 'string') {
+                target[key] = String(incoming ?? '');
+            }
+            else if (current === null) {
+                target[key] = incoming;
+            }
+        }
+    }
+    setServiceConfig(service, incoming) {
         const app = this.appRef;
         switch (service) {
-            case 'leveling':
-                Object.assign(app.leveling.config, config);
+            case 'bot': {
+                const target = { prefix: app.config?.commands?.prefix ?? '!' };
+                this.deepAssignConfig(target, incoming);
+                if (app.config?.commands)
+                    app.config.commands.prefix = target.prefix;
                 break;
-            case 'ai':
-                Object.assign(app.ai.config, config);
+            }
+            case 'tempvc': {
+                const base = app.tempvc?.getConfig?.() ?? { enabled: true, createChannelId: '', categoryId: '', panelChannelId: '', panelMessageId: '' };
+                const next = { ...base };
+                this.deepAssignConfig(next, incoming);
+                app.tempvc?.setConfig?.(next);
                 break;
-            case 'music':
-                Object.assign(app.music.config, config);
+            }
+            case 'music': {
+                // MusicService stores config internally — merge through its setter
+                const next = { ...(app.music?.getConfig?.() ?? {}) };
+                this.deepAssignConfig(next, incoming);
+                app.music?.setConfig?.(next);
                 break;
-            case 'moderation':
-                Object.assign(app.moderation.config, config);
-                break;
-            case 'economy':
-                Object.assign(app.economy.config, config);
-                break;
-            case 'automation':
-                Object.assign(app.automation.config, config);
-                break;
-            case 'analytics':
-                Object.assign(app.analytics.config, config);
-                break;
-            case 'tempvc':
-                if (app.tempvc?.setConfig) {
-                    app.tempvc.setConfig(config);
-                }
-                break;
+            }
             case 'web':
+                // The live port is bound by the host (SERVER_PORT) and can't change
+                // without a restart — the value is only persisted for reference.
                 break;
+            case 'leveling':
+            case 'ai':
+            case 'moderation':
+            case 'economy':
+            case 'automation':
+            case 'analytics': {
+                const target = app[service]?.config;
+                if (!target)
+                    throw new Error(`${service} config is not available`);
+                this.deepAssignConfig(target, incoming);
+                break;
+            }
             default:
                 throw new Error(`Unknown service: ${service}`);
+        }
+        this.persistServiceConfig(service);
+    }
+    getServiceConfigsDb() {
+        try {
+            return this.appRef.database?.getSqlite?.() ?? null;
+        }
+        catch {
+            return null;
+        }
+    }
+    /** Persist the raw (unmasked) config into `service_configs` so it survives restarts. */
+    persistServiceConfig(service) {
+        try {
+            const sqlite = this.getServiceConfigsDb();
+            if (!sqlite)
+                return;
+            const raw = this.rawServiceConfig(service);
+            if (!raw)
+                return;
+            sqlite.prepare(`INSERT INTO service_configs (key, value, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).run(service, JSON.stringify(raw), Date.now());
+        }
+        catch (err) {
+            this.logger.warn('Web Server', `Could not persist ${service} config: ${err.message}`);
+        }
+    }
+    /**
+     * Apply dashboard-persisted config overrides on top of the env defaults.
+     * Called from SukunaApp.initialize() after the database is ready.
+     */
+    async loadPersistedConfigs() {
+        try {
+            const sqlite = this.getServiceConfigsDb();
+            if (!sqlite) {
+                this.logger.warn('Web Server', 'Skipping persisted config load: database not ready');
+                return;
+            }
+            const rows = sqlite.prepare('SELECT key, value FROM service_configs').all();
+            let applied = 0;
+            for (const row of rows) {
+                try {
+                    const saved = JSON.parse(row.value);
+                    if (!saved || typeof saved !== 'object' || Array.isArray(saved))
+                        continue;
+                    if (row.key === 'tempvc') {
+                        const app = this.appRef;
+                        const base = app.tempvc?.getConfig?.() ?? { enabled: true, createChannelId: '', categoryId: '', panelChannelId: '', panelMessageId: '' };
+                        const next = { ...base };
+                        this.deepAssignConfig(next, saved);
+                        app.tempvc?.setConfig?.(next);
+                    }
+                    else if (row.key === 'bot') {
+                        const app = this.appRef;
+                        if (app.config?.commands && saved.prefix)
+                            app.config.commands.prefix = saved.prefix;
+                    }
+                    else if (row.key === 'web') {
+                        continue; // live port stays host-bound (SERVER_PORT)
+                    }
+                    else {
+                        const target = this.appRef?.[row.key]?.config;
+                        if (!target)
+                            continue;
+                        this.deepAssignConfig(target, saved);
+                    }
+                    applied++;
+                }
+                catch (err) {
+                    this.logger.warn('Web Server', `Skipping invalid persisted config '${row.key}': ${err.message}`);
+                }
+            }
+            if (applied)
+                this.logger.info('Web Server', `Applied ${applied} persisted service config(s) from database`);
+        }
+        catch (err) {
+            this.logger.error('Web Server', 'Failed to load persisted configs', err);
         }
     }
     resolveGuildId(explicit) {
@@ -662,3 +814,6 @@ class WebServer {
     }
 }
 exports.WebServer = WebServer;
+WebServer.CONFIG_SERVICES = [
+    'bot', 'leveling', 'ai', 'music', 'moderation', 'economy', 'automation', 'analytics', 'tempvc', 'web',
+];

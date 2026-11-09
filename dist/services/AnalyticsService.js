@@ -6,6 +6,7 @@ const schema_1 = require("../database/schema");
 class AnalyticsService {
     constructor(logger) {
         this.db = null;
+        this.config = { enabled: true };
         this.logger = logger;
         this.startTime = Date.now();
     }

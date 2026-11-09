@@ -6,6 +6,7 @@ const schema_1 = require("../database/schema");
 class AutomationService {
     constructor(logger) {
         this.db = null;
+        this.config = { enabled: true };
         this.jobs = new Map();
         this.timer = null;
         this.logger = logger;
@@ -23,6 +24,8 @@ class AutomationService {
         }, 60000); // Check every minute
     }
     async checkJobs() {
+        if (!this.config.enabled)
+            return;
         if (!this.db)
             return;
         const now = Date.now();

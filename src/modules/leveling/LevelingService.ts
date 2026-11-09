@@ -229,6 +229,7 @@ export class LevelingService {
    * Add XP from a message source.
    */
   public async addXpFromMessage(guildId: string, userId: string, channelId: string, member?: GuildMember): Promise<LevelUpResult | null> {
+    if (!this.config.enabled) return null;
     if (!this.config.xpSources.message.enabled) return null;
     if (!this.canEarnXp(channelId)) return null;
 
@@ -246,6 +247,7 @@ export class LevelingService {
    * Add XP from voice activity (per tick).
    */
   public async addXpFromVoice(guildId: string, userId: string, member?: GuildMember): Promise<LevelUpResult | null> {
+    if (!this.config.enabled) return null;
     if (!this.config.xpSources.voice.enabled) return null;
 
     const rawXp = Math.floor(

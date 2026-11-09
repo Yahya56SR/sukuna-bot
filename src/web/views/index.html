@@ -440,27 +440,32 @@
     <!-- Settings Page -->
     <section id="page-settings" class="page">
       <h2 class="text-2xl font-bold mb-6">Settings</h2>
+      <p class="text-sm text-slate-500 mb-6">Every system can be configured here. Changes apply immediately and survive restarts.</p>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Bot & Web -->
         <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">Bot Configuration</h3>
+          <h3 class="font-bold text-lg mb-4">🤖 Bot Configuration</h3>
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Command Prefix</label>
               <input type="text" id="cmdPrefix" class="input-field" value="!">
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Web Port</label>
-              <input type="number" id="webPort" class="input-field" value="3000">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Web Port (current)</label>
+              <input type="number" id="webPort" class="input-field" value="3000" readonly>
+              <p class="text-xs text-slate-500 mt-1">Set by your host (SERVER_PORT). Shown for reference.</p>
             </div>
             <div class="flex gap-3">
-              <button onclick="app.saveConfig('web')" class="btn-primary flex-1">Save Config</button>
-              <button onclick="app.reloadConfig()" class="btn-secondary flex-1">Reload</button>
+              <button onclick="app.saveConfig('bot')" class="btn-primary flex-1">Save Bot Config</button>
+              <button onclick="app.reloadConfig()" class="btn-secondary flex-1">Reload Commands</button>
             </div>
           </div>
         </div>
 
+        <!-- Module toggles -->
         <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">Module Settings</h3>
+          <h3 class="font-bold text-lg mb-4">🧩 Module Settings</h3>
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-300">Leveling Enabled</span>
@@ -494,6 +499,369 @@
           </div>
         </div>
 
+        <!-- Leveling -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">📈 Leveling</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="lvl_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Formula</label>
+                <select id="lvl_formula" class="input-field">
+                  <option value="linear">Linear</option>
+                  <option value="quadratic">Quadratic</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Base XP / Level</label>
+                <input type="number" id="lvl_baseXp" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Multiplier</label>
+                <input type="number" step="any" id="lvl_multiplier" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Level</label>
+                <input type="number" id="lvl_maxLevel" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Color</label>
+                <input type="text" id="lvl_defaultColor" class="input-field">
+              </div>
+              <div class="flex items-center justify-between pt-6">
+                <span class="text-sm text-slate-300">Ignore Bots</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer" id="lvl_ignoreBots">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-slate-300 pt-2">Message XP</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-300">Enabled</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer" id="lvl_msg_enabled">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min</label>
+                <input type="number" id="lvl_msg_min" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max</label>
+                <input type="number" id="lvl_msg_max" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                <input type="number" id="lvl_msg_cooldown" class="input-field">
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-slate-300 pt-2">Voice XP</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-300">Enabled</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer" id="lvl_voice_enabled">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min / min</label>
+                <input type="number" id="lvl_voice_min" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max / min</label>
+                <input type="number" id="lvl_voice_max" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                <input type="number" id="lvl_voice_cooldown" class="input-field">
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-slate-300 pt-2">Command XP</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-300">Enabled</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer" id="lvl_cmd_enabled">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Amount</label>
+                <input type="number" id="lvl_cmd_amount" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                <input type="number" id="lvl_cmd_cooldown" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Weekend Multiplier</label>
+                <input type="number" step="any" id="lvl_mult_weekend" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Booster Multiplier</label>
+                <input type="number" step="any" id="lvl_mult_booster" class="input-field">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">No XP Channels (JSON list)</label>
+              <textarea id="lvl_noXpChannels" class="input-field" rows="2"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Whitelist (JSON list)</label>
+              <textarea id="lvl_xpWhitelist" class="input-field" rows="2"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Custom XP Table (JSON)</label>
+              <textarea id="lvl_customXpTable" class="input-field" rows="2"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Level Roles (JSON)</label>
+              <textarea id="lvl_levelRoles" class="input-field" rows="2"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Channels (JSON)</label>
+              <textarea id="lvl_announceChannels" class="input-field" rows="2"></textarea>
+            </div>
+            <button onclick="app.saveLevelingConfig()" class="btn-primary w-full">Save Leveling Settings</button>
+          </div>
+        </div>
+
+        <!-- AI -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🧠 AI Assistant</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="ai_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Display Name</label>
+                <input type="text" id="ai_displayName" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Model</label>
+                <input type="text" id="ai_model" class="input-field">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">System Prompt</label>
+              <textarea id="ai_systemPrompt" class="input-field" rows="3"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Channel IDs (comma-separated)</label>
+              <input type="text" id="ai_channelIds" class="input-field">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">History Size</label>
+                <input type="number" id="ai_historySize" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Batch Window (ms)</label>
+                <input type="number" id="ai_batchWindowMs" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Reply Cooldown (s)</label>
+                <input type="number" id="ai_replyCooldown" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Decision Cooldown (s)</label>
+                <input type="number" id="ai_decisionCooldown" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Replies / Hour</label>
+                <input type="number" id="ai_maxReplies" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Message Length</label>
+                <input type="number" id="ai_maxMessageLength" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Temperature</label>
+                <input type="number" step="any" id="ai_temperature" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Request Timeout (ms)</label>
+                <input type="number" id="ai_requestTimeout" class="input-field">
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Show Typing Indicator</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="ai_showTyping">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">API Key (write-only, leave empty to keep)</label>
+              <input type="password" id="ai_apiKey" class="input-field" autocomplete="off" placeholder="••••••••">
+            </div>
+            <button onclick="app.saveAiConfig()" class="btn-primary w-full">Save AI Settings</button>
+          </div>
+        </div>
+
+        <!-- Music -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🎵 Music</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="mus_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Host</label>
+                <input type="text" id="mus_host" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Port</label>
+                <input type="number" id="mus_port" class="input-field">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Password (write-only)</label>
+              <input type="password" id="mus_password" class="input-field" autocomplete="off" placeholder="••••••••">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Volume</label>
+                <input type="number" id="mus_volume" class="input-field">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Playlist Size</label>
+                <input type="number" id="mus_maxPlaylist" class="input-field">
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Allow Skip</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="mus_allowSkip">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Allow Repeat</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="mus_allowRepeat">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <button onclick="app.saveMusicConfig()" class="btn-primary w-full">Save Music Settings</button>
+          </div>
+        </div>
+
+        <!-- Moderation -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🛡️ Moderation</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="mod_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Log Channel ID</label>
+              <input type="text" id="mod_logChannelId" class="input-field">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Reason</label>
+              <input type="text" id="mod_defaultReason" class="input-field">
+            </div>
+            <button onclick="app.saveModerationConfig()" class="btn-primary w-full">Save Moderation Settings</button>
+          </div>
+        </div>
+
+        <!-- Economy -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">💰 Economy</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="eco_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Starting Balance (new users)</label>
+              <input type="number" id="eco_startingBalance" class="input-field">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Currency Name</label>
+              <input type="text" id="eco_currencyName" class="input-field">
+            </div>
+            <button onclick="app.saveEconomyConfig()" class="btn-primary w-full">Save Economy Settings</button>
+          </div>
+        </div>
+
+        <!-- TempVC -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🎙️ Temporary Voice</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="tvc_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Create Channel ID</label>
+              <input type="text" id="tvc_createChannelId" class="input-field">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Category ID</label>
+              <input type="text" id="tvc_categoryId" class="input-field">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Channel ID</label>
+              <input type="text" id="tvc_panelChannelId" class="input-field">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Message ID</label>
+              <input type="text" id="tvc_panelMessageId" class="input-field">
+            </div>
+            <button onclick="app.saveTempvcConfig()" class="btn-primary w-full">Save TempVC Settings</button>
+          </div>
+        </div>
+
+        <!-- Automation -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">⚙️ Automation</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="auto_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <p class="text-xs text-slate-500">Master switch for scheduled automation jobs. Individual jobs are managed in the database.</p>
+            <button onclick="app.saveAutomationConfig()" class="btn-primary w-full">Save Automation Settings</button>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
         <div class="stat-card">
           <h3 class="font-bold text-lg mb-4">Danger Zone</h3>
           <div class="space-y-3">

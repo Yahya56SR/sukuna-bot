@@ -198,6 +198,12 @@ export class DatabaseManager {
         created_at INTEGER NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS service_configs (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS guild_settings (
         guild_id TEXT PRIMARY KEY,
         welcome_enabled INTEGER NOT NULL DEFAULT 0,

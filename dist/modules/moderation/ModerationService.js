@@ -7,6 +7,7 @@ class ModerationService {
     constructor(logger) {
         this.client = null;
         this.db = null;
+        this.config = { enabled: true, logChannelId: '', defaultReason: '' };
         this.logger = logger;
     }
     setDb(db) {
@@ -17,6 +18,8 @@ class ModerationService {
         this.logger.info('Moderation Service', 'Moderation system initialized');
     }
     async warn(guildId, userId, moderatorId, reason) {
+        if (!this.config.enabled)
+            throw new Error('Moderation system is disabled');
         if (!this.db)
             throw new Error('Database not connected');
         const caseId = `warn_${Date.now()}`;
@@ -39,6 +42,8 @@ class ModerationService {
         return caseId;
     }
     async kick(guildId, userId, moderatorId, reason) {
+        if (!this.config.enabled)
+            throw new Error('Moderation system is disabled');
         const caseId = `kick_${Date.now()}`;
         const guild = this.client?.guilds.cache.get(guildId);
         const member = guild ? await guild.members.fetch(userId).catch(() => null) : null;
@@ -59,6 +64,8 @@ class ModerationService {
         return caseId;
     }
     async ban(guildId, userId, moderatorId, reason, deleteMessageDays = 0) {
+        if (!this.config.enabled)
+            throw new Error('Moderation system is disabled');
         const caseId = `ban_${Date.now()}`;
         const guild = this.client?.guilds.cache.get(guildId);
         if (guild) {
@@ -78,6 +85,8 @@ class ModerationService {
         return caseId;
     }
     async mute(guildId, userId, moderatorId, reason, durationMinutes) {
+        if (!this.config.enabled)
+            throw new Error('Moderation system is disabled');
         const caseId = `mute_${Date.now()}`;
         const expiresAt = Date.now() + durationMinutes * 60 * 1000;
         const guild = this.client?.guilds.cache.get(guildId);

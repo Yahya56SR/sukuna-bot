@@ -14,6 +14,7 @@ export interface BotStats {
 export class AnalyticsService {
   private logger: Logger;
   private db: DrizzleDb | null = null;
+  public config = { enabled: true };
   private startTime: number;
 
   constructor(logger: Logger) {

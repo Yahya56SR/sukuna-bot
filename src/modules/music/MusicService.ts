@@ -26,15 +26,25 @@ export interface MusicConfig {
 
 export class MusicService {
   private logger: Logger;
+  private config: MusicConfig;
   private db: DrizzleDb | null = null;
   private sessions: Map<string, any> = new Map();
 
-  constructor(logger: Logger, _config: MusicConfig) {
+  constructor(logger: Logger, config: MusicConfig) {
     this.logger = logger;
+    this.config = config;
   }
 
   public setDb(db: DrizzleDb): void {
     this.db = db;
+  }
+
+  public getConfig(): MusicConfig {
+    return this.config;
+  }
+
+  public setConfig(config: MusicConfig): void {
+    this.config = config;
   }
 
   public async initialize(): Promise<void> {

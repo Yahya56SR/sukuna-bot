@@ -5,13 +5,20 @@ const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../database/schema");
 class MusicService {
-    constructor(logger, _config) {
+    constructor(logger, config) {
         this.db = null;
         this.sessions = new Map();
         this.logger = logger;
+        this.config = config;
     }
     setDb(db) {
         this.db = db;
+    }
+    getConfig() {
+        return this.config;
+    }
+    setConfig(config) {
+        this.config = config;
     }
     async initialize() {
         this.logger.info('Music Service', 'Music system initialized');

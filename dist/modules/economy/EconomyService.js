@@ -7,6 +7,7 @@ const schema_1 = require("../../database/schema");
 class EconomyService {
     constructor(logger) {
         this.db = null;
+        this.config = { enabled: true, startingBalance: 0, currencyName: 'coins' };
         this.logger = logger;
     }
     setDb(db) {
@@ -26,7 +27,7 @@ class EconomyService {
                 discriminator: null,
                 avatar: null,
                 bot: false,
-                balance: 0,
+                balance: this.config.startingBalance ?? 0,
                 xp: 0,
                 level: 1,
                 total_xp: 0,
@@ -38,6 +39,8 @@ class EconomyService {
         return result[0].balance || 0;
     }
     async addBalance(userId, amount) {
+        if (!this.config.enabled)
+            throw new Error('Economy system is disabled');
         if (!this.db)
             return;
         const current = await this.getBalance(userId);
@@ -55,6 +58,8 @@ class EconomyService {
         });
     }
     async removeBalance(userId, amount) {
+        if (!this.config.enabled)
+            throw new Error('Economy system is disabled');
         if (!this.db)
             return false;
         const current = await this.getBalance(userId);

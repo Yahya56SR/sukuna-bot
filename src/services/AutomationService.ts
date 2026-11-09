@@ -14,9 +14,14 @@ export interface AutomationJob {
   nextRun: number;
 }
 
+export interface AutomationConfig {
+  enabled: boolean;
+}
+
 export class AutomationService {
   private logger: Logger;
   private db: DrizzleDb | null = null;
+  public config: AutomationConfig = { enabled: true };
   private jobs: Map<string, any> = new Map();
   private timer: NodeJS.Timeout | null = null;
 
@@ -40,6 +45,7 @@ export class AutomationService {
   }
 
   private async checkJobs(): Promise<void> {
+    if (!this.config.enabled) return;
     if (!this.db) return;
     const now = Date.now();
     const jobs = await this.db.select().from(automationJobs).where(eq(automationJobs.enabled, true));

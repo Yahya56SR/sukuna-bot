@@ -4,9 +4,16 @@ import { eq } from 'drizzle-orm';
 import { users, economyTransactions } from '../../database/schema';
 import type { DrizzleDb } from '../../types/database';
 
+export interface EconomyConfig {
+  enabled: boolean;
+  startingBalance: number;
+  currencyName: string;
+}
+
 export class EconomyService {
   private logger: Logger;
   private db: DrizzleDb | null = null;
+  public config: EconomyConfig = { enabled: true, startingBalance: 0, currencyName: 'coins' };
 
   constructor(logger: Logger) {
     this.logger = logger;
@@ -30,7 +37,7 @@ export class EconomyService {
         discriminator: null,
         avatar: null,
         bot: false,
-        balance: 0,
+        balance: this.config.startingBalance ?? 0,
         xp: 0,
         level: 1,
         total_xp: 0,
@@ -43,6 +50,7 @@ export class EconomyService {
   }
 
   public async addBalance(userId: string, amount: number): Promise<void> {
+    if (!this.config.enabled) throw new Error('Economy system is disabled');
     if (!this.db) return;
     const current = await this.getBalance(userId);
     await this.db.update(users)
@@ -61,6 +69,7 @@ export class EconomyService {
   }
 
   public async removeBalance(userId: string, amount: number): Promise<boolean> {
+    if (!this.config.enabled) throw new Error('Economy system is disabled');
     if (!this.db) return false;
     const current = await this.getBalance(userId);
     if (current < amount) return false;

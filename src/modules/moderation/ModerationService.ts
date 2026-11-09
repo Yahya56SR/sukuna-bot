@@ -4,10 +4,17 @@ import { eq, and } from 'drizzle-orm';
 import { warnings, moderationCases } from '../../database/schema';
 import type { DrizzleDb } from '../../types/database';
 
+export interface ModerationConfig {
+  enabled: boolean;
+  logChannelId: string;
+  defaultReason: string;
+}
+
 export class ModerationService {
   private client: Client | null = null;
   private logger: Logger;
   private db: DrizzleDb | null = null;
+  public config: ModerationConfig = { enabled: true, logChannelId: '', defaultReason: '' };
 
   constructor(logger: Logger) {
     this.logger = logger;
@@ -28,6 +35,7 @@ export class ModerationService {
     moderatorId: string,
     reason: string
   ): Promise<string> {
+    if (!this.config.enabled) throw new Error('Moderation system is disabled');
     if (!this.db) throw new Error('Database not connected');
     const caseId = `warn_${Date.now()}`;
 
@@ -58,6 +66,7 @@ export class ModerationService {
     moderatorId: string,
     reason: string
   ): Promise<string> {
+    if (!this.config.enabled) throw new Error('Moderation system is disabled');
     const caseId = `kick_${Date.now()}`;
 
     const guild = this.client?.guilds.cache.get(guildId);
@@ -88,6 +97,7 @@ export class ModerationService {
     reason: string,
     deleteMessageDays: number = 0
   ): Promise<string> {
+    if (!this.config.enabled) throw new Error('Moderation system is disabled');
     const caseId = `ban_${Date.now()}`;
 
     const guild = this.client?.guilds.cache.get(guildId);
@@ -117,6 +127,7 @@ export class ModerationService {
     reason: string,
     durationMinutes: number
   ): Promise<string> {
+    if (!this.config.enabled) throw new Error('Moderation system is disabled');
     const caseId = `mute_${Date.now()}`;
     const expiresAt = Date.now() + durationMinutes * 60 * 1000;
 
