@@ -3,11 +3,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommunityManager = void 0;
 const discord_js_1 = require("discord.js");
+const welcomecard_1 = require("../utils/welcomecard");
 class CommunityManager {
     constructor(logger, communityConfig) {
         this.client = null;
+        this.cardService = null;
         this.logger = logger;
         this.communityConfig = communityConfig;
+        // Back-compat: default sendImage on for existing configs
+        this.communityConfig.welcome.sendImage = this.communityConfig.welcome.sendImage ?? true;
+        this.communityConfig.welcome.welcomeImageMessage = this.communityConfig.welcome.welcomeImageMessage ?? 'Welcome {username} to {server}!';
+    }
+    setCardService(service) {
+        this.cardService = service;
+    }
+    setConfig(config) {
+        this.communityConfig = config;
+    }
+    getConfig() {
+        return this.communityConfig;
     }
     async initialize(client) {
         try {
@@ -31,6 +45,23 @@ class CommunityManager {
             await this.handleMemberLeave(member);
         });
     }
+    fillTemplate(template, member) {
+        return (template || '')
+            .replace(/\{user\}/g, `<@${member.id}>`)
+            .replace(/\{username\}/g, member.displayName ?? member.user?.username ?? member.user?.tag ?? 'New Member')
+            .replace(/\{server\}/g, member.guild?.name ?? '')
+            .replace(/\{memberCount\}/g, String(member.guild?.memberCount ?? ''))
+            .replace(/\{tag\}/g, member.user?.tag ?? '');
+    }
+    fillTemplateForImage(template, member) {
+        // Image cards can't render @mentions — use plain display name
+        return (template || '')
+            .replace(/\{user\}/g, member.displayName ?? member.user?.username ?? 'New Member')
+            .replace(/\{username\}/g, member.displayName ?? member.user?.username ?? 'New Member')
+            .replace(/\{server\}/g, member.guild?.name ?? '')
+            .replace(/\{memberCount\}/g, String(member.guild?.memberCount ?? ''))
+            .replace(/\{tag\}/g, member.user?.tag ?? '');
+    }
     async handleMemberJoin(member) {
         if (!this.communityConfig.welcome.enabled)
             return;
@@ -39,18 +70,66 @@ class CommunityManager {
             return;
         }
         try {
-            if (this.communityConfig.welcome.embed) {
+            const textMessage = this.fillTemplate(this.communityConfig.welcome.message, member);
+            const imageMessage = this.fillTemplateForImage(this.communityConfig.welcome.welcomeImageMessage || 'Welcome {username} to {server}!', member);
+            const shouldSendImage = this.communityConfig.welcome.sendImage !== false;
+            if (shouldSendImage) {
+                try {
+                    const tmpl = this.cardService?.getConfig?.()?.welcome;
+                    const buffer = await welcomecard_1.welcomeCard.generate({
+                        avatarUrl: member.user.displayAvatarURL({ extension: 'png', size: 256 }),
+                        displayName: member.displayName ?? member.user.username,
+                        guildName: member.guild.name,
+                        memberCount: member.guild.memberCount,
+                        welcomeMessage: imageMessage,
+                        template: tmpl,
+                    });
+                    const file = new discord_js_1.AttachmentBuilder(buffer, { name: 'welcome.png' });
+                    if (this.communityConfig.welcome.embed) {
+                        const embed = new discord_js_1.EmbedBuilder()
+                            .setColor('#ef4444')
+                            .setTitle('🎉 Welcome!')
+                            .setDescription(textMessage)
+                            .setThumbnail(member.user.displayAvatarURL())
+                            .setImage('attachment://welcome.png')
+                            .setFooter({ text: member.guild.name })
+                            .setTimestamp();
+                        await channel.send({ embeds: [embed], files: [file] });
+                    }
+                    else {
+                        await channel.send({ content: textMessage, files: [file] });
+                    }
+                }
+                catch (cardErr) {
+                    this.logger.warn('Community Manager', 'Welcome card render failed, sending text only', cardErr);
+                    // Fallback to text/embed without image
+                    if (this.communityConfig.welcome.embed) {
+                        const embed = new discord_js_1.EmbedBuilder()
+                            .setColor('#ef4444')
+                            .setTitle('🎉 Welcome!')
+                            .setDescription(textMessage)
+                            .setThumbnail(member.user.displayAvatarURL())
+                            .setFooter({ text: member.guild.name })
+                            .setTimestamp();
+                        await channel.send({ embeds: [embed] });
+                    }
+                    else {
+                        await channel.send(textMessage);
+                    }
+                }
+            }
+            else if (this.communityConfig.welcome.embed) {
                 const embed = new discord_js_1.EmbedBuilder()
-                    .setColor('#00ff00')
+                    .setColor('#ef4444')
                     .setTitle('🎉 Welcome!')
-                    .setDescription(this.communityConfig.welcome.message.replace('{user}', member.user.tag).replace('{server}', member.guild.name))
+                    .setDescription(textMessage)
                     .setThumbnail(member.user.displayAvatarURL())
                     .setFooter({ text: member.guild.name })
                     .setTimestamp();
                 await channel.send({ embeds: [embed] });
             }
             else {
-                await channel.send(this.communityConfig.welcome.message.replace('{user}', member.user.tag).replace('{server}', member.guild.name));
+                await channel.send(textMessage);
             }
             this.logger.info('Community Manager', `Welcome message sent for ${member.user.tag} in ${member.guild.name}`);
         }
@@ -66,18 +145,19 @@ class CommunityManager {
             return;
         }
         try {
+            const message = this.fillTemplate(this.communityConfig.goodbye.message, member);
             if (this.communityConfig.goodbye.embed) {
                 const embed = new discord_js_1.EmbedBuilder()
                     .setColor('#ff0000')
                     .setTitle('👋 Goodbye!')
-                    .setDescription(this.communityConfig.goodbye.message.replace('{user}', member.user.tag).replace('{server}', member.guild.name))
+                    .setDescription(message)
                     .setThumbnail(member.user.displayAvatarURL())
                     .setFooter({ text: member.guild.name })
                     .setTimestamp();
                 await channel.send({ embeds: [embed] });
             }
             else {
-                await channel.send(this.communityConfig.goodbye.message.replace('{user}', member.user.tag).replace('{server}', member.guild.name));
+                await channel.send(message);
             }
             this.logger.info('Community Manager', `Goodbye message sent for ${member.user.tag} in ${member.guild.name}`);
         }

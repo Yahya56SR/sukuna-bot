@@ -34,6 +34,24 @@
     .alert-error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; }
     .alert-success { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); color: #4ade80; }
     .alert-info { background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.25); color: #60a5fa; }
+    /* Friendly editor primitives (no raw JSON) */
+    .subcard { border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; padding: 1rem; background: rgba(255,255,255,0.02); }
+    .field-label { display:block; font-size:0.7rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#94a3b8; margin-bottom:0.4rem; }
+    .hint { font-size:0.75rem; color:#64748b; margin-top:0.35rem; }
+    .chip-row { display:flex; flex-wrap:wrap; gap:0.5rem; }
+    .chip { display:inline-flex; align-items:center; gap:0.35rem; padding:0.3rem 0.6rem; border-radius:9999px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); font-size:0.8rem; }
+    .checklist { max-height: 11rem; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:0.75rem; padding:0.5rem; display:flex; flex-direction:column; gap:0.25rem; background:rgba(2,6,23,0.5); }
+    .checklist label { display:flex; align-items:center; gap:0.5rem; padding:0.35rem 0.5rem; border-radius:0.5rem; font-size:0.85rem; cursor:pointer; }
+    .checklist label:hover { background:rgba(255,255,255,0.05); }
+    .row-editor { display:flex; flex-direction:column; gap:0.5rem; }
+    .row-item { border:1px solid rgba(255,255,255,0.08); border-radius:0.85rem; padding:0.75rem; background:rgba(255,255,255,0.02); display:grid; gap:0.5rem; }
+    .color-wrap { display:flex; gap:0.5rem; align-items:center; }
+    .color-wrap input[type=color] { width:2.6rem; height:2.6rem; padding:0; border:1px solid rgba(255,255,255,0.15); border-radius:0.6rem; background:transparent; cursor:pointer; }
+    .placeholder-btn { font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); cursor:pointer; }
+    .placeholder-btn:hover { background:rgba(239,68,68,0.15); border-color:rgba(239,68,68,0.4); }
+    .preview-img { width:100%; border-radius:0.85rem; border:1px solid rgba(255,255,255,0.1); background:#0b1120; }
+    .range-row { display:flex; align-items:center; gap:0.6rem; }
+    .range-row input[type=range] { flex:1; accent-color:#ef4444; }
   </style>
 </head>
 <body class="min-h-screen text-slate-200">
@@ -57,6 +75,7 @@
         <button onclick="app.openPage('moderation')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="moderation">Moderation</button>
         <button onclick="app.openPage('economy')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="economy">Economy</button>
         <button onclick="app.openPage('leveling')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="leveling">Leveling</button>
+        <button onclick="app.openPage('cards')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="cards">Cards</button>
         <button onclick="app.openPage('settings')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="settings">Settings</button>
         <button onclick="app.openPage('system')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="system">System</button>
         <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-900 flex items-center justify-center text-xs font-bold cursor-pointer ml-4" onclick="app.showUserMenu()">👤</div>
@@ -533,7 +552,11 @@
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Color</label>
-                <input type="text" id="lvl_defaultColor" class="input-field">
+                <div class="color-wrap">
+                  <input type="color" id="lvl_defaultColorPicker" value="#0099ff">
+                  <input type="text" id="lvl_defaultColor" class="input-field" placeholder="#0099ff">
+                </div>
+                <p class="hint">Pick a color for level-up announcements.</p>
               </div>
               <div class="flex items-center justify-between pt-6">
                 <span class="text-sm text-slate-300">Ignore Bots</span>
@@ -613,26 +636,108 @@
                 <input type="number" step="any" id="lvl_mult_booster" class="input-field">
               </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">No XP Channels (JSON list)</label>
-              <textarea id="lvl_noXpChannels" class="input-field" rows="2"></textarea>
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">🚫 No-XP Channels</h4>
+              <p class="hint mb-2">Members earn no XP in these channels. Pick from your servers — no IDs needed.</p>
+              <div class="flex gap-2 mb-2">
+                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
+                <button type="button" onclick="app.clearChannelSelection('noXp')" class="btn-ghost text-sm">Clear</button>
+              </div>
+              <div id="lvl_noXpChannelsUI" class="checklist">
+                <span class="hint">Loading channels… pick a server in the Leveling page first, then return here.</span>
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Whitelist (JSON list)</label>
-              <textarea id="lvl_xpWhitelist" class="input-field" rows="2"></textarea>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">✅ XP Whitelist</h4>
+              <p class="hint mb-2">If set, XP is earned ONLY in these channels. Leave empty to allow XP everywhere (except No-XP).</p>
+              <div class="flex gap-2 mb-2">
+                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
+                <button type="button" onclick="app.clearChannelSelection('whitelist')" class="btn-ghost text-sm">Clear</button>
+              </div>
+              <div id="lvl_xpWhitelistUI" class="checklist">
+                <span class="hint">Loading channels…</span>
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Custom XP Table (JSON)</label>
-              <textarea id="lvl_customXpTable" class="input-field" rows="2"></textarea>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">🧮 XP per Level (Custom curve)</h4>
+              <p class="hint mb-2">Only used when Formula = Custom. Each row: Total XP needed to reach that level.</p>
+              <div id="lvl_customXpTableUI" class="row-editor"></div>
+              <div class="flex gap-2 mt-3">
+                <button type="button" onclick="app.addCustomXpRow()" class="btn-secondary flex-1 text-sm">+ Add level</button>
+                <button type="button" onclick="app.generateMelee6Table()" class="btn-ghost text-sm">Generate MEE6 curve</button>
+                <button type="button" onclick="app.clearCustomXpTable()" class="btn-ghost text-sm">Clear</button>
+              </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Level Roles (JSON)</label>
-              <textarea id="lvl_levelRoles" class="input-field" rows="2"></textarea>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">🛡️ Who counts as Staff?</h4>
+              <p class="hint mb-2">Members with any of these roles are on the <b>staff track</b> (staff gift roles + staff announcements). Members with Manage Messages / Kick / Ban / Admin are always treated as staff too.</p>
+              <div id="lvl_staffRolesUI" class="checklist">
+                <span class="hint">Loading roles… pick a server in the Leveling page first.</span>
+              </div>
+              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Channels (JSON)</label>
-              <textarea id="lvl_announceChannels" class="input-field" rows="2"></textarea>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">🎁 Level Roles</h4>
+              <p class="hint mb-2">Both tracks use the <b>same XP curve</b> — only the gift roles differ. “Replaces lower” only affects the same track.</p>
+
+              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Roles</h5>
+              <div id="lvl_memberRolesUI" class="row-editor"></div>
+              <div class="mt-2">
+                <button type="button" onclick="app.addLevelRoleRow('member')" class="btn-secondary w-full text-sm">+ Add member role</button>
+              </div>
+
+              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Roles</h5>
+              <div id="lvl_staffLevelRolesUI" class="row-editor"></div>
+              <div class="mt-2">
+                <button type="button" onclick="app.addLevelRoleRow('staff')" class="btn-secondary w-full text-sm">+ Add staff role</button>
+              </div>
+              <!-- legacy container kept for compat (hidden) -->
+              <div id="lvl_levelRolesUI" class="hidden"></div>
             </div>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">📣 Level-Up Announcements</h4>
+              <p class="hint mb-2">Staff level-ups go to the <b>staff channel</b>; member level-ups go to the <b>member channel</b>. If a track has no channel, it falls back to the other track.</p>
+
+              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Announcements</h5>
+              <div id="lvl_memberAnnounceUI" class="row-editor"></div>
+              <div class="mt-2">
+                <button type="button" onclick="app.addAnnounceChannelRow('member')" class="btn-secondary w-full text-sm">+ Add member channel</button>
+              </div>
+
+              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Announcements</h5>
+              <div id="lvl_staffAnnounceUI" class="row-editor"></div>
+              <div class="mt-2">
+                <button type="button" onclick="app.addAnnounceChannelRow('staff')" class="btn-secondary w-full text-sm">+ Add staff channel</button>
+              </div>
+              <!-- legacy container kept for compat (hidden) -->
+              <div id="lvl_announceChannelsUI" class="hidden"></div>
+            </div>
+
+            <div class="subcard">
+              <h4 class="text-sm font-bold text-slate-300 mb-1">⚡ Role XP Multipliers</h4>
+              <p class="hint mb-2">Extra XP for members with specific roles (e.g. Booster ×2). Multipliers stack.</p>
+              <div id="lvl_roleMultipliersUI" class="row-editor"></div>
+              <div class="flex gap-2 mt-3">
+                <button type="button" onclick="app.addRoleMultiplierRow()" class="btn-secondary flex-1 text-sm">+ Add multiplier</button>
+              </div>
+            </div>
+
+            <!-- Legacy hidden fields (kept for backward-compatible saves / tests) -->
+            <textarea id="lvl_noXpChannels" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_xpWhitelist" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_customXpTable" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_levelRoles" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_announceChannels" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_memberLevelRoles" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_staffLevelRoles" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_memberAnnounce" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_staffAnnounce" class="hidden" rows="2"></textarea>
+            <textarea id="lvl_staffRoles" class="hidden" rows="2"></textarea>
             <button onclick="app.saveLevelingConfig()" class="btn-primary w-full">Save Leveling Settings</button>
           </div>
         </div>
@@ -663,8 +768,16 @@
               <textarea id="ai_systemPrompt" class="input-field" rows="3"></textarea>
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Channel IDs (comma-separated)</label>
-              <input type="text" id="ai_channelIds" class="input-field">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">AI Channel IDs (comma-separated)</label>
+              <input type="text" id="ai_channelIds" class="input-field" placeholder="e.g. 1234567890, 0987654321">
+              <p class="hint">Tip: pick channels below, or paste IDs. Empty = listens nowhere.</p>
+              <div id="ai_channelPickerUI" class="checklist mt-2">
+                <span class="hint">Loading channels…</span>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
+                <button type="button" onclick="app.syncAiChannelPicker()" class="btn-ghost text-sm">Apply picker to text field</button>
+              </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
@@ -780,8 +893,13 @@
               </label>
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Log Channel ID</label>
-              <input type="text" id="mod_logChannelId" class="input-field">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Log Channel</label>
+              <select id="mod_logChannelId" class="input-field">
+                <option value="">No log channel</option>
+              </select>
+              <input type="text" id="mod_logChannelIdManual" class="input-field mt-2" placeholder="Or paste a channel ID manually">
+              <p class="hint">Moderation cases are posted here.</p>
+              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh channels</button>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Reason</label>
@@ -826,21 +944,31 @@
               </label>
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Create Channel ID</label>
-              <input type="text" id="tvc_createChannelId" class="input-field">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Create Channel</label>
+              <select id="tvc_createChannelId" class="input-field">
+                <option value="">Select…</option>
+              </select>
+              <input type="text" id="tvc_createChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Category ID</label>
-              <input type="text" id="tvc_categoryId" class="input-field">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Category</label>
+              <select id="tvc_categoryId" class="input-field">
+                <option value="">Select…</option>
+              </select>
+              <input type="text" id="tvc_categoryIdManual" class="input-field mt-2" placeholder="Or paste ID">
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Channel ID</label>
-              <input type="text" id="tvc_panelChannelId" class="input-field">
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Channel</label>
+              <select id="tvc_panelChannelId" class="input-field">
+                <option value="">Select…</option>
+              </select>
+              <input type="text" id="tvc_panelChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Message ID</label>
-              <input type="text" id="tvc_panelMessageId" class="input-field">
+              <input type="text" id="tvc_panelMessageId" class="input-field" placeholder="Filled after panel is posted">
             </div>
+            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm">Refresh channels</button>
             <button onclick="app.saveTempvcConfig()" class="btn-primary w-full">Save TempVC Settings</button>
           </div>
         </div>
@@ -861,6 +989,157 @@
           </div>
         </div>
 
+        <!-- Welcome / Goodbye -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">👋 Welcome</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Welcome enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="wel_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome channel</label>
+              <select id="wel_channel" class="input-field">
+                <option value="">No channel</option>
+              </select>
+              <input type="text" id="wel_channelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome message (also sent as text)</label>
+              <textarea id="wel_message" class="input-field" rows="3" placeholder="Welcome {user} to {server}! 🎉"></textarea>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{user}')">+ {user}</button>
+                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{username}')">+ {username}</button>
+                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{server}')">+ {server}</button>
+                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{memberCount}')">+ {memberCount}</button>
+              </div>
+              <p class="hint">{user} pings the member. {username} = display name (for images).</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome image text</label>
+              <textarea id="wel_imageMessage" class="input-field" rows="2" placeholder="Welcome {username} to {server}!"></textarea>
+              <p class="hint">Drawn on the welcome card. Images can't ping — use {username}.</p>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Send welcome card image</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="wel_sendImage" checked>
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Use embed for text</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="wel_embed" checked>
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Goodbye enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="bye_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye channel</label>
+              <select id="bye_channel" class="input-field">
+                <option value="">No channel</option>
+              </select>
+              <input type="text" id="bye_channelManual" class="input-field mt-2" placeholder="Or paste ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye message</label>
+              <textarea id="bye_message" class="input-field" rows="2" placeholder="Goodbye {username}, we will miss you!"></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
+              <button type="button" onclick="app.testWelcome()" class="btn-secondary flex-1 text-sm">Send test welcome</button>
+            </div>
+            <button onclick="app.saveCommunityConfig()" class="btn-primary w-full">Save Welcome Settings</button>
+          </div>
+        </div>
+
+        <!-- Tickets -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🎫 Tickets</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="tix_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Ticket category</label>
+              <select id="tix_category" class="input-field">
+                <option value="">No category (root)</option>
+              </select>
+              <input type="text" id="tix_categoryManual" class="input-field mt-2" placeholder="Or paste category ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Support roles (staff who see tickets)</label>
+              <div id="tix_supportRolesUI" class="checklist">
+                <span class="hint">Loading roles…</span>
+              </div>
+              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+            </div>
+            <button onclick="app.saveTicketsConfig()" class="btn-primary w-full">Save Ticket Settings</button>
+          </div>
+        </div>
+
+        <!-- Staff Applications -->
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">🛡️ Staff Applications</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="sapp_enabled">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <p class="hint">Flow: <b>1.</b> pick a staff role → <b>2.</b> answer questions (modal) → <b>3.</b> an <b>Admin</b> approves/denies with buttons. Only admins (Administrator permission or an **Admin**-named role; or the roles below) can review.</p>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Open staff roles</label>
+              <div id="sapp_staffRolesUI" class="checklist">
+                <span class="hint">Loading roles…</span>
+              </div>
+              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Approver roles (optional)</label>
+              <div id="sapp_approverRolesUI" class="checklist">
+                <span class="hint">Loading roles… empty = Administrator permission or an “Admin” role.</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel channel</label>
+              <select id="sapp_panelChannel" class="input-field">
+                <option value="">No panel</option>
+              </select>
+              <input type="text" id="sapp_panelChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Review channel (where admins approve)</label>
+              <select id="sapp_reviewChannel" class="input-field">
+                <option value="">Same as panel</option>
+              </select>
+              <input type="text" id="sapp_reviewChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Questions (one per line, max 45 chars each)</label>
+              <textarea id="sapp_questions" class="input-field" rows="5" placeholder="Why do you want to join the staff team?&#10;How active are you on Discord?"></textarea>
+              <p class="hint">Applicants see these in a modal, 5 at a time. Keep each short.</p>
+            </div>
+            <button onclick="app.saveStaffAppsConfig()" class="btn-primary w-full">Save Application Settings</button>
+          </div>
+        </div>
+
         <!-- Danger zone -->
         <div class="stat-card">
           <h3 class="font-bold text-lg mb-4">Danger Zone</h3>
@@ -871,6 +1150,134 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- Cards Page -->
+    <section id="page-cards" class="page">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold">Cards</h2>
+        <p class="text-slate-400">Design the welcome banner and MEE6-style rank cards. Changes preview live and apply to the next join / /rank.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Welcome card editor -->
+        <div class="stat-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">👋 Welcome Card</h3>
+            <div class="flex gap-2">
+              <button type="button" onclick="app.previewCard('welcome')" class="btn-secondary text-sm">Preview</button>
+              <button type="button" onclick="app.testCard('welcome')" class="btn-ghost text-sm">Send test</button>
+            </div>
+          </div>
+          <div class="mb-4">
+            <img id="cardWelcomePreview" class="preview-img" alt="Welcome preview">
+            <p class="hint mt-1">Server-rendered preview — what new members will see.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="field-label">Gradient start</label>
+              <div class="color-wrap"><input type="color" id="card_welcome_bgStartPicker" value="#1e1f3a"><input type="text" id="card_welcome_bgStart" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Gradient end</label>
+              <div class="color-wrap"><input type="color" id="card_welcome_bgEndPicker" value="#171831"><input type="text" id="card_welcome_bgEnd" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Accent</label>
+              <div class="color-wrap"><input type="color" id="card_welcome_accentPicker" value="#ef4444"><input type="text" id="card_welcome_accent" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Accent 2</label>
+              <div class="color-wrap"><input type="color" id="card_welcome_accent2Picker" value="#f97316"><input type="text" id="card_welcome_accent2" class="input-field"></div>
+            </div>
+            <div class="col-span-2">
+              <label class="field-label">Background image (optional URL or path)</label>
+              <input type="text" id="card_welcome_bgImage" class="input-field" placeholder="https://… or assets/bg.jpg — leave empty for gradient">
+            </div>
+            <div>
+              <label class="field-label">Overlay darkness</label>
+              <div class="range-row"><input type="range" id="card_welcome_overlay" min="0" max="0.85" step="0.05" value="0.55"><span id="card_welcome_overlayVal" class="text-sm font-mono">0.55</span></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 pt-6">
+              <span class="text-sm text-slate-300">Show member count</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="card_welcome_showCount" checked>
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="col-span-2">
+              <label class="field-label">Sample welcome text (placeholders work)</label>
+              <input type="text" id="card_welcome_sampleText" class="input-field" value="Welcome {username} to {server}!">
+              <div>
+                <label class="field-label mt-2">Sample name</label>
+                <input type="text" id="card_welcome_sampleName" class="input-field" value="TestUser">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rank card editor -->
+        <div class="stat-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">📈 Rank Card</h3>
+            <div class="flex gap-2">
+              <button type="button" onclick="app.previewCard('rank')" class="btn-secondary text-sm">Preview</button>
+              <button type="button" onclick="app.testCard('rank')" class="btn-ghost text-sm">Send test</button>
+            </div>
+          </div>
+          <div class="mb-4">
+            <img id="cardRankPreview" class="preview-img" alt="Rank preview">
+            <p class="hint mt-1">Shown by /rank and /level — MEE6-style card.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="field-label">Gradient start</label>
+              <div class="color-wrap"><input type="color" id="card_rank_bgStartPicker" value="#1e1f3a"><input type="text" id="card_rank_bgStart" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Gradient end</label>
+              <div class="color-wrap"><input type="color" id="card_rank_bgEndPicker" value="#171831"><input type="text" id="card_rank_bgEnd" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Progress accent</label>
+              <div class="color-wrap"><input type="color" id="card_rank_accentPicker" value="#ef4444"><input type="text" id="card_rank_accent" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Progress accent 2</label>
+              <div class="color-wrap"><input type="color" id="card_rank_accent2Picker" value="#f97316"><input type="text" id="card_rank_accent2" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Rank color</label>
+              <div class="color-wrap"><input type="color" id="card_rank_rankPicker" value="#f0b232"><input type="text" id="card_rank_rank" class="input-field"></div>
+            </div>
+            <div>
+              <label class="field-label">Level color</label>
+              <div class="color-wrap"><input type="color" id="card_rank_levelPicker" value="#00b0f4"><input type="text" id="card_rank_level" class="input-field"></div>
+            </div>
+            <div class="col-span-2">
+              <label class="field-label">Background image (optional)</label>
+              <input type="text" id="card_rank_bgImage" class="input-field" placeholder="https://… or assets/bg.jpg">
+            </div>
+            <div>
+              <label class="field-label">Overlay darkness</label>
+              <div class="range-row"><input type="range" id="card_rank_overlay" min="0" max="0.85" step="0.05" value="0.35"><span id="card_rank_overlayVal" class="text-sm font-mono">0.35</span></div>
+            </div>
+            <div class="flex items-center justify-between gap-3 pt-6">
+              <span class="text-sm text-slate-300">Show server name</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="card_rank_showGuild" checked>
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-col sm:flex-row gap-3">
+        <button onclick="app.saveCardsConfig()" class="btn-primary flex-1">Save card design</button>
+        <button onclick="app.loadCardsConfig()" class="btn-secondary flex-1">Reload saved design</button>
+      </div>
+      <p class="hint mt-2">Designs are stored on the bot and survive restarts. Background images are fetched when the card renders — use a public URL or a path inside the bot project.</p>
     </section>
 
     <!-- System Page -->

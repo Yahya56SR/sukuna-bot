@@ -76,10 +76,12 @@ class TempVCCommands {
             return;
         }
         const embed = new discord_js_1.EmbedBuilder()
-            .setColor(0x5865f2)
-            .setTitle('🔊 Temporary Voice Control Panel')
-            .setDescription('Use the buttons below to manage your temporary voice channel. ' +
-            'Buttons only work when you are in a temp VC you own (or claimed).')
+            .setColor(0xef4444)
+            .setTitle('🔊 Temporary Voice — Sukuna')
+            .setDescription(`Join <#${cfg.createChannelId}> and a private room opens for you instantly.\n\n` +
+            'Use the buttons below while you are inside your room to rename it, set a limit, lock/hide it, or delete it. Only the room owner (or whoever claims an abandoned room) can manage it.')
+            .addFields({ name: '✨ How it works', value: `1. Join <#${cfg.createChannelId}>\n2. Your room appears in <#${cfg.categoryId}>\n3. Manage it with the buttons`, inline: true }, { name: '🎛️ Controls', value: 'Rename • Limit • Lock/Unlock\nHide/Show • Invite • Kick\nClaim • Delete', inline: true })
+            .setFooter({ text: 'Sukuna Bot • TempVC' })
             .setTimestamp();
         const rows = this.service.getPanelButtons();
         const existingMessageId = cfg.panelMessageId;

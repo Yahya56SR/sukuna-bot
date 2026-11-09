@@ -327,11 +327,15 @@ class TempVCService {
     async postPanel(channel) {
         if (!this.config)
             return null;
+        const createMention = this.config.createChannelId ? `<#${this.config.createChannelId}>` : '`Create VC`';
+        const categoryMention = this.config.categoryId ? `<#${this.config.categoryId}>` : 'a category';
         const embed = new discord_js_1.EmbedBuilder()
-            .setColor(0x5865f2)
-            .setTitle('🔊 Temporary Voice Control Panel')
-            .setDescription('Use the buttons below to manage your temporary voice channel. ' +
-            'Buttons only work when you are in a temp VC you own (or claimed).')
+            .setColor(0xef4444)
+            .setTitle('🔊 Temporary Voice — Sukuna')
+            .setDescription(`Join ${createMention} and a private room opens for you instantly.\n\n` +
+            'Use the buttons below while you are inside your room to rename it, set a limit, lock/hide it, or delete it. Only the room owner (or whoever claims an abandoned room) can manage it.')
+            .addFields({ name: '✨ How it works', value: `1. Join ${createMention}\n2. Your room appears in ${categoryMention}\n3. Manage it with the buttons (or \`/tempvc\` commands)`, inline: true }, { name: '🎛️ Controls', value: 'Rename • Limit • Lock/Unlock\nHide/Show • Invite • Kick\nClaim (if abandoned) • Delete', inline: true }, { name: '💡 Tips', value: 'Empty rooms auto-delete.\nCreate is instant — no queue.\nOwners can set a member limit.', inline: true })
+            .setFooter({ text: 'Sukuna Bot • TempVC' })
             .setTimestamp();
         const rows = this.getPanelButtons();
         let message = null;

@@ -5,6 +5,9 @@ import os from 'os';
 import { eq } from 'drizzle-orm';
 import { Logger } from '../infrastructure/Logger';
 import { guildSettings } from '../database/schema';
+import { getDefaultCardConfig } from '../config/CardTemplates';
+import { welcomeCard } from '../utils/welcomecard';
+import { rankCard, leaderboardCard } from '../utils/rankcard';
 
 export class WebServer {
   private app: express.Application;
@@ -407,6 +410,182 @@ export class WebServer {
       }
     });
 
+    // ---- Cards: welcome + rank templates (web editor) ----
+    // Dedicated routes before the generic /api/config/:service fallback.
+    // GET returns the live templates; preview renders server-side PNG and
+    // returns it as base64 so the browser editor can show it live.
+    this.app.get('/api/cards/config', (_req: any, res: any) => {
+      try {
+        const cfg = this.appRef.cards?.getConfig?.() ?? getDefaultCardConfig();
+        res.json(cfg);
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch card config' });
+      }
+    });
+
+    this.app.put('/api/cards/config', (req: any, res: any) => {
+      try {
+        const saved = this.appRef.cards?.setConfig?.(req.body ?? {}) ?? getDefaultCardConfig();
+        this.persistServiceConfig('cards');
+        res.json({ success: true, config: saved });
+      } catch (err: any) {
+        res.status(500).json({ error: err.message || 'Failed to save card config' });
+      }
+    });
+
+    this.app.post('/api/cards/preview', async (req: any, res: any) => {
+      try {
+        const { type, template, sample } = req.body ?? {};
+        const base = this.appRef.cards?.getConfig?.() ?? getDefaultCardConfig();
+        const merged = { ...base, ...(template ?? {}) };
+
+        if (type === 'welcome') {
+          const s = sample ?? {};
+          const buffer = await welcomeCard.generate({
+            avatarUrl: s.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png',
+            displayName: s.displayName || 'TestUser',
+            guildName: s.guildName || 'Test Server',
+            memberCount: s.memberCount ?? 42,
+            welcomeMessage: s.welcomeMessage || 'Welcome {username} to {server}!',
+            template: merged.welcome,
+          });
+          res.set('Content-Type', 'image/png');
+          res.send(buffer);
+          return;
+        }
+
+        if (type === 'rank') {
+          const s = sample ?? {};
+          const buffer = await rankCard.generate({
+            avatarUrl: s.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png',
+            username: s.username || 'TestUser',
+            level: s.level ?? 12,
+            rank: s.rank ?? 3,
+            totalRanked: s.totalRanked ?? 128,
+            xpIntoLevel: s.xpIntoLevel ?? 720,
+            xpNeeded: s.xpNeeded ?? 1100,
+            totalXp: s.totalXp ?? 4675,
+            guildName: s.guildName || 'Test Server',
+            template: merged.rank,
+          });
+          res.set('Content-Type', 'image/png');
+          res.send(buffer);
+          return;
+        }
+
+        if (type === 'leaderboard') {
+          const rows = (sample?.rows ?? [
+            { userId: '1', username: 'Alpha', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/0.png', level: 24, totalXp: 12000 },
+            { userId: '2', username: 'Beta', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/1.png', level: 21, totalXp: 9800 },
+            { userId: '3', username: 'Gamma', avatarUrl: 'https://cdn.discordapp.com/embed/avatars/2.png', level: 19, totalXp: 8400 },
+          ]);
+          const buffer = await leaderboardCard.generate(rows, sample?.guildName || 'Test Server', '🏆 Top members', merged.leaderboard);
+          res.set('Content-Type', 'image/png');
+          res.send(buffer);
+          return;
+        }
+
+        res.status(400).json({ error: 'type must be welcome | rank | leaderboard' });
+      } catch (err: any) {
+        this.logger.error('Web Server', 'POST /api/cards/preview failed', err);
+        res.status(500).json({ error: err.message || 'Preview failed' });
+      }
+    });
+
+    this.app.post('/api/cards/test', async (req: any, res: any) => {
+      try {
+        const { type, channelId } = req.body ?? {};
+        const client = this.appRef.getClient?.();
+        if (!client?.isReady?.()) {
+          return res.status(400).json({ error: 'Discord client not ready — cannot send test yet.' });
+        }
+        const targetChannelId = channelId || this.appRef.community?.getConfig?.()?.welcome?.channel;
+        if (!targetChannelId) {
+          return res.status(400).json({ error: 'No channel configured. Pass channelId or set a welcome channel first.' });
+        }
+        const channel = await client.channels.fetch(targetChannelId).catch(() => null);
+        if (!channel || !('send' in channel)) {
+          return res.status(404).json({ error: 'Channel not found or not writable.' });
+        }
+
+        const { AttachmentBuilder } = require('discord.js');
+        const base = this.appRef.cards?.getConfig?.() ?? getDefaultCardConfig();
+
+        if (type === 'welcome') {
+          const buffer = await welcomeCard.generate({
+            avatarUrl: client.user?.displayAvatarURL?.({ extension: 'png', size: 256 }) || 'https://cdn.discordapp.com/embed/avatars/0.png',
+            displayName: client.user?.username || 'TestUser',
+            guildName: channel.guild?.name || 'Test Server',
+            memberCount: channel.guild?.memberCount ?? 42,
+            welcomeMessage: req.body?.welcomeMessage || 'Welcome {username} to {server}! 🎉',
+            template: base.welcome,
+          });
+          await channel.send({ files: [new AttachmentBuilder(buffer, { name: 'welcome.png' })] });
+          res.json({ success: true, channelId: targetChannelId });
+          return;
+        }
+
+        if (type === 'rank') {
+          const buffer = await rankCard.generate({
+            avatarUrl: client.user?.displayAvatarURL?.({ extension: 'png', size: 256 }) || 'https://cdn.discordapp.com/embed/avatars/0.png',
+            username: client.user?.username || 'TestUser',
+            level: 12,
+            rank: 3,
+            totalRanked: 128,
+            xpIntoLevel: 720,
+            xpNeeded: 1100,
+            totalXp: 4675,
+            guildName: channel.guild?.name || 'Test Server',
+            template: base.rank,
+          });
+          await channel.send({ files: [new AttachmentBuilder(buffer, { name: 'rank.png' })] });
+          res.json({ success: true, channelId: targetChannelId });
+          return;
+        }
+
+        res.status(400).json({ error: 'type must be welcome | rank' });
+      } catch (err: any) {
+        res.status(500).json({ error: err.message || 'Test send failed' });
+      }
+    });
+
+    // ---- Community (welcome/goodbye) ----
+    this.app.get('/api/config/community', (_req: any, res: any) => {
+      try {
+        const cfg = this.appRef.community?.getConfig?.() ?? null;
+        res.json(cfg ?? {});
+      } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch community config' });
+      }
+    });
+
+    this.app.post('/api/config/community', (req: any, res: any) => {
+      try {
+        const current = this.appRef.community?.getConfig?.();
+        if (!current) return res.status(404).json({ error: 'Community service not available' });
+        const incoming = req.body ?? {};
+        // Merge welcome/goodbye/autoroles safely (only known keys)
+        for (const section of ['welcome', 'goodbye', 'autoroles'] as const) {
+          if (incoming[section] && typeof incoming[section] === 'object') {
+            for (const k of Object.keys(incoming[section])) {
+              if (k in current[section]) {
+                const prev = current[section][k];
+                const val = (incoming[section] as any)[k];
+                if (typeof prev === 'boolean') (current[section] as any)[k] = Boolean(val);
+                else if (typeof prev === 'string') (current[section] as any)[k] = String(val ?? '');
+                else (current[section] as any)[k] = val;
+              }
+            }
+          }
+        }
+        this.appRef.community.setConfig(current);
+        this.persistServiceConfig('community');
+        res.json({ success: true, config: current });
+      } catch (err: any) {
+        res.status(500).json({ error: err.message || 'Failed to update community config' });
+      }
+    });
+
     // ---- Logs ----
     this.app.get('/api/logs', (_req: any, res: any) => {
       const level = _req.query.level as any;
@@ -517,7 +696,7 @@ export class WebServer {
   }
 
   private static readonly CONFIG_SERVICES = [
-    'bot', 'leveling', 'ai', 'music', 'moderation', 'economy', 'automation', 'analytics', 'tempvc', 'web',
+    'bot', 'leveling', 'ai', 'music', 'moderation', 'economy', 'automation', 'analytics', 'tempvc', 'web', 'cards', 'community', 'tickets', 'staffapps',
   ];
 
   /** Raw (unmasked) config object for a service, or null if unavailable. */
@@ -544,6 +723,14 @@ export class WebServer {
         return app.analytics?.config ?? null;
       case 'web':
         return { port: this.port };
+      case 'cards':
+        return app.cards?.getConfig?.() ?? getDefaultCardConfig();
+      case 'community':
+        return app.community?.getConfig?.() ?? null;
+      case 'tickets':
+        return app.tickets?.getConfig?.() ?? null;
+      case 'staffapps':
+        return app.staffapps?.getConfig?.() ?? null;
       default:
         return null;
     }
@@ -619,15 +806,58 @@ export class WebServer {
         app.music?.setConfig?.(next);
         break;
       }
+      case 'cards': {
+        const current = app.cards?.getConfig?.() ?? getDefaultCardConfig();
+        const next = JSON.parse(JSON.stringify(current));
+        this.deepAssignConfig(next, incoming);
+        app.cards?.setConfig?.(next);
+        break;
+      }
+      case 'community': {
+        const current = app.community?.getConfig?.();
+        if (!current) throw new Error('community config is not available');
+        for (const section of ['welcome', 'goodbye', 'autoroles'] as const) {
+          if (incoming[section] && typeof incoming[section] === 'object') {
+            for (const k of Object.keys(incoming[section])) {
+              if (k in (current as any)[section]) {
+                const prev = (current as any)[section][k];
+                const val = (incoming[section] as any)[k];
+                if (typeof prev === 'boolean') (current as any)[section][k] = Boolean(val);
+                else if (typeof prev === 'number') {
+                  const n = Number(val);
+                  if (Number.isFinite(n)) (current as any)[section][k] = n;
+                } else if (typeof prev === 'string') (current as any)[section][k] = String(val ?? '');
+                else (current as any)[section][k] = val;
+              }
+            }
+          }
+        }
+        app.community.setConfig(current);
+        break;
+      }
       case 'web':
         // The live port is bound by the host (SERVER_PORT) and can't change
         // without a restart — the value is only persisted for reference.
         break;
+      case 'tickets': {
+        const current = app.tickets?.getConfig?.() ?? { enabled: true, category: '', supportRoles: [], closeVote: false };
+        const next = JSON.parse(JSON.stringify(current));
+        this.deepAssignConfig(next, incoming);
+        app.tickets?.setConfig?.(next);
+        break;
+      }
+      case 'staffapps': {
+        app.staffapps?.setConfig?.(incoming);
+        break;
+      }
       case 'leveling': case 'ai': case 'moderation':
       case 'economy': case 'automation': case 'analytics': {
         const target = app[service]?.config;
         if (!target) throw new Error(`${service} config is not available`);
         this.deepAssignConfig(target, incoming);
+        if (service === 'leveling' && typeof app.leveling?.refreshLegacyAliases === 'function') {
+          app.leveling.refreshLegacyAliases();
+        }
         break;
       }
       default:
@@ -688,10 +918,50 @@ export class WebServer {
             if (app.config?.commands && saved.prefix) app.config.commands.prefix = saved.prefix;
           } else if (row.key === 'web') {
             continue; // live port stays host-bound (SERVER_PORT)
+          } else if (row.key === 'cards') {
+            const app: any = this.appRef;
+            const current = app.cards?.getConfig?.() ?? getDefaultCardConfig();
+            const next = JSON.parse(JSON.stringify(current));
+            this.deepAssignConfig(next, saved);
+            app.cards?.setConfig?.(next);
+          } else if (row.key === 'community') {
+            const app: any = this.appRef;
+            const current = app.community?.getConfig?.();
+            if (current) {
+              for (const section of ['welcome', 'goodbye', 'autoroles'] as const) {
+                if (saved[section] && typeof saved[section] === 'object') {
+                  for (const k of Object.keys(saved[section])) {
+                    if (k in (current as any)[section]) {
+                      const prev = (current as any)[section][k];
+                      const val = saved[section][k];
+                      if (typeof prev === 'boolean') (current as any)[section][k] = Boolean(val);
+                      else if (typeof prev === 'number') {
+                        const n = Number(val);
+                        if (Number.isFinite(n)) (current as any)[section][k] = n;
+                      } else if (typeof prev === 'string') (current as any)[section][k] = String(val ?? '');
+                      else (current as any)[section][k] = val;
+                    }
+                  }
+                }
+              }
+              app.community.setConfig(current);
+            }
+          } else if (row.key === 'tickets') {
+            const app: any = this.appRef;
+            const current = app.tickets?.getConfig?.() ?? { enabled: true, category: '', supportRoles: [], closeVote: false };
+            const next = JSON.parse(JSON.stringify(current));
+            this.deepAssignConfig(next, saved);
+            app.tickets?.setConfig?.(next);
+          } else if (row.key === 'staffapps') {
+            const app: any = this.appRef;
+            app.staffapps?.setConfig?.(saved);
           } else {
             const target = (this.appRef as any)?.[row.key]?.config;
             if (!target) continue;
             this.deepAssignConfig(target, saved);
+            if (row.key === 'leveling' && typeof (this.appRef as any).leveling?.refreshLegacyAliases === 'function') {
+              (this.appRef as any).leveling.refreshLegacyAliases();
+            }
           }
           applied++;
         } catch (err) {

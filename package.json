@@ -18,6 +18,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/genai": "^2.30.0",
+    "@napi-rs/canvas": "^1.0.12",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.6.6",
     "better-sqlite3": "^13.0.3",

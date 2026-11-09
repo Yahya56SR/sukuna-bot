@@ -21,6 +21,10 @@ class SukunaApp {
         const { AnalyticsService } = require('./services/AnalyticsService');
         const { TempVCService } = require('./modules/tempvc/TempVCService');
         const { EconomyGamesService } = require('./modules/economy/EconomyGames');
+        const { CardService } = require('./services/CardService');
+        const { CommunityManager } = require('./modules/CommunityManager');
+        const { TicketsManager } = require('./modules/TicketsManager');
+        const { StaffApplications } = require('./modules/StaffApplications');
         const { WebServer } = require('./web/WebServer');
         this.config = initializeConfig();
         this.logger = new Logger();
@@ -94,6 +98,36 @@ class SukunaApp {
             catch {
                 return [];
             } })(),
+            staffRoleIds: (() => { try {
+                return JSON.parse(process.env.LEVELING_STAFF_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            staffLevelRoles: (() => { try {
+                return JSON.parse(process.env.LEVELING_STAFF_LEVEL_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            staffAnnouncementChannels: (() => { try {
+                return JSON.parse(process.env.LEVELING_STAFF_ANNOUNCE || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            memberLevelRoles: (() => { try {
+                return JSON.parse(process.env.LEVELING_MEMBER_LEVEL_ROLES || process.env.LEVELING_LEVEL_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            memberAnnouncementChannels: (() => { try {
+                return JSON.parse(process.env.LEVELING_MEMBER_ANNOUNCE || process.env.LEVELING_ANNOUNCEMENT_CHANNELS || '[]');
+            }
+            catch {
+                return [];
+            } })(),
             defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
             ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
             maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
@@ -132,6 +166,57 @@ class SukunaApp {
         this.analytics = new AnalyticsService(this.logger);
         this.tempvc = new TempVCService(this.logger);
         this.economyGames = new EconomyGamesService(this.logger);
+        this.cards = new CardService(this.logger);
+        this.tickets = new TicketsManager(this.logger, {
+            enabled: process.env.TICKETS_ENABLED !== 'false',
+            category: process.env.TICKETS_CATEGORY_ID || '',
+            supportRoles: process.env.TICKETS_SUPPORT_ROLES ? process.env.TICKETS_SUPPORT_ROLES.split(',') : [],
+            closeVote: process.env.TICKETS_CLOSE_VOTE === 'true',
+        });
+        this.staffapps = new StaffApplications(this.logger, {
+            enabled: process.env.STAFFAPPS_ENABLED !== 'false',
+            panelChannelId: process.env.STAFFAPPS_PANEL_CHANNEL_ID || '',
+            reviewChannelId: process.env.STAFFAPPS_REVIEW_CHANNEL_ID || process.env.STAFFAPPS_PANEL_CHANNEL_ID || '',
+            staffRoles: (() => { try {
+                return JSON.parse(process.env.STAFFAPPS_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            approverRoleIds: (() => { try {
+                return JSON.parse(process.env.STAFFAPPS_APPROVER_ROLES || '[]');
+            }
+            catch {
+                return [];
+            } })(),
+            questions: (() => { try {
+                return JSON.parse(process.env.STAFFAPPS_QUESTIONS || '["Why do you want to join the staff team?","How active are you on Discord?","Have you been staff elsewhere before?","What would you do if two members are arguing?","Anything else we should know?"]');
+            }
+            catch {
+                return [];
+            } })(),
+        });
+        this.community = new CommunityManager(this.logger, {
+            welcome: {
+                enabled: process.env.WELCOME_ENABLED === 'true',
+                channel: process.env.WELCOME_CHANNEL_ID || '',
+                message: process.env.WELCOME_MESSAGE || 'Welcome {user} to {server}! 🎉',
+                embed: process.env.WELCOME_EMBED !== 'false',
+                sendImage: process.env.WELCOME_SEND_IMAGE !== 'false',
+                welcomeImageMessage: process.env.WELCOME_IMAGE_MESSAGE || 'Welcome {username} to {server}!',
+            },
+            goodbye: {
+                enabled: process.env.GOODBYE_ENABLED === 'true',
+                channel: process.env.GOODBYE_CHANNEL_ID || '',
+                message: process.env.GOODBYE_MESSAGE || 'Goodbye {username}, we will miss you! 👋',
+                embed: false,
+            },
+            autoroles: {
+                enabled: false,
+                defaultRole: '',
+                configurable: false,
+            },
+        });
         this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.PORT || '3000'));
     }
     static getInstance() {
@@ -228,6 +313,36 @@ class SukunaApp {
                 catch {
                     return [];
                 } })(),
+                staffRoleIds: (() => { try {
+                    return JSON.parse(process.env.LEVELING_STAFF_ROLES || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                staffLevelRoles: (() => { try {
+                    return JSON.parse(process.env.LEVELING_STAFF_LEVEL_ROLES || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                staffAnnouncementChannels: (() => { try {
+                    return JSON.parse(process.env.LEVELING_STAFF_ANNOUNCE || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                memberLevelRoles: (() => { try {
+                    return JSON.parse(process.env.LEVELING_MEMBER_LEVEL_ROLES || process.env.LEVELING_LEVEL_ROLES || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
+                memberAnnouncementChannels: (() => { try {
+                    return JSON.parse(process.env.LEVELING_MEMBER_ANNOUNCE || process.env.LEVELING_ANNOUNCEMENT_CHANNELS || '[]');
+                }
+                catch {
+                    return [];
+                } })(),
                 defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
                 ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
                 maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
@@ -270,6 +385,8 @@ class SukunaApp {
             this.logger.info('Sukuna Bot', `Registered ${tempvcCommands.getCommands().length} temp VC commands`);
             this.ai.setDb(this.database.getDb());
             this.ai.setClient(this.client);
+            if (this.ai.setLeveling)
+                this.ai.setLeveling(this.leveling);
             await this.ai.initialize();
             this.logger.info('Sukuna Bot', 'AI service initialized');
             const aiCommands = new (require('./modules/ai/AIService').AICommands)(this.ai, this.logger, {
@@ -307,6 +424,44 @@ class SukunaApp {
             this.analytics.setDb(this.database.getDb());
             await this.analytics.initialize();
             this.logger.info('Sukuna Bot', 'Analytics service initialized');
+            await this.cards.initialize();
+            this.logger.info('Sukuna Bot', 'Card service initialized');
+            // Tickets (private support channels)
+            await this.tickets.initialize(this.client);
+            this.logger.info('Sukuna Bot', 'Tickets service initialized');
+            try {
+                const { TicketsCommands } = require('./modules/TicketsManager');
+                const ticketCommands = new TicketsCommands(this.tickets, this.logger);
+                for (const cmd of ticketCommands.getCommands()) {
+                    this.commands.registerCommand(cmd);
+                }
+                this.logger.info('Sukuna Bot', `Registered ${ticketCommands.getCommands().length} ticket commands`);
+            }
+            catch (err) {
+                this.logger.warn('Sukuna Bot', 'Tickets commands registration failed', err);
+            }
+            if (this.interactions.setTicketsService)
+                this.interactions.setTicketsService(this.tickets);
+            // Staff applications
+            await this.staffapps.initialize(this.client);
+            this.logger.info('Sukuna Bot', 'Staff applications service initialized');
+            try {
+                const { StaffApplicationsCommands } = require('./modules/StaffApplications');
+                const staffAppCommands = new StaffApplicationsCommands(this.staffapps, this.logger);
+                for (const cmd of staffAppCommands.getCommands()) {
+                    this.commands.registerCommand(cmd);
+                }
+                this.logger.info('Sukuna Bot', `Registered ${staffAppCommands.getCommands().length} staff application commands`);
+            }
+            catch (err) {
+                this.logger.warn('Sukuna Bot', 'Staff application commands registration failed', err);
+            }
+            if (this.interactions.setStaffApplications)
+                this.interactions.setStaffApplications(this.staffapps);
+            // Community (welcome/goodbye) needs Discord client + card templates
+            this.community.setCardService(this.cards);
+            await this.community.initialize(this.client);
+            this.logger.info('Sukuna Bot', 'Community service initialized');
             await this.commands.initialize(this.client);
             this.logger.info('Sukuna Bot', 'Command registry initialized successfully');
             await this.events.initialize(this.client);
@@ -351,6 +506,16 @@ class SukunaApp {
             await this.tempvc.shutdown();
             await this.automation.shutdown();
             await this.analytics.shutdown();
+            await this.cards.shutdown();
+            await this.community.shutdown();
+            try {
+                await this.tickets.shutdown();
+            }
+            catch { /* best-effort */ }
+            try {
+                await this.staffapps.shutdown();
+            }
+            catch { /* best-effort */ }
             await this.web.stop();
             await this.discord.shutdown();
             await this.database.shutdown();
