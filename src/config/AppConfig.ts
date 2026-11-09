@@ -1,4 +1,4 @@
-// Sukuna Bot - Configuration System
+// Sukuna Bot - Configuration System with Maximum Flexibility
 
 import { GatewayIntentBits } from 'discord.js';
 
@@ -14,6 +14,25 @@ export interface DiscordConfig {
   token: string;
   intents: number[];
   partials: string[];
+  intentsByName: string[];
+  retryOnError: boolean;
+  retryCount: number;
+  retryDelay: number;
+  presence?: PresenceConfig;
+  activity?: ActivityConfig;
+}
+
+export interface PresenceConfig {
+  status: 'online' | 'idle' | 'dnd' | 'invisible';
+  activities?: ActivityConfig[];
+}
+
+export interface ActivityConfig {
+  name: string;
+  type: 'PLAYING' | 'STREAMING' | 'LISTENING' | 'WATCHING' | 'COMPETING' | 'CUSTOM';
+  url?: string;
+  state?: string;
+  details?: string;
 }
 
 export interface LoggingConfig {
@@ -31,6 +50,9 @@ export interface LogDestination {
 
 export interface LoggingCategories {
   system: LogDestination;
+  discord: LogDestination;
+  commands: LogDestination;
+  events: LogDestination;
 }
 
 export interface DatabaseConfig {
@@ -64,6 +86,10 @@ export class AppConfigManager {
         token: process.env.DISCORD_TOKEN || '',
         intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
         partials: ['Message'],
+        intentsByName: [],
+        retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
+        retryCount: parseInt(process.env.DISCORD_RETRY_COUNT || '3'),
+        retryDelay: parseInt(process.env.DISCORD_RETRY_DELAY || '5000'),
       },
       logging: {
         level: process.env.LOG_LEVEL || 'info',
@@ -102,6 +128,10 @@ export function initializeConfig(): AppConfig {
       token: process.env.DISCORD_TOKEN || '',
       intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
       partials: ['Message'],
+      intentsByName: [],
+      retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
+      retryCount: parseInt(process.env.DISCORD_RETRY_COUNT || '3'),
+      retryDelay: parseInt(process.env.DISCORD_RETRY_DELAY || '5000'),
     },
     logging: {
       level: process.env.LOG_LEVEL || 'info',

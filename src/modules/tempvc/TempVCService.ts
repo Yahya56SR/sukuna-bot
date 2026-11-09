@@ -27,7 +27,7 @@ const PANEL_BUTTONS = [
   { id: 'unlock', label: 'UNLOCK', emoji: '🔓', style: ButtonStyle.Secondary },
   { id: 'invite', label: 'INVITE', emoji: '✉️', style: ButtonStyle.Secondary },
   { id: 'delete', label: 'DELETE', emoji: '🗑️', style: ButtonStyle.Danger },
-  { id: 'hide', label: 'HIDE', emoji: '👁️‍🗨️', style: ButtonStyle.Secondary },
+  { id: 'hide', label: 'HIDE', emoji: '👁️', style: ButtonStyle.Secondary },
   { id: 'show', label: 'SHOW', emoji: '👁️', style: ButtonStyle.Secondary },
   { id: 'claim', label: 'CLAIM', emoji: '✅', style: ButtonStyle.Success },
   { id: 'kick', label: 'KICK', emoji: '👢', style: ButtonStyle.Danger },

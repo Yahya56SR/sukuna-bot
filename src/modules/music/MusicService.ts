@@ -18,6 +18,10 @@ export interface MusicConfig {
   lavalinkHost: string;
   lavalinkPort: number;
   lavalinkPassword: string;
+  defaultVolume: number;
+  maxPlaylistSize: number;
+  allowSkip: boolean;
+  allowRepeat: boolean;
 }
 
 export class MusicService {
@@ -25,7 +29,7 @@ export class MusicService {
   private db: DrizzleDb | null = null;
   private sessions: Map<string, any> = new Map();
 
-  constructor(logger: Logger) {
+  constructor(logger: Logger, config: MusicConfig) {
     this.logger = logger;
   }
 

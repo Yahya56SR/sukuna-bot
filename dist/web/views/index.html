@@ -4,710 +4,582 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sukuna Bot Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.compiled.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #0f0f12;
-      color: #e0e0e0;
-    }
-    .sidebar {
-      position: fixed;
-      left: 0; top: 0; bottom: 0;
-      width: 240px;
-      background: #1a1a1e;
-      border-right: 1px solid #333;
-      display: flex;
-      flex-direction: column;
-    }
-    .sidebar .logo {
-      padding: 20px;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #ff4d4d;
-      border-bottom: 1px solid #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .sidebar nav { flex: 1; overflow-y: auto; }
-    .sidebar nav ul { list-style: none; padding: 0; }
-    .sidebar nav li { border-bottom: 1px solid #222; }
-    .sidebar nav a {
-      display: block;
-      padding: 14px 20px;
-      color: #a0a0a0;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    .sidebar nav a:hover { background: #2a2a2e; color: #fff; }
-    .sidebar nav a.active { background: #2a2a2e; color: #ff4d4d; border-left: 3px solid #ff4d4d; }
-    .main-content { margin-left: 240px; padding: 30px; }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .header h1 { font-size: 1.8rem; color: #fff; }
-    .status-badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-    .status-online { background: #10b981; color: #fff; }
-    .status-offline { background: #ef4444; color: #fff; }
-    .status-unknown { background: #6b7280; color: #fff; }
-    .card {
-      background: #1a1a1e;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 25px;
-    }
-    .card h2 { font-size: 1.1rem; margin-bottom: 15px; color: #fff; display: flex; align-items: center; gap: 8px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-    .stat-box {
-      background: #252529;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 20px;
-    }
-    .stat-box .label { color: #9ca3af; font-size: 0.85rem; margin-bottom: 8px; }
-    .stat-box .value { font-size: 2rem; font-weight: 700; color: #fff; }
-    .stat-box .change { font-size: 0.8rem; margin-top: 5px; color: #10b981; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-    th { background: #252529; color: #9ca3af; font-size: 0.85rem; text-transform: uppercase; }
-    tr:hover { background: #252529; }
-    .btn {
-      background: #ff4d4d;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-    .btn:hover { background: #e64343; }
-    .btn.secondary { background: #374151; }
-    .btn.secondary:hover { background: #4b5563; }
-    .btn.danger { background: #dc2626; }
-    .btn.danger:hover { background: #b91c1c; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; color: #9ca3af; font-size: 0.85rem; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      background: #252529;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      color: #fff;
-      font-size: 0.9rem;
-    }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-      outline: none;
-      border-color: #ff4d4d;
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-    .badge-info { background: #3b82f6; color: #fff; }
-    .badge-warn { background: #f59e0b; color: #fff; }
-    .badge-danger { background: #ef4444; color: #fff; }
-    .badge-success { background: #10b981; color: #fff; }
-    .logs-container {
-      background: #0a0a0c;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 15px;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.85rem;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .log-entry { padding: 6px 0; border-bottom: 1px solid #1a1a1e; }
-    .log-entry:last-child { border-bottom: none; }
-    .log-time { color: #6b7280; margin-right: 10px; }
-    .log-category { color: #9ca3af; margin-right: 10px; }
-    .log-level-info { color: #10b981; }
-    .log-level-warn { color: #f59e0b; }
-    .log-level-error { color: #ef4444; }
-    .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
-    .refresh-btn { margin-left: 10px; }
-    .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .section-title { font-size: 1.3rem; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 10px; }
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .main-content { margin-left: 0; }
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .font-mono { font-family: 'Fira Code', monospace; }
+    .glass-nav { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .sidebar-item { transition: all 0.2s ease; }
+    .sidebar-item:hover { background: rgba(255,255,255,0.04); }
+    .sidebar-item.active { background: rgba(239, 68, 68, 0.12); color: #ef4444; border-left: 3px solid #ef4444; }
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-number { font-feature-settings: 'tnum'; }
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-online { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+    .badge-offline { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+    .modal { display: none; position: fixed; inset: 0; z-index: 50; }
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    .modal-content { position: relative; z-index: 10; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: modalSlide 0.3s ease; }
+    @keyframes modalSlide { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .alert { padding: 1rem 1.25rem; border-radius: 1rem; margin-bottom: 1rem; font-size: 0.875rem; }
+    .alert-error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; }
+    .alert-success { background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.25); color: #4ade80; }
+    .alert-info { background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.25); color: #60a5fa; }
   </style>
 </head>
-<body>
-  <div class="sidebar">
-    <div class="logo">🔪 Sukuna Bot</div>
-    <nav>
-      <ul>
-        <li><a href="#dashboard" class="nav-link active" data-section="dashboard">Dashboard</a></li>
-        <li><a href="#stats" class="nav-link" data-section="stats">Stats & Analytics</a></li>
-        <li><a href="#commands" class="nav-link" data-section="commands">Commands</a></li>
-        <li><a href="#leveling" class="nav-link" data-section="leveling">Leveling</a></li>
-        <li><a href="#economy" class="nav-link" data-section="economy">Economy</a></li>
-        <li><a href="#tempvc" class="nav-link" data-section="tempvc">Temp VC</a></li>
-        <li><a href="#ai" class="nav-link" data-section="ai">AI Chat</a></li>
-        <li><a href="#moderation" class="nav-link" data-section="moderation">Moderation</a></li>
-        <li><a href="#logs" class="nav-link" data-section="logs">Logs</a></li>
-        <li><a href="#config" class="nav-link" data-section="config">Configuration</a></li>
-      </ul>
-    </nav>
-    <div style="padding: 20px; border-top: 1px solid #333;">
-      <button class="btn danger" onclick="shutdownBot()">🛑 Shutdown Bot</button>
-    </div>
-  </div>
+<body class="min-h-screen text-slate-200">
 
-  <div class="main-content">
-    <div class="header">
-      <div>
-        <h1>Sukuna Bot Dashboard</h1>
-        <p style="color: #9ca3af; font-size: 0.9rem;">Control panel, logging & statistics</p>
+  <!-- Top Nav -->
+  <nav class="glass-nav sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-red-600 rounded-2xl flex items-center justify-center shadow-neon">
+          <span class="text-white font-bold text-xs">S</span>
+        </div>
+        <span class="font-bold text-lg tracking-tight">Sukuna<span class="text-red-500">Bot</span></span>
       </div>
-      <div class="controls">
-        <span class="status-badge status-unknown" id="statusBadge">Checking...</span>
-        <button class="btn secondary refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+      <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          <span id="navStatus">Online</span>
+        </div>
+        <button onclick="app.openPage('dashboard')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="dashboard">Dashboard</button>
+        <button onclick="app.openPage('guilds')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="guilds">Servers</button>
+        <button onclick="app.openPage('moderation')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="moderation">Moderation</button>
+        <button onclick="app.openPage('economy')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="economy">Economy</button>
+        <button onclick="app.openPage('leveling')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="leveling">Leveling</button>
+        <button onclick="app.openPage('settings')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="settings">Settings</button>
+        <button onclick="app.openPage('system')" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-colors" data-page="system">System</button>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-900 flex items-center justify-center text-xs font-bold cursor-pointer ml-4" onclick="app.showUserMenu()">👤</div>
       </div>
     </div>
+  </nav>
 
-    <!-- Dashboard Overview -->
-    <section id="view-dashboard" class="tab-content active">
-      <div class="section-title">📊 Overview</div>
-      <div class="grid">
-        <div class="stat-box">
-          <div class="label">Bot Status</div>
-          <div class="value" id="statStatus">--</div>
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <div id="alertContainer"></div>
+
+    <!-- Dashboard Page -->
+    <section id="page-dashboard" class="page active">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Stats Grid -->
+        <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Bot Status</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number" id="statStatus">--</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                <span class="text-xl">🤖</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Connected to Discord gateway</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Servers</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number" id="statGuilds">0</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <span class="text-xl">🏠</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Guilds the bot is in</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Users</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number" id="statUsers">0</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <span class="text-xl">👥</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Users tracked</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Uptime</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number font-mono" id="statUptime">0s</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                <span class="text-xl">⏱️</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Bot process uptime</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Ping</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number font-mono" id="statPing">--</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500">
+                <span class="text-xl">📶</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Discord gateway latency</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Memory</p>
+                <h3 class="text-3xl font-bold mt-1 stat-number" id="statMemory">--</h3>
+              </div>
+              <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                <span class="text-xl">💾</span>
+              </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-2">Process memory usage</p>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="label">Guilds</div>
-          <div class="value" id="statGuilds">--</div>
+
+        <!-- Quick Actions -->
+        <div class="lg:w-1/3 flex flex-col gap-6">
+          <div class="stat-card">
+            <h3 class="font-bold text-lg mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="app.openPage('guilds')" class="btn-ghost flex items-center gap-2">🏠 Manage Servers</button>
+              <button onclick="app.openPage('moderation')" class="btn-ghost flex items-center gap-2">⚔️ Moderation</button>
+              <button onclick="app.openPage('economy')" class="btn-ghost flex items-center gap-2">💰 Economy</button>
+              <button onclick="app.openPage('leveling')" class="btn-ghost flex items-center gap-2">📈 Leveling</button>
+              <button onclick="app.openPage('settings')" class="btn-ghost flex items-center gap-2">⚙️ Settings</button>
+              <button onclick="app.openPage('system')" class="btn-ghost flex items-center gap-2">🖥️ System</button>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3 class="font-bold text-lg mb-4">Bot Controls</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-300">Auto-restart on crash</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer" checked>
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-300">Maintenance mode</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" class="sr-only peer">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="label">Users</div>
-          <div class="value" id="statUsers">--</div>
+      </div>
+    </section>
+
+    <!-- Guilds Page -->
+    <section id="page-guilds" class="page">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Servers</h2>
+          <p class="text-slate-400">Manage all guilds Sukuna is connected to</p>
         </div>
-        <div class="stat-box">
-          <div class="label">Uptime</div>
-          <div class="value" id="statUptime">--</div>
-        </div>
+        <button onclick="app.refreshData('guilds')" class="btn-ghost">Refresh</button>
       </div>
-    </section>
-
-    <!-- Stats -->
-    <section id="view-stats" class="tab-content">
-      <div class="section-title">📈 Statistics & Analytics</div>
-      <div class="grid">
-        <div class="stat-box">
-          <div class="label">Total Guilds</div>
-          <div class="value" id="statTotalGuilds">--</div>
-        </div>
-        <div class="stat-box">
-          <div class="label">Total Users</div>
-          <div class="value" id="statTotalUsers">--</div>
-        </div>
-        <div class="stat-box">
-          <div class="label">Total Messages</div>
-          <div class="value" id="statTotalMessages">--</div>
-        </div>
-        <div class="stat-box">
-          <div class="label">Moderation Cases</div>
-          <div class="value" id="statModCases">--</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Commands -->
-    <section id="view-commands" class="tab-content">
-      <div class="section-title">🤖 Bot Commands</div>
-      <table>
-        <thead>
-          <tr><th>Command</th><th>Description</th><th>Category</th></tr>
-        </thead>
-        <tbody id="commandsTable"></tbody>
-      </table>
-    </section>
-
-    <!-- Leveling -->
-    <section id="view-leveling" class="tab-content">
-      <div class="section-title">⭐ Leveling System</div>
-      <div class="controls">
-        <input type="text" id="levelingMemberRole" placeholder="Member Role ID">
-        <input type="text" id="levelingStaffRole" placeholder="Staff Role ID">
-        <input type="text" id="levelingLevelsChannel" placeholder="Levels Channel ID">
-        <input type="text" id="levelingStaffCmdChannel" placeholder="Staff Cmd Channel ID">
-        <input type="number" id="levelingDistinctLevel" placeholder="Distinct Level">
-        <input type="text" id="levelingDistinctRole" placeholder="Distinct Role ID">
-        <input type="number" id="levelingLoyalLevel" placeholder="Loyal Level">
-        <input type="text" id="levelingLoyalRole" placeholder="Loyal Role ID">
-        <button class="btn" onclick="saveLevelingConfig()">Save Config</button>
-      </div>
-      <div class="card">
-        <h2>📋 Member Gift Roles</h2>
-        <p>Normal members (with Member role) get gift roles at specific levels:</p>
-        <ul style="margin-left: 20px;">
-          <li><strong>Distinct Member</strong> at Level <span id="dLevel">5</span>: <span id="dRole">--</span></li>
-          <li><strong>Loyal Member</strong> at Level <span id="lLevel">15</span>: <span id="lRole">--</span></li>
-        </ul>
-      </div>
-      <div class="card">
-        <h2>👑 Staff Gift Roles</h2>
-        <p>Staff members get gift roles at specific levels:</p>
-        <ul id="staffRolesList" style="margin-left: 20px;"></ul>
-      </div>
-      <div class="card">
-        <h2>🏆 Leaderboard</h2>
-        <table>
-          <thead><tr><th>#</th><th>User</th><th>Level</th><th>Total XP</th></tr></thead>
-          <tbody id="leaderboardTable"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Economy -->
-    <section id="view-economy" class="tab-content">
-      <div class="section-title">💰 Economy & Games</div>
-      <div class="controls">
-        <input type="text" id="econUserId" placeholder="User ID for balance check">
-        <button class="btn" onclick="checkBalance()">Check Balance</button>
-      </div>
-      <div id="balanceResult" style="margin-top: 10px;"></div>
-      <div class="card">
-        <h2>🎮 Active Games</h2>
-        <table>
-          <thead><tr><th>Game ID</th><th>Type</th><th>Prize</th><th>Entry Fee</th><th>Players</th><th>Status</th></tr></thead>
-          <tbody id="gamesTable"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Temp VC -->
-    <section id="view-tempvc" class="tab-content">
-      <div class="section-title">🔊 Temporary Voice Channels</div>
-      <div class="controls">
-        <input type="text" id="tempvcCreateChannel" placeholder="Create Voice Channel ID">
-        <input type="text" id="tempvcCategory" placeholder="Category ID">
-        <button class="btn" onclick="setupTempVC()">Setup Temp VC</button>
-        <button class="btn secondary" onclick="postTempVCPanel()">Post Panel</button>
-      </div>
-      <div class="card">
-        <h2>⚙️ Config</h2>
-        <p><strong>Create Channel:</strong> <span id="tempvcCreateVal">--</span></p>
-        <p><strong>Category:</strong> <span id="tempvcCategoryVal">--</span></p>
-        <p><strong>Panel Channel:</strong> <span id="tempvcPanelChannelVal">--</span></p>
-        <p><strong>Panel Message:</strong> <span id="tempvcPanelMsgVal">--</span></p>
-      </div>
-    </section>
-
-    <!-- AI Chat -->
-    <section id="view-ai" class="tab-content">
-      <div class="section-title">🤖 AI Chat System</div>
-      <div class="controls">
-        <input type="text" id="aiChannelIds" placeholder="AI Channel IDs (comma separated)">
-        <input type="text" id="aiDisplayName" placeholder="Display Name">
-        <input type="text" id="aiModel" placeholder="Model">
-        <button class="btn" onclick="saveAIConfig()">Save AI Config</button>
-      </div>
-      <div class="card">
-        <h2>📝 System Prompt</h2>
-        <textarea id="aiSystemPrompt" rows="6" placeholder="Enter AI system prompt..."></textarea>
-        <button class="btn" style="margin-top: 10px;" onclick="saveAIConfig()">Save Prompt</button>
-      </div>
-      <div class="card">
-        <h2>⚙️ Settings</h2>
-        <p><strong>History Size:</strong> <span id="aiHistorySize">30</span></p>
-        <p><strong>Reply Cooldown:</strong> <span id="aiReplyCooldown">25s</span></p>
-        <p><strong>Max Replies/Hour:</strong> <span id="aiMaxReplies">40</span></p>
-        <p><strong>Max Message Length:</strong> <span id="aiMaxLength">500</span></p>
-        <p><strong>Temperature:</strong> <span id="aiTemperature">1</span></p>
-        <p><strong>API Key Configured:</strong> <span id="aiApiKeyStatus">--</span></p>
-      </div>
-    </section>
-
-    <!-- Moderation -->
-    <section id="view-moderation" class="tab-content">
-      <div class="section-title">🔨 Moderation</div>
-      <div class="controls">
-        <input type="text" id="modGuildId" placeholder="Guild ID">
-        <button class="btn" onclick="loadModerationCases()">Load Cases</button>
-      </div>
-      <table>
-        <thead><tr><th>Case ID</th><th>User</th><th>Moderator</th><th>Type</th><th>Reason</th><th>Date</th></tr></thead>
-        <tbody id="modTable"></tbody>
-      </table>
-    </section>
-
-    <!-- Logs -->
-    <section id="view-logs" class="tab-content">
-      <div class="section-title">📜 System Logs</div>
-      <div class="controls">
-        <select id="logLevelFilter">
-          <option value="">All Levels</option>
-          <option value="info">Info</option>
-          <option value="warn">Warning</option>
-          <option value="error">Error</option>
-        </select>
-        <button class="btn" onclick="loadLogs()">Load Logs</button>
-        <button class="btn secondary" onclick="clearLogs()">Clear Logs</button>
-      </div>
-      <div class="logs-container" id="logsContainer"></div>
-    </section>
-
-    <!-- Configuration -->
-    <section id="view-config" class="tab-content">
-      <div class="section-title">⚙️ Bot Configuration</div>
-      <div class="card">
-        <h2>Environment Variables</h2>
-        <p>Edit <code>.env</code> file and restart the bot to apply changes.</p>
-        <table>
-          <thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead>
-          <tbody>
-            <tr><td>DISCORD_TOKEN</td><td>Bot token from Discord Developer Portal</td><td>MTU2...</td></tr>
-            <tr><td>GEMINI_API_KEY</td><td>Google Gemini API key for AI chat</td><td>AIza...</td></tr>
-            <tr><td>LEVELING_MEMBER_ROLE_ID</td><td>Role ID for normal members</td><td>123456789</td></tr>
-            <tr><td>LEVELING_STAFF_ROLE_ID</td><td>Role ID for staff members</td><td>123456789</td></tr>
-            <tr><td>LEVELING_LEVELS_CHANNEL_ID</td><td>Channel for member level-up announcements</td><td>123456789</td></tr>
-            <tr><td>LEVELING_STAFF_CMD_CHANNEL_ID</td><td>Channel for staff level-up announcements</td><td>123456789</td></tr>
+      <div class="table-container">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/5 text-slate-400 text-sm uppercase tracking-wider">
+              <th class="pb-4 font-medium">Server</th>
+              <th class="pb-4 font-medium text-center">Members</th>
+              <th class="pb-4 font-medium text-center">Owner</th>
+              <th class="pb-4 font-medium text-center">Tier</th>
+              <th class="pb-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="guildsTableBody" class="text-sm divide-y divide-white/5">
+            <tr class="skeleton h-12"><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td></tr>
+            <tr class="skeleton h-12"><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td><td class="p-4"></td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-  </div>
+    <!-- Moderation Page -->
+    <section id="page-moderation" class="page">
+      <div class="flex flex-col lg:flex-row gap-6 items-end mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Moderation</h2>
+          <p class="text-slate-400">Manage warnings, kicks, bans, and mutes</p>
+        </div>
+        <div class="flex gap-2">
+          <select id="modGuildSelect" class="input-field w-auto max-w-xs">
+            <option value="">Select a server</option>
+          </select>
+          <button onclick="app.loadModeration()" class="btn-primary">Load Cases</button>
+        </div>
+      </div>
 
-  <script>
-    const API = '/api';
-    let currentSection = 'dashboard';
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Warnings</p>
+          <h3 class="text-3xl font-bold stat-number" id="modWarns">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Kicks</p>
+          <h3 class="text-3xl font-bold stat-number" id="modKicks">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Bans</p>
+          <h3 class="text-3xl font-bold stat-number" id="modBans">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Mutes</p>
+          <h3 class="text-3xl font-bold stat-number" id="modMutes">0</h3>
+        </div>
+      </div>
 
-    function showSection(section) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-      document.getElementById('view-' + section).classList.add('active');
-      document.querySelector('.nav-link[data-section="' + section + '"]').classList.add('active');
-      currentSection = section;
-      if (section === 'dashboard') loadDashboard();
-      if (section === 'stats') loadStats();
-      if (section === 'commands') loadCommands();
-      if (section === 'leveling') loadLeveling();
-      if (section === 'economy') loadEconomy();
-      if (section === 'tempvc') loadTempVC();
-      if (section === 'ai') loadAI();
-      if (section === 'moderation') loadModeration();
-      if (section === 'logs') loadLogs();
-    }
+      <div class="table-container">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/5 text-slate-400 text-sm uppercase tracking-wider">
+              <th class="pb-4 font-medium">User</th>
+              <th class="pb-4 font-medium">Action</th>
+              <th class="pb-4 font-medium">Reason</th>
+              <th class="pb-4 font-medium text-center">Moderator</th>
+              <th class="pb-4 font-medium text-center">Date</th>
+              <th class="pb-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="modTableBody" class="text-sm divide-y divide-white/5">
+            <tr class="skeleton h-12"><td class="p-4" colspan="6"></td></tr>
+          </tbody>
+        </table>
+      </div>
 
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        showSection(link.dataset.section);
-      });
-    });
-
-    async function loadDashboard() {
-      try {
-        const res = await fetch(API + '/status');
-        const data = await res.json();
-        document.getElementById('statStatus').textContent = data.online ? 'Online' : 'Offline';
-        document.getElementById('statStatus').className = 'status-badge ' + (data.online ? 'status-online' : 'status-offline');
-        document.getElementById('statGuilds').textContent = data.guilds;
-        document.getElementById('statUsers').textContent = data.users;
-        document.getElementById('statUptime').textContent = Math.floor(data.uptime / 60) + 'm ' + (data.uptime % 60).toFixed(0) + 's';
-        document.getElementById('statusBadge').textContent = data.ready ? 'Ready' : 'Connecting...';
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadStats() {
-      try {
-        const res = await fetch(API + '/stats');
-        const data = await res.json();
-        document.getElementById('statTotalGuilds').textContent = data.totalGuilds ?? '--';
-        document.getElementById('statTotalUsers').textContent = data.totalUsers ?? '--';
-        document.getElementById('statTotalMessages').textContent = data.totalMessages ?? '--';
-        document.getElementById('statModCases').textContent = data.totalModerationCases ?? '--';
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadCommands() {
-      try {
-        const res = await fetch(API + '/commands');
-        const data = await res.json();
-        const tbody = document.getElementById('commandsTable');
-        tbody.innerHTML = data.map(cmd => `
-          <tr>
-            <td><code>/${cmd.name}</code></td>
-            <td>${cmd.description}</td>
-            <td><span class="badge badge-info">${cmd.category}</span></td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadLeveling() {
-      try {
-        const [cfgRes, lbRes] = await Promise.all([
-          fetch(API + '/config/leveling'),
-          fetch(API + '/leaderboard'),
-        ]);
-        const cfg = await cfgRes.json();
-        const lb = await lbRes.json();
-
-        document.getElementById('levelingMemberRole').value = cfg.memberRoleId || '';
-        document.getElementById('levelingStaffRole').value = cfg.staffRoleId || '';
-        document.getElementById('levelingLevelsChannel').value = cfg.levelsChannelId || '';
-        document.getElementById('levelingStaffCmdChannel').value = cfg.staffCmdChannelId || '';
-        document.getElementById('levelingDistinctLevel').value = cfg.distinctMemberLevel || 5;
-        document.getElementById('levelingDistinctRole').value = cfg.distinctMemberRoleId || '';
-        document.getElementById('levelingLoyalLevel').value = cfg.loyalMemberLevel || 15;
-        document.getElementById('levelingLoyalRole').value = cfg.loyalMemberRoleId || '';
-
-        document.getElementById('dLevel').textContent = cfg.distinctMemberLevel || 5;
-        document.getElementById('dRole').textContent = cfg.distinctMemberRoleId ? '<@&' + cfg.distinctMemberRoleId + '>' : 'Not set';
-        document.getElementById('lLevel').textContent = cfg.loyalMemberLevel || 15;
-        document.getElementById('lRole').textContent = cfg.loyalMemberRoleId ? '<@&' + cfg.loyalMemberRoleId + '>' : 'Not set';
-
-        const staffList = document.getElementById('staffRolesList');
-        staffList.innerHTML = '';
-        if (cfg.staffGiftRoles && typeof cfg.staffGiftRoles === 'object') {
-          Object.entries(cfg.staffGiftRoles).forEach(([level, roleId]) => {
-            const li = document.createElement('li');
-            li.textContent = `Level ${level}+: <@&${roleId}>`;
-            staffList.appendChild(li);
-          });
-        } else {
-          staffList.innerHTML = '<li>No staff gift roles configured.</li>';
-        }
-
-        const tbody = document.getElementById('leaderboardTable');
-        tbody.innerHTML = (lb || []).map((u, i) => `
-          <tr><td>${i + 1}</td><td><code>${u.id}</code></td><td>${u.level}</td><td>${u.total_xp || u.totalXP}</td></tr>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function saveLevelingConfig() {
-      const cfg = {
-        memberRoleId: document.getElementById('levelingMemberRole').value,
-        staffRoleId: document.getElementById('levelingStaffRole').value,
-        levelsChannelId: document.getElementById('levelingLevelsChannel').value,
-        staffCmdChannelId: document.getElementById('levelingStaffCmdChannel').value,
-        distinctMemberLevel: parseInt(document.getElementById('levelingDistinctLevel').value) || 5,
-        distinctMemberRoleId: document.getElementById('levelingDistinctRole').value,
-        loyalMemberLevel: parseInt(document.getElementById('levelingLoyalLevel').value) || 15,
-        loyalMemberRoleId: document.getElementById('levelingLoyalRole').value,
-      };
-      try {
-        await fetch(API + '/config/leveling', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cfg),
-        });
-        alert('Leveling config saved!');
-        loadLeveling();
-      } catch (err) {
-        alert('Failed to save config');
-      }
-    }
-
-    async function loadEconomy() {
-      try {
-        const res = await fetch(API + '/games');
-        const data = await res.json();
-        const tbody = document.getElementById('gamesTable');
-        tbody.innerHTML = (data || []).map(g => `
-          <tr>
-            <td><code>${g.id}</code></td>
-            <td>${g.type}</td>
-            <td>${g.prize} coins</td>
-            <td>${g.entryFee} coins</td>
-            <td>${g.playerCount}</td>
-            <td><span class="badge ${g.status === 'waiting' ? 'badge-warn' : 'badge-success'}">${g.status}</span></td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function checkBalance() {
-      const userId = document.getElementById('econUserId').value;
-      if (!userId) return;
-      try {
-        const res = await fetch(API + '/economy/balance/' + userId);
-        const data = await res.json();
-        document.getElementById('balanceResult').innerHTML = `
-          <div class="card">
-            <h3>Balance for ${data.userId}</h3>
-            <div class="stat-box">
-              <div class="value">${data.balance} coins</div>
+      <!-- Warn Modal -->
+      <div class="modal" id="modalWarn">
+        <div class="modal-backdrop" onclick="app.closeModal('modalWarn')"></div>
+        <div class="modal-content p-6">
+          <h3 class="font-bold text-lg mb-4">Warn User</h3>
+          <form id="warnForm" onsubmit="app.handleWarn(event)">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">User ID</label>
+                <input type="text" name="userId" class="input-field" required placeholder="e.g. 123456789012345678">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Reason</label>
+                <input type="text" name="reason" class="input-field" required placeholder="Reason for warning">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Moderator ID</label>
+                <input type="text" name="moderatorId" class="input-field" required placeholder="Your Discord ID">
+              </div>
             </div>
-          </div>`;
-      } catch (err) {
-        document.getElementById('balanceResult').innerHTML = '<p style="color: #ef4444;">Failed to fetch balance</p>';
-      }
-    }
+            <div class="flex justify-end gap-3 mt-6">
+              <button type="button" onclick="app.closeModal('modalWarn')" class="btn-ghost">Cancel</button>
+              <button type="submit" class="btn-primary">Warn User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
 
-    async function loadTempVC() {
-      try {
-        const res = await fetch(API + '/config/tempvc');
-        const cfg = await res.json();
-        document.getElementById('tempvcCreateChannel').value = cfg.createChannelId || '';
-        document.getElementById('tempvcCategory').value = cfg.categoryId || '';
-        document.getElementById('tempvcCreateVal').textContent = cfg.createChannelId ? '<#' + cfg.createChannelId + '>' : 'Not set';
-        document.getElementById('tempvcCategoryVal').textContent = cfg.categoryId ? '<#' + cfg.categoryId + '>' : 'Not set';
-        document.getElementById('tempvcPanelChannelVal').textContent = cfg.panelChannelId ? '<#' + cfg.panelChannelId + '>' : 'Not set';
-        document.getElementById('tempvcPanelMsgVal').textContent = cfg.panelMessageId || 'Not posted';
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    <!-- Economy Page -->
+    <section id="page-economy" class="page">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Economy</h2>
+          <p class="text-slate-400">Manage user balances and transactions</p>
+        </div>
+      </div>
 
-    async function setupTempVC() {
-      const ch = document.getElementById('tempvcCreateChannel').value;
-      const cat = document.getElementById('tempvcCategory').value;
-      if (!ch || !cat) return alert('Both fields required');
-      try {
-        await fetch(API + '/config/tempvc', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ createChannelId: ch, categoryId: cat }),
-        });
-        alert('Temp VC setup complete!');
-        loadTempVC();
-      } catch (err) {
-        alert('Failed to setup Temp VC');
-      }
-    }
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Total Balance</p>
+          <h3 class="text-3xl font-bold stat-number" id="econTotal">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Users with Balance</p>
+          <h3 class="text-3xl font-bold stat-number" id="econUsers">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Transactions</p>
+          <h3 class="text-3xl font-bold stat-number" id="econTxns">0</h3>
+        </div>
+      </div>
 
-    async function postTempVCPanel() {
-      // Panel is posted via Discord command /tempvc panel
-      alert('Use /tempvc panel in Discord to post the control panel');
-    }
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Set Balance</h3>
+          <form id="setBalanceForm" onsubmit="app.handleSetBalance(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-1">User ID</label>
+              <input type="text" name="userId" class="input-field" required placeholder="Discord User ID">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-1">New Balance</label>
+              <input type="number" name="balance" class="input-field" required min="0" placeholder="0">
+            </div>
+            <button type="submit" class="btn-primary w-full">Set Balance</button>
+          </form>
+        </div>
 
-    async function loadAI() {
-      try {
-        const res = await fetch(API + '/config/ai');
-        const cfg = await res.json();
-        document.getElementById('aiChannelIds').value = (cfg.channelIds || []).join(',');
-        document.getElementById('aiDisplayName').value = cfg.displayName || 'Sukuna';
-        document.getElementById('aiModel').value = cfg.model || 'gemini-1.5-flash';
-        document.getElementById('aiHistorySize').textContent = cfg.historySize || 30;
-        document.getElementById('aiReplyCooldown').textContent = cfg.replyCooldownSeconds || 25 + 's';
-        document.getElementById('aiMaxReplies').textContent = cfg.maxRepliesPerHour || 40;
-        document.getElementById('aiMaxLength').textContent = cfg.maxMessageLength || 500;
-        document.getElementById('aiTemperature').textContent = cfg.temperature || 1;
-        document.getElementById('aiApiKeyStatus').textContent = cfg.hasApiKey ? '✅ Yes' : '❌ No';
-      } catch (err) {
-        console.error(err);
-      }
-    }
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Check Balance</h3>
+          <form id="checkBalanceForm" onsubmit="app.handleCheckBalance(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-1">User ID</label>
+              <input type="text" name="userId" class="input-field" required placeholder="Discord User ID">
+            </div>
+            <button type="submit" class="btn-primary w-full">Check Balance</button>
+          </form>
+          <div id="balanceResult" class="mt-4 p-4 rounded-xl bg-white/5 hidden"></div>
+        </div>
 
-    async function saveAIConfig() {
-      const cfg = {
-        channelIds: document.getElementById('aiChannelIds').value.split(',').map(s => s.trim()).filter(Boolean),
-        displayName: document.getElementById('aiDisplayName').value,
-        model: document.getElementById('aiModel').value,
-        systemPrompt: document.getElementById('aiSystemPrompt').value,
-      };
-      try {
-        await fetch(API + '/config/ai', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cfg),
-        });
-        alert('AI config saved!');
-        loadAI();
-      } catch (err) {
-        alert('Failed to save AI config');
-      }
-    }
-
-    async function loadModeration() {
-      const guildId = document.getElementById('modGuildId').value;
-      if (!guildId) return;
-      try {
-        const res = await fetch(API + '/moderation/cases?guildId=' + guildId);
-        const data = await res.json();
-        const tbody = document.getElementById('modTable');
-        tbody.innerHTML = (data || []).map(c => `
-          <tr>
-            <td>${c.id}</td>
-            <td>${c.user_id}</td>
-            <td>${c.moderator_id}</td>
-            <td>${c.type}</td>
-            <td>${c.reason}</td>
-            <td>${new Date(c.created_at).toLocaleDateString()}</td>
-          </tr>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadLogs() {
-      const level = document.getElementById('logLevelFilter').value;
-      try {
-        const url = level ? API + '/logs?level=' + level : API + '/logs';
-        const res = await fetch(url);
-        const data = await res.json();
-        const container = document.getElementById('logsContainer');
-        container.innerHTML = (data || []).map(log => `
-          <div class="log-entry">
-            <span class="log-time">${new Date(log.timestamp).toLocaleString()}</span>
-            <span class="log-category">[${log.category}]</span>
-            <span class="log-level-${log.level}">[${log.level.toUpperCase()}]</span>
-            ${log.message}
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Recent Transactions</h3>
+          <div id="econTxnList" class="space-y-3">
+            <div class="skeleton h-10"></div>
+            <div class="skeleton h-10"></div>
+            <div class="skeleton h-10"></div>
           </div>
-        `).join('');
-        container.scrollTop = container.scrollHeight;
-      } catch (err) {
-        console.error(err);
-      }
-    }
+        </div>
+      </div>
+    </section>
 
-    async function clearLogs() {
-      try {
-        await fetch(API + '/logs', { method: 'DELETE' });
-        document.getElementById('logsContainer').innerHTML = '';
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    <!-- Leveling Page -->
+    <section id="page-leveling" class="page">
+      <div class="flex flex-col lg:flex-row gap-6 items-end mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Leveling</h2>
+          <p class="text-slate-400">Manage XP and levels</p>
+        </div>
+        <div class="flex gap-2">
+          <select id="lvlGuildSelect" class="input-field w-auto max-w-xs">
+            <option value="">Select a server</option>
+          </select>
+          <button onclick="app.loadLeveling()" class="btn-primary">Load Data</button>
+        </div>
+      </div>
 
-    async function shutdownBot() {
-      if (!confirm('Are you sure you want to shutdown the bot?')) return;
-      try {
-        await fetch(API + '/control/shutdown', { method: 'POST' });
-        alert('Bot is shutting down...');
-      } catch (err) {
-        console.error(err);
-      }
-    }
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Total Users</p>
+          <h3 class="text-3xl font-bold stat-number" id="lvlUsers">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Max Level</p>
+          <h3 class="text-3xl font-bold stat-number" id="lvlMax">0</h3>
+        </div>
+        <div class="stat-card">
+          <p class="text-slate-400 text-sm uppercase tracking-wider">Level-ups</p>
+          <h3 class="text-3xl font-bold stat-number" id="lvlUps">0</h3>
+        </div>
+      </div>
 
-    // Auto-refresh status every 30 seconds
-    setInterval(() => {
-      if (currentSection === 'dashboard') loadDashboard();
-    }, 30000);
+      <div class="table-container">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-white/5 text-slate-400 text-sm uppercase tracking-wider">
+              <th class="pb-4 font-medium">User</th>
+              <th class="pb-4 font-medium text-center">Level</th>
+              <th class="pb-4 font-medium text-center">XP</th>
+              <th class="pb-4 font-medium text-center">Total XP</th>
+              <th class="pb-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="lvlTableBody" class="text-sm divide-y divide-white/5">
+            <tr class="skeleton h-12"><td class="p-4" colspan="5"></td></tr>
+          </tbody>
+        </table>
+      </div>
 
-    // Initial load
-    loadDashboard();
-  </script>
+      <!-- Set XP Modal -->
+      <div class="modal" id="modalSetXP">
+        <div class="modal-backdrop" onclick="app.closeModal('modalSetXP')"></div>
+        <div class="modal-content p-6">
+          <h3 class="font-bold text-lg mb-4">Set XP</h3>
+          <form id="setXPForm" onsubmit="app.handleSetXP(event)">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">User ID</label>
+                <input type="text" name="userId" class="input-field" required placeholder="Discord User ID">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">XP Amount</label>
+                <input type="number" name="xp" class="input-field" required min="0" placeholder="0">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Guild ID</label>
+                <input type="text" name="guildId" class="input-field" required placeholder="Discord Server ID">
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+              <button type="button" onclick="app.closeModal('modalSetXP')" class="btn-ghost">Cancel</button>
+              <button type="submit" class="btn-primary">Set XP</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Page -->
+    <section id="page-settings" class="page">
+      <h2 class="text-2xl font-bold mb-6">Settings</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Bot Configuration</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Command Prefix</label>
+              <input type="text" id="cmdPrefix" class="input-field" value="!">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Web Port</label>
+              <input type="number" id="webPort" class="input-field" value="3000">
+            </div>
+            <div class="flex gap-3">
+              <button onclick="app.saveConfig('web')" class="btn-primary flex-1">Save Config</button>
+              <button onclick="app.reloadConfig()" class="btn-secondary flex-1">Reload</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Module Settings</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Leveling Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" checked id="toggleLeveling">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">AI Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="toggleAI">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Music Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="toggleMusic">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-300">Economy Enabled</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" id="toggleEconomy">
+                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+            <button onclick="app.saveModuleConfig()" class="btn-primary w-full">Save Module Settings</button>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Danger Zone</h3>
+          <div class="space-y-3">
+            <button onclick="app.confirmShutdown()" class="btn-ghost text-red-400 hover:bg-red-500/10 border-red-500/20 flex items-center gap-2 w-full justify-center">🛑 Shutdown Bot</button>
+            <button onclick="app.confirmRestart()" class="btn-ghost text-orange-400 hover:bg-orange-500/10 border-orange-500/20 flex items-center gap-2 w-full justify-center">🔄 Restart Bot</button>
+            <button onclick="app.clearLogs()" class="btn-ghost text-yellow-400 hover:bg-yellow-500/10 border-yellow-500/20 flex items-center gap-2 w-full justify-center">🗑️ Clear Logs</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Page -->
+    <section id="page-system" class="page">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="stat-card lg:col-span-2">
+          <h3 class="font-bold text-lg mb-4">System Information</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Platform</span>
+              <span class="font-mono" id="sysPlatform">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Architecture</span>
+              <span class="font-mono" id="sysArch">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Node Version</span>
+              <span class="font-mono" id="sysNode">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">PID</span>
+              <span class="font-mono" id="sysPid">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Uptime</span>
+              <span class="font-mono" id="sysUptime">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">CPU Model</span>
+              <span class="font-mono" id="sysCpu">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">CPU Count</span>
+              <span class="font-mono" id="sysCpuCount">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Memory Used</span>
+              <span class="font-mono" id="sysMem">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Working Directory</span>
+              <span class="font-mono text-xs truncate max-w-xs" id="sysCwd">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <h3 class="font-bold text-lg mb-4">Process</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-slate-400">Process Title</span>
+              <span class="font-mono" id="sysProcTitle">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">RSS Memory</span>
+              <span class="font-mono" id="sysRss">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Heap Total</span>
+              <span class="font-mono" id="sysHeapTotal">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">Heap Used</span>
+              <span class="font-mono" id="sysHeapUsed">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">External Memory</span>
+              <span class="font-mono" id="sysExternal">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
