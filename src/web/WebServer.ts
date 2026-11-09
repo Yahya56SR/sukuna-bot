@@ -33,23 +33,42 @@ export class WebServer {
   private setupRoutes(): void {
     // ---- Bot Status ----
     this.app.get('/api/status', (_req: any, res: any) => {
-      const client = this.appRef.getClient?.();
-      res.json({
-        online: !!client,
-        ready: client?.isReady?.() ?? false,
-        user: client?.user?.tag ?? null,
-        userId: client?.user?.id ?? null,
-        guilds: client?.guilds?.cache?.size ?? 0,
-        users: client?.users?.cache?.size ?? 0,
-        channels: client?.channels?.cache?.size ?? 0,
-        uptime: process.uptime(),
-        ping: client?.ws?.ping ?? 0,
-        latency: Date.now(),
-        memory: process.memoryUsage(),
-        platform: process.platform,
-        nodeVersion: process.version,
-        env: process.env.NODE_ENV ?? 'development',
-      });
+      try {
+        const client = this.appRef.getClient?.();
+        res.json({
+          online: !!client,
+          ready: client?.isReady?.() ?? false,
+          user: client?.user?.tag ?? null,
+          userId: client?.user?.id ?? null,
+          guilds: client?.guilds?.cache?.size ?? 0,
+          users: client?.users?.cache?.size ?? 0,
+          channels: client?.channels?.cache?.size ?? 0,
+          uptime: process.uptime(),
+          ping: client?.ws?.ping ?? 0,
+          latency: Date.now(),
+          memory: process.memoryUsage(),
+          platform: process.platform,
+          nodeVersion: process.version,
+          env: process.env.NODE_ENV ?? 'development',
+        });
+      } catch (err) {
+        res.json({
+          online: false,
+          ready: false,
+          user: null,
+          userId: null,
+          guilds: 0,
+          users: 0,
+          channels: 0,
+          uptime: process.uptime(),
+          ping: 0,
+          latency: Date.now(),
+          memory: process.memoryUsage(),
+          platform: process.platform,
+          nodeVersion: process.version,
+          env: process.env.NODE_ENV ?? 'development',
+        });
+      }
     });
 
     // ---- Bot Stats ----
@@ -81,58 +100,71 @@ export class WebServer {
 
     // ---- Guilds ----
     this.app.get('/api/guilds', (_req: any, res: any) => {
-      const client = this.appRef.getClient?.();
-      const guilds = client?.guilds?.cache ?? new Map();
-      const list = [...guilds.values()].map((g: any) => ({
-        id: g.id,
-        name: g.name,
-        icon: g.icon,
-        memberCount: g.memberCount,
-        ownerId: g.ownerId,
-        features: g.features ?? [],
-        verificationLevel: g.verificationLevel,
-        preferredTier: g.premiumTier,
-        joinedAt: g.joinedAt?.toISOString?.() ?? null,
-      }));
-      res.json(list);
+      try {
+        const client = this.appRef.getClient?.();
+        const guilds = client?.guilds?.cache ?? new Map();
+        const list = [...guilds.values()].map((g: any) => ({
+          id: g.id,
+          name: g.name,
+          icon: g.icon,
+          memberCount: g.memberCount,
+          ownerId: g.ownerId,
+          features: g.features ?? [],
+          verificationLevel: g.verificationLevel,
+          preferredTier: g.premiumTier,
+          joinedAt: g.joinedAt?.toISOString?.() ?? null,
+        }));
+        res.json(list);
+      } catch (err) {
+        res.json([]);
+      }
     });
 
     this.app.get('/api/guilds/:guildId', (_req: any, res: any) => {
-      const client = this.appRef.getClient?.();
-      const guild = client?.guilds?.cache?.get(_req.params.guildId);
-      if (!guild) {
-        return res.status(404).json({ error: 'Guild not found' });
+      try {
+        const client = this.appRef.getClient?.();
+        const guild = client?.guilds?.cache?.get(_req.params.guildId);
+        if (!guild) {
+          return res.status(404).json({ error: 'Guild not found' });
+        }
+        res.json({
+          id: guild.id,
+          name: guild.name,
+          icon: guild.icon,
+          description: guild.description,
+          memberCount: guild.memberCount,
+          ownerId: guild.ownerId,
+          region: guild.region ?? 'unknown',
+          verificationLevel: guild.verificationLevel,
+          explicitContentFilter: guild.explicitContentFilter,
+          preferredTier: guild.premiumTier,
+          features: guild.features ?? [],
+          channels: [...guild.channels.cache.values()].map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            type: c.type,
+            position: c.position,
+            nsfw: c.nsfw ?? false,
+            parentId: c.parentId ?? null,
+            topic: c.topic ?? null,
+            bitrate: c.bitrate ?? null,
+            userLimit: c.userLimit ?? null,
+            rateLimitPerUser: c.rateLimitPerUser ?? null,
+          })),
+          roles: [...guild.roles.cache.values()].map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            color: r.color,
+            position: r.position,
+            hoist: r.hoist,
+            mentionable: r.mentionable,
+            managed: r.managed,
+            permissions: r.permissions.bitfield?.toString?.() ?? '0',
+          })),
+        });
+      } catch (err) {
+        res.status(404).json({ error: 'Guild not found' });
       }
-      res.json({
-        id: guild.id,
-        name: guild.name,
-        icon: guild.icon,
-        description: guild.description,
-        memberCount: guild.memberCount,
-        ownerId: guild.ownerId,
-        region: guild.region ?? 'unknown',
-        verificationLevel: guild.verificationLevel,
-        explicitContentFilter: guild.explicitContentFilter,
-        preferredTier: guild.premiumTier,
-        features: guild.features ?? [],
-        channels: [...guild.channels.cache.values()].map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          type: c.type,
-          position: c.position,
-          nsfw: c.nsfw ?? false,
-        })),
-        roles: [...guild.roles.cache.values()].map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          color: r.color,
-          position: r.position,
-          hoist: r.hoist,
-          mentionable: r.mentionable,
-          managed: r.managed,
-          permissions: r.permissions.bitfield?.toString?.() ?? '0',
-        })),
-      });
     });
 
     this.app.get('/api/guilds/:guildId/members', (_req: any, res: any) => {
