@@ -8,6 +8,8 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
+const drizzle_orm_1 = require("drizzle-orm");
+const schema_1 = require("../database/schema");
 class WebServer {
     constructor(logger, appRef, port = 3000) {
         this.logger = logger;
@@ -35,6 +37,10 @@ class WebServer {
         this.app.use('/static', express_1.default.static(path_1.default.join(__dirname, 'public')));
         this.app.get('/', (_req, res) => {
             res.sendFile(path_1.default.join(__dirname, 'views', 'index.html'));
+        });
+        // Browsers request this automatically — 204 instead of a 404
+        this.app.get('/favicon.ico', (_req, res) => {
+            res.status(204).end();
         });
         this.setupRoutes();
     }
@@ -335,6 +341,32 @@ class WebServer {
                 res.status(500).json({ error: err.message || 'Failed to set XP' });
             }
         });
+        // ---- Guild Settings (module toggles) ----
+        // Must be registered BEFORE the generic /api/config/:service routes below.
+        this.app.get('/api/config/guild_settings', async (req, res) => {
+            try {
+                const guildId = this.resolveGuildId(req.query.guildId);
+                const settings = await this.readGuildSettings(guildId);
+                res.json(settings ?? this.defaultGuildSettings(guildId));
+            }
+            catch (err) {
+                this.logger.error('Web Server', 'GET guild_settings failed', err);
+                res.json(this.defaultGuildSettings(this.resolveGuildId()));
+            }
+        });
+        this.app.post('/api/config/guild_settings', async (req, res) => {
+            try {
+                const body = req.body ?? {};
+                const guildId = this.resolveGuildId(body.guildId);
+                const saved = await this.writeGuildSettings(guildId, body);
+                this.applyModuleToggles(saved);
+                res.json({ success: true, config: saved });
+            }
+            catch (err) {
+                this.logger.error('Web Server', 'POST guild_settings failed', err);
+                res.status(500).json({ error: err.message || 'Failed to save module settings' });
+            }
+        });
         // ---- Config ----
         this.app.get('/api/config/:service', (_req, res) => {
             const service = _req.params.service;
@@ -516,6 +548,94 @@ class WebServer {
                 break;
             default:
                 throw new Error(`Unknown service: ${service}`);
+        }
+    }
+    resolveGuildId(explicit) {
+        if (explicit)
+            return explicit;
+        try {
+            const client = this.appRef.getClient?.();
+            const firstGuild = client?.guilds?.cache?.first?.();
+            if (firstGuild)
+                return firstGuild.id;
+        }
+        catch {
+            // Discord client not ready yet — fall through to the default bucket
+        }
+        return 'global';
+    }
+    defaultGuildSettings(guildId) {
+        // Mirrors the guild_settings table defaults
+        return {
+            guild_id: guildId,
+            leveling_enabled: true,
+            moderation_enabled: true,
+            ai_enabled: false,
+            music_enabled: false,
+            economy_enabled: false,
+            welcome_enabled: false,
+            goodbye_enabled: false,
+            autoroles_enabled: false,
+        };
+    }
+    async readGuildSettings(guildId) {
+        try {
+            const db = this.appRef.database?.getDb?.();
+            if (!db)
+                return null;
+            const rows = await db.select().from(schema_1.guildSettings).where((0, drizzle_orm_1.eq)(schema_1.guildSettings.guild_id, guildId));
+            return rows?.[0] ?? null;
+        }
+        catch (err) {
+            this.logger.warn('Web Server', `Could not read guild_settings for ${guildId}: ${err.message}`);
+            return null;
+        }
+    }
+    async writeGuildSettings(guildId, body) {
+        const allowed = [
+            'leveling_enabled', 'ai_enabled', 'music_enabled', 'economy_enabled',
+            'moderation_enabled', 'welcome_enabled', 'welcome_channel_id', 'welcome_message',
+            'goodbye_enabled', 'goodbye_channel_id', 'goodbye_message', 'autoroles_enabled', 'autorole_ids',
+        ];
+        const data = {};
+        for (const key of allowed) {
+            if (body[key] !== undefined)
+                data[key] = body[key];
+        }
+        const now = new Date();
+        let persisted = false;
+        try {
+            const db = this.appRef.database?.getDb?.();
+            if (db) {
+                const existing = await db.select().from(schema_1.guildSettings).where((0, drizzle_orm_1.eq)(schema_1.guildSettings.guild_id, guildId));
+                if (existing?.length) {
+                    await db.update(schema_1.guildSettings).set({ ...data, updated_at: now }).where((0, drizzle_orm_1.eq)(schema_1.guildSettings.guild_id, guildId));
+                }
+                else {
+                    await db.insert(schema_1.guildSettings).values({ guild_id: guildId, ...data, created_at: now, updated_at: now });
+                }
+                persisted = true;
+            }
+        }
+        catch (err) {
+            // Don't 500 the dashboard save if the DB is unavailable — log and continue
+            this.logger.warn('Web Server', `Could not persist guild_settings for ${guildId}: ${err.message}`);
+        }
+        const current = persisted ? await this.readGuildSettings(guildId) : null;
+        return { ...this.defaultGuildSettings(guildId), ...data, ...(current ?? {}) };
+    }
+    applyModuleToggles(settings) {
+        const app = this.appRef;
+        try {
+            if (settings.leveling_enabled !== undefined && app.leveling?.config) {
+                app.leveling.config.enabled = !!settings.leveling_enabled;
+            }
+            if (settings.ai_enabled !== undefined && app.ai?.config) {
+                app.ai.config.enabled = !!settings.ai_enabled;
+            }
+        }
+        catch (err) {
+            this.logger.warn('Web Server', `Could not apply module toggles live: ${err.message}`);
         }
     }
     async start() {
