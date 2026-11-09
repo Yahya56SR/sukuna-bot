@@ -5,7 +5,7 @@ const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../database/schema");
 class MusicService {
-    constructor(logger) {
+    constructor(logger, _config) {
         this.db = null;
         this.sessions = new Map();
         this.logger = logger;

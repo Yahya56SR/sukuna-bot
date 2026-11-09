@@ -95,7 +95,7 @@ export class AppConfigManager {
         level: process.env.LOG_LEVEL || 'info',
         format: process.env.LOG_FORMAT || 'pretty',
         destinations: [{ type: 'console' }],
-        categories: { system: { type: 'console' } },
+        categories: { system: { type: 'console' }, discord: { type: 'console' }, commands: { type: 'console' }, events: { type: 'console' } },
       },
       database: {
         path: process.env.DATABASE_PATH || './data/sukuna.db',
@@ -108,6 +108,9 @@ export class AppConfigManager {
       },
     };
 
+    if (!this.config) {
+      throw new Error('Configuration not initialized');
+    }
     return this.config;
   }
 
@@ -137,7 +140,7 @@ export function initializeConfig(): AppConfig {
       level: process.env.LOG_LEVEL || 'info',
       format: process.env.LOG_FORMAT || 'pretty',
       destinations: [{ type: 'console' }],
-      categories: { system: { type: 'console' } },
+      categories: { system: { type: 'console' }, discord: { type: 'console' }, commands: { type: 'console' }, events: { type: 'console' } },
     },
     database: {
       path: process.env.DATABASE_PATH || './data/sukuna.db',

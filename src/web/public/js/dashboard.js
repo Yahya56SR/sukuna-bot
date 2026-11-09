@@ -80,6 +80,9 @@ const app = {
       }
     } catch (err) {
       console.error('Failed to fetch status:', err);
+      document.getElementById('navStatus').textContent = 'Offline';
+      document.getElementById('navStatus').className = 'text-red-400';
+      document.getElementById('statStatus').textContent = 'Offline';
     }
   },
 

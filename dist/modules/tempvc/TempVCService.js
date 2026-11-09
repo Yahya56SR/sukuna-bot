@@ -12,7 +12,7 @@ const PANEL_BUTTONS = [
     { id: 'unlock', label: 'UNLOCK', emoji: '🔓', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'invite', label: 'INVITE', emoji: '✉️', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'delete', label: 'DELETE', emoji: '🗑️', style: discord_js_1.ButtonStyle.Danger },
-    { id: 'hide', label: 'HIDE', emoji: '👁️‍🗨️', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'hide', label: 'HIDE', emoji: '👁️', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'show', label: 'SHOW', emoji: '👁️', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'claim', label: 'CLAIM', emoji: '✅', style: discord_js_1.ButtonStyle.Success },
     { id: 'kick', label: 'KICK', emoji: '👢', style: discord_js_1.ButtonStyle.Danger },

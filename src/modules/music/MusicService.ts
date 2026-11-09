@@ -29,7 +29,7 @@ export class MusicService {
   private db: DrizzleDb | null = null;
   private sessions: Map<string, any> = new Map();
 
-  constructor(logger: Logger, config: MusicConfig) {
+  constructor(logger: Logger, _config: MusicConfig) {
     this.logger = logger;
   }
 

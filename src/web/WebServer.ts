@@ -21,6 +21,21 @@ export class WebServer {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
+    // Request logging — without this, API calls never appear in the console
+    this.app.use((req: any, res: any, next: any) => {
+      const start = Date.now();
+      res.on('finish', () => {
+        const status = res.statusCode;
+        const msg = `${req.method} ${req.originalUrl} -> ${status} (${Date.now() - start}ms)`;
+        if (status >= 400) {
+          this.logger.warn('Web Server', msg);
+        } else {
+          this.logger.info('Web Server', msg);
+        }
+      });
+      next();
+    });
+
     this.app.use('/static', express.static(path.join(__dirname, 'public')));
 
     this.app.get('/', (_req: any, res: any) => {
@@ -52,6 +67,7 @@ export class WebServer {
           env: process.env.NODE_ENV ?? 'development',
         });
       } catch (err) {
+        this.logger.error('Web Server', 'GET /api/status failed', err as Error);
         res.json({
           online: false,
           ready: false,
@@ -83,6 +99,7 @@ export class WebServer {
           uptime: process.uptime(),
         });
       } catch (err) {
+        this.logger.error('Web Server', 'GET /api/stats failed', err as Error);
         res.status(500).json({ error: 'Failed to fetch stats' });
       }
     });
@@ -116,6 +133,7 @@ export class WebServer {
         }));
         res.json(list);
       } catch (err) {
+        this.logger.error('Web Server', 'GET /api/guilds failed', err as Error);
         res.json([]);
       }
     });
@@ -438,6 +456,21 @@ export class WebServer {
         res.json({ success: true, presence: { status, activityName, activityType } });
       } catch (err: any) {
         res.status(500).json({ error: err.message || 'Failed to set presence' });
+      }
+    });
+
+    // ---- Fallbacks (must be last) ----
+    // JSON 404 for unknown API routes instead of Express' default HTML page
+    this.app.use('/api', (_req: any, res: any) => {
+      this.logger.warn('Web Server', `Unknown API route: ${_req.method} ${_req.originalUrl}`);
+      res.status(404).json({ error: 'Not found' });
+    });
+
+    // Error handler — log it so failures are visible in the console
+    this.app.use((err: any, _req: any, res: any, _next: any) => {
+      this.logger.error('Web Server', `Unhandled error: ${err?.message}`, err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Internal server error' });
       }
     });
   }

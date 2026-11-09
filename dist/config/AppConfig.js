@@ -1,5 +1,5 @@
 "use strict";
-// Sukuna Bot - Configuration System
+// Sukuna Bot - Configuration System with Maximum Flexibility
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppConfigManager = void 0;
 exports.initializeConfig = initializeConfig;
@@ -21,12 +21,16 @@ class AppConfigManager {
                 token: process.env.DISCORD_TOKEN || '',
                 intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.GuildMembers],
                 partials: ['Message'],
+                intentsByName: [],
+                retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
+                retryCount: parseInt(process.env.DISCORD_RETRY_COUNT || '3'),
+                retryDelay: parseInt(process.env.DISCORD_RETRY_DELAY || '5000'),
             },
             logging: {
                 level: process.env.LOG_LEVEL || 'info',
                 format: process.env.LOG_FORMAT || 'pretty',
                 destinations: [{ type: 'console' }],
-                categories: { system: { type: 'console' } },
+                categories: { system: { type: 'console' }, discord: { type: 'console' }, commands: { type: 'console' }, events: { type: 'console' } },
             },
             database: {
                 path: process.env.DATABASE_PATH || './data/sukuna.db',
@@ -38,6 +42,9 @@ class AppConfigManager {
                 caseInsensitive: process.env.COMMAND_CASE_INSENSITIVE !== 'false',
             },
         };
+        if (!this.config) {
+            throw new Error('Configuration not initialized');
+        }
         return this.config;
     }
     getConfig() {
@@ -57,12 +64,16 @@ function initializeConfig() {
             token: process.env.DISCORD_TOKEN || '',
             intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.GuildMembers],
             partials: ['Message'],
+            intentsByName: [],
+            retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
+            retryCount: parseInt(process.env.DISCORD_RETRY_COUNT || '3'),
+            retryDelay: parseInt(process.env.DISCORD_RETRY_DELAY || '5000'),
         },
         logging: {
             level: process.env.LOG_LEVEL || 'info',
             format: process.env.LOG_FORMAT || 'pretty',
             destinations: [{ type: 'console' }],
-            categories: { system: { type: 'console' } },
+            categories: { system: { type: 'console' }, discord: { type: 'console' }, commands: { type: 'console' }, events: { type: 'console' } },
         },
         database: {
             path: process.env.DATABASE_PATH || './data/sukuna.db',

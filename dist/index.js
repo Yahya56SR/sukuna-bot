@@ -117,16 +117,20 @@ class SukunaApp {
             apiKey: process.env.GEMINI_API_KEY || '',
         });
         this.music = new MusicService(this.logger, {
-            enabled: true,
-            lavalinkHost: 'localhost',
-            lavalinkPort: 2333,
-            lavalinkPassword: 'youshallnotpass',
+            enabled: this.config.services.music.enabled,
+            lavalinkHost: this.config.services.music.lavalinkHost,
+            lavalinkPort: this.config.services.music.lavalinkPort,
+            lavalinkPassword: this.config.services.music.lavalinkPassword,
+            defaultVolume: this.config.services.music.defaultVolume,
+            maxPlaylistSize: this.config.services.music.maxPlaylistSize,
+            allowSkip: this.config.services.music.allowSkip,
+            allowRepeat: this.config.services.music.allowRepeat,
         });
         this.automation = new AutomationService(this.logger);
         this.analytics = new AnalyticsService(this.logger);
         this.tempvc = new TempVCService(this.logger);
         this.economyGames = new EconomyGamesService(this.logger);
-        this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.WEB_PORT || '3000'));
+        this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.PORT || '3000'));
     }
     static getInstance() {
         if (!SukunaApp.instance) {
@@ -135,6 +139,11 @@ class SukunaApp {
         return SukunaApp.instance;
     }
     async initialize() {
+        // Start the web dashboard FIRST so it stays up (and the hosting proxy
+        // doesn't return 502) even if Discord login / DB init below fails.
+        // The API routes already handle a not-yet-connected client gracefully.
+        await this.web.start();
+        this.logger.info('Sukuna Bot', 'Web dashboard started');
         try {
             this.logger.info('Sukuna Bot', 'Starting application initialization...');
             await this.database.initialize();
@@ -308,13 +317,12 @@ class SukunaApp {
                 this.ai.handleMessage(message);
             });
             this.logger.info('Sukuna Bot', 'Application initialization completed successfully');
-            // Start web dashboard
-            await this.web.start();
-            this.logger.info('Sukuna Bot', 'Web dashboard started');
         }
         catch (error) {
-            this.logger.error('Sukuna Bot', 'Application initialization failed', error);
-            process.exit(1);
+            // Do NOT exit here: the dashboard is already running and should stay up
+            // (showing "Offline") so the host doesn't return 502. The bot features
+            // that failed to initialize will recover on the next restart.
+            this.logger.error('Sukuna Bot', 'Application initialization failed — dashboard remains available, bot features offline', error);
         }
     }
     getClient() {

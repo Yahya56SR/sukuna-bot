@@ -120,7 +120,7 @@ this.leveling = new LevelingService(this.logger, {
       this.analytics = new AnalyticsService(this.logger);
       this.tempvc = new TempVCService(this.logger);
       this.economyGames = new EconomyGamesService(this.logger);
-      this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || '3000'));
+      this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.PORT || '3000'));
   }
 
   public static getInstance(): SukunaApp {
@@ -131,6 +131,12 @@ this.leveling = new LevelingService(this.logger, {
   }
 
   public async initialize(): Promise<void> {
+    // Start the web dashboard FIRST so it stays up (and the hosting proxy
+    // doesn't return 502) even if Discord login / DB init below fails.
+    // The API routes already handle a not-yet-connected client gracefully.
+    await this.web.start();
+    this.logger.info('Sukuna Bot', 'Web dashboard started');
+
     try {
       this.logger.info('Sukuna Bot', 'Starting application initialization...');
 
@@ -298,13 +304,11 @@ this.leveling = new LevelingService(this.logger, {
       });
 
       this.logger.info('Sukuna Bot', 'Application initialization completed successfully');
-
-      // Start web dashboard
-      await this.web.start();
-      this.logger.info('Sukuna Bot', 'Web dashboard started');
     } catch (error) {
-      this.logger.error('Sukuna Bot', 'Application initialization failed', error as Error);
-      process.exit(1);
+      // Do NOT exit here: the dashboard is already running and should stay up
+      // (showing "Offline") so the host doesn't return 502. The bot features
+      // that failed to initialize will recover on the next restart.
+      this.logger.error('Sukuna Bot', 'Application initialization failed — dashboard remains available, bot features offline', error as Error);
     }
   }
 

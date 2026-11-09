@@ -86,7 +86,7 @@ export class DiscordClientManager {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private convertStringIntentsToNumber(intents: string[]): number[] {
+  private convertStringIntentsToNumber(intents: (string | number)[]): number[] {
     const intentMap: Record<string, number> = {
       'Guilds': GatewayIntentBits.Guilds,
       'GuildMessages': GatewayIntentBits.GuildMessages,
@@ -105,8 +105,10 @@ export class DiscordClientManager {
 
     const numericIntents: number[] = [];
     for (const intent of intents) {
-      if (intent in intentMap) {
-        numericIntents.push(intentMap[intent]);
+      if (typeof intent === 'number') {
+        numericIntents.push(intent);
+      } else if (intent in intentMap) {
+        numericIntents.push(intentMap[intent]!);
       } else if (this.isNumericString(intent)) {
         numericIntents.push(parseInt(intent));
       } else {
