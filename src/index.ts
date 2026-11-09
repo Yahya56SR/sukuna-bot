@@ -106,15 +106,17 @@ this.leveling = new LevelingService(this.logger, {
         requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
         apiKey: process.env.GEMINI_API_KEY || '',
       });
+      // NOTE: AppConfig has no `services` key — use env vars with safe defaults
+      // (this previously crashed at startup: "Cannot read properties of undefined (reading 'music')")
       this.music = new MusicService(this.logger, {
-        enabled: this.config.services.music.enabled,
-        lavalinkHost: this.config.services.music.lavalinkHost,
-        lavalinkPort: this.config.services.music.lavalinkPort,
-        lavalinkPassword: this.config.services.music.lavalinkPassword,
-        defaultVolume: this.config.services.music.defaultVolume,
-        maxPlaylistSize: this.config.services.music.maxPlaylistSize,
-        allowSkip: this.config.services.music.allowSkip,
-        allowRepeat: this.config.services.music.allowRepeat,
+        enabled: process.env.MUSIC_ENABLED !== 'false',
+        lavalinkHost: process.env.LAVALINK_HOST || 'localhost',
+        lavalinkPort: parseInt(process.env.LAVALINK_PORT || '2333'),
+        lavalinkPassword: process.env.LAVALINK_PASSWORD || 'youshallnotpass',
+        defaultVolume: parseInt(process.env.MUSIC_DEFAULT_VOLUME || '100'),
+        maxPlaylistSize: parseInt(process.env.MUSIC_MAX_PLAYLIST_SIZE || '50'),
+        allowSkip: process.env.MUSIC_ALLOW_SKIP !== 'false',
+        allowRepeat: process.env.MUSIC_ALLOW_REPEAT !== 'false',
       });
       this.automation = new AutomationService(this.logger);
       this.analytics = new AnalyticsService(this.logger);
