@@ -23,18 +23,42 @@ class AnalyticsService {
                 totalUsers: 0,
                 totalMessages: 0,
                 totalModerationCases: 0,
+                totalWarnings: 0,
+                totalTransactions: 0,
+                openTickets: 0,
+                totalLevelUps: 0,
                 uptime: Date.now() - this.startTime,
             };
         }
-        const [guildCount] = await this.db.select({ count: schema_1.guilds.id }).from(schema_1.guilds);
-        const [userCount] = await this.db.select({ count: schema_1.users.id }).from(schema_1.users);
-        const [messageCount] = await this.db.select({ count: schema_1.messages.id }).from(schema_1.messages);
-        const [modCount] = await this.db.select({ count: schema_1.moderationCases.id }).from(schema_1.moderationCases);
+        // `count()` produces SELECT count(*); selecting an id column and reading
+        // `count` from the first row would only ever return the first row's id.
+        const rowCount = async (table) => {
+            const [row] = await this.db.select({ value: (0, drizzle_orm_1.count)() }).from(table);
+            return Number(row?.value ?? 0);
+        };
+        const [totalGuilds, totalUsers, totalMessages, totalModerationCases, totalWarnings, totalTransactions, totalLevelUps, openTickets,] = await Promise.all([
+            rowCount(schema_1.guilds),
+            rowCount(schema_1.users),
+            rowCount(schema_1.messages),
+            rowCount(schema_1.moderationCases),
+            rowCount(schema_1.warnings),
+            rowCount(schema_1.economyTransactions),
+            rowCount(schema_1.levelingHistory),
+            this.db
+                .select({ value: (0, drizzle_orm_1.count)() })
+                .from(schema_1.tickets)
+                .where((0, drizzle_orm_1.eq)(schema_1.tickets.status, 'open'))
+                .then((rows) => Number(rows[0]?.value ?? 0)),
+        ]);
         return {
-            totalGuilds: Number(guildCount?.count || 0),
-            totalUsers: Number(userCount?.count || 0),
-            totalMessages: Number(messageCount?.count || 0),
-            totalModerationCases: Number(modCount?.count || 0),
+            totalGuilds,
+            totalUsers,
+            totalMessages,
+            totalModerationCases,
+            totalWarnings,
+            totalTransactions,
+            openTickets,
+            totalLevelUps,
             uptime: Date.now() - this.startTime,
         };
     }

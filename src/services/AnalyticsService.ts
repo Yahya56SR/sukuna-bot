@@ -1,6 +1,15 @@
 import { Logger } from '../infrastructure/Logger';
-import { eq } from 'drizzle-orm';
-import { users, guilds, moderationCases, messages } from '../database/schema';
+import { eq, count } from 'drizzle-orm';
+import {
+  users,
+  guilds,
+  moderationCases,
+  messages,
+  warnings,
+  economyTransactions,
+  tickets,
+  levelingHistory,
+} from '../database/schema';
 import type { DrizzleDb } from '../types/database';
 
 export interface BotStats {
@@ -8,6 +17,10 @@ export interface BotStats {
   totalUsers: number;
   totalMessages: number;
   totalModerationCases: number;
+  totalWarnings: number;
+  totalTransactions: number;
+  openTickets: number;
+  totalLevelUps: number;
   uptime: number;
 }
 
@@ -37,20 +50,54 @@ export class AnalyticsService {
         totalUsers: 0,
         totalMessages: 0,
         totalModerationCases: 0,
+        totalWarnings: 0,
+        totalTransactions: 0,
+        openTickets: 0,
+        totalLevelUps: 0,
         uptime: Date.now() - this.startTime,
       };
     }
 
-    const [guildCount] = await this.db.select({ count: guilds.id }).from(guilds);
-    const [userCount] = await this.db.select({ count: users.id }).from(users);
-    const [messageCount] = await this.db.select({ count: messages.id }).from(messages);
-    const [modCount] = await this.db.select({ count: moderationCases.id }).from(moderationCases);
+    // `count()` produces SELECT count(*); selecting an id column and reading
+    // `count` from the first row would only ever return the first row's id.
+    const rowCount = async (table: any): Promise<number> => {
+      const [row] = await this.db!.select({ value: count() }).from(table);
+      return Number(row?.value ?? 0);
+    };
+
+    const [
+      totalGuilds,
+      totalUsers,
+      totalMessages,
+      totalModerationCases,
+      totalWarnings,
+      totalTransactions,
+      totalLevelUps,
+      openTickets,
+    ] = await Promise.all([
+      rowCount(guilds),
+      rowCount(users),
+      rowCount(messages),
+      rowCount(moderationCases),
+      rowCount(warnings),
+      rowCount(economyTransactions),
+      rowCount(levelingHistory),
+      this.db
+        .select({ value: count() })
+        .from(tickets)
+        .where(eq(tickets.status, 'open'))
+        .then((rows: any[]) => Number(rows[0]?.value ?? 0)),
+    ]);
 
     return {
-      totalGuilds: Number(guildCount?.count || 0),
-      totalUsers: Number(userCount?.count || 0),
-      totalMessages: Number(messageCount?.count || 0),
-      totalModerationCases: Number(modCount?.count || 0),
+      totalGuilds,
+      totalUsers,
+      totalMessages,
+      totalModerationCases,
+      totalWarnings,
+      totalTransactions,
+      openTickets,
+      totalLevelUps,
       uptime: Date.now() - this.startTime,
     };
   }

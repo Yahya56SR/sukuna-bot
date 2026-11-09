@@ -1,5 +1,16 @@
 const API = '/api';
 
+const PAGE_META = {
+  dashboard: { title: 'Dashboard', subtitle: 'Live telemetry from your Discord community' },
+  guilds: { title: 'Servers', subtitle: 'Every guild Sukuna is connected to' },
+  moderation: { title: 'Moderation', subtitle: 'Warnings, kicks, bans and mutes' },
+  economy: { title: 'Economy', subtitle: 'Balances, transactions and currency settings' },
+  leveling: { title: 'Leveling', subtitle: 'Leaderboards, XP and rewards' },
+  cards: { title: 'Cards', subtitle: 'Design welcome and rank cards' },
+  settings: { title: 'Settings', subtitle: 'Configure every module of the bot' },
+  system: { title: 'System', subtitle: 'Runtime, process and host diagnostics' },
+};
+
 const app = {
   currentPage: 'dashboard',
   intervalId: null,
@@ -9,20 +20,54 @@ const app = {
   _cardsPreviewTimers: {},
   _leveling: null,
   _community: null,
+  _overview: null,
 
   init() {
+    const hashPage = (window.location.hash || '').replace('#', '');
+    const initialPage = PAGE_META[hashPage] ? hashPage : 'dashboard';
+
     this.setupNav();
     this.fetchStatus();
     this.fetchGuilds();
+    this.loadOverview();
     this.startPolling();
     this.setupForms();
     this.setupColorPairs();
     this.setupCardEditors();
 
+    if (initialPage !== 'dashboard') this.openPage(initialPage, false);
+    this.setActiveNav(initialPage);
+    window.addEventListener('hashchange', () => {
+      const page = (window.location.hash || '').replace('#', '');
+      if (PAGE_META[page] && page !== this.currentPage) this.openPage(page, false);
+    });
+
     // Close the mobile menu when growing to desktop width so it does not
     // reappear unexpectedly if the window is shrunk again.
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1280) this.toggleMobileNav(false);
+      if (window.innerWidth >= 1025) this.toggleMobileNav(false);
+    });
+
+    // Pause polling in background tabs and refresh immediately on return.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) this.refreshCurrent(true);
+    });
+
+    document.getElementById('mobileNav')?.addEventListener('click', (event) => {
+      if (event.target.id === 'mobileNav') this.toggleMobileNav(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') this.toggleMobileNav(false);
+    });
+  },
+
+  setActiveNav(page) {
+    document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+      const active = btn.getAttribute('data-page') === page;
+      btn.classList.toggle('active', active);
+      btn.classList.toggle('text-white', active);
+      if (active) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
     });
   },
 
@@ -48,14 +93,12 @@ const app = {
     if (toggle) toggle.setAttribute('aria-expanded', String(shouldOpen));
   },
 
-  openPage(page) {
+  openPage(page, updateHash = true) {
+    if (!PAGE_META[page]) return;
     this.currentPage = page;
 
     document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.classList.toggle('text-white', btn.getAttribute('data-page') === page);
-      btn.classList.toggle('text-slate-300', btn.getAttribute('data-page') !== page);
-    });
+    this.setActiveNav(page);
 
     // On phones the navigation is a collapsible menu; close it after choosing
     // a page so the content is visible immediately.
@@ -64,7 +107,20 @@ const app = {
     const target = document.getElementById(`page-${page}`);
     if (target) target.classList.add('active');
 
-    if (page === 'dashboard') this.fetchStats();
+    const meta = PAGE_META[page];
+    const title = document.getElementById('pageTitle');
+    const subtitle = document.getElementById('pageSubtitle');
+    if (title) title.textContent = meta.title;
+    if (subtitle) subtitle.textContent = meta.subtitle;
+    document.title = `Sukuna Bot — ${meta.title}`;
+
+    if (updateHash && window.location.hash !== `#${page}`) {
+      history.replaceState(null, '', `#${page}`);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (page === 'dashboard') this.loadOverview();
     if (page === 'guilds') this.fetchGuilds();
     if (page === 'moderation') this.loadModeration();
     if (page === 'economy') this.loadEconomy();
@@ -99,11 +155,81 @@ const app = {
 
   showAlert(message, type = 'error') {
     const container = document.getElementById('alertContainer');
+    if (!container) return;
+    // Keep the stack short so notifications never cover the UI.
+    while (container.children.length >= 4) container.firstElementChild?.remove();
+
     const div = document.createElement('div');
     div.className = `alert alert-${type}`;
+    div.setAttribute('role', type === 'error' ? 'alert' : 'status');
     div.textContent = message;
+    div.addEventListener('click', () => div.remove());
     container.appendChild(div);
-    setTimeout(() => div.remove(), 5000);
+    setTimeout(() => div.remove(), 5200);
+  },
+
+  // ---------- Formatting helpers ----------
+  escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  formatNumber(value) {
+    const n = Number(value ?? 0);
+    if (!Number.isFinite(n)) return '0';
+    return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  },
+
+  compactNumber(value) {
+    const n = Number(value ?? 0);
+    if (!Number.isFinite(n)) return '0';
+    return Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+  },
+
+  avatarUrl(userId, hash, size = 64) {
+    if (!userId || !hash) return '';
+    return `https://cdn.discordapp.com/avatars/${userId}/${hash}.png?size=${size}`;
+  },
+
+  iconUrl(guildId, hash, size = 64) {
+    if (!guildId || !hash) return '';
+    return `https://cdn.discordapp.com/icons/${guildId}/${hash}.png?size=${size}`;
+  },
+
+  timeAgo(iso) {
+    if (!iso) return '—';
+    const then = new Date(iso).getTime();
+    if (!Number.isFinite(then)) return '—';
+    const diff = Math.max(0, Date.now() - then);
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString();
+  },
+
+  sparkPath(values, width = 100, height = 34, pad = 2) {
+    const nums = (values || []).map(v => Number(v) || 0);
+    while (nums.length < 2) nums.push(0);
+    const max = Math.max(...nums, 1);
+    const min = Math.min(...nums, 0);
+    const span = Math.max(max - min, 1);
+    const step = (width - pad * 2) / Math.max(nums.length - 1, 1);
+    const points = nums.map((v, i) => {
+      const x = pad + i * step;
+      const y = height - pad - ((v - min) / span) * (height - pad * 2);
+      return [Number(x.toFixed(2)), Number(y.toFixed(2))];
+    });
+    const line = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join(' ');
+    const area = `${line} L${width - pad} ${height} L${pad} ${height} Z`;
+    return { line, area };
   },
 
   // ---------- Guild / channel / role pickers (no raw IDs) ----------
@@ -409,36 +535,288 @@ const app = {
   async fetchStatus() {
     try {
       const data = await this.request('/status');
-      document.getElementById('navStatus').textContent = data.ready ? 'Online' : 'Offline';
-      document.getElementById('navStatus').className = data.ready ? 'text-green-400' : 'text-red-400';
-      const mobileStatus = document.getElementById('navStatusMobile');
-      if (mobileStatus) mobileStatus.textContent = data.ready ? 'Online' : 'Offline';
-      document.getElementById('statStatus').textContent = data.ready ? 'Online' : 'Offline';
-      document.getElementById('statStatus').className = `text-3xl font-bold mt-1 stat-number ${data.ready ? 'text-green-400' : 'text-red-400'}`;
-      document.getElementById('statGuilds').textContent = data.guilds ?? 0;
-      document.getElementById('statUsers').textContent = data.users ?? 0;
-      document.getElementById('statPing').textContent = data.ping ? `${data.ping}ms` : '--';
-      if (data.memory) {
-        const mb = (data.memory.heapUsed / 1024 / 1024).toFixed(1);
-        document.getElementById('statMemory').textContent = `${mb} MB`;
-      }
+      this.applyStatus(data);
     } catch (err) {
       console.error('Failed to fetch status:', err);
-      document.getElementById('navStatus').textContent = 'Offline';
-      document.getElementById('navStatus').className = 'text-red-400';
-      const mobileStatus = document.getElementById('navStatusMobile');
-      if (mobileStatus) mobileStatus.textContent = 'Offline';
-      document.getElementById('statStatus').textContent = 'Offline';
+      this.applyStatus({ ready: false, online: false, guilds: 0, users: 0, ping: 0, uptime: 0 });
     }
   },
 
-  async fetchStats() {
-    try {
-      const data = await this.request('/stats');
-      document.getElementById('statUptime').textContent = this.formatUptime(data.uptime ?? 0);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
+  applyStatus(data) {
+    const online = !!(data.ready || data.online);
+    const label = data.ready ? 'Operational' : online ? 'Starting…' : 'Offline';
+
+    const navStatus = document.getElementById('navStatus');
+    if (navStatus) {
+      navStatus.textContent = label;
+      navStatus.style.color = online ? '#6ee7b7' : '#fca5a5';
     }
+    const statusDot = document.getElementById('statusDot');
+    if (statusDot) statusDot.classList.toggle('offline', !online);
+    const sideDot = document.getElementById('sideDot');
+    if (sideDot) sideDot.classList.toggle('offline', !online);
+    const sideGateway = document.getElementById('sideGateway');
+    if (sideGateway) sideGateway.textContent = online ? 'Online' : 'Offline';
+
+    const gateway = document.getElementById('heroGateway');
+    if (gateway) gateway.textContent = data.ready ? 'Connected' : online ? 'Connecting…' : 'Disconnected';
+    const gatewaySub = document.getElementById('heroGatewaySub');
+    if (gatewaySub) gatewaySub.textContent = data.user ? data.user : online ? 'Discord gateway not ready' : 'Not connected to Discord';
+    const orb = document.getElementById('heroOrb');
+    if (orb) {
+      orb.textContent = online ? '✓' : '!';
+      orb.classList.toggle('offline', !online);
+    }
+
+    const set = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    set('statGuilds', this.formatNumber(data.guilds ?? 0));
+    set('statUsers', this.formatNumber(data.users ?? 0));
+    set('sideGuilds', this.formatNumber(data.guilds ?? 0));
+    set('statPing', data.ping ? `${Math.round(data.ping)}ms` : '—');
+    set('statUptime', this.formatUptime(data.uptime ?? 0));
+    set('healthPing', data.ping ? `${Math.round(data.ping)}ms` : '—');
+
+    const pingBar = document.getElementById('healthPingBar');
+    if (pingBar) pingBar.style.width = `${Math.max(4, Math.min(100, 100 - Math.min(Number(data.ping) || 0, 500) / 5))}%`;
+
+    if (data.memory) {
+      const heap = Number(data.memory.heapUsed ?? 0) / 1024 / 1024;
+      const total = Number(data.memory.heapTotal ?? 0) / 1024 / 1024;
+      set('statMemory', `${heap.toFixed(1)} MB`);
+      set('healthHeap', `${heap.toFixed(1)} / ${total.toFixed(1)} MB`);
+      const heapBar = document.getElementById('healthHeapBar');
+      if (heapBar) heapBar.style.width = `${Math.max(3, Math.min(100, total ? (heap / total) * 100 : 0))}%`;
+    }
+
+    set('healthNode', data.nodeVersion ?? '—');
+    set('healthEnv', (data.env ?? 'development').replace(/^\w/, c => c.toUpperCase()));
+    set('healthChannels', this.formatNumber(data.channels ?? 0));
+    const channelBar = document.getElementById('healthChannelsBar');
+    if (channelBar) channelBar.style.width = `${Math.max(3, Math.min(100, ((Number(data.channels) || 0) / 500) * 100))}%`;
+  },
+
+  async fetchStats() {
+    // Kept for backwards compatibility; the overview request supersedes it.
+    return this.loadOverview();
+  },
+
+  async loadOverview() {
+    try {
+      const data = await this.request('/overview');
+      this._overview = data;
+      this.renderOverview(data);
+    } catch (err) {
+      console.error('Failed to load overview:', err);
+      this.renderOverview(null);
+    }
+  },
+
+  renderOverview(data) {
+    if (!data) {
+      ['topServersList', 'topMembersList', 'recentCasesList'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div class="empty-state">Unable to load data — check the bot logs.</div>';
+      });
+      return;
+    }
+
+    const { status = {}, stats = {}, economy = {}, activity = {}, logs = {} } = data;
+    this.applyStatus(status);
+
+    const members = Number(status.members ?? 0);
+    const days = activity.days ?? [];
+    const totals = days.reduce((acc, d) => {
+      acc.messages += Number(d.messages ?? 0);
+      acc.moderation += Number(d.moderation ?? 0);
+      acc.users += Number(d.users ?? 0);
+      return acc;
+    }, { messages: 0, moderation: 0, users: 0 });
+
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    setText('statGuilds', this.formatNumber(status.guilds ?? stats.totalGuilds ?? 0));
+    setText('statMembers', this.compactNumber(members));
+    setText('statMessages', this.compactNumber(stats.totalMessages ?? 0));
+    setText('statCases', this.compactNumber(stats.totalModerationCases ?? 0));
+    setText('sideGuilds', this.formatNumber(status.guilds ?? stats.totalGuilds ?? 0));
+    setText('sideMembers', this.compactNumber(members));
+    setText('legendMessages', this.formatNumber(totals.messages));
+    setText('legendModeration', this.formatNumber(totals.moderation));
+    setText('legendUsers', this.formatNumber(totals.users));
+
+    const trendEl = document.getElementById('kpiMembersTrend');
+    if (trendEl) {
+      trendEl.textContent = `${totals.users ? '+' : ''}${this.formatNumber(totals.users)} / 7d`;
+      trendEl.classList.toggle('neutral', totals.users === 0);
+    }
+    const messagesTrend = document.getElementById('kpiMessagesTrend');
+    if (messagesTrend) messagesTrend.textContent = totals.messages ? `${this.formatNumber(totals.messages)} / 7d` : 'Recorded';
+    const casesTrend = document.getElementById('kpiCasesTrend');
+    if (casesTrend) casesTrend.textContent = totals.moderation ? `${this.formatNumber(totals.moderation)} / 7d` : 'All time';
+
+    const heroSub = document.getElementById('heroSubtitle');
+    if (heroSub) {
+      heroSub.textContent = status.ready
+        ? `${this.formatNumber(status.guilds ?? 0)} servers · ${this.formatNumber(members)} members · ${this.formatNumber(economy.fundedUsers ?? 0)} funded wallets`
+        : 'Discord gateway is offline. The dashboard will reconnect automatically.';
+    }
+    const heroDate = document.getElementById('heroDate');
+    if (heroDate) {
+      heroDate.textContent = new Date().toLocaleDateString('en-US', {
+        weekday: 'long', month: 'short', day: 'numeric',
+      });
+    }
+
+    // Sparklines reuse the 7-day series so every card tells a story.
+    const spark = (id, series) => {
+      const svg = document.getElementById(id);
+      if (!svg) return;
+      const { line, area } = this.sparkPath(series);
+      const paths = svg.querySelectorAll('path');
+      if (paths[0]) paths[0].setAttribute('d', area);
+      if (paths[1]) paths[1].setAttribute('d', line);
+    };
+    spark('sparkServers', days.map(d => d.users ?? 0));
+    spark('sparkMembers', days.map(d => d.users ?? 0));
+    spark('sparkMessages', days.map(d => d.messages ?? 0));
+    spark('sparkCases', days.map(d => d.moderation ?? 0));
+
+    this.renderActivityChart(days);
+    this.renderTopServers(data.topServers ?? []);
+    this.renderTopMembers(data.topMembers ?? []);
+    this.renderRecentCases(data.recentCases ?? []);
+
+    const healthBadge = document.getElementById('healthBadge');
+    if (healthBadge) {
+      const issues = Number(logs.errors ?? 0);
+      healthBadge.textContent = issues ? `${issues} error${issues === 1 ? '' : 's'}` : 'Stable';
+      healthBadge.className = `badge ${issues ? 'badge-danger' : 'badge-success'}`;
+    }
+  },
+
+  renderActivityChart(days) {
+    const svg = document.getElementById('activityChart');
+    if (!svg) return;
+    if (!days.length) {
+      svg.innerHTML = '';
+      return;
+    }
+
+    const W = 720, H = 238;
+    const pad = { top: 16, right: 12, bottom: 28, left: 34 };
+    const innerW = W - pad.left - pad.right;
+    const innerH = H - pad.top - pad.bottom;
+    const series = [
+      { key: 'messages', color: '#34d399' },
+      { key: 'moderation', color: '#ef4444' },
+      { key: 'users', color: '#60a5fa' },
+    ];
+    const max = Math.max(1, ...days.flatMap(d => series.map(s => Number(d[s.key] ?? 0))));
+    const hasData = days.some(d => series.some(s => Number(d[s.key] ?? 0) > 0));
+    const yTicks = 4;
+    const groupW = innerW / days.length;
+    const barW = Math.min(16, (groupW - 10) / series.length);
+
+    let markup = '<g class="chart-grid">';
+    for (let i = 0; i <= yTicks; i++) {
+      const y = pad.top + (innerH / yTicks) * i;
+      const value = Math.round(max - (max / yTicks) * i);
+      markup += `<line x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}"></line>`;
+      markup += `<text class="chart-axis" x="${pad.left - 8}" y="${y + 3}" text-anchor="end">${this.compactNumber(value)}</text>`;
+    }
+    markup += '</g>';
+
+    days.forEach((day, dayIndex) => {
+      const groupX = pad.left + groupW * dayIndex;
+      series.forEach((s, seriesIndex) => {
+        const value = Number(day[s.key] ?? 0);
+        const height = Math.max(value > 0 ? 3 : 0, (value / max) * innerH);
+        const x = groupX + (groupW - barW * series.length) / 2 + seriesIndex * barW;
+        const y = pad.top + innerH - height;
+        markup += `<rect class="chart-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(barW - 2).toFixed(1)}" height="${height.toFixed(1)}" rx="2.5" fill="${s.color}" opacity="0.88"><title>${this.escapeHtml(day.label)}: ${this.formatNumber(value)}</title></rect>`;
+      });
+      markup += `<text class="chart-axis" x="${(groupX + groupW / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle">${this.escapeHtml(day.label)}</text>`;
+    });
+
+    if (!hasData) {
+      markup += `<text class="chart-axis" x="${W / 2}" y="${H / 2 - 4}" text-anchor="middle" style="font-size:12px;fill:#64748b">No activity recorded yet</text>`;
+      markup += `<text class="chart-axis" x="${W / 2}" y="${H / 2 + 12}" text-anchor="middle" style="font-size:10px;fill:#475569">Messages and moderation will appear here as they happen</text>`;
+    }
+
+    svg.innerHTML = markup;
+  },
+
+  renderTopServers(servers) {
+    const container = document.getElementById('topServersList');
+    if (!container) return;
+    if (!servers.length) {
+      container.innerHTML = '<div class="empty-state">No servers connected yet.</div>';
+      return;
+    }
+    container.innerHTML = servers.map((server, index) => {
+      const icon = this.iconUrl(server.id, server.icon, 64);
+      const initials = this.escapeHtml((server.name || '?').slice(0, 2));
+      return `
+        <div class="list-row">
+          <span class="rank-badge ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">${index + 1}</span>
+          <span class="avatar">${icon ? `<img src="${icon}" alt="" loading="lazy">` : initials}</span>
+          <span class="list-main">
+            <strong>${this.escapeHtml(server.name || 'Unknown server')}</strong>
+            <span>${server.memberCount ? `${this.formatNumber(server.memberCount)} members` : 'Members hidden'}</span>
+          </span>
+          <button class="btn-ghost" onclick="app.viewGuild('${this.escapeHtml(server.id)}')">View</button>
+        </div>`;
+    }).join('');
+  },
+
+  renderTopMembers(members) {
+    const container = document.getElementById('topMembersList');
+    if (!container) return;
+    if (!members.length) {
+      container.innerHTML = '<div class="empty-state">No XP recorded yet — members appear after chatting.</div>';
+      return;
+    }
+    container.innerHTML = members.map((member, index) => {
+      const avatar = this.avatarUrl(member.id, member.avatar, 64);
+      const initials = this.escapeHtml((member.username || '?').slice(0, 2));
+      return `
+        <div class="list-row">
+          <span class="rank-badge ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">${index + 1}</span>
+          <span class="avatar round">${avatar ? `<img src="${avatar}" alt="" loading="lazy">` : initials}</span>
+          <span class="list-main">
+            <strong>${this.escapeHtml(member.username)}</strong>
+            <span>Level ${this.formatNumber(member.level)} · ${this.formatNumber(member.totalXp)} XP</span>
+          </span>
+          <span class="list-meta">${this.compactNumber(member.balance)}<small>${this.escapeHtml(this._overview?.economy?.currency || 'coins')}</small></span>
+        </div>`;
+    }).join('');
+  },
+
+  renderRecentCases(cases) {
+    const container = document.getElementById('recentCasesList');
+    if (!container) return;
+    if (!cases.length) {
+      container.innerHTML = '<div class="empty-state">No moderation cases. A quiet server is a good server.</div>';
+      return;
+    }
+    const badgeClass = (type) => type === 'ban' || type === 'kick' ? 'badge-danger' : type === 'warn' ? 'badge-warning' : 'badge-info';
+    container.innerHTML = cases.map(item => `
+      <div class="list-row">
+        <span class="avatar sm round">${this.escapeHtml((item.username || '?').slice(0, 2))}</span>
+        <span class="list-main">
+          <strong>${this.escapeHtml(item.username)}</strong>
+          <span title="${this.escapeHtml(item.reason)}">${this.escapeHtml(item.reason)}</span>
+        </span>
+        <span class="list-meta">
+          <span class="badge ${badgeClass(item.type)}">${this.escapeHtml(item.type)}</span>
+          <small>${this.escapeHtml(this.timeAgo(item.createdAt))}</small>
+        </span>
+      </div>`).join('');
   },
 
   formatUptime(seconds) {
@@ -461,24 +839,23 @@ const app = {
 
       guilds.forEach(g => {
         const tr = document.createElement('tr');
-        tr.className = 'group hover:bg-white/5 transition-colors';
+        const icon = this.iconUrl(g.id, g.icon, 64);
+        const initials = this.escapeHtml((g.name || '?').slice(0, 2));
         tr.innerHTML = `
-          <td class="p-4">
+          <td>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 text-xl">${g.icon ? `<img src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png" class="w-full h-full rounded-xl">` : '🏠'}</div>
-              <div>
-                <div class="font-medium text-slate-200">${g.name || 'Unknown Server'}</div>
-                <div class="text-xs text-slate-500 font-mono">${g.id}</div>
+              <span class="avatar" style="width:2.4rem;height:2.4rem">${icon ? `<img src="${icon}" alt="" loading="lazy">` : initials}</span>
+              <div class="min-w-0">
+                <div class="font-medium text-slate-200 truncate">${this.escapeHtml(g.name || 'Unknown Server')}</div>
+                <div class="text-xs text-slate-500 font-mono">${this.escapeHtml(g.id)}</div>
               </div>
             </div>
           </td>
-          <td class="p-4 text-center">${g.memberCount ?? 0}</td>
-          <td class="p-4 text-center font-mono text-xs text-slate-400">${g.ownerId ?? '—'}</td>
-          <td class="p-4 text-center">
-            <span class="badge badge-info">${g.preferredTier ?? 0}</span>
-          </td>
-          <td class="p-4 text-right">
-            <button onclick="app.viewGuild('${g.id}')" class="btn-ghost text-xs">View</button>
+          <td class="text-center font-mono">${this.formatNumber(g.memberCount ?? 0)}</td>
+          <td class="text-center font-mono text-xs text-slate-400">${this.escapeHtml(g.ownerId ?? '—')}</td>
+          <td class="text-center"><span class="badge badge-info">Tier ${this.escapeHtml(g.preferredTier ?? 0)}</span></td>
+          <td class="text-right">
+            <button onclick="app.viewGuild('${this.escapeHtml(g.id)}')" class="btn-ghost text-xs">Details →</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -507,31 +884,33 @@ const app = {
   async viewGuild(guildId) {
     try {
       const guild = await this.request(`/guilds/${guildId}`);
+      const channels = guild.channels ?? [];
+      const channelTypes = { 0: 'Text', 2: 'Voice', 4: 'Category', 5: 'News', 13: 'Stage', 15: 'Forum' };
       const html = `
-        <div class="space-y-4 text-sm">
-          <div class="flex justify-between border-b border-white/5 pb-2">
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-2">
             <span class="text-slate-400">Name</span>
-            <span class="font-medium">${guild.name}</span>
+            <span class="font-medium text-right">${this.escapeHtml(guild.name)}</span>
           </div>
-          <div class="flex justify-between border-b border-white/5 pb-2">
-            <span class="text-slate-400">Member Count</span>
-            <span class="font-medium font-mono">${guild.memberCount}</span>
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-2">
+            <span class="text-slate-400">Members</span>
+            <span class="font-medium font-mono">${this.formatNumber(guild.memberCount)}</span>
           </div>
-          <div class="flex justify-between border-b border-white/5 pb-2">
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-2">
             <span class="text-slate-400">Owner ID</span>
-            <span class="font-medium font-mono">${guild.ownerId}</span>
+            <span class="font-medium font-mono text-xs">${this.escapeHtml(guild.ownerId)}</span>
           </div>
-          <div class="flex justify-between border-b border-white/5 pb-2">
-            <span class="text-slate-400">Verification Level</span>
-            <span class="font-medium">${guild.verificationLevel}</span>
+          <div class="flex justify-between gap-4 border-b border-white/5 pb-2">
+            <span class="text-slate-400">Verification</span>
+            <span class="font-medium">${this.escapeHtml(guild.verificationLevel)}</span>
           </div>
-          <div class="flex justify-between pb-2">
-            <span class="text-slate-400">Premium Tier</span>
-            <span class="font-medium">${guild.preferredTier}</span>
+          <div class="flex justify-between gap-4 pb-2">
+            <span class="text-slate-400">Boost tier</span>
+            <span class="font-medium">${this.escapeHtml(guild.preferredTier)}</span>
           </div>
-          <h4 class="font-bold text-slate-300 mb-2 mt-4">Channels (${guild.channels?.length ?? 0})</h4>
-          <div class="space-y-1">
-            ${(guild.channels ?? []).map(c => `<div class="flex justify-between p-2 rounded-lg bg-white/5 text-xs"><span class="font-mono text-slate-400"># ${c.name}</span><span class="badge badge-neutral">${c.type}</span></div>`).join('')}
+          <h4 class="font-bold text-slate-300 mb-2 mt-4">Channels (${channels.length})</h4>
+          <div class="space-y-1 max-h-72 overflow-y-auto">
+            ${channels.map(c => `<div class="flex justify-between gap-3 p-2 rounded-lg bg-white/5 text-xs"><span class="font-mono text-slate-300 truncate"># ${this.escapeHtml(c.name)}</span><span class="badge badge-neutral">${this.escapeHtml(channelTypes[c.type] ?? c.type)}</span></div>`).join('') || '<div class="empty-state">No channels</div>'}
           </div>
         </div>
       `;
@@ -595,6 +974,10 @@ const app = {
     tbody.innerHTML = '';
 
     if (!cases || cases.length === 0) {
+      ['modWarns', 'modKicks', 'modBans', 'modMutes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '0';
+      });
       tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No moderation cases found</td></tr>';
       return;
     }
@@ -606,23 +989,28 @@ const app = {
     document.getElementById('modBans').textContent = counts.ban;
     document.getElementById('modMutes').textContent = counts.mute;
 
-    cases.forEach(c => {
+    const sorted = [...cases].sort((a, b) => {
+      const at = new Date(a.created_at).getTime() || 0;
+      const bt = new Date(b.created_at).getTime() || 0;
+      return bt - at;
+    });
+
+    sorted.forEach(c => {
       const tr = document.createElement('tr');
-      tr.className = 'group hover:bg-white/5 transition-colors';
-      const typeBadge = c.type === 'warn' ? 'badge-warning' : c.type === 'kick' ? 'badge-danger' : c.type === 'ban' ? 'badge-danger' : 'badge-info';
+      const typeBadge = c.type === 'warn' ? 'badge-warning' : c.type === 'kick' || c.type === 'ban' ? 'badge-danger' : 'badge-info';
       tr.innerHTML = `
-        <td class="p-4">
+        <td>
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs">👤</div>
-            <span class="font-mono text-xs text-slate-400">${c.user_id}</span>
+            <span class="avatar sm round">${this.escapeHtml(String(c.user_id ?? '?').slice(0, 2))}</span>
+            <span class="font-mono text-xs text-slate-400">${this.escapeHtml(c.user_id)}</span>
           </div>
         </td>
-        <td class="p-4"><span class="badge ${typeBadge}">${c.type}</span></td>
-        <td class="p-4 text-slate-300">${c.reason || '—'}</td>
-        <td class="p-4 text-center font-mono text-xs text-slate-400">${c.moderator_id}</td>
-        <td class="p-4 text-center text-slate-400 text-xs">${new Date(c.created_at).toLocaleDateString()}</td>
-        <td class="p-4 text-right">
-          <button onclick="app.viewCase('${c.id}')" class="btn-ghost text-xs">View</button>
+        <td><span class="badge ${typeBadge}">${this.escapeHtml(c.type)}</span></td>
+        <td class="text-slate-300">${this.escapeHtml(c.reason || '—')}</td>
+        <td class="text-center font-mono text-xs text-slate-400">${this.escapeHtml(c.moderator_id)}</td>
+        <td class="text-center text-slate-400 text-xs">${this.escapeHtml(new Date(c.created_at).toLocaleDateString())}</td>
+        <td class="text-right">
+          <button onclick="app.viewCase('${this.escapeHtml(c.id)}')" class="btn-ghost text-xs">View</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -656,12 +1044,37 @@ const app = {
 
   async loadEconomy() {
     try {
-      const balance = await this.request('/economy/balance/0');
-      document.getElementById('econTotal').textContent = balance.balance ?? 0;
-      document.getElementById('econUsers').textContent = '1';
-      document.getElementById('econTxns').textContent = '0';
+      const data = await this.request('/economy/stats');
+      const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+      set('econTotal', `${this.formatNumber(data.totalBalance ?? 0)} ${data.currency || 'coins'}`);
+      set('econUsers', this.formatNumber(data.fundedUsers ?? 0));
+      set('econTxns', this.formatNumber(data.transactions ?? 0));
+
+      const list = document.getElementById('econTxnList');
+      if (list) {
+        if (!data.recent || !data.recent.length) {
+          list.innerHTML = '<div class="empty-state">No transactions recorded yet.</div>';
+        } else {
+          list.innerHTML = data.recent.map(txn => `
+            <div class="list-row">
+              <span class="avatar sm round">${this.escapeHtml((txn.username || '?').slice(0, 2))}</span>
+              <span class="list-main">
+                <strong>${this.escapeHtml(txn.username)}</strong>
+                <span>${this.escapeHtml(txn.description || txn.type)}</span>
+              </span>
+              <span class="list-meta" style="color:${txn.type === 'debit' ? '#fca5a5' : '#6ee7b7'}">
+                ${txn.type === 'debit' ? '-' : '+'}${this.formatNumber(txn.amount)}
+                <small>${this.escapeHtml(this.timeAgo(txn.createdAt))}</small>
+              </span>
+            </div>`).join('');
+        }
+      }
     } catch (err) {
       console.error('Failed to load economy:', err);
+      this.showAlert('Failed to load economy stats');
     }
   },
 
@@ -731,32 +1144,39 @@ const app = {
     }
 
     let maxLevel = 0;
-    users.forEach(u => {
+    const sorted = [...users].sort((a, b) => Number(b.total_xp ?? 0) - Number(a.total_xp ?? 0));
+    sorted.forEach((u, index) => {
       const lvl = u.level || 1;
       if (lvl > maxLevel) maxLevel = lvl;
+      const avatar = this.avatarUrl(u.id, u.avatar, 64);
+      const name = u.username || `Member ${String(u.id).slice(0, 6)}`;
+      const initials = this.escapeHtml(name.slice(0, 2));
 
       const tr = document.createElement('tr');
-      tr.className = 'group hover:bg-white/5 transition-colors';
       tr.innerHTML = `
-        <td class="p-4">
+        <td>
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs">👤</div>
-            <span class="font-mono text-xs text-slate-400">${u.id}</span>
+            <span class="rank-badge ${index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''}">${index + 1}</span>
+            <span class="avatar sm round">${avatar ? `<img src="${avatar}" alt="" loading="lazy">` : initials}</span>
+            <div class="min-w-0">
+              <div class="text-slate-200 truncate">${this.escapeHtml(name)}</div>
+              <div class="text-xs text-slate-500 font-mono truncate">${this.escapeHtml(u.id)}</div>
+            </div>
           </div>
         </td>
-        <td class="p-4 text-center font-mono font-bold">${lvl}</td>
-        <td class="p-4 text-center">${(u.xp ?? 0).toLocaleString()}</td>
-        <td class="p-4 text-center">${(u.total_xp ?? 0).toLocaleString()}</td>
-        <td class="p-4 text-right">
-          <button onclick="app.setXP('${u.id}')" class="btn-ghost text-xs">Edit</button>
+        <td class="text-center font-mono font-bold">${this.formatNumber(lvl)}</td>
+        <td class="text-center">${this.formatNumber(u.xp ?? 0)}</td>
+        <td class="text-center">${this.formatNumber(u.total_xp ?? 0)}</td>
+        <td class="text-right">
+          <button onclick="app.setXP('${this.escapeHtml(u.id)}')" class="btn-ghost text-xs">Edit XP</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
 
-    document.getElementById('lvlUsers').textContent = users.length;
-    document.getElementById('lvlMax').textContent = maxLevel;
-    document.getElementById('lvlUps').textContent = users.filter(u => (u.level || 1) > 1).length;
+    document.getElementById('lvlUsers').textContent = this.formatNumber(users.length);
+    document.getElementById('lvlMax').textContent = this.formatNumber(maxLevel);
+    document.getElementById('lvlUps').textContent = this.formatNumber(users.filter(u => (u.level || 1) > 1).length);
   },
 
   setXP(userId) {
@@ -822,26 +1242,54 @@ const app = {
 
   startPolling() {
     this.intervalId = setInterval(() => {
-      this.fetchStatus();
-      if (this.currentPage === 'dashboard') this.fetchStats();
+      if (document.hidden) return;
+      if (this.currentPage === 'dashboard') {
+        this.loadOverview();
+      } else {
+        this.fetchStatus();
+      }
       if (this.currentPage === 'system') {
         this.fetchSystemInfo();
         this.fetchProcessInfo();
       }
-    }, 5000);
+    }, 8000);
   },
 
   stopPolling() {
     if (this.intervalId) clearInterval(this.intervalId);
   },
 
+  refreshCurrent(silent = false) {
+    if (this.currentPage === 'dashboard') this.loadOverview();
+    if (this.currentPage === 'guilds') this.fetchGuilds();
+    if (this.currentPage === 'moderation') this.loadModeration();
+    if (this.currentPage === 'economy') this.loadEconomy();
+    if (this.currentPage === 'leveling') this.loadLeveling();
+    if (this.currentPage === 'cards') this.loadCardsConfig();
+    if (this.currentPage === 'settings') this.loadSettings();
+    if (this.currentPage === 'system') { this.fetchSystemInfo(); this.fetchProcessInfo(); }
+    if (!silent) this.showAlert('Dashboard refreshed', 'success');
+  },
+
   refreshData(page) {
-    if (page === 'guilds') this.fetchGuilds();
-    if (page === 'moderation') this.loadModeration();
-    if (page === 'economy') this.loadEconomy();
-    if (page === 'leveling') this.loadLeveling();
-    if (page === 'dashboard') this.fetchStats();
-    this.showAlert('Data refreshed', 'success');
+    if (page && page !== this.currentPage) return this.openPage(page);
+    this.currentPage = page || this.currentPage;
+    this.refreshCurrent();
+  },
+
+  async savePresence() {
+    const status = document.getElementById('presenceStatus')?.value || 'online';
+    const activityName = (document.getElementById('presenceActivity')?.value || '').trim();
+    const activityType = Number(document.getElementById('presenceType')?.value || 0);
+    try {
+      await this.request('/control/presence', {
+        method: 'POST',
+        body: JSON.stringify({ status, activityName, activityType }),
+      });
+      this.showAlert('Presence updated in Discord', 'success');
+    } catch (err) {
+      this.showAlert(err.message || 'Failed to update presence');
+    }
   },
 
   setupForms() {

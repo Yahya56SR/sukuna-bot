@@ -106,6 +106,137 @@ class WebServer {
                 res.status(500).json({ error: 'Failed to fetch stats' });
             }
         });
+        // ---- Dashboard overview (single request for the landing page) ----
+        this.app.get('/api/overview', async (_req, res) => {
+            const client = this.appRef.getClient?.();
+            const guildMap = client?.guilds?.cache ?? new Map();
+            const guildList = [...guildMap.values()];
+            const memory = process.memoryUsage();
+            let stats = {};
+            try {
+                stats = (await this.appRef.analytics?.getStats?.()) ?? {};
+            }
+            catch (err) {
+                this.logger.warn('Web Server', 'Overview stats unavailable', err);
+            }
+            const status = {
+                online: !!client,
+                ready: client?.isReady?.() ?? false,
+                user: client?.user?.tag ?? null,
+                displayName: client?.user?.globalName ?? client?.user?.username ?? null,
+                userId: client?.user?.id ?? null,
+                avatar: client?.user?.avatar ?? null,
+                guilds: guildList.length,
+                members: guildList.reduce((sum, g) => sum + (g.memberCount ?? 0), 0),
+                users: client?.users?.cache?.size ?? 0,
+                channels: client?.channels?.cache?.size ?? 0,
+                uptime: process.uptime(),
+                ping: client?.ws?.ping ?? 0,
+                memory,
+                platform: process.platform,
+                nodeVersion: process.version,
+                env: process.env.NODE_ENV ?? 'development',
+            };
+            const overview = {
+                generatedAt: new Date().toISOString(),
+                status,
+                stats,
+                economy: {
+                    totalBalance: 0,
+                    fundedUsers: 0,
+                    trackedUsers: 0,
+                    transactions: 0,
+                    currency: this.appRef.economy?.config?.currencyName || 'coins',
+                    recent: [],
+                },
+                topServers: guildList
+                    .sort((a, b) => (b.memberCount ?? 0) - (a.memberCount ?? 0))
+                    .slice(0, 6)
+                    .map((g) => ({
+                    id: g.id,
+                    name: g.name,
+                    icon: g.icon,
+                    memberCount: g.memberCount ?? 0,
+                    ownerId: g.ownerId ?? null,
+                })),
+                topMembers: [],
+                recentCases: [],
+                activity: { days: this.buildActivityDays() },
+                logs: { warnings: 0, errors: 0, recent: [] },
+            };
+            const sqlite = this.sqliteOrNull();
+            if (sqlite) {
+                overview.economy = this.buildEconomyStats(sqlite);
+                overview.topMembers = this.safeAll(sqlite, `SELECT id, username, avatar, level, total_xp, balance
+           FROM users
+           WHERE total_xp > 0 OR balance > 0
+           ORDER BY total_xp DESC, balance DESC
+           LIMIT 6`).map((u) => ({
+                    id: u.id,
+                    username: u.username || `Member ${String(u.id).slice(0, 6)}`,
+                    avatar: u.avatar ?? null,
+                    level: Number(u.level ?? 1),
+                    totalXp: Number(u.total_xp ?? 0),
+                    balance: Number(u.balance ?? 0),
+                }));
+                overview.recentCases = this.safeAll(sqlite, `SELECT c.id, c.type, c.user_id, c.moderator_id, c.reason, c.created_at,
+                  c.guild_id, u.username AS user_name, g.name AS guild_name
+           FROM moderation_cases c
+           LEFT JOIN users u ON u.id = c.user_id
+           LEFT JOIN guilds g ON g.id = c.guild_id
+           ORDER BY c.created_at DESC
+           LIMIT 6`).map((c) => ({
+                    id: c.id,
+                    type: c.type,
+                    userId: c.user_id,
+                    username: c.user_name || `Member ${String(c.user_id ?? '').slice(0, 6)}`,
+                    moderatorId: c.moderator_id,
+                    guildId: c.guild_id,
+                    guildName: c.guild_name || null,
+                    reason: c.reason || 'No reason provided',
+                    createdAt: this.toIso(c.created_at),
+                }));
+                if (overview.topServers.length === 0) {
+                    overview.topServers = this.safeAll(sqlite, `SELECT id, name, icon, owner_id FROM guilds ORDER BY name LIMIT 6`).map((g) => ({
+                        id: g.id,
+                        name: g.name,
+                        icon: g.icon,
+                        memberCount: 0,
+                        ownerId: g.owner_id ?? null,
+                    }));
+                }
+                const days = overview.activity.days;
+                const sinceMs = Date.now() - 6 * 86400000;
+                this.bucketActivity(sqlite, 'messages', 'messages', days, sinceMs);
+                this.bucketActivity(sqlite, 'moderation_cases', 'moderation', days, sinceMs);
+                this.bucketActivity(sqlite, 'users', 'users', days, sinceMs);
+            }
+            try {
+                const logs = this.appRef.logger?.getLogs?.() ?? [];
+                overview.logs = {
+                    warnings: logs.filter((l) => l.level === 'warn').length,
+                    errors: logs.filter((l) => l.level === 'error').length,
+                    recent: logs.slice(-12).reverse(),
+                };
+            }
+            catch { /* logger is optional for the overview */ }
+            res.json(overview);
+        });
+        // ---- Economy aggregate (used by the Economy page) ----
+        this.app.get('/api/economy/stats', (_req, res) => {
+            const sqlite = this.sqliteOrNull();
+            if (!sqlite) {
+                return res.json({
+                    totalBalance: 0,
+                    fundedUsers: 0,
+                    trackedUsers: 0,
+                    transactions: 0,
+                    currency: this.appRef.economy?.config?.currencyName || 'coins',
+                    recent: [],
+                });
+            }
+            res.json(this.buildEconomyStats(sqlite));
+        });
         // ---- Commands ----
         this.app.get('/api/commands', (_req, res) => {
             const commands = this.appRef.commands.getCommands?.() ?? [];
@@ -681,6 +812,102 @@ class WebServer {
                 res.status(500).json({ error: 'Internal server error' });
             }
         });
+    }
+    /** Raw sqlite handle when the database has finished initialising, else null. */
+    sqliteOrNull() {
+        try {
+            return this.appRef.database?.getSqlite?.() ?? null;
+        }
+        catch {
+            return null;
+        }
+    }
+    safeAll(sqlite, sql, params = []) {
+        try {
+            return sqlite.prepare(sql).all(...params) ?? [];
+        }
+        catch (err) {
+            this.logger.warn('Web Server', `Query failed: ${err.message}`);
+            return [];
+        }
+    }
+    safeGet(sqlite, sql, params = []) {
+        try {
+            return sqlite.prepare(sql).get(...params) ?? null;
+        }
+        catch {
+            return null;
+        }
+    }
+    /** Convert a stored timestamp (seconds or milliseconds) to ISO. */
+    toIso(value) {
+        const n = Number(value ?? 0);
+        if (!Number.isFinite(n) || n <= 0)
+            return null;
+        const ms = n > 1_000_000_000_000 ? n : n * 1000;
+        const date = new Date(ms);
+        return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    }
+    buildActivityDays(days = 7) {
+        const buckets = [];
+        const now = new Date();
+        const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+        for (let i = days - 1; i >= 0; i--) {
+            const date = new Date(todayUtc - i * 86400000);
+            buckets.push({
+                date: date.toISOString().slice(0, 10),
+                label: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
+                messages: 0,
+                moderation: 0,
+                users: 0,
+            });
+        }
+        return buckets;
+    }
+    bucketActivity(sqlite, table, key, buckets, sinceMs) {
+        const maxRow = this.safeGet(sqlite, `SELECT MAX(created_at) AS m FROM ${table}`);
+        const max = Number(maxRow?.m ?? 0);
+        const storedInMs = max > 1_000_000_000_000;
+        const threshold = Math.floor(storedInMs ? sinceMs : sinceMs / 1000);
+        const rows = this.safeAll(sqlite, `SELECT created_at FROM ${table} WHERE created_at >= ?`, [threshold]);
+        const byDate = new Map(buckets.map((b) => [b.date, b]));
+        for (const row of rows) {
+            const iso = this.toIso(row.created_at);
+            if (!iso)
+                continue;
+            const bucket = byDate.get(iso.slice(0, 10));
+            if (bucket)
+                bucket[key] += 1;
+        }
+    }
+    buildEconomyStats(sqlite) {
+        const totals = this.safeGet(sqlite, `SELECT COALESCE(SUM(balance), 0) AS total,
+              SUM(CASE WHEN balance > 0 THEN 1 ELSE 0 END) AS funded,
+              COUNT(*) AS tracked
+       FROM users`) ?? {};
+        const txn = this.safeGet(sqlite, `SELECT COUNT(*) AS c FROM economy_transactions`) ?? {};
+        const recent = this.safeAll(sqlite, `SELECT t.id, t.user_id, t.type, t.amount, t.description, t.created_at,
+              u.username AS user_name
+       FROM economy_transactions t
+       LEFT JOIN users u ON u.id = t.user_id
+       ORDER BY t.created_at DESC
+       LIMIT 8`).map((t) => ({
+            id: t.id,
+            userId: t.user_id,
+            username: t.user_name || `Member ${String(t.user_id ?? '').slice(0, 6)}`,
+            type: t.type,
+            amount: Number(t.amount ?? 0),
+            description: t.description || null,
+            createdAt: this.toIso(t.created_at),
+        }));
+        return {
+            totalBalance: Number(totals.total ?? 0),
+            fundedUsers: Number(totals.funded ?? 0),
+            trackedUsers: Number(totals.tracked ?? 0),
+            transactions: Number(txn.c ?? 0),
+            currency: this.appRef.economy?.config?.currencyName || 'coins',
+            recent,
+        };
     }
     /** Raw (unmasked) config object for a service, or null if unavailable. */
     rawServiceConfig(service) {
