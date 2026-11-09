@@ -18,6 +18,12 @@ const app = {
     this.setupForms();
     this.setupColorPairs();
     this.setupCardEditors();
+
+    // Close the mobile menu when growing to desktop width so it does not
+    // reappear unexpectedly if the window is shrunk again.
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1280) this.toggleMobileNav(false);
+    });
   },
 
   setupNav() {
@@ -29,6 +35,19 @@ const app = {
     });
   },
 
+  toggleMobileNav(force) {
+    const menu = document.getElementById('mobileNav');
+    const toggle = document.getElementById('mobileNavToggle');
+    if (!menu) return;
+
+    const shouldOpen = typeof force === 'boolean'
+      ? force
+      : menu.classList.contains('hidden');
+
+    menu.classList.toggle('hidden', !shouldOpen);
+    if (toggle) toggle.setAttribute('aria-expanded', String(shouldOpen));
+  },
+
   openPage(page) {
     this.currentPage = page;
 
@@ -37,6 +56,10 @@ const app = {
       btn.classList.toggle('text-white', btn.getAttribute('data-page') === page);
       btn.classList.toggle('text-slate-300', btn.getAttribute('data-page') !== page);
     });
+
+    // On phones the navigation is a collapsible menu; close it after choosing
+    // a page so the content is visible immediately.
+    this.toggleMobileNav(false);
 
     const target = document.getElementById(`page-${page}`);
     if (target) target.classList.add('active');
@@ -388,6 +411,8 @@ const app = {
       const data = await this.request('/status');
       document.getElementById('navStatus').textContent = data.ready ? 'Online' : 'Offline';
       document.getElementById('navStatus').className = data.ready ? 'text-green-400' : 'text-red-400';
+      const mobileStatus = document.getElementById('navStatusMobile');
+      if (mobileStatus) mobileStatus.textContent = data.ready ? 'Online' : 'Offline';
       document.getElementById('statStatus').textContent = data.ready ? 'Online' : 'Offline';
       document.getElementById('statStatus').className = `text-3xl font-bold mt-1 stat-number ${data.ready ? 'text-green-400' : 'text-red-400'}`;
       document.getElementById('statGuilds').textContent = data.guilds ?? 0;
@@ -401,6 +426,8 @@ const app = {
       console.error('Failed to fetch status:', err);
       document.getElementById('navStatus').textContent = 'Offline';
       document.getElementById('navStatus').className = 'text-red-400';
+      const mobileStatus = document.getElementById('navStatusMobile');
+      if (mobileStatus) mobileStatus.textContent = 'Offline';
       document.getElementById('statStatus').textContent = 'Offline';
     }
   },

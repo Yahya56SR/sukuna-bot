@@ -468,16 +468,53 @@ class SukunaApp {
             this.logger.info('Sukuna Bot', 'Event registry initialized successfully');
             await this.interactions.initialize(this.client);
             this.logger.info('Sukuna Bot', 'Interaction router initialized successfully');
-            // Set up TempVC voice state handler
+            // Set up TempVC + leveling voice handler
             this.client.on(discord_js_1.Events.VoiceStateUpdate, async (oldState, newState) => {
-                const member = newState.member;
+                const member = newState.member ?? oldState.member;
                 if (!member)
                     return;
                 await this.tempvc.handleVoiceStateUpdate(oldState.channelId, newState.channelId, member);
+                try {
+                    if (member.user.bot)
+                        return;
+                    const guildId = member.guild.id;
+                    const userId = member.id;
+                    const key = `${guildId}-${userId}`;
+                    const wasInVoice = !!oldState.channelId;
+                    const isInVoice = !!newState.channelId;
+                    if (!wasInVoice && isInVoice) {
+                        this.leveling.startVoiceSession(key);
+                    }
+                    else if (wasInVoice && !isInVoice) {
+                        const minutes = this.leveling.endVoiceSession(key);
+                        if (minutes >= 1 && this.leveling.config?.xpSources?.voice?.enabled) {
+                            await this.leveling.addXpFromVoice(guildId, userId, member, minutes);
+                        }
+                    }
+                }
+                catch (err) {
+                    this.logger.warn('Sukuna Bot', 'Voice XP handling failed', err);
+                }
             });
-            // Set up AI message handler
-            this.client.on(discord_js_1.Events.MessageCreate, (message) => {
+            // Set up AI + leveling message handlers
+            this.client.on(discord_js_1.Events.MessageCreate, async (message) => {
+                // AI first (it intentionally ignores bots internally).
                 this.ai.handleMessage(message);
+                try {
+                    if (!message.inGuild())
+                        return;
+                    if (!this.leveling.config?.enabled)
+                        return;
+                    if (!this.leveling.config?.xpSources?.message?.enabled)
+                        return;
+                    if (message.author.bot && this.leveling.config?.ignoreBots !== false)
+                        return;
+                    const member = message.member ?? await message.guild.members.fetch(message.author.id).catch(() => null);
+                    await this.leveling.addXpFromMessage(message.guildId, message.author.id, message.channelId, member ?? undefined);
+                }
+                catch (err) {
+                    this.logger.warn('Sukuna Bot', 'Message XP handling failed', err);
+                }
             });
             this.logger.info('Sukuna Bot', 'Application initialization completed successfully');
         }

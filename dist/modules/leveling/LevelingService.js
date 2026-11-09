@@ -237,20 +237,24 @@ class LevelingService {
      */
     getXpMultiplier(member) {
         let multiplier = 1;
+        const multipliers = this.config.xpMultipliers ?? { weekend: 1, booster: 1, role: {} };
         // Weekend multiplier
         const day = new Date().getDay();
         if (day === 0 || day === 6) {
-            multiplier *= this.config.xpMultipliers.weekend;
+            multiplier *= multipliers.weekend ?? 1;
         }
-        // Booster role
-        if (member && member.roles.cache.some((r) => r.premiumSubscriberRole)) {
-            multiplier *= this.config.xpMultipliers.booster;
+        // Booster multiplier. `premiumSince` is the reliable signal; the role tag
+        // is a fallback for older cached member payloads.
+        const isBoosting = !!member && (!!member.premiumSince ||
+            member.roles.cache.some((r) => r.tags?.premiumSubscriberRole));
+        if (isBoosting) {
+            multiplier *= multipliers.booster ?? 1;
         }
         // Role-based multipliers
-        if (member && this.config.xpMultipliers.role) {
-            for (const [roleId, mult] of Object.entries(this.config.xpMultipliers.role)) {
+        if (member && multipliers.role) {
+            for (const [roleId, mult] of Object.entries(multipliers.role)) {
                 if (member.roles.cache.has(roleId)) {
-                    multiplier *= mult;
+                    multiplier *= Number(mult) || 1;
                 }
             }
         }
@@ -260,9 +264,11 @@ class LevelingService {
      * Check if a channel allows XP earning.
      */
     canEarnXp(channelId) {
-        if (this.config.noXpChannels.includes(channelId))
+        const noXpChannels = this.config.noXpChannels ?? [];
+        const whitelist = this.config.xpChannelWhitelist ?? [];
+        if (noXpChannels.includes(channelId))
             return false;
-        if (this.config.xpChannelWhitelist.length > 0 && !this.config.xpChannelWhitelist.includes(channelId)) {
+        if (whitelist.length > 0 && !whitelist.includes(channelId)) {
             return false;
         }
         return true;
@@ -273,28 +279,39 @@ class LevelingService {
     async addXpFromMessage(guildId, userId, channelId, member) {
         if (!this.config.enabled)
             return null;
-        if (!this.config.xpSources.message.enabled)
+        const source = this.config.xpSources?.message;
+        if (!source?.enabled)
             return null;
         if (!this.canEarnXp(channelId))
             return null;
-        const rawXp = Math.floor(Math.random() * (this.config.xpSources.message.max - this.config.xpSources.message.min + 1) +
-            this.config.xpSources.message.min);
+        const min = Number.isFinite(source.min) ? source.min : 15;
+        const max = Number.isFinite(source.max) ? Math.max(source.max, min) : min;
+        const rawXp = Math.floor(Math.random() * (max - min + 1) + min);
         const multiplier = this.getXpMultiplier(member);
         const xpAmount = Math.floor(rawXp * multiplier);
         return this.addXP(guildId, userId, xpAmount, 'message');
     }
     /**
-     * Add XP from voice activity (per tick).
+     * Add XP from voice activity (per minute).
+     * `minutes` lets callers award a whole voice session at once.
      */
-    async addXpFromVoice(guildId, userId, member) {
+    async addXpFromVoice(guildId, userId, member, minutes = 1) {
         if (!this.config.enabled)
             return null;
-        if (!this.config.xpSources.voice.enabled)
+        const config = this.config.xpSources?.voice;
+        if (!config?.enabled)
             return null;
-        const rawXp = Math.floor(Math.random() * (this.config.xpSources.voice.perMinuteMax - this.config.xpSources.voice.perMinuteMin + 1) +
-            this.config.xpSources.voice.perMinuteMin);
+        const min = Number.isFinite(config.perMinuteMin) ? config.perMinuteMin : 5;
+        const max = Number.isFinite(config.perMinuteMax) ? Math.max(config.perMinuteMax, min) : min;
         const multiplier = this.getXpMultiplier(member);
-        const xpAmount = Math.floor(rawXp * multiplier);
+        const elapsed = Math.max(1, Math.floor(Number.isFinite(minutes) ? minutes : 1));
+        let xpAmount = 0;
+        for (let i = 0; i < elapsed; i++) {
+            const rawXp = Math.floor(Math.random() * (max - min + 1) + min);
+            xpAmount += Math.floor(rawXp * multiplier);
+        }
+        if (xpAmount <= 0)
+            return null;
         return this.addXP(guildId, userId, xpAmount, 'voice');
     }
     /**
@@ -303,6 +320,8 @@ class LevelingService {
     async addXP(guildId, userId, xpAmount, source = 'manual') {
         if (!this.db)
             throw new Error('Database not connected');
+        if (!Number.isFinite(xpAmount) || xpAmount <= 0)
+            return null;
         const cooldownKey = `${guildId}-${userId}-${source}`;
         const now = Date.now();
         const cooldownConfig = this.getCooldownConfig(source);
@@ -321,13 +340,13 @@ class LevelingService {
                 avatar: null,
                 bot: false,
                 balance: 0,
-                xp: xpAmount,
+                xp: 0,
                 level: 1,
-                total_xp: xpAmount,
+                total_xp: 0,
                 created_at: new Date(),
                 updated_at: new Date(),
             });
-            user = { id: userId, xp: xpAmount, level: 1, total_xp: xpAmount };
+            user = { id: userId, xp: 0, level: 1, total_xp: 0 };
         }
         const oldLevel = user.level || 1;
         const currentXp = (user.xp || 0) + xpAmount;
@@ -367,12 +386,50 @@ class LevelingService {
         }
         return result;
     }
+    /**
+     * Set a user's total XP to an exact value (admin/dashboard action).
+     * Unlike addXP this bypasses cooldowns and does not add on top of the
+     * existing total.
+     */
+    async setXP(guildId, userId, totalXP) {
+        if (!this.db)
+            throw new Error('Database not connected');
+        const total = Number.isFinite(totalXP) ? Math.max(0, Math.floor(totalXP)) : 0;
+        const level = this.calculateLevel(total);
+        const existing = await this.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
+        if (existing[0]) {
+            await this.db.update(schema_1.users)
+                .set({ xp: total, level, total_xp: total, updated_at: new Date() })
+                .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
+        }
+        else {
+            await this.db.insert(schema_1.users).values({
+                id: userId,
+                username: '',
+                discriminator: null,
+                avatar: null,
+                bot: false,
+                balance: 0,
+                xp: total,
+                level,
+                total_xp: total,
+                created_at: new Date(),
+                updated_at: new Date(),
+            });
+        }
+        // Admin changes should take effect immediately, not after a cooldown.
+        for (const source of ['message', 'voice', 'command', 'manual']) {
+            this.xpCooldowns.delete(`${guildId}-${userId}-${source}`);
+        }
+        return { level, xp: total, totalXP: total };
+    }
     getCooldownConfig(source) {
+        const sources = this.config.xpSources;
         switch (source) {
-            case 'message': return this.config.xpSources.message.cooldownSeconds;
-            case 'voice': return this.config.xpSources.voice.cooldownSeconds;
-            case 'command': return this.config.xpSources.command.cooldownSeconds;
-            default: return this.config.xpSources.message.cooldownSeconds;
+            case 'message': return sources?.message?.cooldownSeconds ?? 60;
+            case 'voice': return sources?.voice?.cooldownSeconds ?? 60;
+            case 'command': return sources?.command?.cooldownSeconds ?? 300;
+            default: return sources?.message?.cooldownSeconds ?? 60;
         }
     }
     /**

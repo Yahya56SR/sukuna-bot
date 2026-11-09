@@ -71,6 +71,16 @@ describe('LevelingService', () => {
     const result = await service.addXP('guild1', 'user1', 10);
     expect(result.leveledUp).toBe(false);
   });
+
+  it('setXP replaces the total and recalculates the level', async () => {
+    mockDb.setWhereRows([{ id: 'user1', xp: 5, level: 1, total_xp: 5 }]);
+
+    const result = await service.setXP('guild1', 'user1', 400);
+    expect(result.totalXP).toBe(400);
+    expect(result.xp).toBe(400);
+    expect(result.level).toBe(3);
+    expect(mockDb.update).toHaveBeenCalled();
+  });
 });
 
 describe('EconomyService', () => {

@@ -43,6 +43,13 @@
     @apply glass-panel p-6 hover:border-sukuna-500/50 transition-all duration-300;
   }
 
+  /* Cards get tighter on phones, but keep breathing room on larger screens. */
+  @media (max-width: 640px) {
+    .stat-card {
+      padding: 1rem;
+    }
+  }
+
   .nav-item {
     @apply px-4 py-3 rounded-xl text-sm font-medium text-muted hover:text-white hover:bg-white/5 transition-colors cursor-pointer;
   }
@@ -68,7 +75,19 @@
   }
 
   .table-container {
-    @apply glass-panel overflow-hidden;
+    @apply glass-panel overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Keep tables readable on small screens instead of squashing columns. */
+  .table-container table {
+    min-width: 640px;
+  }
+
+  .table-container thead th {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    white-space: nowrap;
   }
 
   .badge {

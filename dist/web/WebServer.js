@@ -336,9 +336,18 @@ class WebServer {
         this.app.post('/api/leveling/set-xp', async (req, res) => {
             try {
                 const { guildId, userId, xp } = req.body;
-                const level = this.appRef.leveling.calculateLevel?.(xp) ?? 1;
-                await this.appRef.leveling.addXP?.(guildId, userId, xp);
-                res.json({ success: true, userId, xp, level });
+                if (!userId) {
+                    return res.status(400).json({ error: 'userId is required' });
+                }
+                const amount = Number(xp);
+                if (!Number.isFinite(amount) || amount < 0) {
+                    return res.status(400).json({ error: 'xp must be a non-negative number' });
+                }
+                const result = await this.appRef.leveling.setXP?.(guildId ?? '', userId, amount);
+                if (!result) {
+                    return res.status(500).json({ error: 'Leveling service unavailable' });
+                }
+                res.json({ success: true, userId, xp: result.totalXP, level: result.level });
             }
             catch (err) {
                 res.status(500).json({ error: err.message || 'Failed to set XP' });
