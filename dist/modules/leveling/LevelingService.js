@@ -5,10 +5,10 @@ const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../database/schema");
 const embed_1 = require("../../utils/embed");
-const discord_js_2 = require("discord.js");
 const rankcard_1 = require("../../utils/rankcard");
 const rankEmbeds_1 = require("../../utils/rankEmbeds");
 const liveLeaderboard_1 = require("../../utils/liveLeaderboard");
+const id_1 = require("../../utils/id");
 const DEFAULT_LEVELING_CONFIG = {
     enabled: true,
     xpFormula: 'quadratic',
@@ -20,11 +20,7 @@ const DEFAULT_LEVELING_CONFIG = {
         voice: { enabled: true, perMinuteMin: 5, perMinuteMax: 8, cooldownSeconds: 60 },
         command: { enabled: true, amount: 10, cooldownSeconds: 300 },
     },
-    xpMultipliers: {
-        weekend: 1.5,
-        booster: 2.0,
-        role: {},
-    },
+    xpMultipliers: { weekend: 1.5, booster: 2.0, role: {} },
     noXpChannels: [],
     xpChannelWhitelist: [],
     levelRoles: [],
@@ -38,25 +34,18 @@ const DEFAULT_LEVELING_CONFIG = {
     ignoreBots: true,
     maxLevel: 100,
 };
+const LEGACY_GUILD = 'global';
 class LevelingService {
     constructor(logger, config) {
         this.db = null;
         this.client = null;
-        this.xpCooldowns = new Map();
         this.voiceSessions = new Map();
         this.logger = logger;
         this.config = { ...DEFAULT_LEVELING_CONFIG, ...config };
         this.syncLegacyAliases();
     }
-    /**
-     * Backward compatibility: old configs only set levelRoles /
-     * announcementChannels. Mirror them into the member-track aliases so
-     * the staff/member logic can treat both shapes the same.
-     * If member* is already set, it wins and legacy fields are synced from it.
-     */
     syncLegacyAliases() {
         const c = this.config;
-        // staffRoleIds may arrive as a single string from env/dashboard
         if (typeof c.staffRoleIds === 'string') {
             try {
                 c.staffRoleIds = JSON.parse(c.staffRoleIds);
@@ -68,7 +57,7 @@ class LevelingService {
         if (!Array.isArray(c.staffRoleIds))
             c.staffRoleIds = [];
         if (!Array.isArray(c.staffLevelRoles))
-            c.staffLevelRoles = Array.isArray(c.staffLevelRoles) ? c.staffLevelRoles : [];
+            c.staffLevelRoles = [];
         if (!Array.isArray(c.staffAnnouncementChannels))
             c.staffAnnouncementChannels = [];
         if (!Array.isArray(c.memberLevelRoles) || c.memberLevelRoles.length === 0) {
@@ -77,79 +66,36 @@ class LevelingService {
         if (!Array.isArray(c.memberAnnouncementChannels) || c.memberAnnouncementChannels.length === 0) {
             c.memberAnnouncementChannels = Array.isArray(c.announcementChannels) ? [...c.announcementChannels] : [];
         }
-        // Keep legacy fields pointing at the member track (single source of truth).
         c.levelRoles = c.memberLevelRoles;
         c.announcementChannels = c.memberAnnouncementChannels;
     }
-    /** Public accessor used by the dashboard / WebServer. */
-    getConfig() {
-        return this.config;
-    }
-    /**
-     * Keep legacy aliases in sync after a direct mutation of this.config
-     * (e.g. dashboard deep-assign). Call this from WebServer after saving.
-     */
-    refreshLegacyAliases() {
-        this.syncLegacyAliases();
-    }
-    /** Member-track gift roles. */
+    getConfig() { return this.config; }
+    refreshLegacyAliases() { this.syncLegacyAliases(); }
     memberRoles() {
         return (this.config.memberLevelRoles?.length ? this.config.memberLevelRoles : this.config.levelRoles) ?? [];
     }
-    /** Staff-track gift roles. */
-    staffRoles() {
-        return this.config.staffLevelRoles ?? [];
-    }
-    /** Member-track announcement channels. */
+    staffRoles() { return this.config.staffLevelRoles ?? []; }
     memberChannels() {
         return (this.config.memberAnnouncementChannels?.length ? this.config.memberAnnouncementChannels : this.config.announcementChannels) ?? [];
     }
-    /** Staff-track announcement channels. */
-    staffChannels() {
-        return this.config.staffAnnouncementChannels ?? [];
-    }
-    /**
-     * A member is staff if they hold any configured staff role, or have a
-     * moderation-capable permission (ManageMessages/Kick/Ban/Admin).
-     * The permission fallback keeps servers working before any staff role
-     * is configured.
-     */
+    staffChannels() { return this.config.staffAnnouncementChannels ?? []; }
     isStaffMember(member) {
         if (!member)
             return false;
         const staffIds = this.config.staffRoleIds ?? [];
-        if (staffIds.length > 0) {
-            for (const rid of staffIds) {
-                if (rid && member.roles.cache.has(rid))
-                    return true;
-            }
+        if (staffIds.some((rid) => rid && member.roles.cache.has(rid)))
+            return true;
+        const perms = member.permissions;
+        if (perms && typeof perms.has === 'function') {
+            if (perms.has(discord_js_1.PermissionFlagsBits.ManageMessages) ||
+                perms.has(discord_js_1.PermissionFlagsBits.KickMembers) ||
+                perms.has(discord_js_1.PermissionFlagsBits.BanMembers) ||
+                perms.has(discord_js_1.PermissionFlagsBits.Administrator) ||
+                perms.has(discord_js_1.PermissionFlagsBits.ManageGuild))
+                return true;
         }
-        try {
-            const perms = member.permissions;
-            if (perms && typeof perms.has === 'function') {
-                if (perms.has('ManageMessages') ||
-                    perms.has('KickMembers') ||
-                    perms.has('BanMembers') ||
-                    perms.has('Administrator') ||
-                    perms.has('ManageGuild'))
-                    return true;
-            }
-            else if (perms && typeof perms === 'object') {
-                // bitfield-style fallback
-                const MANAGE_MSG = 1n << 13n;
-                const KICK = 1n << 1n;
-                const BAN = 1n << 2n;
-                const ADMIN = 1n << 3n;
-                const MANAGE_GUILD = 1n << 5n;
-                const bf = perms.bitfield ?? 0n;
-                if ((bf & (MANAGE_MSG | KICK | BAN | ADMIN | MANAGE_GUILD)) !== 0n)
-                    return true;
-            }
-        }
-        catch { /* best-effort */ }
         return false;
     }
-    /** Resolve staff status for any member, fetching when needed. */
     async isStaff(guildId, userId, member) {
         if (member)
             return this.isStaffMember(member);
@@ -158,226 +104,217 @@ class LevelingService {
         const guild = this.client.guilds.cache.get(guildId);
         if (!guild)
             return false;
-        try {
-            const cached = guild.members.cache.get(userId);
-            if (cached)
-                return this.isStaffMember(cached);
-            const fetched = await guild.members.fetch(userId).catch(() => null);
-            return this.isStaffMember(fetched);
-        }
-        catch {
-            return false;
-        }
+        const cached = guild.members.cache.get(userId);
+        if (cached)
+            return this.isStaffMember(cached);
+        const fetched = await guild.members.fetch(userId).catch(() => null);
+        return this.isStaffMember(fetched);
     }
-    setDb(db) {
-        this.db = db;
-    }
-    setClient(client) {
-        this.client = client;
-    }
+    setDb(db) { this.db = db; }
+    setClient(client) { this.client = client; }
     async initialize() {
-        this.logger.info('Leveling Service', `Leveling system initialized (formula: ${this.config.xpFormula}, max level: ${this.config.maxLevel})`);
+        this.logger.info('Leveling Service', `Leveling initialized (formula: ${this.config.xpFormula}, max level: ${this.config.maxLevel})`);
     }
-    /**
-     * Calculate the total XP required to reach a given level.
-     */
     xpForLevel(level) {
         if (level <= 1)
             return 0;
         if (this.config.xpFormula === 'custom' && this.config.customXpTable[level] !== undefined) {
-            return this.config.customXpTable[level];
+            return Math.max(0, Math.floor(Number(this.config.customXpTable[level])));
         }
-        const base = this.config.baseXpPerLevel * this.config.xpMultiplier;
+        const base = (Number(this.config.baseXpPerLevel) || 0) * (Number(this.config.xpMultiplier) || 1);
         switch (this.config.xpFormula) {
-            case 'linear':
-                return base * (level - 1);
-            case 'quadratic':
-                return base * (level - 1) * (level - 1);
-            case 'exponential':
-                return base * Math.pow(1.5, level - 1);
-            default:
-                return base * (level - 1);
+            case 'linear': return Math.floor(base * (level - 1));
+            case 'quadratic': return Math.floor(base * (level - 1) * (level - 1));
+            case 'exponential': return Math.floor(base * Math.pow(1.5, level - 1));
+            default: return Math.floor(base * (level - 1));
         }
     }
-    /**
-     * Calculate the level from total XP.
-     */
     calculateLevel(totalXP) {
+        const total = Number.isFinite(totalXP) ? Math.max(0, Math.floor(totalXP)) : 0;
+        const maxLevel = Math.max(1, Math.floor(this.config.maxLevel) || 1);
         let level = 1;
-        for (let lvl = 2; lvl <= this.config.maxLevel; lvl++) {
-            const required = this.xpForLevel(lvl);
-            if (totalXP >= required) {
+        for (let lvl = 2; lvl <= maxLevel; lvl++) {
+            if (total >= this.xpForLevel(lvl))
                 level = lvl;
-            }
-            else {
+            else
                 break;
-            }
         }
-        return Math.min(level, this.config.maxLevel);
+        return level;
     }
-    /**
-     * Get XP needed for next level.
-     */
     xpForNextLevel(currentLevel) {
         return this.xpForLevel(currentLevel + 1);
     }
-    /**
-     * Get progress within current level (0-100%).
-     */
     getLevelProgress(totalXP, level) {
         const levelStart = this.xpForLevel(level);
         const levelEnd = this.xpForNextLevel(level);
-        const current = totalXP - levelStart;
-        const needed = levelEnd - levelStart;
+        const current = Math.max(0, totalXP - levelStart);
+        const needed = Math.max(0, levelEnd - levelStart);
         const percentage = needed > 0 ? Math.min(100, Math.floor((current / needed) * 100)) : 100;
         return { current, needed, percentage };
     }
-    /**
-     * Calculate XP multiplier for a member based on roles, day, etc.
-     */
     getXpMultiplier(member) {
         let multiplier = 1;
         const multipliers = this.config.xpMultipliers ?? { weekend: 1, booster: 1, role: {} };
-        // Weekend multiplier
         const day = new Date().getDay();
-        if (day === 0 || day === 6) {
+        if (day === 0 || day === 6)
             multiplier *= multipliers.weekend ?? 1;
-        }
-        // Booster multiplier. `premiumSince` is the reliable signal; the role tag
-        // is a fallback for older cached member payloads.
         const isBoosting = !!member && (!!member.premiumSince ||
             member.roles.cache.some((r) => r.tags?.premiumSubscriberRole));
-        if (isBoosting) {
+        if (isBoosting)
             multiplier *= multipliers.booster ?? 1;
-        }
-        // Role-based multipliers
         if (member && multipliers.role) {
             for (const [roleId, mult] of Object.entries(multipliers.role)) {
-                if (member.roles.cache.has(roleId)) {
+                if (member.roles.cache.has(roleId))
                     multiplier *= Number(mult) || 1;
-                }
             }
         }
-        return multiplier;
+        return Math.max(0, multiplier);
     }
-    /**
-     * Check if a channel allows XP earning.
-     */
     canEarnXp(channelId) {
-        const noXpChannels = this.config.noXpChannels ?? [];
+        if ((this.config.noXpChannels ?? []).includes(channelId))
+            return false;
         const whitelist = this.config.xpChannelWhitelist ?? [];
-        if (noXpChannels.includes(channelId))
-            return false;
-        if (whitelist.length > 0 && !whitelist.includes(channelId)) {
-            return false;
-        }
-        return true;
+        return whitelist.length === 0 || whitelist.includes(channelId);
     }
-    /**
-     * Add XP from a message source.
-     */
     async addXpFromMessage(guildId, userId, channelId, member) {
         if (!this.config.enabled)
             return null;
         const source = this.config.xpSources?.message;
-        if (!source?.enabled)
-            return null;
-        if (!this.canEarnXp(channelId))
+        if (!source?.enabled || !this.canEarnXp(channelId))
             return null;
         const min = Number.isFinite(source.min) ? source.min : 15;
         const max = Number.isFinite(source.max) ? Math.max(source.max, min) : min;
         const rawXp = Math.floor(Math.random() * (max - min + 1) + min);
-        const multiplier = this.getXpMultiplier(member);
-        const xpAmount = Math.floor(rawXp * multiplier);
+        const xpAmount = Math.floor(rawXp * this.getXpMultiplier(member));
+        if (xpAmount <= 0)
+            return null;
         return this.addXP(guildId, userId, xpAmount, 'message');
     }
-    /**
-     * Add XP from voice activity (per minute).
-     * `minutes` lets callers award a whole voice session at once.
-     */
     async addXpFromVoice(guildId, userId, member, minutes = 1) {
         if (!this.config.enabled)
             return null;
-        const config = this.config.xpSources?.voice;
-        if (!config?.enabled)
+        const source = this.config.xpSources?.voice;
+        if (!source?.enabled)
             return null;
-        const min = Number.isFinite(config.perMinuteMin) ? config.perMinuteMin : 5;
-        const max = Number.isFinite(config.perMinuteMax) ? Math.max(config.perMinuteMax, min) : min;
-        const multiplier = this.getXpMultiplier(member);
-        const elapsed = Math.max(1, Math.floor(Number.isFinite(minutes) ? minutes : 1));
-        let xpAmount = 0;
+        const min = Number.isFinite(source.perMinuteMin) ? source.perMinuteMin : 5;
+        const max = Number.isFinite(source.perMinuteMax) ? Math.max(source.perMinuteMax, min) : min;
+        const elapsed = Math.max(1, Math.min(1440, Math.floor(Number.isFinite(minutes) ? minutes : 1)));
+        // One roll per minute keeps the reward distribution identical to the old
+        // loop but avoids doing `minutes` database-less random calls.
+        let rawXp = 0;
         for (let i = 0; i < elapsed; i++) {
-            const rawXp = Math.floor(Math.random() * (max - min + 1) + min);
-            xpAmount += Math.floor(rawXp * multiplier);
+            rawXp += Math.floor(Math.random() * (max - min + 1) + min);
         }
+        const xpAmount = Math.floor(rawXp * this.getXpMultiplier(member));
         if (xpAmount <= 0)
             return null;
         return this.addXP(guildId, userId, xpAmount, 'voice');
     }
+    sourceCooldown(source) {
+        switch (source) {
+            case 'message': return Math.max(0, this.config.xpSources?.message?.cooldownSeconds ?? 60);
+            case 'voice': return Math.max(0, this.config.xpSources?.voice?.cooldownSeconds ?? 60);
+            case 'command': return Math.max(0, this.config.xpSources?.command?.cooldownSeconds ?? 300);
+            default: return 0;
+        }
+    }
+    sourceColumn(source) {
+        switch (source) {
+            case 'message': return 'last_message_at';
+            case 'voice': return 'last_voice_at';
+            case 'command': return 'last_command_at';
+            default: return null;
+        }
+    }
     /**
-     * Core XP addition logic with cooldown, level calculation, role granting, and announcements.
+     * Core XP mutation. Reads and writes happen inside one SQLite transaction,
+     * so two simultaneous messages cannot both start from the same total.
      */
     async addXP(guildId, userId, xpAmount, source = 'manual') {
         if (!this.db)
             throw new Error('Database not connected');
         if (!Number.isFinite(xpAmount) || xpAmount <= 0)
             return null;
-        const cooldownKey = `${guildId}-${userId}-${source}`;
-        const now = Date.now();
-        const cooldownConfig = this.getCooldownConfig(source);
-        const lastXp = this.xpCooldowns.get(cooldownKey);
-        if (lastXp && now - lastXp < cooldownConfig * 1000) {
-            return { leveledUp: false, oldLevel: 0, newLevel: 0, xpGained: 0, totalXP: 0, isStaff: false, rolesGranted: [], announcementChannelId: null };
+        const amount = Math.floor(xpAmount);
+        const cooldown = this.sourceCooldown(source);
+        const column = this.sourceColumn(source);
+        const db = this.db;
+        const outcome = db.transaction((tx) => {
+            const now = Math.floor(Date.now() / 1000);
+            const row = tx.get((0, drizzle_orm_1.sql) `
+        SELECT total_xp, level, last_message_at, last_voice_at, last_command_at
+        FROM leveling_profiles
+        WHERE guild_id = ${guildId} AND user_id = ${userId}
+      `);
+            const lastAt = column ? Number(row?.[column] ?? 0) : 0;
+            if (column && cooldown > 0 && lastAt > 0 && now - lastAt < cooldown) {
+                return { applied: false, oldLevel: Number(row?.level ?? 1), newLevel: Number(row?.level ?? 1), totalXp: Number(row?.total_xp ?? 0), amount: 0 };
+            }
+            const oldLevel = Number(row?.level ?? 1);
+            const totalXp = Number(row?.total_xp ?? 0) + amount;
+            const newLevel = this.calculateLevel(totalXp);
+            const inLevelXp = Math.max(0, totalXp - this.xpForLevel(newLevel));
+            if (!row) {
+                if (column) {
+                    tx.run((0, drizzle_orm_1.sql) `
+            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, ${drizzle_orm_1.sql.identifier(column)}, updated_at)
+            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${now}, ${now})
+          `);
+                }
+                else {
+                    tx.run((0, drizzle_orm_1.sql) `
+            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, updated_at)
+            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${now})
+          `);
+                }
+            }
+            else {
+                const setParts = [
+                    (0, drizzle_orm_1.sql) `total_xp = ${totalXp}`,
+                    (0, drizzle_orm_1.sql) `level = ${newLevel}`,
+                    (0, drizzle_orm_1.sql) `updated_at = ${now}`,
+                ];
+                if (column)
+                    setParts.push((0, drizzle_orm_1.sql) `${drizzle_orm_1.sql.identifier(column)} = ${now}`);
+                tx.run((0, drizzle_orm_1.sql) `UPDATE leveling_profiles SET ${drizzle_orm_1.sql.join(setParts, (0, drizzle_orm_1.sql) `, `)} WHERE guild_id = ${guildId} AND user_id = ${userId}`);
+            }
+            tx.run((0, drizzle_orm_1.sql) `
+        INSERT INTO users (id, username, bot, balance, xp, level, total_xp, created_at, updated_at)
+        VALUES (${userId}, '', 0, 0, ${inLevelXp}, ${newLevel}, ${totalXp}, ${now}, ${now})
+        ON CONFLICT(id) DO UPDATE SET xp = ${inLevelXp}, level = ${newLevel}, total_xp = ${totalXp}, updated_at = ${now}
+      `);
+            return { applied: true, oldLevel, newLevel, totalXp, amount };
+        });
+        if (!outcome.applied) {
+            return { leveledUp: false, oldLevel: outcome.oldLevel, newLevel: outcome.newLevel, xpGained: 0, totalXP: outcome.totalXp, isStaff: false, rolesGranted: [], announcementChannelId: null };
         }
-        this.xpCooldowns.set(cooldownKey, now);
-        const userResult = await this.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        let user = userResult[0];
-        if (!user) {
-            await this.db.insert(schema_1.users).values({
-                id: userId,
-                username: '',
-                discriminator: null,
-                avatar: null,
-                bot: false,
-                balance: 0,
-                xp: 0,
-                level: 1,
-                total_xp: 0,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
-            user = { id: userId, xp: 0, level: 1, total_xp: 0 };
-        }
-        const oldLevel = user.level || 1;
-        const currentXp = (user.xp || 0) + xpAmount;
-        const totalXp = (user.total_xp || 0) + xpAmount;
-        const newLevel = this.calculateLevel(totalXp);
+        const oldLevel = outcome.oldLevel;
+        const newLevel = outcome.newLevel;
+        const totalXp = outcome.totalXp;
         const leveledUp = newLevel > oldLevel;
-        await this.db.update(schema_1.users)
-            .set({ xp: currentXp, level: newLevel, total_xp: totalXp, updated_at: new Date() })
-            .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
         const isStaff = await this.isStaff(guildId, userId).catch(() => false);
         const result = {
             leveledUp,
             oldLevel,
             newLevel,
-            xpGained: xpAmount,
+            xpGained: amount,
             totalXP: totalXp,
             isStaff,
             rolesGranted: [],
             announcementChannelId: null,
         };
         if (leveledUp) {
-            await this.db.insert(schema_1.levelingHistory).values({
-                id: `lvl_${Date.now()}`,
-                guild_id: guildId,
-                user_id: userId,
-                old_level: oldLevel,
-                new_level: newLevel,
-                xp_gained: xpAmount,
-            });
-            const rolesGranted = await this.handleLevelUpRoles(guildId, userId, newLevel, isStaff);
-            result.rolesGranted = rolesGranted;
+            if (this.db) {
+                await this.db.insert(schema_1.levelingHistory).values({
+                    id: (0, id_1.newId)('lvl'),
+                    guild_id: guildId,
+                    user_id: userId,
+                    old_level: oldLevel,
+                    new_level: newLevel,
+                    xp_gained: amount,
+                });
+            }
+            result.rolesGranted = await this.handleLevelUpRoles(guildId, userId, newLevel, isStaff);
             const channelId = this.selectAnnouncementChannel(guildId, newLevel, userId, isStaff);
             result.announcementChannelId = channelId;
             if (channelId && this.client) {
@@ -386,95 +323,60 @@ class LevelingService {
         }
         return result;
     }
-    /**
-     * Set a user's total XP to an exact value (admin/dashboard action).
-     * Unlike addXP this bypasses cooldowns and does not add on top of the
-     * existing total.
-     */
     async setXP(guildId, userId, totalXP) {
         if (!this.db)
             throw new Error('Database not connected');
         const total = Number.isFinite(totalXP) ? Math.max(0, Math.floor(totalXP)) : 0;
         const level = this.calculateLevel(total);
-        const existing = await this.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        if (existing[0]) {
-            await this.db.update(schema_1.users)
-                .set({ xp: total, level, total_xp: total, updated_at: new Date() })
-                .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        }
-        else {
-            await this.db.insert(schema_1.users).values({
-                id: userId,
-                username: '',
-                discriminator: null,
-                avatar: null,
-                bot: false,
-                balance: 0,
-                xp: total,
-                level,
-                total_xp: total,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
-        }
-        // Admin changes should take effect immediately, not after a cooldown.
-        for (const source of ['message', 'voice', 'command', 'manual']) {
-            this.xpCooldowns.delete(`${guildId}-${userId}-${source}`);
-        }
-        return { level, xp: total, totalXP: total };
+        const inLevel = Math.max(0, total - this.xpForLevel(level));
+        const now = Math.floor(Date.now() / 1000);
+        const db = this.db;
+        db.transaction((tx) => {
+            tx.run((0, drizzle_orm_1.sql) `
+        INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, updated_at)
+        VALUES (${guildId}, ${userId}, ${total}, ${level}, ${now})
+        ON CONFLICT(guild_id, user_id) DO UPDATE SET
+          total_xp = ${total}, level = ${level}, updated_at = ${now},
+          last_message_at = NULL, last_voice_at = NULL, last_command_at = NULL
+      `);
+            tx.run((0, drizzle_orm_1.sql) `
+        INSERT INTO users (id, username, bot, balance, xp, level, total_xp, created_at, updated_at)
+        VALUES (${userId}, '', 0, 0, ${inLevel}, ${level}, ${total}, ${now}, ${now})
+        ON CONFLICT(id) DO UPDATE SET xp = ${inLevel}, level = ${level}, total_xp = ${total}, updated_at = ${now}
+      `);
+        });
+        return { level, xp: inLevel, totalXP: total };
     }
-    getCooldownConfig(source) {
-        const sources = this.config.xpSources;
-        switch (source) {
-            case 'message': return sources?.message?.cooldownSeconds ?? 60;
-            case 'voice': return sources?.voice?.cooldownSeconds ?? 60;
-            case 'command': return sources?.command?.cooldownSeconds ?? 300;
-            default: return sources?.message?.cooldownSeconds ?? 60;
-        }
-    }
-    /**
-     * Handle role granting based on the track (staff vs member).
-     * Staff and members each have their OWN gift-role pool; replacement
-     * only happens inside the same track. XP/level math is identical.
-     */
     async handleLevelUpRoles(guildId, userId, newLevel, isStaff) {
         if (!this.client)
             return [];
         const guild = this.client.guilds.cache.get(guildId);
         if (!guild)
             return [];
-        let member = null;
-        try {
-            member = await guild.members.fetch(userId);
-        }
-        catch {
-            return [];
-        }
+        const member = await guild.members.fetch(userId).catch(() => null);
         if (!member)
             return [];
         const staff = isStaff ?? this.isStaffMember(member);
         const pool = staff ? this.staffRoles() : this.memberRoles();
         const trackLabel = staff ? 'staff' : 'member';
         const rolesGranted = [];
-        const rolesToRemove = [];
-        // Find all roles this member now qualifies for (track-scoped)
-        const eligibleRoles = pool
-            .filter(r => newLevel >= r.level)
-            .sort((a, b) => a.level - b.level);
-        // Determine which roles to grant
-        for (const roleConfig of eligibleRoles) {
+        const rolesToRemove = new Set();
+        const eligible = pool
+            .filter((r) => r.roleId && newLevel >= Number(r.level))
+            .sort((a, b) => Number(a.level) - Number(b.level));
+        for (const roleConfig of eligible) {
             const role = guild.roles.cache.get(roleConfig.roleId);
             if (!role)
                 continue;
-            if (member.roles.cache.has(role.id))
-                continue; // Already has it
-            // If this role replaces lower tiers, mark those for removal (same track only)
             if (roleConfig.replaceLower) {
-                const lowerRoles = pool
-                    .filter(r => r.level < roleConfig.level && r.roleId !== roleConfig.roleId)
-                    .map(r => r.roleId);
-                rolesToRemove.push(...lowerRoles.filter(rid => member.roles.cache.has(rid)));
+                for (const lower of pool) {
+                    if (lower.roleId !== roleConfig.roleId && Number(lower.level) < Number(roleConfig.level)) {
+                        rolesToRemove.add(lower.roleId);
+                    }
+                }
             }
+            if (member.roles.cache.has(role.id))
+                continue;
             try {
                 await member.roles.add(role.id, `Level ${newLevel} ${trackLabel} reward`);
                 rolesGranted.push(role.id);
@@ -484,12 +386,11 @@ class LevelingService {
                 this.logger.error('Leveling Service', `Failed to grant ${trackLabel} role ${roleConfig.roleId} to ${member.user.tag}`, err);
             }
         }
-        // Remove lower tier roles after granting (same track only)
-        if (rolesToRemove.length > 0) {
-            const uniqueRemovals = [...new Set(rolesToRemove)];
+        const removeIds = [...rolesToRemove].filter((rid) => rid && member.roles.cache.has(rid));
+        if (removeIds.length) {
             try {
-                await member.roles.remove(uniqueRemovals, 'Replaced by higher level role');
-                this.logger.info('Leveling Service', `Removed lower tier ${trackLabel} roles from ${member.user.tag}: ${uniqueRemovals.join(', ')}`);
+                await member.roles.remove(removeIds, 'Replaced by higher level role');
+                this.logger.info('Leveling Service', `Removed lower tier ${trackLabel} roles from ${member.user.tag}`);
             }
             catch (err) {
                 this.logger.error('Leveling Service', `Failed to remove roles from ${member.user.tag}`, err);
@@ -497,22 +398,13 @@ class LevelingService {
         }
         return rolesGranted;
     }
-    /**
-     * Sync all roles for a member based on their current level (useful on rejoin).
-     */
     async syncMemberRoles(guildId, userId) {
         if (!this.db || !this.client)
             return;
         const guild = this.client.guilds.cache.get(guildId);
         if (!guild)
             return;
-        let member = null;
-        try {
-            member = await guild.members.fetch(userId);
-        }
-        catch {
-            return;
-        }
+        const member = await guild.members.fetch(userId).catch(() => null);
         if (!member)
             return;
         const data = await this.getLevel(guildId, userId);
@@ -520,13 +412,6 @@ class LevelingService {
             return;
         await this.handleLevelUpRoles(guildId, userId, data.level);
     }
-    /**
-     * Select the announcement channel for a level up, scoped to the track.
-     * Staff use staffAnnouncementChannels; members use memberAnnouncementChannels.
-     * Falls back to the other track only when the preferred track is empty,
-     * so a server that only configures one track still announces.
-     * Priority inside a track: exact tier > role > minLevel > default.
-     */
     selectAnnouncementChannel(guildId, newLevel, userId, isStaff) {
         let member = null;
         if (this.client) {
@@ -534,7 +419,6 @@ class LevelingService {
             if (guild)
                 member = guild.members.cache.get(userId) ?? null;
         }
-        // Resolve staff status when the caller didn't supply it (e.g. older callers)
         const staff = isStaff ?? (member ? this.isStaffMember(member) : false);
         const pick = (channels) => {
             if (!channels.length)
@@ -546,9 +430,8 @@ class LevelingService {
                 return exactTier.channelId;
             if (member) {
                 for (const ch of channels) {
-                    if (ch.roleId && member.roles.cache.has(ch.roleId)) {
-                        if (ch.minLevel === undefined || newLevel >= ch.minLevel)
-                            return ch.channelId;
+                    if (ch.roleId && member.roles.cache.has(ch.roleId) && (ch.minLevel === undefined || newLevel >= ch.minLevel)) {
+                        return ch.channelId;
                     }
                 }
             }
@@ -557,28 +440,20 @@ class LevelingService {
                 .sort((a, b) => (b.minLevel ?? 0) - (a.minLevel ?? 0));
             if (minLevelMatches[0])
                 return minLevelMatches[0].channelId;
-            const defaultChannel = channels.find((c) => c.minLevel === undefined && !c.roleId);
-            if (defaultChannel)
-                return defaultChannel.channelId;
-            return channels[0]?.channelId ?? null;
+            return channels.find((c) => c.minLevel === undefined && !c.roleId)?.channelId ?? channels[0]?.channelId ?? null;
         };
         const primary = staff ? this.staffChannels() : this.memberChannels();
         const secondary = staff ? this.memberChannels() : this.staffChannels();
-        // Only fall back when the primary track is unconfigured (backward compat:
-        // legacy configs only set the member track).
         return pick(primary) ?? (primary.length === 0 ? pick(secondary) : null);
     }
-    /**
-     * Send a level-up announcement embed (track-aware).
-     */
     async sendLevelUpAnnouncement(channelId, userId, newLevel, oldLevel, totalXP, isStaff) {
         if (!this.client)
             return;
         const channel = this.client.channels.cache.get(channelId);
-        if (!channel || !('send' in channel) || typeof channel.send !== 'function')
+        if (!channel || channel.type !== discord_js_1.ChannelType.GuildText)
             return;
         const allChannels = [...this.staffChannels(), ...this.memberChannels()];
-        const channelConfig = allChannels.find(c => c.channelId === channelId);
+        const channelConfig = allChannels.find((c) => c.channelId === channelId);
         const progress = this.getLevelProgress(totalXP, newLevel);
         const color = channelConfig?.color ?? this.config.defaultColor;
         const staff = isStaff ?? false;
@@ -586,30 +461,24 @@ class LevelingService {
             (staff
                 ? '🛡️ Staff {user} reached **level {level}**!'
                 : '🎉 Congratulations {user}, you have reached **level {level}**!');
-        const content = template
-            .replace(/\{user\}/g, `<@${userId}>`)
-            .replace(/\{username\}/g, '{username}')
-            .replace(/\{level\}/g, String(newLevel))
-            .replace(/\{oldLevel\}/g, String(oldLevel))
-            .replace(/\{xp\}/g, progress.current.toLocaleString())
-            .replace(/\{neededXp\}/g, progress.needed.toLocaleString())
-            .replace(/\{progress\}/g, String(progress.percentage))
-            .replace(/\{totalXp\}/g, totalXP.toLocaleString())
-            .trim();
         try {
-            let user;
-            try {
-                user = await this.client.users.fetch(userId);
-            }
-            catch {
-                user = { username: 'Unknown', tag: 'Unknown#0000', id: userId, displayAvatarURL: () => '' };
-            }
-            const finalContent = content.replace(/\{username\}/g, user.username ?? 'Unknown');
+            const user = await this.client.users.fetch(userId).catch(() => null);
+            const username = user?.username ?? 'Unknown';
+            const content = template
+                .replace(/\{user\}/g, `<@${userId}>`)
+                .replace(/\{username\}/g, username)
+                .replace(/\{level\}/g, String(newLevel))
+                .replace(/\{oldLevel\}/g, String(oldLevel))
+                .replace(/\{xp\}/g, progress.current.toLocaleString())
+                .replace(/\{neededXp\}/g, progress.needed.toLocaleString())
+                .replace(/\{progress\}/g, String(progress.percentage))
+                .replace(/\{totalXp\}/g, totalXP.toLocaleString())
+                .trim();
             const embed = (0, embed_1.levelingEmbed)({
                 user: {
-                    username: user.username ?? 'Unknown',
-                    tag: user.tag,
-                    displayAvatarURL: user.displayAvatarURL?.bind(user),
+                    username,
+                    tag: user?.tag,
+                    displayAvatarURL: user ? () => user.displayAvatarURL() : undefined,
                 },
                 userId,
                 level: newLevel,
@@ -620,100 +489,110 @@ class LevelingService {
                 percentage: progress.percentage,
                 title: staff ? `🛡️ Staff Level Up! ${oldLevel} → ${newLevel}` : undefined,
             })
-                .setDescription(`${finalContent}\n\n\`${(0, embed_1.progressBar)(progress.percentage)}\`\n` +
+                .setDescription(`${content}\n\n\`${(0, embed_1.progressBar)(progress.percentage)}\`\n` +
                 `\`${(0, embed_1.formatNumber)(progress.current)} / ${(0, embed_1.formatNumber)(progress.needed)} XP\` • Total: **${(0, embed_1.formatNumber)(totalXP)}**` +
                 (staff ? '\n**Track:** 🛡️ Staff' : '\n**Track:** 👥 Member'));
-            if (color && color !== this.config.defaultColor)
+            if (color)
                 embed.setColor(color);
-            await channel.send({
-                embeds: [embed],
-                allowedMentions: { users: [userId] },
-            });
+            await channel.send({ embeds: [embed], allowedMentions: { users: [userId] } });
         }
         catch (err) {
             this.logger.error('Leveling Service', `Failed to send level-up announcement to channel ${channelId}`, err);
         }
     }
-    async getLevel(_guildId, userId) {
+    /** Guild-scoped profile, falling back to the migrated legacy bucket. */
+    async getLevel(guildId, userId) {
         if (!this.db)
             return null;
-        const result = await this.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        if (!result[0])
+        const row = await this.db
+            .select()
+            .from(schema_1.levelingProfiles)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.levelingProfiles.guild_id, guildId), (0, drizzle_orm_1.eq)(schema_1.levelingProfiles.user_id, userId)))
+            .limit(1);
+        let profile = row[0];
+        if (!profile && guildId !== LEGACY_GUILD) {
+            const legacy = await this.db
+                .select()
+                .from(schema_1.levelingProfiles)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.levelingProfiles.guild_id, LEGACY_GUILD), (0, drizzle_orm_1.eq)(schema_1.levelingProfiles.user_id, userId)))
+                .limit(1);
+            profile = legacy[0];
+        }
+        if (!profile)
             return null;
-        const u = result[0];
-        return {
-            level: u.level || 1,
-            xp: u.xp || 0,
-            totalXP: u.total_xp || 0,
-        };
+        const totalXP = Number(profile.total_xp ?? 0);
+        const level = Number(profile.level ?? this.calculateLevel(totalXP));
+        return { level, xp: Math.max(0, totalXP - this.xpForLevel(level)), totalXP };
     }
-    async getLeaderboard(_guildId, limit = 10) {
+    async getLeaderboard(guildId, limit = 10) {
         if (!this.db)
             return [];
-        return this.db.select().from(schema_1.users).orderBy((0, drizzle_orm_1.desc)(schema_1.users.total_xp)).limit(limit);
+        const rows = await this.db
+            .select()
+            .from(schema_1.levelingProfiles)
+            .where((0, drizzle_orm_1.eq)(schema_1.levelingProfiles.guild_id, guildId))
+            .orderBy((0, drizzle_orm_1.desc)(schema_1.levelingProfiles.total_xp))
+            .limit(Math.max(1, Math.min(1000, Math.floor(limit))));
+        return rows.map((r) => ({
+            id: r.user_id,
+            user_id: r.user_id,
+            username: '',
+            level: r.level,
+            xp: Math.max(0, Number(r.total_xp ?? 0) - this.xpForLevel(Number(r.level ?? 1))),
+            total_xp: Number(r.total_xp ?? 0),
+        }));
     }
     async getRankPosition(guildId, userId) {
-        const rows = await this.getLeaderboard(guildId, 100000);
-        const idx = rows.findIndex((r) => r.id === userId);
-        return idx >= 0 ? idx + 1 : 0;
-    }
-    async countRanked() {
         if (!this.db)
             return 0;
-        const rows = await this.db.select().from(schema_1.users);
-        return rows.filter((r) => (r.total_xp ?? 0) > 0).length;
+        const current = await this.getLevel(guildId, userId);
+        if (!current)
+            return 0;
+        const row = await this.db.get((0, drizzle_orm_1.sql) `
+      SELECT COUNT(*) + 1 AS value FROM leveling_profiles
+      WHERE guild_id = ${guildId} AND total_xp > ${current.totalXP}
+    `);
+        return Number(row?.value ?? 0);
     }
-    /** MEE6-style LevelInfo derived from total XP using Sukuna's own level thresholds. */
+    async countRanked(guildId) {
+        if (!this.db)
+            return 0;
+        const row = guildId
+            ? await this.db.get((0, drizzle_orm_1.sql) `SELECT COUNT(*) AS value FROM leveling_profiles WHERE guild_id = ${guildId}`)
+            : await this.db.get((0, drizzle_orm_1.sql) `SELECT COUNT(*) AS value FROM leveling_profiles`);
+        return Number(row?.value ?? 0);
+    }
     mee6InfoFor(totalXP, level) {
-        // Use Sukuna's configured thresholds for the span, not MEE6's 5L² formula —
-        // the card still looks MEE6 but numbers stay consistent with the database.
         const progress = this.getLevelProgress(totalXP, level);
-        const span = progress.needed > 0 ? progress.needed : 1;
-        return {
-            level,
-            xpInLevel: progress.current,
-            xpForNext: span,
-            totalXp: totalXP,
-        };
+        return { level, xpInLevel: progress.current, xpForNext: Math.max(1, progress.needed), totalXp: totalXP };
     }
-    /**
-     * Voice session tracking - call when member joins voice.
-     */
-    startVoiceSession(userId) {
-        this.voiceSessions.set(userId, Date.now());
-    }
-    /**
-     * Voice session tracking - call when member leaves voice. Returns minutes spent.
-     */
+    startVoiceSession(userId) { this.voiceSessions.set(userId, Date.now()); }
     endVoiceSession(userId) {
         const joinTs = this.voiceSessions.get(userId);
         if (!joinTs)
             return 0;
-        const minutes = Math.floor((Date.now() - joinTs) / 60000);
         this.voiceSessions.delete(userId);
-        return minutes;
+        return Math.floor((Date.now() - joinTs) / 60000);
     }
-    /**
-     * Get voice session start time for a user.
-     */
-    getVoiceSession(userId) {
-        return this.voiceSessions.get(userId) ?? null;
-    }
+    getVoiceSession(userId) { return this.voiceSessions.get(userId) ?? null; }
     async shutdown() {
-        this.xpCooldowns.clear();
         this.voiceSessions.clear();
         this.logger.info('Leveling Service', 'Leveling system shutdown');
     }
 }
 exports.LevelingService = LevelingService;
 class LevelingCommands {
-    constructor(service, logger, config) {
+    constructor(service, logger, _config) {
         this.levelCommand = {
             data: new discord_js_1.SlashCommandBuilder()
                 .setName('level')
                 .setDescription('Check your level and XP progress (MEE6-style card)')
-                .addUserOption(option => option.setName('user').setDescription('User to check')),
+                .addUserOption((option) => option.setName('user').setDescription('User to check')),
             execute: async (interaction) => {
+                if (!interaction.guildId) {
+                    await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
+                    return;
+                }
                 const user = interaction.options.getUser('user') || interaction.user;
                 try {
                     const data = await this.service.getLevel(interaction.guildId, user.id);
@@ -722,7 +601,7 @@ class LevelingCommands {
                         return;
                     }
                     const rank = await this.service.getRankPosition(interaction.guildId, user.id);
-                    const totalRanked = await this.service.countRanked();
+                    const totalRanked = await this.service.countRanked(interaction.guildId);
                     const info = this.service.mee6InfoFor(data.totalXP, data.level);
                     const isStaff = await this.service.isStaff(interaction.guildId, user.id).catch(() => false);
                     await interaction.deferReply();
@@ -738,7 +617,7 @@ class LevelingCommands {
                             totalXp: info.totalXp,
                             guildName: interaction.guild?.name,
                         });
-                        const attachment = new discord_js_2.AttachmentBuilder(buffer, { name: 'rank.png' });
+                        const attachment = new discord_js_1.AttachmentBuilder(buffer, { name: 'rank.png' });
                         const progress = this.service.getLevelProgress(data.totalXP, data.level);
                         const captionEmbed = (0, embed_1.levelingEmbed)({
                             user: { username: user.username, tag: user.tag, displayAvatarURL: () => user.displayAvatarURL() },
@@ -755,25 +634,17 @@ class LevelingCommands {
                     }
                     catch (cardErr) {
                         this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr);
-                        const progress = this.service.getLevelProgress(data.totalXP, data.level);
-                        const embed = (0, rankEmbeds_1.buildRankCard)({
-                            user: user,
-                            info,
-                            guildName: interaction.guild?.name ?? 'this server',
-                            position: rank || undefined,
-                        });
-                        void progress;
-                        await interaction.editReply({ embeds: [embed] });
+                        await interaction.editReply({ embeds: [(0, rankEmbeds_1.buildRankCard)({
+                                    user: user,
+                                    info,
+                                    guildName: interaction.guild?.name ?? 'this server',
+                                    position: rank || undefined,
+                                })] });
                     }
                 }
                 catch (error) {
                     this.logger.error('Leveling Commands', 'Failed to get level', error);
-                    if (!interaction.replied && !interaction.deferred) {
-                        await interaction.reply({ content: 'Failed to get level data.', flags: discord_js_1.MessageFlags.Ephemeral });
-                    }
-                    else {
-                        await interaction.editReply({ content: 'Failed to get level data.' }).catch(() => undefined);
-                    }
+                    await this.replyError(interaction, 'Failed to get level data.');
                 }
             },
         };
@@ -781,8 +652,12 @@ class LevelingCommands {
             data: new discord_js_1.SlashCommandBuilder()
                 .setName('rank')
                 .setDescription('Check your rank in the server leaderboard (MEE6-style card)')
-                .addUserOption(option => option.setName('user').setDescription('User to check')),
+                .addUserOption((option) => option.setName('user').setDescription('User to check')),
             execute: async (interaction) => {
+                if (!interaction.guildId) {
+                    await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
+                    return;
+                }
                 const user = interaction.options.getUser('user') || interaction.user;
                 try {
                     const data = await this.service.getLevel(interaction.guildId, user.id);
@@ -791,7 +666,7 @@ class LevelingCommands {
                         return;
                     }
                     const rank = await this.service.getRankPosition(interaction.guildId, user.id);
-                    const totalRanked = await this.service.countRanked();
+                    const totalRanked = await this.service.countRanked(interaction.guildId);
                     const info = this.service.mee6InfoFor(data.totalXP, data.level);
                     await interaction.deferReply();
                     try {
@@ -806,101 +681,54 @@ class LevelingCommands {
                             totalXp: info.totalXp,
                             guildName: interaction.guild?.name,
                         });
-                        const attachment = new discord_js_2.AttachmentBuilder(buffer, { name: 'rank.png' });
-                        await interaction.editReply({ files: [attachment] });
+                        await interaction.editReply({ files: [new discord_js_1.AttachmentBuilder(buffer, { name: 'rank.png' })] });
                     }
                     catch (cardErr) {
                         this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr);
-                        const embed = (0, rankEmbeds_1.buildRankCard)({
-                            user: user,
-                            info,
-                            guildName: interaction.guild?.name ?? 'this server',
-                            position: rank || undefined,
-                        });
-                        await interaction.editReply({ embeds: [embed] });
+                        await interaction.editReply({ embeds: [(0, rankEmbeds_1.buildRankCard)({
+                                    user: user,
+                                    info,
+                                    guildName: interaction.guild?.name ?? 'this server',
+                                    position: rank || undefined,
+                                })] });
                     }
                 }
                 catch (error) {
                     this.logger.error('Leveling Commands', 'Failed to get rank', error);
-                    if (!interaction.replied && !interaction.deferred) {
-                        await interaction.reply({ content: 'Failed to get rank.', flags: discord_js_1.MessageFlags.Ephemeral });
-                    }
-                    else {
-                        await interaction.editReply({ content: 'Failed to get rank.' }).catch(() => undefined);
-                    }
+                    await this.replyError(interaction, 'Failed to get rank.');
                 }
             },
         };
         this.leaderboardCommand = {
             data: new discord_js_1.SlashCommandBuilder()
                 .setName('leaderboard')
-                .setDescription('View the server leveling leaderboard (MEE6-style)')
-                .addIntegerOption(option => option.setName('limit').setDescription('Number of entries (default 25, max 25)').setMinValue(1).setMaxValue(25)),
+                .setDescription('View the server leveling leaderboard')
+                .addIntegerOption((option) => option.setName('limit').setDescription('Number of entries (default 10)').setMinValue(1).setMaxValue(25)),
             execute: async (interaction) => {
-                const limit = interaction.options.getInteger('limit') ?? 25;
+                if (!interaction.guild || !interaction.guildId) {
+                    await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
+                    return;
+                }
+                const limit = interaction.options.getInteger('limit') ?? 10;
                 try {
-                    if (!interaction.guild) {
-                        await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
-                        return;
-                    }
                     const rows = await this.service.getLeaderboard(interaction.guildId, limit);
                     if (rows.length === 0) {
                         await interaction.reply({ content: 'No leveling data found yet.', flags: discord_js_1.MessageFlags.Ephemeral });
                         return;
                     }
                     await interaction.deferReply();
-                    // Reference design: podium image on TOP + zones text below (like MEE6 / L7aj live board).
-                    // collectEntries() resolves avatars + progress; buildMessagePayload()
-                    // inlines the podium PNG at the top of the embed description.
-                    try {
-                        const entries = await (0, liveLeaderboard_1.collectEntries)(this.service, interaction.guild, Math.max(limit, 10), interaction.client);
-                        const payload = await (0, liveLeaderboard_1.buildMessagePayload)(entries, interaction.guild, Math.min(25, Math.max(10, limit)), '', Date.now());
-                        await interaction.editReply(payload);
-                    }
-                    catch (boardErr) {
-                        this.logger.warn('Leveling Commands', 'Leaderboard board render failed, using fallback image', boardErr);
-                        // Fallback: simple rows image, then text embed
-                        const entries = await Promise.all(rows.map(async (row) => {
-                            let displayName = row.username || 'Unknown user';
-                            let avatarUrl = '';
-                            let fetched = interaction.client.users.cache.get(row.id);
-                            if (!fetched) {
-                                try {
-                                    fetched = await interaction.client.users.fetch(row.id);
-                                }
-                                catch {
-                                    fetched = undefined;
-                                }
-                            }
-                            if (fetched) {
-                                displayName = interaction.guild?.members.cache.get(row.id)?.displayName ?? fetched.globalName ?? fetched.username ?? displayName;
-                                avatarUrl = fetched.displayAvatarURL({ extension: 'png', size: 128 });
-                            }
-                            return {
-                                userId: row.id,
-                                username: displayName,
-                                avatarUrl,
-                                level: row.level || 1,
-                                totalXp: row.total_xp || 0,
-                            };
-                        }));
+                    const entries = await (0, liveLeaderboard_1.collectEntries)(this.service, interaction.guild, Math.max(limit, 10), interaction.client);
+                    const payload = await (0, liveLeaderboard_1.buildMessagePayload)(entries, interaction.guild, Math.min(25, Math.max(10, limit)), '', Date.now());
+                    await interaction.editReply(payload).catch(async () => {
                         const embed = (0, rankEmbeds_1.buildLeaderboardEmbed)(entries.map((e) => ({
-                            userId: e.userId,
-                            username: e.username,
-                            level: e.level,
-                            totalXp: e.totalXp,
+                            userId: e.userId, username: e.username, level: e.level, totalXp: e.totalXp,
                         })), interaction.guild?.name ?? 'this server');
                         await interaction.editReply({ embeds: [embed] });
-                    }
+                    });
                 }
                 catch (error) {
                     this.logger.error('Leveling Commands', 'Failed to get leaderboard', error);
-                    if (!interaction.replied && !interaction.deferred) {
-                        await interaction.reply({ content: 'Failed to get leaderboard.', flags: discord_js_1.MessageFlags.Ephemeral });
-                    }
-                    else {
-                        await interaction.editReply({ content: 'Failed to get leaderboard.' }).catch(() => undefined);
-                    }
+                    await this.replyError(interaction, 'Failed to get leaderboard.');
                 }
             },
         };
@@ -908,8 +736,12 @@ class LevelingCommands {
             data: new discord_js_1.SlashCommandBuilder()
                 .setName('xp')
                 .setDescription('Check your current XP')
-                .addUserOption(option => option.setName('user').setDescription('User to check')),
+                .addUserOption((option) => option.setName('user').setDescription('User to check')),
             execute: async (interaction) => {
+                if (!interaction.guildId) {
+                    await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
+                    return;
+                }
                 const user = interaction.options.getUser('user') || interaction.user;
                 try {
                     const data = await this.service.getLevel(interaction.guildId, user.id);
@@ -921,9 +753,9 @@ class LevelingCommands {
                     const progress = this.service.getLevelProgress(data.totalXP, data.level);
                     const embed = (0, embed_1.brandedEmbed)(embed_1.BRAND.blue)
                         .setTitle(`${isStaff ? '🛡️' : '✨'} XP — ${user.username}`)
-                        .setDescription(`Level **${data.level}** • **${(0, embed_1.formatNumber)(data.xp)} XP**\n` +
+                        .setDescription(`Level **${data.level}** • **${(0, embed_1.formatNumber)(progress.current)} / ${(0, embed_1.formatNumber)(progress.needed)} XP**\n` +
                         `Total: **${(0, embed_1.formatNumber)(data.totalXP)} XP**\n` +
-                        `\`${(0, embed_1.progressBar)(progress.percentage)}\` ${(0, embed_1.formatNumber)(progress.current)} / ${(0, embed_1.formatNumber)(progress.needed)}\n` +
+                        `\`${(0, embed_1.progressBar)(progress.percentage)}\`\n` +
                         `Track: **${isStaff ? '🛡️ Staff' : '👥 Member'}**`)
                         .setThumbnail(user.displayAvatarURL());
                     await interaction.reply({ embeds: [embed], flags: discord_js_1.MessageFlags.Ephemeral });
@@ -935,32 +767,29 @@ class LevelingCommands {
             },
         };
         this.rolesCommand = {
-            data: new discord_js_1.SlashCommandBuilder()
-                .setName('levelroles')
-                .setDescription('View member & staff level gift roles'),
+            data: new discord_js_1.SlashCommandBuilder().setName('levelroles').setDescription('View member & staff level gift roles'),
             execute: async (interaction) => {
-                const cfg = this.service.config ?? this.config;
-                const memberRoles = this.service.memberRoles?.() ?? cfg.memberLevelRoles ?? cfg.levelRoles ?? [];
-                const staffRoles = this.service.staffRoles?.() ?? cfg.staffLevelRoles ?? [];
+                const memberRoles = this.service.memberRoles();
+                const staffRoles = this.service.staffRoles();
                 const fmt = (arr) => arr.length
-                    ? [...arr].sort((a, b) => a.level - b.level).map(r => `**Level ${r.level}+** — <@&${r.roleId}>${r.replaceLower ? ' *(replaces lower)*' : ''}`).join('\n')
+                    ? [...arr].sort((a, b) => a.level - b.level).map((r) => `**Level ${r.level}+** — <@&${r.roleId}>${r.replaceLower ? ' *(replaces lower)*' : ''}`).join('\n')
                     : 'None — configure in the dashboard under Leveling.';
                 const embed = (0, embed_1.brandedEmbed)(embed_1.BRAND.gold)
                     .setTitle('🎁 Level Gift Roles')
                     .addFields({ name: '👥 Members', value: fmt(memberRoles).slice(0, 900) }, { name: '🛡️ Staff', value: fmt(staffRoles).slice(0, 900) })
-                    .setDescription('Staff and members share the same XP curve — only the gift roles differ. Staff announcements go to the staff channel.');
+                    .setDescription('Staff and members share the same XP curve — only the gift roles differ.');
                 await interaction.reply({ embeds: [embed], flags: discord_js_1.MessageFlags.Ephemeral });
             },
         };
         this.setxpCommand = {
             data: new discord_js_1.SlashCommandBuilder()
                 .setName('setxp')
-                .setDescription('Set a user\'s XP (admin only)')
-                .addUserOption(option => option.setName('user').setDescription('User to modify').setRequired(true))
-                .addIntegerOption(option => option.setName('amount').setDescription('XP amount to set').setRequired(true).setMinValue(0))
-                .setDefaultMemberPermissions(0n),
+                .setDescription('Set a user\'s total XP (admin only)')
+                .addUserOption((option) => option.setName('user').setDescription('User to modify').setRequired(true))
+                .addIntegerOption((option) => option.setName('amount').setDescription('Total XP to set').setRequired(true).setMinValue(0))
+                .setDefaultMemberPermissions(discord_js_1.PermissionFlagsBits.Administrator),
             execute: async (interaction) => {
-                if (!interaction.guild || !interaction.guild.members) {
+                if (!interaction.guild || !interaction.guildId) {
                     await interaction.reply({ content: 'This command can only be used in a server.', flags: discord_js_1.MessageFlags.Ephemeral });
                     return;
                 }
@@ -972,57 +801,33 @@ class LevelingCommands {
                         await interaction.reply({ content: 'User not found in this server.', flags: discord_js_1.MessageFlags.Ephemeral });
                         return;
                     }
-                    const newLevel = this.service.calculateLevel(amount);
-                    await this.dbSetUserXp(interaction.guildId, user.id, amount, newLevel);
-                    const rolesGranted = await this.service.handleLevelUpRoles(interaction.guildId, user.id, newLevel);
-                    const roleText = rolesGranted.length > 0
-                        ? `\nRoles granted: ${rolesGranted.map(r => `<@&${r}>`).join(', ')}`
-                        : '';
+                    const result = await this.service.setXP(interaction.guildId, user.id, amount);
+                    const rolesGranted = await this.service.handleLevelUpRoles(interaction.guildId, user.id, result.level);
+                    const roleText = rolesGranted.length ? `\nRoles granted: ${rolesGranted.map((r) => `<@&${r}>`).join(', ')}` : '';
                     await interaction.reply({
-                        content: `✅ Set ${user.tag}'s XP to ${amount.toLocaleString()} (Level ${newLevel})${roleText}`,
+                        content: `✅ Set ${user.tag}'s total XP to ${amount.toLocaleString()} (Level ${result.level})${roleText}`,
                         flags: discord_js_1.MessageFlags.Ephemeral,
                     });
                 }
                 catch (error) {
                     this.logger.error('Leveling Commands', 'Failed to set XP', error);
-                    await interaction.reply({ content: 'Failed to set XP.', flags: discord_js_1.MessageFlags.Ephemeral });
+                    await this.replyError(interaction, 'Failed to set XP.');
                 }
             },
         };
         this.service = service;
         this.logger = logger;
-        this.config = config;
     }
     getCommands() {
         return [this.levelCommand, this.rankCommand, this.leaderboardCommand, this.xpCommand, this.rolesCommand, this.setxpCommand];
     }
-    async dbSetUserXp(_guildId, userId, xp, level) {
-        if (!this.db)
-            return;
-        const existing = await this.db.select().from(schema_1.users).where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
-        if (existing[0]) {
-            await this.db.update(schema_1.users)
-                .set({ xp, level, total_xp: xp, updated_at: new Date() })
-                .where((0, drizzle_orm_1.eq)(schema_1.users.id, userId));
+    async replyError(interaction, message) {
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ embeds: [(0, embed_1.errorEmbed)('Leveling', message)], flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
         }
         else {
-            await this.db.insert(schema_1.users).values({
-                id: userId,
-                username: '',
-                discriminator: null,
-                avatar: null,
-                bot: false,
-                balance: 0,
-                xp,
-                level,
-                total_xp: xp,
-                created_at: new Date(),
-                updated_at: new Date(),
-            });
+            await interaction.editReply({ content: message }).catch(() => undefined);
         }
-    }
-    get db() {
-        return this.service.db;
     }
 }
 exports.LevelingCommands = LevelingCommands;

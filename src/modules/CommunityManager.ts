@@ -1,8 +1,11 @@
 // Sukuna Bot - Welcome/Goodbye Systems
 
 import { Client, TextChannel, ChannelType, EmbedBuilder, AttachmentBuilder } from 'discord.js';
+import { eq } from 'drizzle-orm';
 import { Logger } from '../infrastructure/Logger';
 import { welcomeCard } from '../utils/welcomecard';
+import { guildSettings } from '../database/schema';
+import type { DrizzleDb } from '../types/database';
 import type { WelcomeCardTemplate } from '../config/CardTemplates';
 
 export interface WelcomeConfig {
@@ -33,11 +36,23 @@ export interface AutorolesConfig {
   configurable: boolean;
 }
 
+interface GuildOverrides {
+  welcomeEnabled: boolean | null;
+  welcomeChannelId: string | null;
+  welcomeMessage: string | null;
+  goodbyeEnabled: boolean | null;
+  goodbyeChannelId: string | null;
+  goodbyeMessage: string | null;
+  autorolesEnabled: boolean | null;
+  autoroleIds: string[];
+}
+
 export class CommunityManager {
   private client: Client | null = null;
   private logger: Logger;
   private communityConfig: CommunityConfig;
   private cardService: any | null = null;
+  private db: DrizzleDb | null = null;
 
   constructor(logger: Logger, communityConfig: CommunityConfig) {
     this.logger = logger;
@@ -49,6 +64,10 @@ export class CommunityManager {
 
   public setCardService(service: any): void {
     this.cardService = service;
+  }
+
+  public setDb(db: DrizzleDb): void {
+    this.db = db;
   }
 
   public setConfig(config: CommunityConfig): void {
@@ -78,6 +97,7 @@ export class CommunityManager {
 
     this.client.on('guildMemberAdd', async (member) => {
       await this.handleMemberJoin(member);
+      await this.assignAutoroles(member);
     });
 
     this.client.on('guildMemberRemove', async (member) => {
@@ -104,16 +124,63 @@ export class CommunityManager {
       .replace(/\{tag\}/g, member.user?.tag ?? '');
   }
 
-  private async handleMemberJoin(member: any): Promise<void> {
-    if (!this.communityConfig.welcome.enabled) return;
+  /** Per-guild overrides from `guild_settings` (nulls = not set → fall back to global config). */
+  private async guildOverrides(guildId: string): Promise<GuildOverrides> {
+    const empty: GuildOverrides = {
+      welcomeEnabled: null,
+      welcomeChannelId: null,
+      welcomeMessage: null,
+      goodbyeEnabled: null,
+      goodbyeChannelId: null,
+      goodbyeMessage: null,
+      autorolesEnabled: null,
+      autoroleIds: [],
+    };
+    if (!this.db) return empty;
+    try {
+      const rows = await this.db.select().from(guildSettings).where(eq(guildSettings.guild_id, guildId)).limit(1);
+      const row = rows[0];
+      if (!row) return empty;
+      let autoroleIds: string[] = [];
+      try {
+        const parsed = row.autorole_ids;
+        autoroleIds = Array.isArray(parsed) ? parsed.map(String) : [];
+      } catch { autoroleIds = []; }
+      return {
+        welcomeEnabled: row.welcome_enabled ?? null,
+        welcomeChannelId: row.welcome_channel_id ?? null,
+        welcomeMessage: row.welcome_message ?? null,
+        goodbyeEnabled: row.goodbye_enabled ?? null,
+        goodbyeChannelId: row.goodbye_channel_id ?? null,
+        goodbyeMessage: row.goodbye_message ?? null,
+        autorolesEnabled: row.autoroles_enabled ?? null,
+        autoroleIds,
+      };
+    } catch {
+      return empty;
+    }
+  }
 
-    const channel = member.guild.channels.cache.get(this.communityConfig.welcome.channel);
+  private async handleMemberJoin(member: any): Promise<void> {
+    const guildId = member.guild?.id;
+    if (!guildId) return;
+    const overrides = await this.guildOverrides(guildId);
+    const welcome = this.communityConfig.welcome;
+    const enabled = overrides.welcomeEnabled ?? welcome.enabled;
+    if (!enabled) return;
+
+    const channelId = overrides.welcomeChannelId ?? welcome.channel;
+    if (!channelId) return;
+    const channel = member.guild.channels.cache.get(channelId)
+      ?? await member.guild.channels.fetch(channelId).catch(() => null);
     if (!channel || channel.type !== ChannelType.GuildText) {
       return;
     }
 
+    const messageTemplate = overrides.welcomeMessage ?? welcome.message;
+
     try {
-      const textMessage = this.fillTemplate(this.communityConfig.welcome.message, member);
+      const textMessage = this.fillTemplate(messageTemplate, member);
       const imageMessage = this.fillTemplateForImage(
         (this.communityConfig.welcome as any).welcomeImageMessage || 'Welcome {username} to {server}!',
         member,
@@ -133,7 +200,7 @@ export class CommunityManager {
             template: tmpl,
           });
           const file = new AttachmentBuilder(buffer, { name: 'welcome.png' });
-          if (this.communityConfig.welcome.embed) {
+          if (welcome.embed) {
             const embed = new EmbedBuilder()
               .setColor('#ef4444')
               .setTitle('🎉 Welcome!')
@@ -149,7 +216,7 @@ export class CommunityManager {
         } catch (cardErr) {
           this.logger.warn('Community Manager', 'Welcome card render failed, sending text only', cardErr as Error);
           // Fallback to text/embed without image
-          if (this.communityConfig.welcome.embed) {
+          if (welcome.embed) {
             const embed = new EmbedBuilder()
               .setColor('#ef4444')
               .setTitle('🎉 Welcome!')
@@ -162,7 +229,7 @@ export class CommunityManager {
             await channel.send(textMessage);
           }
         }
-      } else if (this.communityConfig.welcome.embed) {
+      } else if (welcome.embed) {
         const embed = new EmbedBuilder()
           .setColor('#ef4444')
           .setTitle('🎉 Welcome!')
@@ -182,16 +249,26 @@ export class CommunityManager {
   }
 
   private async handleMemberLeave(member: any): Promise<void> {
-    if (!this.communityConfig.goodbye.enabled) return;
+    const guildId = member.guild?.id;
+    if (!guildId) return;
+    const overrides = await this.guildOverrides(guildId);
+    const goodbye = this.communityConfig.goodbye;
+    const enabled = overrides.goodbyeEnabled ?? goodbye.enabled;
+    if (!enabled) return;
 
-    const channel = member.guild.channels.cache.get(this.communityConfig.goodbye.channel);
+    const channelId = overrides.goodbyeChannelId ?? goodbye.channel;
+    if (!channelId) return;
+    const channel = member.guild.channels.cache.get(channelId)
+      ?? await member.guild.channels.fetch(channelId).catch(() => null);
     if (!channel || channel.type !== ChannelType.GuildText) {
       return;
     }
 
+    const messageTemplate = overrides.goodbyeMessage ?? goodbye.message;
+
     try {
-      const message = this.fillTemplate(this.communityConfig.goodbye.message, member);
-      if (this.communityConfig.goodbye.embed) {
+      const message = this.fillTemplate(messageTemplate, member);
+      if (goodbye.embed) {
         const embed = new EmbedBuilder()
           .setColor('#ff0000')
           .setTitle('👋 Goodbye!')
@@ -211,18 +288,63 @@ export class CommunityManager {
     }
   }
 
-  public async assignDefaultRole(member: any): Promise<void> {
-    if (!this.communityConfig.autoroles.enabled || !this.communityConfig.autoroles.defaultRole) return;
+  /**
+   * Assign the configured autorole(s) to a new member.
+   * Per-guild `guild_settings.autorole_ids` (JSON array) take precedence over
+   * the global `autoroles.defaultRole`. Roles that are unmanaged, above the
+   * bot, or missing are skipped instead of failing the whole join.
+   */
+  public async assignAutoroles(member: any): Promise<number> {
+    const guildId = member.guild?.id;
+    if (!guildId) return 0;
+    const overrides = await this.guildOverrides(guildId);
+    const autoroles = this.communityConfig.autoroles;
 
-    try {
-      const role = member.guild.roles.cache.get(this.communityConfig.autoroles.defaultRole);
-      if (role) {
-        await member.roles.add(role);
-        this.logger.info('Community Manager', `Assigned default role to ${member.user.tag} in ${member.guild.name}`);
+    const enabled = overrides.autorolesEnabled ?? autoroles.enabled;
+    if (!enabled) return 0;
+
+    const roleIds = overrides.autoroleIds.length > 0
+      ? overrides.autoroleIds
+      : (autoroles.defaultRole ? [autoroles.defaultRole] : []);
+    if (roleIds.length === 0) return 0;
+
+    const botMember = member.guild.members?.me
+      ?? (member.guild.members?.cache?.get?.(this.client?.user?.id ?? ''));
+    const botHighest = botMember?.roles?.highest?.position ?? Number.MAX_SAFE_INTEGER;
+
+    let assigned = 0;
+    for (const roleId of roleIds) {
+      try {
+        const role = member.guild.roles.cache.get(roleId)
+          ?? await member.guild.roles.fetch(roleId).catch(() => null);
+        if (!role) {
+          this.logger.warn('Community Manager', `Autorole ${roleId} not found in ${member.guild.name}`);
+          continue;
+        }
+        if (role.managed) {
+          this.logger.warn('Community Manager', `Autorole ${role.name} is managed and cannot be assigned`);
+          continue;
+        }
+        if (role.position >= botHighest) {
+          this.logger.warn('Community Manager', `Autorole ${role.name} is above the bot's highest role`);
+          continue;
+        }
+        await member.roles.add(role, 'Autorole assignment');
+        assigned += 1;
+      } catch (error) {
+        this.logger.error('Community Manager', `Failed to assign autorole ${roleId} to ${member.user?.tag ?? member.id}`, error as Error);
       }
-    } catch (error) {
-      this.logger.error('Community Manager', `Failed to assign default role to ${member.user.tag}`, error as Error);
     }
+
+    if (assigned > 0) {
+      this.logger.info('Community Manager', `Assigned ${assigned} autorole(s) to ${member.user?.tag ?? member.id} in ${member.guild.name}`);
+    }
+    return assigned;
+  }
+
+  /** Legacy wrapper kept for callers that used assignDefaultRole directly. */
+  public async assignDefaultRole(member: any): Promise<void> {
+    await this.assignAutoroles(member);
   }
 
   public async shutdown(): Promise<void> {

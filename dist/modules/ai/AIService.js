@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AICommands = exports.AIService = void 0;
+const drizzle_orm_1 = require("drizzle-orm");
 const prompt_1 = require("./prompt");
 const memory_1 = require("./memory");
+const schema_1 = require("../../database/schema");
+const GeminiProvider_1 = require("./providers/GeminiProvider");
+const OpenAIProvider_1 = require("./providers/OpenAIProvider");
 const MAX_HISTORY_ENTRIES = 200;
 const MAX_MESSAGE_CHARS = 500;
 const MAX_BATCH_MESSAGES = 12;
@@ -17,13 +21,14 @@ class AIService {
         this.historyIds = new Map();
         this.priming = new Set();
         this.batches = new Map();
-        this.replyTimestamps = [];
-        this.lastReplyAt = 0;
+        this.replyTimestamps = new Map();
+        this.lastReplyAt = new Map();
         this.lastDecisionAt = 0;
         /** Reserved for future tool wiring (leveling-aware replies). */
         this._db = null;
         /** Reserved for future tool wiring. */
         this._leveling = null;
+        this.providerCaches = new Map();
         this.logger = logger;
         this.config = { ...config };
     }
@@ -38,6 +43,69 @@ class AIService {
     }
     getConfig() {
         return this.config;
+    }
+    /** Per-guild kill switch: an explicit ai_enabled=false row in guild_settings wins. */
+    async isGuildEnabled(guildId) {
+        if (!this._db)
+            return true;
+        try {
+            const rows = await this._db
+                .select({ ai_enabled: schema_1.guildSettings.ai_enabled })
+                .from(schema_1.guildSettings)
+                .where((0, drizzle_orm_1.eq)(schema_1.guildSettings.guild_id, guildId))
+                .limit(1);
+            const row = rows?.[0];
+            if (!row)
+                return true;
+            return row.ai_enabled !== false;
+        }
+        catch {
+            return true;
+        }
+    }
+    providerKey(jsonMode) {
+        return [this.config.provider ?? 'gemini', this.config.model, this.config.baseUrl ?? '', this.config.apiKey ? 'key' : 'nokey', jsonMode ? 'json' : 'text'].join('|');
+    }
+    getProvider(jsonMode) {
+        const key = this.providerKey(jsonMode);
+        const cached = this.providerCaches.get(key);
+        if (cached)
+            return cached;
+        const provider = (this.config.provider ?? 'gemini').toLowerCase();
+        const maxTokens = this.config.maxTokens ?? Math.min(Math.max(Math.floor(this.config.maxMessageLength * 2), 500), 2000);
+        const common = {
+            apiKey: this.config.apiKey,
+            model: this.config.model,
+            maxTokens,
+            timeoutMs: this.config.requestTimeoutMs,
+            jsonMode,
+            ...(typeof this.config.temperature === 'number' ? { temperature: this.config.temperature } : {}),
+            ...(this.config.baseUrl ? { baseURL: this.config.baseUrl } : {}),
+        };
+        const built = provider === 'openai' || provider === 'openai-compatible'
+            ? new OpenAIProvider_1.OpenAIProvider(common)
+            : new GeminiProvider_1.GeminiProvider(common);
+        this.providerCaches.set(key, built);
+        return built;
+    }
+    /** Ask the provider; returns the raw assistant text (or null on failure). */
+    async complete(systemPrompt, userPrompt, jsonMode) {
+        try {
+            const provider = this.getProvider(jsonMode);
+            if (!(await provider.isAvailable())) {
+                this.logger.warn('AI Service', `${provider.getName()} provider is not configured (missing API key).`);
+                return null;
+            }
+            const response = await provider.chat([
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt },
+            ]);
+            return response.content;
+        }
+        catch (error) {
+            this.logger.error('AI Service', 'Provider request failed', error);
+            return null;
+        }
     }
     async initialize() {
         this.logger.info('AI Service', 'Sukuna persona initialized (L7aj-style: batching + memory + fail-silent)');
@@ -103,7 +171,11 @@ class AIService {
         const trigger = messages[messages.length - 1];
         if (!trigger || !trigger.guild)
             return;
-        if (this.isRateLimited()) {
+        if (!(await this.isGuildEnabled(trigger.guild.id))) {
+            this.logger.info('AI Service', `AI disabled for guild ${trigger.guild.id} (guild_settings) — staying silent`);
+            return;
+        }
+        if (this.isRateLimited(trigger.guild.id)) {
             this.logger.info('AI Service', 'Rate limited — staying silent');
             return;
         }
@@ -140,7 +212,7 @@ class AIService {
         }
         if (!decision || decision.action !== 'reply' || !decision.message.trim())
             return;
-        if (this.isRateLimited())
+        if (this.isRateLimited(trigger.guild.id))
             return;
         if (Date.now() - trigger.createdTimestamp > MAX_REPLY_AGE_MS)
             return;
@@ -171,19 +243,21 @@ class AIService {
         const raw = await this.askRaw(payload);
         return { action: 'reply', message: raw || 'I could not generate a reply.' };
     }
-    isRateLimited() {
+    /** Per-guild rate limit: reply cooldown + replies/hour window, tracked independently per server. */
+    isRateLimited(guildId) {
         const now = Date.now();
-        if (this.config.replyCooldownSeconds > 0 && now - this.lastReplyAt < this.config.replyCooldownSeconds * 1000) {
+        const lastReply = this.lastReplyAt.get(guildId) ?? 0;
+        if (this.config.replyCooldownSeconds > 0 && now - lastReply < this.config.replyCooldownSeconds * 1000) {
             return true;
         }
-        this.pruneReplyTimestamps(now);
-        return this.config.maxRepliesPerHour > 0 && this.replyTimestamps.length >= this.config.maxRepliesPerHour;
+        const stamps = this.pruneReplyTimestamps(guildId, now);
+        return this.config.maxRepliesPerHour > 0 && stamps.length >= this.config.maxRepliesPerHour;
     }
-    pruneReplyTimestamps(now) {
+    pruneReplyTimestamps(guildId, now) {
         const cutoff = now - 60 * 60 * 1000;
-        while (this.replyTimestamps.length > 0 && (this.replyTimestamps[0] ?? 0) < cutoff) {
-            this.replyTimestamps.shift();
-        }
+        const stamps = (this.replyTimestamps.get(guildId) ?? []).filter((t) => t > cutoff);
+        this.replyTimestamps.set(guildId, stamps);
+        return stamps;
     }
     addHistory(message) {
         const content = this.describeMessage(message);
@@ -389,55 +463,18 @@ class AIService {
     }
     async askAI(payload) {
         const systemPrompt = this.buildSystemPrompt();
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.config.model}:generateContent?key=${this.config.apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: `${systemPrompt}\n\n${payload}\n\nRespond with JSON only: {"action":"reply"|"silent","message":"...","reply_to_trigger":true|false}` }] }],
-                    generationConfig: {
-                        temperature: this.config.temperature,
-                        maxOutputTokens: Math.min(Math.max(this.config.maxMessageLength * 2, 500), 2000),
-                    },
-                }),
-                signal: AbortSignal.timeout(this.config.requestTimeoutMs),
-            });
-            if (!response.ok) {
-                this.logger.error('AI Service', `API error: ${response.status}`);
-                return null;
-            }
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-            const parsed = this.parseDecision(text);
-            if (parsed)
-                return parsed;
-            return { action: 'silent', message: '' };
-        }
-        catch (err) {
-            this.logger.error('AI Service', 'AI request failed', err);
+        const text = await this.complete(systemPrompt, `${payload}\n\nRespond with JSON only: {"action":"reply"|"silent","message":"...","reply_to_trigger":true|false}`, true);
+        if (!text)
             return null;
-        }
+        const parsed = this.parseDecision(text);
+        if (parsed)
+            return parsed;
+        return { action: 'silent', message: '' };
     }
     async askRaw(payload) {
         const systemPrompt = this.buildSystemPrompt();
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.config.model}:generateContent?key=${this.config.apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: `${systemPrompt}\n\n${payload}\n\nReply with a single Discord message as plain text (no JSON, no labels).` }] }],
-                    generationConfig: { temperature: this.config.temperature, maxOutputTokens: Math.min(this.config.maxMessageLength, 2000) },
-                }),
-                signal: AbortSignal.timeout(this.config.requestTimeoutMs),
-            });
-            if (!response.ok)
-                return '';
-            const data = await response.json();
-            return String(data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim().replace(/^```[\s\S]*?```$/, '').trim();
-        }
-        catch {
-            return '';
-        }
+        const text = await this.complete(systemPrompt, `${payload}\n\nReply with a single Discord message as plain text (no JSON, no labels).`, false);
+        return (text ?? '').trim().replace(/^```[\s\S]*?```$/, '').trim();
     }
     buildSystemPrompt() {
         const character = (this.config.systemPrompt || '').trim() || prompt_1.SUKUNA_DEFAULT_PROMPT;
@@ -536,10 +573,12 @@ class AIService {
             this.logger.error('AI Service', 'Failed to send AI reply', err);
             return;
         }
+        const guildId = trigger.guild.id;
         const now = Date.now();
-        this.lastReplyAt = now;
-        this.replyTimestamps.push(now);
-        this.pruneReplyTimestamps(now);
+        this.lastReplyAt.set(guildId, now);
+        const stamps = this.pruneReplyTimestamps(guildId, now);
+        stamps.push(now);
+        this.replyTimestamps.set(guildId, stamps);
         if (sent) {
             this.addHistoryEntry(trigger.channelId, {
                 id: sent.id,
@@ -609,9 +648,10 @@ class AIService {
         this.history.clear();
         this.historyIds.clear();
         this.priming.clear();
-        this.replyTimestamps.length = 0;
-        this.lastReplyAt = 0;
+        this.replyTimestamps.clear();
+        this.lastReplyAt.clear();
         this.lastDecisionAt = 0;
+        this.providerCaches.clear();
         this.logger.info('AI Service', 'AI service shutdown');
     }
 }

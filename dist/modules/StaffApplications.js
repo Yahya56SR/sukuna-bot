@@ -4,7 +4,10 @@ exports.StaffApplicationsCommands = exports.StaffApplications = exports.DEFAULT_
 exports.getDefaultStaffAppConfig = getDefaultStaffAppConfig;
 exports.isAdminMember = isAdminMember;
 const discord_js_1 = require("discord.js");
+const drizzle_orm_1 = require("drizzle-orm");
 const embed_1 = require("../utils/embed");
+const schema_1 = require("../database/schema");
+const id_1 = require("../utils/id");
 exports.STAFFAPP_PREFIX = 'staffapp:';
 exports.DEFAULT_STAFFAPP_CONFIG = {
     enabled: true,
@@ -24,10 +27,11 @@ exports.DEFAULT_STAFFAPP_CONFIG = {
 function getDefaultStaffAppConfig() {
     return JSON.parse(JSON.stringify(exports.DEFAULT_STAFFAPP_CONFIG));
 }
-/** Is this member an administrator that can approve applications?
- *  "Admin role not perm": an Admin-named role counts, plus the
- *  Administrator permission as a fallback. If approverRoleIds is set,
- *  only those roles (plus Administrator) count.
+/**
+ * Only real authorization counts: the guild's Administrator permission, or a
+ * role listed in `approverRoleIds`. (The previous version treated any role
+ * literally named "admin" as an approver role, which let anyone with a
+ * self-createable or unrelated "Admin" role approve applications.)
  */
 function isAdminMember(member, approverRoleIds) {
     if (!member)
@@ -36,31 +40,44 @@ function isAdminMember(member, approverRoleIds) {
         return approverRoleIds.some((rid) => rid && member.roles.cache.has(rid));
     }
     try {
-        if (member.permissions?.has?.(discord_js_1.PermissionFlagsBits.Administrator))
-            return true;
+        return Boolean(member.permissions?.has?.(discord_js_1.PermissionFlagsBits.Administrator));
     }
-    catch { /* ignore */ }
-    // Role named "admin" / "administrator" (case-insensitive)
-    try {
-        for (const role of member.roles.cache.values()) {
-            const n = (role.name || '').trim().toLowerCase();
-            if (n === 'admin' || n === 'administrator' || n === 'admins' || n === 'administrators')
-                return true;
-        }
+    catch {
+        return false;
     }
-    catch { /* ignore */ }
-    return false;
+}
+function toApplication(row) {
+    const createdAt = row.created_at instanceof Date ? row.created_at.getTime() : Number(row.created_at ?? Date.now());
+    const reviewedAt = row.reviewed_at instanceof Date ? row.reviewed_at.getTime() : row.reviewed_at ? Number(row.reviewed_at) : undefined;
+    const answers = Array.isArray(row.answers) ? row.answers : [];
+    return {
+        id: row.id,
+        guildId: row.guild_id,
+        userId: row.user_id,
+        roleId: row.role_id,
+        answers,
+        status: row.status === 'approved' || row.status === 'denied' ? row.status : 'pending',
+        createdAt,
+        messageId: row.message_id ?? undefined,
+        reviewChannelId: row.review_channel_id ?? undefined,
+        reviewerId: row.reviewer_id ?? undefined,
+        reviewReason: row.review_reason ?? undefined,
+        ...(reviewedAt !== undefined ? { reviewedAt } : {}),
+    };
 }
 class StaffApplications {
     constructor(logger, config) {
         this.client = null;
         this.config = getDefaultStaffAppConfig();
-        this.applications = new Map();
+        this.db = null;
         // Pending modal flow: userId -> { roleId, guildId, partialAnswers, chunkIndex }
         this.pending = new Map();
         this.logger = logger;
         this.config = { ...getDefaultStaffAppConfig(), ...(config ?? {}) };
         this.normalize();
+    }
+    setDb(db) {
+        this.db = db;
     }
     normalize() {
         if (typeof this.config.staffRoles === 'string') {
@@ -92,10 +109,19 @@ class StaffApplications {
     }
     async initialize(client) {
         this.client = client;
+        // Warm the pending applications so approve/deny works after a restart.
+        if (this.db) {
+            try {
+                const rows = await this.db.select().from(schema_1.staffApplications).where((0, drizzle_orm_1.eq)(schema_1.staffApplications.status, 'pending')).limit(500);
+                this.logger.info('Staff Applications', `Loaded ${rows.length} pending application(s) from database`);
+            }
+            catch (error) {
+                this.logger.warn('Staff Applications', `Could not preload applications: ${error.message}`);
+            }
+        }
         this.logger.info('Staff Applications', `Initialized (staff roles: ${this.config.staffRoles.length}, questions: ${this.config.questions.length})`);
     }
     async shutdown() {
-        this.applications.clear();
         this.pending.clear();
         this.logger.info('Staff Applications', 'Shutdown');
     }
@@ -206,6 +232,52 @@ class StaffApplications {
         await this.finalizeApplication(interaction, guildId, roleId, all);
         return true;
     }
+    async persist(app) {
+        if (!this.db)
+            return;
+        await this.db.insert(schema_1.staffApplications).values({
+            id: app.id,
+            guild_id: app.guildId,
+            user_id: app.userId,
+            role_id: app.roleId,
+            answers: app.answers,
+            status: app.status,
+            review_channel_id: app.reviewChannelId ?? null,
+            message_id: app.messageId ?? null,
+            created_at: new Date(app.createdAt),
+        });
+    }
+    async save(app) {
+        if (!this.db)
+            return;
+        await this.db
+            .update(schema_1.staffApplications)
+            .set({
+            status: app.status,
+            reviewer_id: app.reviewerId ?? null,
+            review_reason: app.reviewReason ?? null,
+            review_channel_id: app.reviewChannelId ?? null,
+            message_id: app.messageId ?? null,
+            reviewed_at: app.reviewedAt ? new Date(app.reviewedAt) : null,
+        })
+            .where((0, drizzle_orm_1.eq)(schema_1.staffApplications.id, app.id));
+    }
+    async getById(id) {
+        if (!this.db)
+            return null;
+        const rows = await this.db.select().from(schema_1.staffApplications).where((0, drizzle_orm_1.eq)(schema_1.staffApplications.id, id)).limit(1);
+        return rows[0] ? toApplication(rows[0]) : null;
+    }
+    async findPending(guildId, userId, roleId) {
+        if (!this.db)
+            return null;
+        const rows = await this.db
+            .select()
+            .from(schema_1.staffApplications)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.staffApplications.guild_id, guildId), (0, drizzle_orm_1.eq)(schema_1.staffApplications.user_id, userId), (0, drizzle_orm_1.eq)(schema_1.staffApplications.role_id, roleId), (0, drizzle_orm_1.eq)(schema_1.staffApplications.status, 'pending')))
+            .limit(1);
+        return rows[0] ? toApplication(rows[0]) : null;
+    }
     async finalizeApplication(originInteraction, guildId, roleId, answers) {
         const guild = this.client?.guilds.cache.get(guildId);
         if (!guild) {
@@ -214,17 +286,16 @@ class StaffApplications {
             return;
         }
         // One pending application per user per role
-        for (const app of this.applications.values()) {
-            if (app.guildId === guildId && app.userId === originInteraction.user.id && app.roleId === roleId && app.status === 'pending') {
-                const msg = 'You already have a pending application for this role.';
-                if (originInteraction.deferred)
-                    await originInteraction.editReply(msg).catch(() => undefined);
-                else
-                    await originInteraction.reply({ content: msg, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
-                return;
-            }
+        const existing = await this.findPending(guildId, originInteraction.user.id, roleId);
+        if (existing) {
+            const msg = 'You already have a pending application for this role.';
+            if (originInteraction.deferred)
+                await originInteraction.editReply(msg).catch(() => undefined);
+            else
+                await originInteraction.reply({ content: msg, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
         }
-        const id = Math.random().toString(36).slice(2, 9);
+        const id = (0, id_1.shortId)('a');
         const role = guild.roles.cache.get(roleId);
         const member = guild.members.cache.get(originInteraction.user.id);
         const displayName = member?.displayName ?? originInteraction.user.username;
@@ -237,7 +308,19 @@ class StaffApplications {
             status: 'pending',
             createdAt: Date.now(),
         };
-        this.applications.set(id, app);
+        // Persist first so the review message only exists for real applications.
+        try {
+            await this.persist(app);
+        }
+        catch (error) {
+            this.logger.error('Staff Applications', 'Failed to persist application', error);
+            const msg = 'Something went wrong saving your application. Please try again.';
+            if (originInteraction.deferred)
+                await originInteraction.editReply(msg).catch(() => undefined);
+            else
+                await originInteraction.reply({ content: msg, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
         const reviewId = this.reviewChannelId();
         let messageId;
         let reviewChannelId = reviewId;
@@ -259,6 +342,7 @@ class StaffApplications {
         }
         app.messageId = messageId;
         app.reviewChannelId = reviewChannelId;
+        await this.save(app);
         const done = `✅ Application submitted for ${role ? `<@&${role.id}>` : `role ${roleId}`}. Staff will review it soon. You will be notified here.`;
         if (originInteraction.deferred)
             await originInteraction.editReply(done).catch(() => undefined);
@@ -284,16 +368,16 @@ class StaffApplications {
         if (!m)
             return false;
         const [, action, id] = m;
-        const app = this.applications.get(id ?? '');
+        const app = await this.getById(id ?? '');
         if (!app) {
-            await interaction.reply({ content: 'Application not found (bot may have restarted).', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            await interaction.reply({ content: 'Application not found.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
             return true;
         }
         const guild = interaction.guild ?? this.client?.guilds.cache.get(app.guildId);
         const member = guild?.members.cache.get(interaction.user.id) ?? (await guild?.members.fetch(interaction.user.id).catch(() => null));
         if (!isAdminMember(member, this.config.approverRoleIds)) {
             await interaction.reply({
-                content: '⛔ Only administrators can review applications. (Members with the Administrator permission or an **Admin** role.)',
+                content: '⛔ Only administrators can review applications. (Members with the Administrator permission or a configured approver role.)',
                 flags: discord_js_1.MessageFlags.Ephemeral,
             }).catch(() => undefined);
             return true;
@@ -307,7 +391,19 @@ class StaffApplications {
                 app.status = 'approved';
                 const target = await guild?.members.fetch(app.userId).catch(() => null);
                 if (target && guild) {
-                    await target.roles.add(app.roleId, `Staff application approved (${interaction.user.username})`).catch(() => undefined);
+                    const added = await target.roles.add(app.roleId, `Staff application approved (${interaction.user.username})`).then(() => true).catch((error) => {
+                        this.logger.warn('Staff Applications', `Could not add role ${app.roleId}: ${error.message}`);
+                        return false;
+                    });
+                    if (!added) {
+                        // Roll the status back so the application isn't lost in a broken state.
+                        app.status = 'pending';
+                        await interaction.reply({
+                            content: `❌ I couldn't add <@&${app.roleId}> to the applicant (missing permissions?). The application stays pending.`,
+                            flags: discord_js_1.MessageFlags.Ephemeral,
+                        }).catch(() => undefined);
+                        return true;
+                    }
                 }
                 this.logger.info('Staff Applications', `Approved ${app.id} (${app.userId} → ${app.roleId}) by ${interaction.user.id}`);
             }
@@ -315,6 +411,9 @@ class StaffApplications {
                 app.status = 'denied';
                 this.logger.info('Staff Applications', `Denied ${app.id} (${app.userId}) by ${interaction.user.id}`);
             }
+            app.reviewerId = interaction.user.id;
+            app.reviewedAt = Date.now();
+            await this.save(app);
             // Update the review message in place
             const channelId = app.reviewChannelId || this.reviewChannelId();
             if (channelId && app.messageId) {
@@ -355,8 +454,14 @@ class StaffApplications {
         }
         return true;
     }
-    getApplications(guildId) {
-        return Array.from(this.applications.values()).filter((a) => !guildId || a.guildId === guildId);
+    async getApplications(guildId, limit = 100) {
+        if (!this.db)
+            return [];
+        const safeLimit = Math.max(1, Math.min(500, limit));
+        const base = this.db.select().from(schema_1.staffApplications);
+        const filtered = guildId ? base.where((0, drizzle_orm_1.eq)(schema_1.staffApplications.guild_id, guildId)) : base;
+        const rows = await filtered.orderBy((0, drizzle_orm_1.desc)(schema_1.staffApplications.created_at)).limit(safeLimit);
+        return rows.map(toApplication);
     }
 }
 exports.StaffApplications = StaffApplications;
@@ -433,7 +538,7 @@ class StaffApplicationsCommands {
                     }
                     else if (sub === 'pending') {
                         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-                        const pending = this.service.getApplications(guild.id).filter((a) => a.status === 'pending');
+                        const pending = (await this.service.getApplications(guild.id, 100)).filter((a) => a.status === 'pending');
                         const embed = (0, embed_1.brandedEmbed)(embed_1.BRAND.gold).setTitle('🛡️ Pending applications');
                         embed.setDescription(pending.length
                             ? pending.map((a) => `• <@${a.userId}> → <@&${a.roleId}> (\`${a.id}\`)\n  ${a.answers.map((x) => `**${x.question}** — ${x.answer}`).join('\n  ')}`).join('\n\n').slice(0, 3800)

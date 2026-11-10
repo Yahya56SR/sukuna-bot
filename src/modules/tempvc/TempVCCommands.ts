@@ -86,7 +86,7 @@ export class TempVCCommands {
     const channel = interaction.options.getChannel('channel', true) as VoiceChannel;
     const category = interaction.options.getChannel('category', true) as CategoryChannel;
 
-    await this.service.setup(channel.id, category.id);
+    await this.service.setup(channel.id, category.id, interaction.guildId ?? undefined);
     await interaction.reply({
       content: `✅ Temp VC setup: join <#${channel.id}> to create a channel in <#${category.id}>.`,
       flags: MessageFlags.Ephemeral,
@@ -96,7 +96,7 @@ export class TempVCCommands {
   private async panel(interaction: ChatInputCommandInteraction): Promise<void> {
     const channel = interaction.options.getChannel('channel', true) as TextChannel;
 
-    const cfg = this.service.getConfig();
+    const cfg = this.service.getConfig(interaction.guildId ?? undefined);
     if (!cfg || !cfg.createChannelId || !cfg.categoryId) {
       await interaction.reply({ content: 'Set up temp VC first with `/tempvc setup`.', flags: MessageFlags.Ephemeral });
       return;
@@ -135,12 +135,12 @@ export class TempVCCommands {
       message = await channel.send({ embeds: [embed], components: rows });
     }
 
-    await this.service.setPanel(channel.id, message.id);
+    await this.service.setPanel(channel.id, message.id, interaction.guildId ?? undefined);
     await interaction.reply({ content: `✅ Temp VC panel posted in ${channel}.`, flags: MessageFlags.Ephemeral });
   }
 
   private async config(interaction: ChatInputCommandInteraction): Promise<void> {
-    const cfg = this.service.getConfig();
+    const cfg = this.service.getConfig(interaction.guildId ?? undefined);
     const embed = new EmbedBuilder().setColor(0x5865f2).setTitle('🔊 Temporary Voice Config');
 
     if (!cfg || !cfg.createChannelId || !cfg.categoryId) {

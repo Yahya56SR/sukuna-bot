@@ -62,7 +62,7 @@ class TempVCCommands {
     async setup(interaction) {
         const channel = interaction.options.getChannel('channel', true);
         const category = interaction.options.getChannel('category', true);
-        await this.service.setup(channel.id, category.id);
+        await this.service.setup(channel.id, category.id, interaction.guildId ?? undefined);
         await interaction.reply({
             content: `✅ Temp VC setup: join <#${channel.id}> to create a channel in <#${category.id}>.`,
             flags: discord_js_1.MessageFlags.Ephemeral,
@@ -70,7 +70,7 @@ class TempVCCommands {
     }
     async panel(interaction) {
         const channel = interaction.options.getChannel('channel', true);
-        const cfg = this.service.getConfig();
+        const cfg = this.service.getConfig(interaction.guildId ?? undefined);
         if (!cfg || !cfg.createChannelId || !cfg.categoryId) {
             await interaction.reply({ content: 'Set up temp VC first with `/tempvc setup`.', flags: discord_js_1.MessageFlags.Ephemeral });
             return;
@@ -100,11 +100,11 @@ class TempVCCommands {
         else {
             message = await channel.send({ embeds: [embed], components: rows });
         }
-        await this.service.setPanel(channel.id, message.id);
+        await this.service.setPanel(channel.id, message.id, interaction.guildId ?? undefined);
         await interaction.reply({ content: `✅ Temp VC panel posted in ${channel}.`, flags: discord_js_1.MessageFlags.Ephemeral });
     }
     async config(interaction) {
-        const cfg = this.service.getConfig();
+        const cfg = this.service.getConfig(interaction.guildId ?? undefined);
         const embed = new discord_js_1.EmbedBuilder().setColor(0x5865f2).setTitle('🔊 Temporary Voice Config');
         if (!cfg || !cfg.createChannelId || !cfg.categoryId) {
             embed.setDescription('No temp VC configured. Use `/tempvc setup`.');

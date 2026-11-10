@@ -1,6 +1,10 @@
 import { Client, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, TextChannel, Guild, EmbedBuilder } from 'discord.js';
 import { Logger } from '../infrastructure/Logger';
 import { brandedEmbed, BRAND } from '../utils/embed';
+import { and, desc, eq } from 'drizzle-orm';
+import { tickets as ticketsTable } from '../database/schema';
+import type { DrizzleDb } from '../types/database';
+import { shortId } from '../utils/id';
 
 export interface TicketConfig {
   enabled: boolean;
@@ -64,15 +68,38 @@ export function ticketWelcomeEmbed(opts: {
     );
 }
 
+function toTicket(row: any): Ticket {
+  const status = row.status === 'closed' || row.status === 'resolved' ? row.status : 'open';
+  const created = row.created_at instanceof Date ? row.created_at.getTime() : Number(row.created_at ?? Date.now());
+  const updated = row.updated_at instanceof Date ? row.updated_at.getTime() : Number(row.updated_at ?? created);
+  return {
+    id: row.id,
+    guildId: row.guild_id,
+    userId: row.user_id,
+    channelId: row.channel_id,
+    category: row.category || 'general',
+    status,
+    assignedTo: row.assigned_to ?? '',
+    closeReason: row.close_reason ?? '',
+    createdAt: created,
+    updatedAt: updated,
+  };
+}
+
 export class TicketsManager {
   private client: Client | null = null;
   private logger: Logger;
   private config: TicketConfig;
+  private db: DrizzleDb | null = null;
   private tickets: Map<string, Ticket> = new Map();
 
   constructor(logger: Logger, config: TicketConfig) {
     this.logger = logger;
     this.config = config;
+  }
+
+  public setDb(db: DrizzleDb): void {
+    this.db = db;
   }
 
   public setConfig(config: TicketConfig): void {
@@ -86,7 +113,12 @@ export class TicketsManager {
   public async initialize(client: Client): Promise<void> {
     try {
       this.client = client;
-      this.logger.info('Tickets Manager', 'Initializing tickets system...');
+      this.tickets.clear();
+      if (this.db) {
+        const rows = await this.db.select().from(ticketsTable);
+        for (const row of rows) this.tickets.set(row.id, toTicket(row));
+        this.logger.info('Tickets Manager', `Loaded ${rows.length} ticket(s) from database`);
+      }
       this.logger.info('Tickets Manager', 'Tickets system initialized successfully');
     } catch (error) {
       this.logger.error('Tickets Manager', 'Tickets system initialization failed', error as Error);
@@ -114,17 +146,76 @@ export class TicketsManager {
     } catch { return false; }
   }
 
+  private async persist(ticket: Ticket): Promise<void> {
+    if (!this.db) return;
+    await this.db.insert(ticketsTable).values({
+      id: ticket.id,
+      guild_id: ticket.guildId,
+      user_id: ticket.userId,
+      channel_id: ticket.channelId,
+      category: ticket.category,
+      status: ticket.status,
+      assigned_to: ticket.assignedTo || null,
+      close_reason: ticket.closeReason || null,
+      created_at: new Date(ticket.createdAt),
+      updated_at: new Date(ticket.updatedAt),
+    } as any);
+  }
+
+  private async update(ticket: Ticket): Promise<void> {
+    if (!this.db) return;
+    await this.db
+      .update(ticketsTable)
+      .set({
+        status: ticket.status,
+        assigned_to: ticket.assignedTo || null,
+        close_reason: ticket.closeReason || null,
+        updated_at: new Date(ticket.updatedAt),
+      } as any)
+      .where(eq(ticketsTable.id, ticket.id));
+  }
+
+  private async findOpenTicket(guildId: string, userId: string): Promise<Ticket | null> {
+    if (!this.db) {
+      return Array.from(this.tickets.values()).find(
+        (t) => t.guildId === guildId && t.userId === userId && t.status === 'open'
+      ) ?? null;
+    }
+    const rows = await this.db
+      .select()
+      .from(ticketsTable)
+      .where(and(
+        eq(ticketsTable.guild_id, guildId),
+        eq(ticketsTable.user_id, userId),
+        eq(ticketsTable.status, 'open')
+      ))
+      .limit(1);
+    return rows[0] ? toTicket(rows[0]) : null;
+  }
+
   public async createTicket(userId: string, guildId: string, category: string, reason = 'No reason provided'): Promise<string> {
     if (!this.config.enabled) {
       throw new Error('Tickets system is disabled');
     }
 
-    const id = Math.random().toString(36).slice(2, 9);
     const guild = this.client?.guilds.cache.get(guildId);
     if (!guild) throw new Error('Server not found.');
 
+    const existing = await this.findOpenTicket(guildId, userId);
+    if (existing) {
+      const channel = await this.client?.channels.fetch(existing.channelId).catch(() => null);
+      if (channel) throw new Error(`You already have an open ticket: <#${existing.channelId}>`);
+      // The channel was deleted manually — retire the stale row and continue.
+      existing.status = 'resolved';
+      existing.closeReason = 'Channel no longer exists';
+      existing.updatedAt = Date.now();
+      this.tickets.set(existing.id, existing);
+      await this.update(existing);
+    }
+
     const member = await guild.members.fetch(userId).catch(() => null);
     const username = member?.displayName ?? member?.user.username ?? 'user';
+    const id = shortId('t');
 
     const overwrites: any[] = [
       { id: guild.id, deny: [PermissionFlagsBits.ViewChannel] },
@@ -146,7 +237,7 @@ export class TicketsManager {
       };
       if (this.config.category) opts.parent = this.config.category;
       channel = await guild.channels.create(opts);
-    } catch (err) {
+    } catch {
       // Fallback without category (some servers have no category set)
       channel = await guild.channels.create({
         name: `ticket-${id}`,
@@ -158,6 +249,7 @@ export class TicketsManager {
 
     if (!channel) throw new Error('Could not create ticket channel');
 
+    const now = Date.now();
     const ticket: Ticket = {
       id,
       guildId,
@@ -167,10 +259,18 @@ export class TicketsManager {
       status: 'open',
       assignedTo: '',
       closeReason: '',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
     };
     this.tickets.set(id, ticket);
+    try {
+      await this.persist(ticket);
+    } catch (error) {
+      // Don't leave an orphan channel behind if the row could not be written.
+      await channel.delete().catch(() => undefined);
+      this.tickets.delete(id);
+      throw error;
+    }
 
     // Welcome panel inside the ticket
     try {
@@ -194,8 +294,9 @@ export class TicketsManager {
   }
 
   public async closeTicket(ticketId: string, userId: string, reason: string, byStaff = false): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
+    if (ticket.status !== 'open') throw new Error('This ticket is already closed.');
 
     const guild = this.client?.guilds.cache.get(ticket.guildId);
     const allowed = ticket.userId === userId || byStaff || (await this.isSupport(guild, userId));
@@ -206,6 +307,8 @@ export class TicketsManager {
     ticket.status = 'resolved';
     ticket.closeReason = reason || 'No reason provided';
     ticket.updatedAt = Date.now();
+    this.tickets.set(ticket.id, ticket);
+    await this.update(ticket);
 
     // Post resolution notice + reopen/delete actions
     try {
@@ -224,11 +327,21 @@ export class TicketsManager {
   }
 
   public async reopenTicket(ticketId: string, userId: string): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
+    if (ticket.status === 'open') throw new Error('This ticket is already open.');
+
+    const guild = this.client?.guilds.cache.get(ticket.guildId);
+    if (ticket.userId !== userId && !(await this.isSupport(guild, userId))) {
+      throw new Error('You do not have permission to reopen this ticket.');
+    }
+
     ticket.status = 'open';
     ticket.closeReason = '';
     ticket.updatedAt = Date.now();
+    this.tickets.set(ticket.id, ticket);
+    await this.update(ticket);
+
     try {
       const channel = await this.client?.channels.fetch(ticket.channelId).catch(() => null) as TextChannel | null;
       if (channel) {
@@ -243,23 +356,30 @@ export class TicketsManager {
   }
 
   public async deleteTicket(ticketId: string, userId: string): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
     const guild = this.client?.guilds.cache.get(ticket.guildId);
     if (!(await this.isSupport(guild, userId))) throw new Error('Only staff can delete tickets.');
     const channel = await this.client?.channels.fetch(ticket.channelId).catch(() => null) as any;
     if (channel?.deletable) await channel.delete().catch(() => undefined);
     this.tickets.delete(ticketId);
+    if (this.db) await this.db.delete(ticketsTable).where(eq(ticketsTable.id, ticketId));
     this.logger.info('Tickets Manager', `Deleted ticket ${ticketId} by ${userId}`);
   }
 
   public async claimTicket(ticketId: string, userId: string): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
+    if (ticket.status !== 'open') throw new Error('This ticket is not open.');
     const guild = this.client?.guilds.cache.get(ticket.guildId);
     if (!(await this.isSupport(guild, userId))) throw new Error('Only staff can claim tickets.');
+    if (ticket.assignedTo && ticket.assignedTo !== userId) {
+      throw new Error(`This ticket is already claimed by <@${ticket.assignedTo}>.`);
+    }
     ticket.assignedTo = userId;
     ticket.updatedAt = Date.now();
+    this.tickets.set(ticket.id, ticket);
+    await this.update(ticket);
     try {
       const channel = await this.client?.channels.fetch(ticket.channelId).catch(() => null) as TextChannel | null;
       if (channel) {
@@ -273,17 +393,19 @@ export class TicketsManager {
   }
 
   public async addMessageToTicket(ticketId: string, userId: string, content: string): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
     const channel = this.client?.channels.cache.get(ticket.channelId);
     if (channel && channel.type === ChannelType.GuildText) {
       await channel.send(`**${userId}:** ${content}`);
     }
     ticket.updatedAt = Date.now();
+    this.tickets.set(ticket.id, ticket);
+    await this.update(ticket);
   }
 
   public async assignTicket(ticketId: string, userId: string, assignedTo: string): Promise<void> {
-    const ticket = this.tickets.get(ticketId);
+    const ticket = await this.getTicket(ticketId);
     if (!ticket) throw new Error('Ticket not found');
     const guild = this.client?.guilds.cache.get(ticket.guildId);
     if (!(await this.isSupport(guild, userId))) {
@@ -291,23 +413,47 @@ export class TicketsManager {
     }
     ticket.assignedTo = assignedTo;
     ticket.updatedAt = Date.now();
+    this.tickets.set(ticket.id, ticket);
+    await this.update(ticket);
     this.logger.info('Tickets Manager', `Assigned ticket ${ticketId} to ${assignedTo}`);
   }
 
   public async getTicket(ticketId: string): Promise<Ticket | null> {
-    return this.tickets.get(ticketId) || null;
+    const cached = this.tickets.get(ticketId);
+    if (cached) return cached;
+    if (!this.db) return null;
+    const rows = await this.db.select().from(ticketsTable).where(eq(ticketsTable.id, ticketId)).limit(1);
+    if (!rows[0]) return null;
+    const ticket = toTicket(rows[0]);
+    this.tickets.set(ticket.id, ticket);
+    return ticket;
   }
 
-  public async getUserTickets(userId: string): Promise<Ticket[]> {
-    return Array.from(this.tickets.values()).filter(ticket => ticket.userId === userId);
+  public async getUserTickets(userId: string, guildId?: string): Promise<Ticket[]> {
+    if (!this.db) {
+      return Array.from(this.tickets.values()).filter((t) => t.userId === userId && (!guildId || t.guildId === guildId));
+    }
+    const where = guildId
+      ? and(eq(ticketsTable.user_id, userId), eq(ticketsTable.guild_id, guildId))
+      : eq(ticketsTable.user_id, userId);
+    const rows = await this.db.select().from(ticketsTable).where(where).orderBy(desc(ticketsTable.created_at));
+    return rows.map(toTicket);
   }
 
   public async getGuildTickets(guildId: string): Promise<Ticket[]> {
-    return Array.from(this.tickets.values()).filter(t => t.guildId === guildId);
+    if (!this.db) {
+      return Array.from(this.tickets.values()).filter((t) => t.guildId === guildId);
+    }
+    const rows = await this.db
+      .select()
+      .from(ticketsTable)
+      .where(eq(ticketsTable.guild_id, guildId))
+      .orderBy(desc(ticketsTable.created_at));
+    return rows.map(toTicket);
   }
 
   public ticketFromChannel(channelId: string): Ticket | undefined {
-    return Array.from(this.tickets.values()).find(t => t.channelId === channelId);
+    return Array.from(this.tickets.values()).find((t) => t.channelId === channelId);
   }
 
   public async shutdown(): Promise<void> {
@@ -379,7 +525,6 @@ export class TicketsCommands {
             return;
           }
           await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-          // Defer first so closeTicket can post its notice without interaction issues
           await this.service.closeTicket(ticket.id, interaction.user.id, reason);
           await interaction.editReply({ content: `🔒 Ticket \`${ticket.id}\` resolved.` });
         } else if (sub === 'claim') {
@@ -393,10 +538,10 @@ export class TicketsCommands {
           await interaction.editReply({ content: `🛡️ You claimed ticket \`${ticket.id}\`.` });
         } else if (sub === 'list') {
           await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-          const mine = await this.service.getUserTickets(interaction.user.id);
-          const open = mine.filter(t => t.status === 'open');
+          const mine = await this.service.getUserTickets(interaction.user.id, guild.id);
+          const open = mine.filter((t) => t.status === 'open');
           const embed = brandedEmbed(BRAND.blue).setTitle('🎫 Your tickets');
-          embed.setDescription(open.length ? open.map(t => `• <#${t.channelId}> — **${t.category}** (\`${t.id}\`)`).join('\n') : 'You have no open tickets.');
+          embed.setDescription(open.length ? open.map((t) => `• <#${t.channelId}> — **${t.category}** (\`${t.id}\`)`).join('\n') : 'You have no open tickets.');
           await interaction.editReply({ embeds: [embed] });
         } else if (sub === 'panel') {
           const channel = interaction.options.getChannel('channel', true);

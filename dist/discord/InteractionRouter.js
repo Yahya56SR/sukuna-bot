@@ -4,12 +4,15 @@ exports.InteractionRouter = void 0;
 const discord_js_1 = require("discord.js");
 const TicketsManager_1 = require("../modules/TicketsManager");
 const StaffApplications_1 = require("../modules/StaffApplications");
+const GiveawaysManager_1 = require("../modules/GiveawaysManager");
 class InteractionRouter {
     constructor(commandRegistry) {
         this.client = null;
         this.tempvcService = null;
         this.ticketsService = null;
         this.staffApplications = null;
+        this.giveawaysService = null;
+        this.economyGamesService = null;
         this.commandRegistry = commandRegistry;
     }
     setTempVCService(service) {
@@ -20,6 +23,12 @@ class InteractionRouter {
     }
     setStaffApplications(service) {
         this.staffApplications = service;
+    }
+    setGiveawaysService(service) {
+        this.giveawaysService = service;
+    }
+    setEconomyGamesService(service) {
+        this.economyGamesService = service;
     }
     async initialize(client) {
         this.client = client;
@@ -87,8 +96,12 @@ class InteractionRouter {
             await this.handleStaffAppButton(interaction);
             return;
         }
+        if (customId.startsWith(GiveawaysManager_1.GIVEAWAY_PREFIX)) {
+            await this.handleGiveawayButton(interaction);
+            return;
+        }
         if (customId.startsWith('game_join:')) {
-            await interaction.reply({ content: 'Use /joingame to join this game.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            await this.handleGameJoinButton(interaction);
             return;
         }
     }
@@ -109,6 +122,40 @@ class InteractionRouter {
             return;
         }
     }
+    async handleGameJoinButton(interaction) {
+        if (!this.economyGamesService) {
+            await interaction.reply({ content: 'Economy games are not available.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        const gameId = String(interaction.customId).slice('game_join:'.length);
+        const result = await this.economyGamesService.joinGame(gameId, interaction.user.id, interaction.user.username);
+        await interaction.reply({ content: result.message, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+    }
+    async handleGiveawayButton(interaction) {
+        if (!this.giveawaysService) {
+            await interaction.reply({ content: 'Giveaways are not available.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        const parts = String(interaction.customId).split(':');
+        const action = parts[1] ?? '';
+        const giveawayId = parts[2] ?? '';
+        try {
+            let result;
+            if (action === 'enter') {
+                result = await this.giveawaysService.enterGiveaway(giveawayId, interaction.user.id, interaction.member);
+            }
+            else if (action === 'leave') {
+                result = await this.giveawaysService.leaveGiveaway(giveawayId, interaction.user.id);
+            }
+            else {
+                result = { ok: false, message: 'Unknown giveaway action.' };
+            }
+            await interaction.reply({ content: result.message, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+        }
+        catch (err) {
+            await interaction.reply({ content: `❌ ${err?.message || 'Giveaway action failed.'}`, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+        }
+    }
     async handleTicketButton(interaction) {
         if (!this.ticketsService) {
             await interaction.reply({ content: 'Tickets are not available.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
@@ -123,6 +170,19 @@ class InteractionRouter {
             if (action === 'claim') {
                 await this.ticketsService.claimTicket(ticketId, interaction.user.id);
                 await interaction.editReply(`🛡️ You claimed ticket \`${ticketId}\`.`).catch(() => undefined);
+            }
+            else if (action === 'close' && this.ticketsService.getConfig?.()?.closeVote) {
+                // closeVote: closing needs one explicit confirmation first — no silent accidental closes.
+                const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+                const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`ticket:confirmclose:${ticketId}`).setLabel('Close ticket').setEmoji('🔒').setStyle(ButtonStyle.Danger), new ButtonBuilder().setCustomId(`ticket:cancelclose:${ticketId}`).setLabel('Keep open').setStyle(ButtonStyle.Secondary));
+                await interaction.editReply({ content: `⚠️ Confirm close of ticket \`${ticketId}\`?`, components: [row] }).catch(() => undefined);
+            }
+            else if (action === 'confirmclose') {
+                await this.ticketsService.closeTicket(ticketId, interaction.user.id, 'Closed via button (confirmed)');
+                await interaction.editReply({ content: `🔒 Ticket \`${ticketId}\` resolved.`, components: [] }).catch(() => undefined);
+            }
+            else if (action === 'cancelclose') {
+                await interaction.editReply({ content: '✅ Ticket left open.', components: [] }).catch(() => undefined);
             }
             else if (action === 'close') {
                 await this.ticketsService.closeTicket(ticketId, interaction.user.id, 'Closed via button');

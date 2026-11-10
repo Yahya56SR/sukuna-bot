@@ -4,6 +4,9 @@ exports.TempVCService = void 0;
 const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../database/schema");
+const id_1 = require("../../utils/id");
+/** Config rows are keyed by guild; the dashboard's legacy single config lives in 'global'. */
+const GLOBAL_GUILD = 'global';
 const PANEL_PREFIX = 'tempvc:';
 const PANEL_BUTTONS = [
     { id: 'rename', label: 'RENAME', emoji: '✏️', style: discord_js_1.ButtonStyle.Secondary },
@@ -17,12 +20,32 @@ const PANEL_BUTTONS = [
     { id: 'claim', label: 'CLAIM', emoji: '✅', style: discord_js_1.ButtonStyle.Success },
     { id: 'kick', label: 'KICK', emoji: '👢', style: discord_js_1.ButtonStyle.Danger },
 ];
+function rowToConfig(row) {
+    return {
+        enabled: Boolean(row.enabled),
+        createChannelId: row.create_channel_id ?? '',
+        categoryId: row.category_id ?? '',
+        panelChannelId: row.panel_channel_id ?? '',
+        panelMessageId: row.panel_message_id ?? '',
+    };
+}
+function rowToInstance(row) {
+    return {
+        channelId: row.channel_id,
+        ownerId: row.owner_id,
+        categoryId: row.category_id,
+        guildId: row.guild_id ?? GLOBAL_GUILD,
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    };
+}
 class TempVCService {
     constructor(logger) {
         this.db = null;
         this.client = null;
-        this.config = null;
+        this.configs = new Map();
         this.instances = new Map();
+        /** Channels currently being deleted — guards against double-delete races. */
+        this.deleting = new Set();
         this.logger = logger;
     }
     setDb(db) {
@@ -34,92 +57,145 @@ class TempVCService {
     async initialize() {
         if (!this.db)
             return;
-        const rows = await this.db.select().from(schema_1.tempvcConfigs).limit(1);
-        if (rows[0]) {
-            this.config = {
-                enabled: true,
-                createChannelId: rows[0].create_channel_id,
-                categoryId: rows[0].category_id,
-                panelChannelId: rows[0].panel_channel_id || '',
-                panelMessageId: rows[0].panel_message_id || '',
-            };
+        this.configs.clear();
+        const configRows = await this.db.select().from(schema_1.tempvcConfigs);
+        for (const row of configRows) {
+            this.configs.set(row.guild_id || GLOBAL_GUILD, rowToConfig(row));
         }
-        // Load existing temp VC instances
-        const instances = await this.db.select().from(schema_1.tempvcInstances);
-        for (const inst of instances) {
-            this.instances.set(inst.channel_id, {
-                channelId: inst.channel_id,
-                ownerId: inst.owner_id,
-                categoryId: inst.category_id,
-                createdAt: inst.created_at ? new Date(inst.created_at).getTime() : Date.now(),
+        // Load existing temp VC instances and prune ones whose channel is gone.
+        this.instances.clear();
+        const instanceRows = await this.db.select().from(schema_1.tempvcInstances);
+        let pruned = 0;
+        for (const row of instanceRows) {
+            const instance = rowToInstance(row);
+            const channel = this.client ? await this.client.channels.fetch(instance.channelId).catch(() => null) : null;
+            if (this.client && !channel) {
+                await this.db.delete(schema_1.tempvcInstances).where((0, drizzle_orm_1.eq)(schema_1.tempvcInstances.channel_id, instance.channelId));
+                pruned += 1;
+                continue;
+            }
+            this.instances.set(instance.channelId, instance);
+        }
+        this.logger.info('TempVC Service', `Temp VC system initialized with ${this.instances.size} active instance(s)${pruned ? ` (pruned ${pruned} stale)` : ''}`);
+    }
+    /**
+     * Config resolution: the guild-specific row wins; otherwise the legacy
+     * 'global' row is used. Pass no argument (dashboard) to get the global row.
+     */
+    getConfig(guildId) {
+        if (guildId) {
+            return this.configs.get(guildId) ?? this.configs.get(GLOBAL_GUILD) ?? null;
+        }
+        return this.configs.get(GLOBAL_GUILD)
+            ?? Array.from(this.configs.values())[0]
+            ?? null;
+    }
+    /** Dashboard setter — applies to the legacy global row for backwards compatibility. */
+    setConfig(config) {
+        this.configs.set(GLOBAL_GUILD, config);
+        if (this.db) {
+            void this.persistConfig(GLOBAL_GUILD, config).catch((error) => {
+                this.logger.warn('TempVC Service', `Could not persist tempvc config: ${error.message}`);
             });
         }
-        this.logger.info('TempVC Service', `Temp VC system initialized with ${this.instances.size} active instances`);
     }
-    setConfig(config) {
-        this.config = config;
+    getGuildConfig(guildId) {
+        return this.getConfig(guildId);
     }
-    getConfig() {
-        return this.config;
+    async persistConfig(guildId, config) {
+        if (!this.db)
+            return;
+        const now = Math.floor(Date.now() / 1000);
+        await this.db.run((0, drizzle_orm_1.sql) `
+      INSERT INTO tempvc_configs (id, guild_id, create_channel_id, category_id, panel_channel_id, panel_message_id, enabled, created_at)
+      VALUES (${`tempvc_${guildId}`}, ${guildId}, ${config.createChannelId}, ${config.categoryId}, ${config.panelChannelId}, ${config.panelMessageId}, ${config.enabled ? 1 : 0}, ${now})
+      ON CONFLICT(id) DO UPDATE SET
+        create_channel_id = excluded.create_channel_id,
+        category_id = excluded.category_id,
+        panel_channel_id = excluded.panel_channel_id,
+        panel_message_id = excluded.panel_message_id,
+        enabled = excluded.enabled
+    `);
     }
-    async setup(createChannelId, categoryId) {
+    async setup(createChannelId, categoryId, guildId) {
         if (!this.db)
             throw new Error('Database not connected');
-        await this.db.insert(schema_1.tempvcConfigs).values({
-            id: 'tempvc_main',
-            create_channel_id: createChannelId,
-            category_id: categoryId,
-            panel_channel_id: '',
-            panel_message_id: '',
-            enabled: true,
-        });
-        this.config = {
+        const target = guildId ?? GLOBAL_GUILD;
+        const config = {
             enabled: true,
             createChannelId,
             categoryId,
+            panelChannelId: this.configs.get(target)?.panelChannelId ?? '',
+            panelMessageId: this.configs.get(target)?.panelMessageId ?? '',
+        };
+        await this.persistConfig(target, config);
+        this.configs.set(target, config);
+        this.logger.info('TempVC Service', `Temp VC setup (${target}): createChannel=${createChannelId}, category=${categoryId}`);
+    }
+    async setPanel(channelId, messageId, guildId) {
+        if (!this.db)
+            return;
+        const target = guildId ?? GLOBAL_GUILD;
+        const config = this.getConfig(target) ?? {
+            enabled: true,
+            createChannelId: '',
+            categoryId: '',
             panelChannelId: '',
             panelMessageId: '',
         };
-        this.logger.info('TempVC Service', `Temp VC setup: createChannel=${createChannelId}, category=${categoryId}`);
-    }
-    async setPanel(channelId, messageId) {
-        if (!this.db || !this.config)
-            return;
-        await this.db.update(schema_1.tempvcConfigs)
-            .set({ panel_channel_id: channelId, panel_message_id: messageId })
-            .where((0, drizzle_orm_1.eq)(schema_1.tempvcConfigs.id, 'tempvc_main'));
-        this.config.panelChannelId = channelId;
-        this.config.panelMessageId = messageId;
+        config.panelChannelId = channelId;
+        config.panelMessageId = messageId;
+        this.configs.set(target, config);
+        await this.persistConfig(target, config);
     }
     async createTempVC(member) {
-        if (!this.config || !this.client)
+        const guildId = member.guild.id;
+        const config = this.getConfig(guildId);
+        if (!config || !config.enabled || !this.client)
             return null;
-        const category = this.client.guilds.cache.get(member.guild.id)?.channels.cache.get(this.config.categoryId);
+        const category = member.guild.channels.cache.get(config.categoryId)
+            ?? await member.guild.channels.fetch(config.categoryId).catch(() => null);
         if (!category || category.type !== discord_js_1.ChannelType.GuildCategory)
             return null;
         try {
             const vc = await member.guild.channels.create({
                 name: `${member.user.username}'s VC`,
                 type: discord_js_1.ChannelType.GuildVoice,
-                parent: category,
+                parent: category.id,
                 reason: 'Join-to-create temp VC',
+                permissionOverwrites: [
+                    {
+                        id: member.id,
+                        allow: [
+                            discord_js_1.PermissionFlagsBits.ViewChannel,
+                            discord_js_1.PermissionFlagsBits.Connect,
+                            discord_js_1.PermissionFlagsBits.Speak,
+                            discord_js_1.PermissionFlagsBits.Stream,
+                            discord_js_1.PermissionFlagsBits.ManageChannels,
+                        ],
+                    },
+                    {
+                        id: member.guild.id,
+                        allow: [discord_js_1.PermissionFlagsBits.ViewChannel, discord_js_1.PermissionFlagsBits.Connect, discord_js_1.PermissionFlagsBits.Speak, discord_js_1.PermissionFlagsBits.Stream],
+                    },
+                ],
             });
             await member.voice.setChannel(vc);
             const instance = {
                 channelId: vc.id,
                 ownerId: member.id,
-                categoryId: this.config.categoryId,
+                categoryId: config.categoryId,
+                guildId,
                 createdAt: Date.now(),
             };
-            if (this.db) {
-                await this.db.insert(schema_1.tempvcInstances).values({
-                    id: vc.id,
-                    channel_id: vc.id,
-                    owner_id: member.id,
-                    category_id: this.config.categoryId,
-                    created_at: new Date(),
-                });
-            }
+            await this.db?.insert(schema_1.tempvcInstances).values({
+                id: (0, id_1.shortId)('vc'),
+                guild_id: guildId,
+                channel_id: vc.id,
+                owner_id: member.id,
+                category_id: config.categoryId,
+                created_at: new Date(),
+            });
             this.instances.set(vc.id, instance);
             this.logger.info('TempVC Service', `Created temp VC ${vc.id} for ${member.user.tag}`);
             return vc.id;
@@ -132,19 +208,20 @@ class TempVCService {
     async deleteTempVC(channelId) {
         if (!this.client)
             return;
-        const channel = this.client.channels.cache.get(channelId);
-        if (channel) {
-            try {
-                await channel.delete();
+        if (this.deleting.has(channelId))
+            return;
+        this.deleting.add(channelId);
+        try {
+            const channel = await this.client.channels.fetch(channelId).catch(() => null);
+            if (channel) {
+                await channel.delete('Temp VC cleanup').catch(() => undefined);
             }
-            catch {
-                /* ignore */
-            }
+            await this.db?.delete(schema_1.tempvcInstances).where((0, drizzle_orm_1.eq)(schema_1.tempvcInstances.channel_id, channelId));
+            this.instances.delete(channelId);
         }
-        if (this.db) {
-            await this.db.delete(schema_1.tempvcInstances).where((0, drizzle_orm_1.eq)(schema_1.tempvcInstances.channel_id, channelId));
+        finally {
+            this.deleting.delete(channelId);
         }
-        this.instances.delete(channelId);
     }
     isTempVC(channelId) {
         return this.instances.has(channelId);
@@ -167,22 +244,33 @@ class TempVCService {
         }
         return rows;
     }
+    async resolveMember(interaction) {
+        const member = interaction.member;
+        if (member && 'voice' in member)
+            return member;
+        if (!interaction.guildId || !interaction.user?.id)
+            return null;
+        const guild = interaction.guild ?? this.client?.guilds.cache.get(interaction.guildId);
+        return guild ? guild.members.fetch(interaction.user.id).catch(() => null) : null;
+    }
     async handlePanelButton(interaction) {
         const customId = interaction.customId;
         if (!customId.startsWith(PANEL_PREFIX))
             return false;
         const action = customId.slice(PANEL_PREFIX.length);
-        const member = interaction.member;
-        if (!member)
-            return false;
+        const member = await this.resolveMember(interaction);
+        if (!member) {
+            await interaction.reply({ content: 'Could not resolve your membership in this server.', ephemeral: true }).catch(() => undefined);
+            return true;
+        }
         const vcChannelId = member.voice?.channel?.id;
         if (!vcChannelId) {
-            await interaction.reply({ content: 'You must be in a voice channel to use these controls.', ephemeral: true });
+            await interaction.reply({ content: 'You must be in a voice channel to use these controls.', ephemeral: true }).catch(() => undefined);
             return true;
         }
         const temp = this.getTempVC(vcChannelId);
         if (!temp) {
-            await interaction.reply({ content: 'This is not a temporary voice channel.', ephemeral: true });
+            await interaction.reply({ content: 'This is not a temporary voice channel.', ephemeral: true }).catch(() => undefined);
             return true;
         }
         const isOwner = temp.ownerId === member.id;
@@ -190,25 +278,25 @@ class TempVCService {
         switch (action) {
             case 'rename':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can rename it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can rename it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
-                await interaction.reply({ content: 'Use `/tempvc name <name>` to rename your VC.', ephemeral: true });
+                await interaction.reply({ content: 'Use `/tempvc name <name>` to rename your VC.', ephemeral: true }).catch(() => undefined);
                 return true;
             case 'limit':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can set the limit.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can set the limit.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
-                await interaction.reply({ content: 'Use `/tempvc limit <number>` to set the user limit.', ephemeral: true });
+                await interaction.reply({ content: 'Use `/tempvc limit <number>` to set the user limit.', ephemeral: true }).catch(() => undefined);
                 return true;
             case 'lock':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can lock it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can lock it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
                 try {
-                    await member.voice.channel.permissionOverwrites.edit(guild.id, { Connect: false });
+                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { Connect: false });
                     await interaction.reply({ content: '🔒 VC locked.', ephemeral: true });
                 }
                 catch (err) {
@@ -217,11 +305,11 @@ class TempVCService {
                 return true;
             case 'unlock':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can unlock it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can unlock it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
                 try {
-                    await member.voice.channel.permissionOverwrites.edit(guild.id, { Connect: null });
+                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { Connect: null });
                     await interaction.reply({ content: '🔓 VC unlocked.', ephemeral: true });
                 }
                 catch (err) {
@@ -230,18 +318,17 @@ class TempVCService {
                 return true;
             case 'invite':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can invite.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can invite.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
-                await interaction.reply({ content: `Invite someone: <#${vcChannelId}>`, ephemeral: true });
+                await interaction.reply({ content: `Invite someone: <#${vcChannelId}>`, ephemeral: true }).catch(() => undefined);
                 return true;
             case 'delete':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can delete it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can delete it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
                 try {
-                    await member.voice.channel.delete();
                     await this.deleteTempVC(vcChannelId);
                     await interaction.reply({ content: '🗑️ VC deleted.', ephemeral: true });
                 }
@@ -251,11 +338,11 @@ class TempVCService {
                 return true;
             case 'hide':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can hide it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can hide it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
                 try {
-                    await member.voice.channel.permissionOverwrites.edit(guild.id, { ViewChannel: false });
+                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { ViewChannel: false });
                     await interaction.reply({ content: '👁️‍🗨️ VC hidden.', ephemeral: true });
                 }
                 catch (err) {
@@ -264,58 +351,97 @@ class TempVCService {
                 return true;
             case 'show':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can show it.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can show it.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
                 try {
-                    await member.voice.channel.permissionOverwrites.edit(guild.id, { ViewChannel: null });
+                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { ViewChannel: null });
                     await interaction.reply({ content: '👁️ VC shown.', ephemeral: true });
                 }
                 catch (err) {
                     await interaction.reply({ content: `Failed to show: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
                 }
                 return true;
-            case 'claim':
+            case 'claim': {
                 if (isOwner) {
-                    await interaction.reply({ content: 'You already own this VC.', ephemeral: true });
+                    await interaction.reply({ content: 'You already own this VC.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
-                if (!temp.ownerId || !guild.members.cache.has(temp.ownerId)) {
-                    temp.ownerId = member.id;
-                    if (this.db) {
-                        await this.db.update(schema_1.tempvcInstances)
-                            .set({ owner_id: member.id })
-                            .where((0, drizzle_orm_1.eq)(schema_1.tempvcInstances.channel_id, vcChannelId));
-                    }
-                    await interaction.reply({ content: '📥 VC claimed.', ephemeral: true });
+                // The owner must be genuinely gone (left the room) — not just offline in cache.
+                const ownerVoice = guild.members.cache.get(temp.ownerId)?.voice.channelId
+                    ?? (await guild.members.fetch(temp.ownerId).catch(() => null))?.voice.channelId;
+                if (ownerVoice === vcChannelId) {
+                    await interaction.reply({ content: 'This VC already has an owner in the channel.', ephemeral: true }).catch(() => undefined);
+                    return true;
                 }
-                else {
-                    await interaction.reply({ content: 'This VC already has an owner.', ephemeral: true });
-                }
+                const channel = member.voice.channel;
+                await this.transferOwnership(temp, member.id, channel);
+                await interaction.reply({ content: '📥 VC claimed. You are now the owner.', ephemeral: true }).catch(() => undefined);
                 return true;
+            }
             case 'kick':
                 if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can kick members.', ephemeral: true });
+                    await interaction.reply({ content: 'Only the VC owner can kick members.', ephemeral: true }).catch(() => undefined);
                     return true;
                 }
-                await interaction.reply({ content: 'Use `/tempvc kick <member>` to kick from your VC.', ephemeral: true });
+                await interaction.reply({ content: 'Use `/tempvc kick <member>` to kick from your VC.', ephemeral: true }).catch(() => undefined);
                 return true;
             default:
                 return false;
         }
     }
+    async transferOwnership(temp, newOwnerId, channel) {
+        const oldOwnerId = temp.ownerId;
+        temp.ownerId = newOwnerId;
+        this.instances.set(temp.channelId, temp);
+        if (this.db) {
+            await this.db.update(schema_1.tempvcInstances)
+                .set({ owner_id: newOwnerId })
+                .where((0, drizzle_orm_1.eq)(schema_1.tempvcInstances.channel_id, temp.channelId));
+        }
+        if (channel) {
+            try {
+                await channel.permissionOverwrites.edit(newOwnerId, {
+                    ViewChannel: true,
+                    Connect: true,
+                    Speak: true,
+                    Stream: true,
+                    ManageChannels: true,
+                });
+                // Remove manage rights from the previous owner.
+                if (oldOwnerId && oldOwnerId !== newOwnerId) {
+                    await channel.permissionOverwrites.edit(oldOwnerId, { ManageChannels: null });
+                }
+            }
+            catch (error) {
+                this.logger.warn('TempVC Service', `Could not transfer overwrites: ${error.message}`);
+            }
+        }
+        this.logger.info('TempVC Service', `Temp VC ${temp.channelId} ownership transferred ${oldOwnerId} → ${newOwnerId}`);
+    }
     async handleVoiceStateUpdate(oldChannelId, newChannelId, member) {
-        if (!this.config)
+        const guildId = member.guild.id;
+        const config = this.getConfig(guildId);
+        if (!config || !config.enabled)
             return false;
         // If they joined the create channel, spawn a temp VC
-        if (newChannelId === this.config.createChannelId && oldChannelId !== newChannelId) {
+        if (newChannelId === config.createChannelId && oldChannelId !== newChannelId && !member.user.bot) {
+            // Serialize create per guild+user to avoid duplicate rooms on rapid joins.
+            const existing = Array.from(this.instances.values()).find((i) => i.guildId === guildId && i.ownerId === member.id);
+            if (existing) {
+                const channel = await this.client?.channels.fetch(existing.channelId).catch(() => null);
+                if (channel)
+                    return false;
+                // Stale row — clean it and continue to create.
+                await this.deleteTempVC(existing.channelId);
+            }
             return (await this.createTempVC(member)) !== null;
         }
         // If they left a temp VC and it's now empty, delete it
         if (oldChannelId && oldChannelId !== newChannelId) {
             const temp = this.getTempVC(oldChannelId);
             if (temp) {
-                const channel = this.client?.channels.cache.get(oldChannelId);
+                const channel = this.client ? await this.client.channels.fetch(oldChannelId).catch(() => null) : null;
                 if (channel && channel.members.size === 0) {
                     await this.deleteTempVC(oldChannelId);
                     return true;
@@ -324,11 +450,13 @@ class TempVCService {
         }
         return false;
     }
-    async postPanel(channel) {
-        if (!this.config)
+    async postPanel(channel, guildId) {
+        const target = guildId ?? GLOBAL_GUILD;
+        const config = this.getConfig(target);
+        if (!config)
             return null;
-        const createMention = this.config.createChannelId ? `<#${this.config.createChannelId}>` : '`Create VC`';
-        const categoryMention = this.config.categoryId ? `<#${this.config.categoryId}>` : 'a category';
+        const createMention = config.createChannelId ? `<#${config.createChannelId}>` : '`Create VC`';
+        const categoryMention = config.categoryId ? `<#${config.categoryId}>` : 'a category';
         const embed = new discord_js_1.EmbedBuilder()
             .setColor(0xef4444)
             .setTitle('🔊 Temporary Voice — Sukuna')
@@ -341,7 +469,7 @@ class TempVCService {
         let message = null;
         try {
             message = await channel.send({ embeds: [embed], components: rows });
-            await this.setPanel(channel.id, message.id);
+            await this.setPanel(channel.id, message.id, target);
             return message;
         }
         catch (err) {
@@ -351,6 +479,8 @@ class TempVCService {
     }
     async shutdown() {
         this.instances.clear();
+        this.configs.clear();
+        this.deleting.clear();
         this.logger.info('TempVC Service', 'Temp VC system shutdown');
     }
 }

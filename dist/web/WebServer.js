@@ -167,9 +167,14 @@ class WebServer {
             const sqlite = this.sqliteOrNull();
             if (sqlite) {
                 overview.economy = this.buildEconomyStats(sqlite);
-                overview.topMembers = this.safeAll(sqlite, `SELECT id, username, avatar, level, total_xp, balance
-           FROM users
-           WHERE total_xp > 0 OR balance > 0
+                overview.topMembers = this.safeAll(sqlite, `SELECT u.id, u.username, u.avatar,
+                  MAX(lp.level) AS level,
+                  COALESCE(SUM(lp.total_xp), 0) AS total_xp,
+                  COALESCE((SELECT SUM(balance) FROM economy_accounts WHERE user_id = u.id), 0) AS balance
+           FROM users u
+           LEFT JOIN leveling_profiles lp ON lp.user_id = u.id
+           GROUP BY u.id
+           HAVING total_xp > 0 OR balance > 0
            ORDER BY total_xp DESC, balance DESC
            LIMIT 6`).map((u) => ({
                     id: u.id,
@@ -884,7 +889,7 @@ class WebServer {
         const totals = this.safeGet(sqlite, `SELECT COALESCE(SUM(balance), 0) AS total,
               SUM(CASE WHEN balance > 0 THEN 1 ELSE 0 END) AS funded,
               COUNT(*) AS tracked
-       FROM users`) ?? {};
+       FROM economy_accounts`) ?? {};
         const txn = this.safeGet(sqlite, `SELECT COUNT(*) AS c FROM economy_transactions`) ?? {};
         const recent = this.safeAll(sqlite, `SELECT t.id, t.user_id, t.type, t.amount, t.description, t.created_at,
               u.username AS user_name

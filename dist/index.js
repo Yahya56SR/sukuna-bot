@@ -3,6 +3,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SukunaApp = void 0;
 const discord_js_1 = require("discord.js");
 require('dotenv').config();
+/** Single source for the env-derived AI config (used for both service and commands). */
+function aiConfigFromEnv() {
+    return {
+        enabled: true,
+        displayName: process.env.AI_DISPLAY_NAME || 'Sukuna',
+        model: process.env.AI_MODEL || 'gemini-1.5-flash',
+        systemPrompt: process.env.AI_SYSTEM_PROMPT || 'You are Sukuna, a helpful and powerful Discord bot assistant.',
+        channelIds: process.env.AI_CHANNEL_IDS ? process.env.AI_CHANNEL_IDS.split(',') : [],
+        historySize: parseInt(process.env.AI_HISTORY_SIZE || '30'),
+        batchWindowMs: parseInt(process.env.AI_BATCH_WINDOW_MS || '2500'),
+        replyCooldownSeconds: parseInt(process.env.AI_REPLY_COOLDOWN_SECONDS || '25'),
+        decisionCooldownSeconds: parseInt(process.env.AI_DECISION_COOLDOWN_SECONDS || '10'),
+        maxRepliesPerHour: parseInt(process.env.AI_MAX_REPLIES_PER_HOUR || '40'),
+        maxMessageLength: parseInt(process.env.AI_MAX_MESSAGE_LENGTH || '500'),
+        showTyping: false,
+        temperature: parseFloat(process.env.AI_TEMPERATURE || '1'),
+        requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
+        apiKey: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || '',
+        provider: process.env.AI_PROVIDER || 'gemini',
+        baseUrl: process.env.AI_BASE_URL || undefined,
+    };
+}
 class SukunaApp {
     constructor() {
         const { initializeConfig } = require('./config/AppConfig');
@@ -133,23 +155,7 @@ class SukunaApp {
             maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
         });
         this.economy = new EconomyService(this.logger);
-        this.ai = new AIService(this.logger, {
-            enabled: true,
-            displayName: process.env.AI_DISPLAY_NAME || 'Sukuna',
-            model: process.env.AI_MODEL || 'gemini-1.5-flash',
-            systemPrompt: process.env.AI_SYSTEM_PROMPT || 'You are Sukuna, a helpful and powerful Discord bot assistant.',
-            channelIds: process.env.AI_CHANNEL_IDS ? process.env.AI_CHANNEL_IDS.split(',') : [],
-            historySize: parseInt(process.env.AI_HISTORY_SIZE || '30'),
-            batchWindowMs: parseInt(process.env.AI_BATCH_WINDOW_MS || '2500'),
-            replyCooldownSeconds: parseInt(process.env.AI_REPLY_COOLDOWN_SECONDS || '25'),
-            decisionCooldownSeconds: parseInt(process.env.AI_DECISION_COOLDOWN_SECONDS || '10'),
-            maxRepliesPerHour: parseInt(process.env.AI_MAX_REPLIES_PER_HOUR || '40'),
-            maxMessageLength: parseInt(process.env.AI_MAX_MESSAGE_LENGTH || '500'),
-            showTyping: false,
-            temperature: parseFloat(process.env.AI_TEMPERATURE || '1'),
-            requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
-            apiKey: process.env.GEMINI_API_KEY || '',
-        });
+        this.ai = new AIService(this.logger, aiConfigFromEnv());
         // NOTE: AppConfig has no `services` key — use env vars with safe defaults
         // (this previously crashed at startup: "Cannot read properties of undefined (reading 'music')")
         this.music = new MusicService(this.logger, {
@@ -157,7 +163,9 @@ class SukunaApp {
             lavalinkHost: process.env.LAVALINK_HOST || 'localhost',
             lavalinkPort: parseInt(process.env.LAVALINK_PORT || '2333'),
             lavalinkPassword: process.env.LAVALINK_PASSWORD || 'youshallnotpass',
-            defaultVolume: parseInt(process.env.MUSIC_DEFAULT_VOLUME || '100'),
+            lavalinkSecure: process.env.LAVALINK_SECURE === 'true',
+            lavalinkNodeId: process.env.LAVALINK_NODE_ID || 'main',
+            defaultVolume: parseInt(process.env.MUSIC_DEFAULT_VOLUME || '50'),
             maxPlaylistSize: parseInt(process.env.MUSIC_MAX_PLAYLIST_SIZE || '50'),
             allowSkip: process.env.MUSIC_ALLOW_SKIP !== 'false',
             allowRepeat: process.env.MUSIC_ALLOW_REPEAT !== 'false',
@@ -172,6 +180,14 @@ class SukunaApp {
             category: process.env.TICKETS_CATEGORY_ID || '',
             supportRoles: process.env.TICKETS_SUPPORT_ROLES ? process.env.TICKETS_SUPPORT_ROLES.split(',') : [],
             closeVote: process.env.TICKETS_CLOSE_VOTE === 'true',
+        });
+        const { GiveawaysManager } = require('./modules/GiveawaysManager');
+        this.giveaways = new GiveawaysManager(this.logger, {
+            enabled: process.env.GIVEAWAYS_ENABLED !== 'false',
+            channel: process.env.GIVEAWAYS_CHANNEL_ID || '',
+            roleRestrictions: process.env.GIVEAWAYS_ROLE_RESTRICTIONS === 'true',
+            minWinners: 1,
+            maxWinners: parseInt(process.env.GIVEAWAYS_MAX_WINNERS || '20'),
         });
         this.staffapps = new StaffApplications(this.logger, {
             enabled: process.env.STAFFAPPS_ENABLED !== 'false',
@@ -236,6 +252,7 @@ class SukunaApp {
             await this.database.initialize();
             this.logger.info('Sukuna Bot', 'Database initialized successfully');
             this.moderation.setDb(this.database.getDb());
+            this.tickets.setDb(this.database.getDb());
             this.logger.info('Sukuna Bot', 'Moderation service connected to database');
             // Apply dashboard-persisted config overrides (service_configs table) over env
             // defaults NOW — before Discord login, so they apply even if login fails.
@@ -359,6 +376,7 @@ class SukunaApp {
             }
             this.logger.info('Sukuna Bot', `Registered ${economyCommands.getCommands().length} economy commands`);
             this.economyGames.setDb(this.database.getDb());
+            this.economyGames.setEconomy(this.economy);
             await this.economyGames.initialize();
             this.logger.info('Sukuna Bot', 'Economy games service initialized');
             const economyGamesCommands = new (require('./modules/economy/EconomyGames').EconomyGamesCommands)(this.economyGames, this.logger);
@@ -368,6 +386,7 @@ class SukunaApp {
             this.logger.info('Sukuna Bot', `Registered ${economyGamesCommands.getCommands().length} economy games commands`);
             this.client = await this.discord.initialize();
             this.logger.info('Sukuna Bot', 'Discord client initialized successfully');
+            this.economyGames.setClient(this.client);
             // Set client on services that need it
             this.leveling.setClient(this.client);
             this.tempvc.setDb(this.database.getDb());
@@ -389,28 +408,13 @@ class SukunaApp {
                 this.ai.setLeveling(this.leveling);
             await this.ai.initialize();
             this.logger.info('Sukuna Bot', 'AI service initialized');
-            const aiCommands = new (require('./modules/ai/AIService').AICommands)(this.ai, this.logger, {
-                enabled: true,
-                displayName: process.env.AI_DISPLAY_NAME || 'Sukuna',
-                model: process.env.AI_MODEL || 'gemini-1.5-flash',
-                systemPrompt: process.env.AI_SYSTEM_PROMPT || 'You are Sukuna, a helpful and powerful Discord bot assistant.',
-                channelIds: process.env.AI_CHANNEL_IDS ? process.env.AI_CHANNEL_IDS.split(',') : [],
-                historySize: parseInt(process.env.AI_HISTORY_SIZE || '30'),
-                batchWindowMs: parseInt(process.env.AI_BATCH_WINDOW_MS || '2500'),
-                replyCooldownSeconds: parseInt(process.env.AI_REPLY_COOLDOWN_SECONDS || '25'),
-                decisionCooldownSeconds: parseInt(process.env.AI_DECISION_COOLDOWN_SECONDS || '10'),
-                maxRepliesPerHour: parseInt(process.env.AI_MAX_REPLIES_PER_HOUR || '40'),
-                maxMessageLength: parseInt(process.env.AI_MAX_MESSAGE_LENGTH || '500'),
-                showTyping: false,
-                temperature: parseFloat(process.env.AI_TEMPERATURE || '1'),
-                requestTimeoutMs: parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '20000'),
-                apiKey: process.env.GEMINI_API_KEY || '',
-            });
+            const aiCommands = new (require('./modules/ai/AIService').AICommands)(this.ai, this.logger, aiConfigFromEnv());
             for (const cmd of aiCommands.getCommands()) {
                 this.commands.registerCommand(cmd);
             }
             this.logger.info('Sukuna Bot', `Registered ${aiCommands.getCommands().length} AI commands`);
             this.music.setDb(this.database.getDb());
+            this.music.setClient(this.client);
             await this.music.initialize();
             this.logger.info('Sukuna Bot', 'Music service initialized');
             const musicCommands = new (require('./modules/music/MusicService').MusicCommands)(this.music, this.logger);
@@ -419,7 +423,19 @@ class SukunaApp {
             }
             this.logger.info('Sukuna Bot', `Registered ${musicCommands.getCommands().length} music commands`);
             this.automation.setDb(this.database.getDb());
+            this.automation.setClient(this.client);
             await this.automation.initialize();
+            try {
+                const { AutomationCommands } = require('./services/AutomationService');
+                const automationCommands = new AutomationCommands(this.automation, this.logger);
+                for (const cmd of automationCommands.getCommands()) {
+                    this.commands.registerCommand(cmd);
+                }
+                this.logger.info('Sukuna Bot', `Registered ${automationCommands.getCommands().length} automation commands`);
+            }
+            catch (err) {
+                this.logger.warn('Sukuna Bot', 'Automation commands registration failed', err);
+            }
             this.logger.info('Sukuna Bot', 'Automation service initialized');
             this.analytics.setDb(this.database.getDb());
             await this.analytics.initialize();
@@ -442,7 +458,28 @@ class SukunaApp {
             }
             if (this.interactions.setTicketsService)
                 this.interactions.setTicketsService(this.tickets);
+            if (this.interactions.setEconomyGamesService)
+                this.interactions.setEconomyGamesService(this.economyGames);
+            // Giveaways (persistent, restart-safe timers, escrowed prizes)
+            this.giveaways.setDb(this.database.getDb());
+            this.giveaways.setEconomy(this.economy);
+            await this.giveaways.initialize(this.client);
+            this.logger.info('Sukuna Bot', 'Giveaways service initialized');
+            try {
+                const { GiveawayCommands } = require('./modules/GiveawaysManager');
+                const giveawayCommands = new GiveawayCommands(this.giveaways, this.logger);
+                for (const cmd of giveawayCommands.getCommands()) {
+                    this.commands.registerCommand(cmd);
+                }
+                this.logger.info('Sukuna Bot', `Registered ${giveawayCommands.getCommands().length} giveaway commands`);
+            }
+            catch (err) {
+                this.logger.warn('Sukuna Bot', 'Giveaway commands registration failed', err);
+            }
+            if (this.interactions.setGiveawaysService)
+                this.interactions.setGiveawaysService(this.giveaways);
             // Staff applications
+            this.staffapps.setDb(this.database.getDb());
             await this.staffapps.initialize(this.client);
             this.logger.info('Sukuna Bot', 'Staff applications service initialized');
             try {
@@ -460,6 +497,7 @@ class SukunaApp {
                 this.interactions.setStaffApplications(this.staffapps);
             // Community (welcome/goodbye) needs Discord client + card templates
             this.community.setCardService(this.cards);
+            this.community.setDb(this.database.getDb());
             await this.community.initialize(this.client);
             this.logger.info('Sukuna Bot', 'Community service initialized');
             await this.commands.initialize(this.client);
@@ -550,6 +588,10 @@ class SukunaApp {
             }
             catch { /* best-effort */ }
             try {
+                await this.giveaways.shutdown();
+            }
+            catch { /* best-effort */ }
+            try {
                 await this.staffapps.shutdown();
             }
             catch { /* best-effort */ }
@@ -578,7 +620,7 @@ async function main() {
     try {
         const app = SukunaApp.getInstance();
         await app.initialize();
-        app.logger.info('Sukuna Bot', 'Bot is ready!');
+        app.logger.info('Sukuna Bot', 'Sukuna Bot startup complete');
     }
     catch (error) {
         console.error('Failed to start Sukuna Bot:', error);
