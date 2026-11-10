@@ -1081,7 +1081,11 @@ const app = {
   async handleSetBalance(e) {
     e.preventDefault();
     const form = e.target;
-    const data = { userId: form.userId.value, balance: parseFloat(form.balance.value) };
+    const data = {
+      userId: form.userId.value,
+      balance: parseFloat(form.balance.value),
+      guildId: this.selectedGuildId() || undefined,
+    };
     try {
       await this.request('/economy/set-balance', { method: 'POST', body: JSON.stringify(data) });
       this.showAlert('Balance updated successfully', 'success');
@@ -1098,7 +1102,8 @@ const app = {
     const userId = form.userId.value;
     const resultEl = document.getElementById('balanceResult');
     try {
-      const data = await this.request(`/economy/balance/${userId}`);
+      const guildId = this.selectedGuildId();
+      const data = await this.request(`/economy/balance/${userId}${guildId ? `?guildId=${guildId}` : ''}`);
       resultEl.className = 'mt-4 p-4 rounded-xl bg-green-500/10 border border-green-500/20';
       resultEl.innerHTML = `<div class="text-slate-300">User ID:</div><div class="font-mono text-lg font-bold">${data.userId}</div><div class="mt-1 text-slate-400 text-sm">Balance:</div><div class="text-green-400 font-bold text-xl">${data.balance} coins</div>`;
       resultEl.classList.remove('hidden');

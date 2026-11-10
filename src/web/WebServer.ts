@@ -448,10 +448,14 @@ export class WebServer {
     });
 
     // ---- Economy ----
+    // Balances are guild-scoped in the rebuilt economy. The dashboard may pass
+    // guildId; otherwise we fall back to the currently selected/first guild so
+    // the value shown here matches what /balance shows inside Discord.
     this.app.get('/api/economy/balance/:userId', async (req: any, res: any) => {
       try {
-        const balance = await this.appRef.economy.getBalance(req.params.userId);
-        res.json({ userId: req.params.userId, balance });
+        const guildId = (req.query.guildId as string) || this.resolveGuildId();
+        const balance = await this.appRef.economy.getBalance(guildId, req.params.userId);
+        res.json({ userId: req.params.userId, guildId, balance });
       } catch (err) {
         res.status(500).json({ error: 'Failed to fetch balance' });
       }
@@ -459,15 +463,17 @@ export class WebServer {
 
     this.app.post('/api/economy/set-balance', async (req: any, res: any) => {
       try {
-        const { userId, balance } = req.body;
-        const current = await this.appRef.economy.getBalance(userId);
-        if (balance > current) {
-          await this.appRef.economy.addBalance(userId, balance - current);
-        } else if (balance < current) {
-          await this.appRef.economy.removeBalance(userId, current - balance);
+        const { userId, balance } = req.body ?? {};
+        if (!userId) {
+          return res.status(400).json({ error: 'userId is required' });
         }
-        const newBalance = await this.appRef.economy.getBalance(userId);
-        res.json({ success: true, userId, balance: newBalance });
+        const target = Math.max(0, Math.floor(Number(balance)));
+        if (!Number.isFinite(target)) {
+          return res.status(400).json({ error: 'balance must be a number' });
+        }
+        const guildId = (req.body?.guildId as string) || this.resolveGuildId();
+        const result = await this.appRef.economy.setBalance(guildId, userId, target);
+        res.json({ success: true, userId, guildId, balance: result.balance });
       } catch (err: any) {
         res.status(500).json({ error: err.message || 'Failed to set balance' });
       }
