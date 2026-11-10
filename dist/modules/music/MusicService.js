@@ -44,6 +44,51 @@ class MusicService {
     get isReady() {
         return this.ready;
     }
+    /**
+     * Live status for the dashboard: node reachability plus what each guild is
+     * currently playing. Never throws — music is optional infrastructure.
+     */
+    getStatus() {
+        const players = [];
+        try {
+            const map = this.manager?.players ?? new Map();
+            for (const player of map.values()) {
+                let current = null;
+                let queued = 0;
+                try {
+                    current = player?.queue?.current ?? null;
+                    queued = Array.isArray(player?.queue?.tracks) ? player.queue.tracks.length : 0;
+                }
+                catch { /* queue shape changed */ }
+                players.push({
+                    guildId: String(player?.guildId ?? ''),
+                    connected: Boolean(player?.connected),
+                    playing: Boolean(player?.playing),
+                    paused: Boolean(player?.paused),
+                    volume: Number(player?.volume ?? 0),
+                    queueSize: queued,
+                    current: current ? {
+                        title: String(current.info?.title ?? current.title ?? 'Unknown'),
+                        author: String(current.info?.author ?? current.author ?? ''),
+                        uri: current.info?.uri ?? current.uri ?? null,
+                        length: Number(current.info?.length ?? current.length ?? 0),
+                    } : null,
+                });
+            }
+        }
+        catch {
+            // Manager not initialised yet.
+        }
+        return {
+            enabled: Boolean(this.config.enabled),
+            ready: Boolean(this.ready),
+            host: this.config.lavalinkHost,
+            port: this.config.lavalinkPort,
+            secure: Boolean(this.config.lavalinkSecure),
+            nodeId: this.config.lavalinkNodeId || 'main',
+            players,
+        };
+    }
     async initialize() {
         if (!this.config.enabled) {
             this.logger.info('Music Service', 'Music system disabled');

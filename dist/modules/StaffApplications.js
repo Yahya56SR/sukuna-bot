@@ -363,6 +363,72 @@ class StaffApplications {
         return embed;
     }
     // ---------- Approve / Deny ----------
+    /**
+     * Approve/deny an application outside of an interaction (e.g. from the
+     * dashboard). Returns a result object instead of replying to Discord.
+     */
+    async reviewApplication(applicationId, reviewerId, action, reason = '') {
+        const app = await this.getById(applicationId);
+        if (!app)
+            return { ok: false, message: 'Application not found.' };
+        if (app.status !== 'pending')
+            return { ok: false, message: `This application is already ${app.status}.` };
+        const guild = this.client?.guilds.cache.get(app.guildId);
+        if (!guild)
+            return { ok: false, message: 'That server is not available right now.' };
+        if (action === 'approve') {
+            const target = await guild.members.fetch(app.userId).catch(() => null);
+            if (!target)
+                return { ok: false, message: 'The applicant is no longer in the server.' };
+            const added = await target.roles
+                .add(app.roleId, `Staff application approved by ${reviewerId} (dashboard)`)
+                .then(() => true)
+                .catch((error) => {
+                this.logger.warn('Staff Applications', `Could not add role ${app.roleId}: ${error.message}`);
+                return false;
+            });
+            if (!added) {
+                return { ok: false, message: `Could not add <@&${app.roleId}> to the applicant (missing permissions?).` };
+            }
+        }
+        app.status = action === 'approve' ? 'approved' : 'denied';
+        app.reviewerId = reviewerId;
+        app.reviewedAt = Date.now();
+        if (reason)
+            app.reviewReason = reason.slice(0, 900);
+        await this.save(app);
+        this.logger.info('Staff Applications', `${action === 'approve' ? 'Approved' : 'Denied'} ${app.id} (${app.userId}) by ${reviewerId} from dashboard`);
+        // Update the review card in place (best effort).
+        const channelId = app.reviewChannelId || this.reviewChannelId();
+        if (channelId && app.messageId) {
+            try {
+                const channel = await this.client?.channels.fetch(channelId).catch(() => null);
+                const msg = await channel?.messages.fetch(app.messageId).catch(() => null);
+                if (msg) {
+                    const role = guild.roles.cache.get(app.roleId);
+                    const who = guild.members.cache.get(app.userId)?.displayName ?? app.userId;
+                    const updated = action === 'approve'
+                        ? (0, embed_1.brandedEmbed)(embed_1.BRAND.green).setTitle('✅ Application Approved').setDescription(`<@${app.userId}> (${who}) was approved for ${role ? `<@&${role.id}>` : `role ${app.roleId}`} by <@${reviewerId}>.`)
+                        : (0, embed_1.brandedEmbed)(embed_1.BRAND.red).setTitle('❌ Application Denied').setDescription(`<@${app.userId}> (${who}) was denied by <@${reviewerId}>.`);
+                    if (reason)
+                        updated.addFields({ name: 'Reason', value: reason.slice(0, 900) });
+                    await msg.edit({ embeds: [updated], components: [] }).catch(() => undefined);
+                }
+            }
+            catch { /* best effort */ }
+        }
+        // DM the applicant (best effort).
+        try {
+            const user = await this.client?.users.fetch(app.userId).catch(() => null);
+            if (user) {
+                await user.send(action === 'approve'
+                    ? `✅ **${guild.name}** — Your staff application was **approved**! You now have <@&${app.roleId}>. Welcome to the team!`
+                    : `❌ **${guild.name}** — Your staff application was reviewed and **not approved** this time.${reason ? `\n\nReason: ${reason}` : ''}`).catch(() => undefined);
+            }
+        }
+        catch { /* best effort */ }
+        return { ok: true, message: action === 'approve' ? 'Application approved.' : 'Application denied.' };
+    }
     async handleApplicationButton(interaction) {
         const m = String(interaction.customId).match(/^staffapp:(approve|deny):([a-zA-Z0-9]+)$/);
         if (!m)

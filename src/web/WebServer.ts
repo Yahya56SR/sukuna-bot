@@ -1,13 +1,14 @@
 import express from 'express';
-import cors from 'cors';
 import path from 'path';
 import os from 'os';
+import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import { Logger } from '../infrastructure/Logger';
 import { guildSettings } from '../database/schema';
 import { getDefaultCardConfig } from '../config/CardTemplates';
 import { welcomeCard } from '../utils/welcomecard';
 import { rankCard, leaderboardCard } from '../utils/rankcard';
+import { DashboardAuth, DashboardUser } from './auth';
 
 export class WebServer {
   private app: express.Application;
@@ -15,15 +16,44 @@ export class WebServer {
   private logger: Logger;
   private appRef: any;
   private server: any;
+  private auth: DashboardAuth;
 
   constructor(logger: Logger, appRef: any, port: number = 3000) {
     this.logger = logger;
     this.appRef = appRef;
     this.port = port;
     this.app = express();
+    this.app.set('trust proxy', 1);
+    this.app.disable('x-powered-by');
 
-    this.app.use(cors());
-    this.app.use(express.json());
+    const publicUrl = (process.env.DASHBOARD_URL || `http://localhost:${port}`).replace(/\/+$/, '');
+    this.auth = new DashboardAuth({
+      clientId: process.env.DISCORD_CLIENT_ID || process.env.DASHBOARD_CLIENT_ID || '',
+      clientSecret: process.env.DISCORD_CLIENT_SECRET || process.env.DASHBOARD_CLIENT_SECRET || '',
+      publicUrl,
+      sessionSecret: process.env.DASHBOARD_SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+      ownerIds: [
+        ...(process.env.DASHBOARD_OWNER_IDS || '').split(','),
+        process.env.DISCORD_OWNER_ID || '',
+      ].map((id) => id.trim()).filter(Boolean),
+      allowedGuildId: process.env.DASHBOARD_GUILD_ID || '',
+      disabled: process.env.DASHBOARD_AUTH_DISABLED === 'true',
+      sessionTtlMs: Math.max(1, parseInt(process.env.DASHBOARD_SESSION_DAYS || '7')) * 24 * 60 * 60 * 1000,
+      apiBase: process.env.DASHBOARD_OAUTH_API_BASE,
+      getBotGuildIds: () => {
+        const client = this.appRef.getClient?.();
+        return client?.guilds?.cache ? [...client.guilds.cache.keys()].map(String) : [];
+      },
+    }, logger);
+    this.auth.setClientGetter(() => this.appRef.getClient?.() ?? null);
+
+    if (this.auth.disabled) {
+      this.logger.warn('Web Server', 'DASHBOARD_AUTH_DISABLED=true — dashboard authentication is OFF');
+    } else if (!this.auth.isConfigured) {
+      this.logger.warn('Web Server', 'Discord dashboard login is not configured (DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET)');
+    }
+
+    this.app.use(express.json({ limit: '2mb' }));
     this.app.use(express.urlencoded({ extended: true }));
 
     // Request logging — without this, API calls never appear in the console
@@ -43,10 +73,6 @@ export class WebServer {
 
     this.app.use('/static', express.static(path.join(__dirname, 'public')));
 
-    this.app.get('/', (_req: any, res: any) => {
-      res.sendFile(path.join(__dirname, 'views', 'index.html'));
-    });
-
     // Browsers request this automatically — 204 instead of a 404
     this.app.get('/favicon.ico', (_req: any, res: any) => {
       res.status(204).end();
@@ -56,6 +82,35 @@ export class WebServer {
   }
 
   private setupRoutes(): void {
+    // ---- Authentication (public routes + guard) ----
+    this.auth.registerRoutes(this.app);
+    this.app.use(this.auth.middleware());
+
+    this.app.get('/', (_req: any, res: any) => {
+      res.sendFile(path.join(__dirname, 'views', 'index.html'));
+    });
+
+    // Global bot configuration, secrets and process control are owner-only.
+    // Per-guild settings (guild_settings) stay available to guild managers.
+    this.app.use((req: any, res: any, next: any) => {
+      const user: DashboardUser | null = req.dashboardUser ?? null;
+      if (this.auth.disabled || user?.isOwner) return next();
+      const p = req.path;
+      const ownerOnly =
+        (p.startsWith('/api/config/') && p !== '/api/config/guild_settings') ||
+        p.startsWith('/api/control/') ||
+        p.startsWith('/api/cards/') ||
+        p.startsWith('/api/system/') ||
+        p === '/api/logs' ||
+        p === '/api/ai/status' ||
+        p === '/api/ai/test' ||
+        p === '/api/music/status';
+      if (ownerOnly) {
+        return res.status(403).json({ error: 'owner_only', message: 'This action is restricted to the bot owner.' });
+      }
+      return next();
+    });
+
     // ---- Bot Status ----
     this.app.get('/api/status', (_req: any, res: any) => {
       try {
@@ -281,21 +336,25 @@ export class WebServer {
     });
 
     // ---- Guilds ----
-    this.app.get('/api/guilds', (_req: any, res: any) => {
+    this.app.get('/api/guilds', (req: any, res: any) => {
       try {
         const client = this.appRef.getClient?.();
         const guilds = client?.guilds?.cache ?? new Map();
-        const list = [...guilds.values()].map((g: any) => ({
-          id: g.id,
-          name: g.name,
-          icon: g.icon,
-          memberCount: g.memberCount,
-          ownerId: g.ownerId,
-          features: g.features ?? [],
-          verificationLevel: g.verificationLevel,
-          preferredTier: g.premiumTier,
-          joinedAt: g.joinedAt?.toISOString?.() ?? null,
-        }));
+        const user = this.requestUser(req);
+        const visible = new Set(this.auth.filterGuilds(user, [...guilds.keys()].map(String)));
+        const list = [...guilds.values()]
+          .filter((g: any) => visible.has(String(g.id)))
+          .map((g: any) => ({
+            id: g.id,
+            name: g.name,
+            icon: g.icon,
+            memberCount: g.memberCount,
+            ownerId: g.ownerId,
+            features: g.features ?? [],
+            verificationLevel: g.verificationLevel,
+            preferredTier: g.premiumTier,
+            joinedAt: g.joinedAt?.toISOString?.() ?? null,
+          }));
         res.json(list);
       } catch (err) {
         this.logger.error('Web Server', 'GET /api/guilds failed', err as Error);
@@ -303,10 +362,13 @@ export class WebServer {
       }
     });
 
-    this.app.get('/api/guilds/:guildId', (_req: any, res: any) => {
+    this.app.get('/api/guilds/:guildId', (req: any, res: any) => {
       try {
+        if (!this.auth.canAccessGuild(this.requestUser(req), req.params.guildId)) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
         const client = this.appRef.getClient?.();
-        const guild = client?.guilds?.cache?.get(_req.params.guildId);
+        const guild = client?.guilds?.cache?.get(req.params.guildId);
         if (!guild) {
           return res.status(404).json({ error: 'Guild not found' });
         }
@@ -350,9 +412,12 @@ export class WebServer {
       }
     });
 
-    this.app.get('/api/guilds/:guildId/members', (_req: any, res: any) => {
+    this.app.get('/api/guilds/:guildId/members', (req: any, res: any) => {
+      if (!this.auth.canAccessGuild(this.requestUser(req), req.params.guildId)) {
+        return res.status(403).json({ error: 'guild_forbidden' });
+      }
       const client = this.appRef.getClient?.();
-      const guild = client?.guilds?.cache?.get(_req.params.guildId);
+      const guild = client?.guilds?.cache?.get(req.params.guildId);
       if (!guild) {
         return res.status(404).json({ error: 'Guild not found' });
       }
@@ -376,9 +441,12 @@ export class WebServer {
     });
 
     // ---- Channels ----
-    this.app.get('/api/guilds/:guildId/channels', (_req: any, res: any) => {
+    this.app.get('/api/guilds/:guildId/channels', (req: any, res: any) => {
+      if (!this.auth.canAccessGuild(this.requestUser(req), req.params.guildId)) {
+        return res.status(403).json({ error: 'guild_forbidden' });
+      }
       const client = this.appRef.getClient?.();
-      const guild = client?.guilds?.cache?.get(_req.params.guildId);
+      const guild = client?.guilds?.cache?.get(req.params.guildId);
       if (!guild) {
         return res.status(404).json({ error: 'Guild not found' });
       }
@@ -397,10 +465,11 @@ export class WebServer {
     });
 
     // ---- Moderation ----
-    this.app.get('/api/moderation/cases', async (_req: any, res: any) => {
+    this.app.get('/api/moderation/cases', async (req: any, res: any) => {
       try {
-        const guildId = _req.query.guildId as string;
-        const cases = await this.appRef.moderation.getCases?.(guildId ?? '') ?? [];
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const cases = await this.appRef.moderation.getCases?.(guildId) ?? [];
         res.json(cases);
       } catch (err) {
         res.status(500).json({ error: 'Failed to fetch moderation cases' });
@@ -409,7 +478,10 @@ export class WebServer {
 
     this.app.post('/api/moderation/warn', async (req: any, res: any) => {
       try {
-        const { guildId, userId, moderatorId, reason } = req.body;
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const { userId, reason } = req.body ?? {};
+        const moderatorId = req.body?.moderatorId || this.requestUser(req)?.id;
         const caseId = await this.appRef.moderation.warn?.(guildId, userId, moderatorId, reason ?? '');
         res.json({ success: true, caseId });
       } catch (err: any) {
@@ -419,7 +491,10 @@ export class WebServer {
 
     this.app.post('/api/moderation/kick', async (req: any, res: any) => {
       try {
-        const { guildId, userId, moderatorId, reason } = req.body;
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const { userId, reason } = req.body ?? {};
+        const moderatorId = req.body?.moderatorId || this.requestUser(req)?.id;
         const caseId = await this.appRef.moderation.kick?.(guildId, userId, moderatorId, reason ?? '');
         res.json({ success: true, caseId });
       } catch (err: any) {
@@ -429,7 +504,10 @@ export class WebServer {
 
     this.app.post('/api/moderation/ban', async (req: any, res: any) => {
       try {
-        const { guildId, userId, moderatorId, reason, deleteMessageDays } = req.body;
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const { userId, reason, deleteMessageDays } = req.body ?? {};
+        const moderatorId = req.body?.moderatorId || this.requestUser(req)?.id;
         const caseId = await this.appRef.moderation.ban?.(guildId, userId, moderatorId, reason ?? '', deleteMessageDays ?? 0);
         res.json({ success: true, caseId });
       } catch (err: any) {
@@ -439,7 +517,10 @@ export class WebServer {
 
     this.app.post('/api/moderation/mute', async (req: any, res: any) => {
       try {
-        const { guildId, userId, moderatorId, reason, durationMinutes } = req.body;
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const { userId, reason, durationMinutes } = req.body ?? {};
+        const moderatorId = req.body?.moderatorId || this.requestUser(req)?.id;
         const caseId = await this.appRef.moderation.mute?.(guildId, userId, moderatorId, reason ?? '', durationMinutes ?? 60);
         res.json({ success: true, caseId });
       } catch (err: any) {
@@ -453,7 +534,8 @@ export class WebServer {
     // the value shown here matches what /balance shows inside Discord.
     this.app.get('/api/economy/balance/:userId', async (req: any, res: any) => {
       try {
-        const guildId = (req.query.guildId as string) || this.resolveGuildId();
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
         const balance = await this.appRef.economy.getBalance(guildId, req.params.userId);
         res.json({ userId: req.params.userId, guildId, balance });
       } catch (err) {
@@ -471,7 +553,8 @@ export class WebServer {
         if (!Number.isFinite(target)) {
           return res.status(400).json({ error: 'balance must be a number' });
         }
-        const guildId = (req.body?.guildId as string) || this.resolveGuildId();
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
         const result = await this.appRef.economy.setBalance(guildId, userId, target);
         res.json({ success: true, userId, guildId, balance: result.balance });
       } catch (err: any) {
@@ -482,8 +565,9 @@ export class WebServer {
     // ---- Leveling ----
     this.app.get('/api/leveling/level/:userId', async (req: any, res: any) => {
       try {
-        const guildId = req.query.guildId as string;
-        const data = await this.appRef.leveling.getLevel?.(guildId ?? '', req.params.userId);
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const data = await this.appRef.leveling.getLevel?.(guildId, req.params.userId);
         if (!data) {
           return res.status(404).json({ error: 'No leveling data found' });
         }
@@ -493,11 +577,12 @@ export class WebServer {
       }
     });
 
-    this.app.get('/api/leveling/leaderboard', async (_req: any, res: any) => {
+    this.app.get('/api/leveling/leaderboard', async (req: any, res: any) => {
       try {
-        const guildId = _req.query.guildId as string;
-        const limit = parseInt(_req.query.limit as string) || 20;
-        const leaderboard = await this.appRef.leveling.getLeaderboard?.(guildId ?? '', limit) ?? [];
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+        const leaderboard = await this.appRef.leveling.getLeaderboard?.(guildId, limit) ?? [];
         res.json(leaderboard);
       } catch (err) {
         res.status(500).json({ error: 'Failed to fetch leaderboard' });
@@ -506,7 +591,7 @@ export class WebServer {
 
     this.app.post('/api/leveling/set-xp', async (req: any, res: any) => {
       try {
-        const { guildId, userId, xp } = req.body;
+        const { userId, xp } = req.body ?? {};
         if (!userId) {
           return res.status(400).json({ error: 'userId is required' });
         }
@@ -514,7 +599,9 @@ export class WebServer {
         if (!Number.isFinite(amount) || amount < 0) {
           return res.status(400).json({ error: 'xp must be a non-negative number' });
         }
-        const result = await this.appRef.leveling.setXP?.(guildId ?? '', userId, amount);
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const result = await this.appRef.leveling.setXP?.(guildId, userId, amount);
         if (!result) {
           return res.status(500).json({ error: 'Leveling service unavailable' });
         }
@@ -528,19 +615,21 @@ export class WebServer {
     // Must be registered BEFORE the generic /api/config/:service routes below.
     this.app.get('/api/config/guild_settings', async (req: any, res: any) => {
       try {
-        const guildId = this.resolveGuildId(req.query.guildId as string | undefined);
+        const guildId = this.requireGuild(req, res, req.query.guildId as string | undefined);
+        if (!guildId) return;
         const settings = await this.readGuildSettings(guildId);
         res.json(settings ?? this.defaultGuildSettings(guildId));
       } catch (err) {
         this.logger.error('Web Server', 'GET guild_settings failed', err as Error);
-        res.json(this.defaultGuildSettings(this.resolveGuildId()));
+        res.status(500).json({ error: 'Failed to read guild settings' });
       }
     });
 
     this.app.post('/api/config/guild_settings', async (req: any, res: any) => {
       try {
         const body = req.body ?? {};
-        const guildId = this.resolveGuildId(body.guildId);
+        const guildId = this.requireGuild(req, res, body.guildId);
+        if (!guildId) return;
         const saved = await this.writeGuildSettings(guildId, body);
         this.applyModuleToggles(saved);
         res.json({ success: true, config: saved });
@@ -846,6 +935,642 @@ export class WebServer {
         res.json({ success: true, presence: { status, activityName, activityType } });
       } catch (err: any) {
         res.status(500).json({ error: err.message || 'Failed to set presence' });
+      }
+    });
+
+    // ---- System operations (dashboard coverage for every module) ----
+
+    this.app.get('/api/systems/overview', async (req: any, res: any) => {
+      try {
+        const sqlite = this.sqliteOrNull();
+        if (!sqlite) return res.json({ guildId: null, counts: {}, systems: [] });
+        const user = this.requestUser(req);
+        const scoped = this.scopeGuildIds(req);
+        const isGlobal = this.auth.disabled || Boolean(user?.isOwner);
+        const guildId = req.query.guildId ? this.requireGuild(req, res, req.query.guildId as string) : null;
+        if (req.query.guildId && !guildId) return;
+        const ids = guildId ? [guildId] : scoped;
+        const where = `WHERE ${ids.length ? `guild_id IN (${ids.map((id) => `'${id}'`).join(',')})` : isGlobal ? '1=1' : '1=0'}`;
+        const tableWhere = (table: string) => `WHERE ${ids.length ? `${table}.guild_id IN (${ids.map((id) => `'${id}'`).join(',')})` : isGlobal ? '1=1' : '1=0'}`;
+        const count = (sql: string) => Number(this.safeGet(sqlite, sql)?.c ?? 0);
+
+        const ticketsOpen = count(`SELECT COUNT(*) c FROM tickets ${where} AND status = 'open'`.replace('WHERE  AND', 'WHERE '));
+        const ticketsTotal = count(`SELECT COUNT(*) c FROM tickets ${where}`);
+        const giveawaysActive = count(`SELECT COUNT(*) c FROM giveaways ${where} AND status = 'active'`.replace('WHERE  AND', 'WHERE '));
+        const giveawaysTotal = count(`SELECT COUNT(*) c FROM giveaways ${where}`);
+        const gamesActive = count(`SELECT COUNT(*) c FROM economy_games ${where} AND status != 'finished'`.replace('WHERE  AND', 'WHERE '));
+        const gamesTotal = count(`SELECT COUNT(*) c FROM economy_games ${where}`);
+        const appsPending = count(`SELECT COUNT(*) c FROM staff_applications ${where} AND status = 'pending'`.replace('WHERE  AND', 'WHERE '));
+        const appsTotal = count(`SELECT COUNT(*) c FROM staff_applications ${where}`);
+        const tempvcInstances = count(`SELECT COUNT(*) c FROM tempvc_instances ${where}`);
+        const automationEnabled = count(`SELECT COUNT(*) c FROM automation_jobs ${where} AND enabled = 1`.replace('WHERE  AND', 'WHERE '));
+        const automationTotal = count(`SELECT COUNT(*) c FROM automation_jobs ${where}`);
+        const moderationCases = count(`SELECT COUNT(*) c FROM moderation_cases ${where}`);
+        const warningsActive = count(`SELECT COUNT(*) c FROM warnings ${where} AND active = 1`.replace('WHERE  AND', 'WHERE '));
+        const economyAccounts = count(`SELECT COUNT(*) c FROM economy_accounts ${where}`);
+        const economyTotal = Number(this.safeGet(sqlite, `SELECT COALESCE(SUM(balance), 0) total FROM economy_accounts ${where}`)?.total ?? 0);
+        const levelingProfiles = count(`SELECT COUNT(*) c FROM leveling_profiles ${where}`);
+        const aiConversations = count(`SELECT COUNT(*) c FROM ai_conversations ${where}`);
+        const musicSessions = count(`SELECT COUNT(*) c FROM music_sessions ${tableWhere('music_sessions')}`);
+
+        res.json({
+          guildId,
+          counts: {
+            tickets: { open: ticketsOpen, total: ticketsTotal },
+            giveaways: { active: giveawaysActive, total: giveawaysTotal },
+            games: { active: gamesActive, total: gamesTotal },
+            staffapps: { pending: appsPending, total: appsTotal },
+            tempvc: { instances: tempvcInstances },
+            automation: { enabled: automationEnabled, total: automationTotal },
+            moderation: { cases: moderationCases, warnings: warningsActive },
+            economy: { accounts: economyAccounts, totalBalance: economyTotal },
+            leveling: { profiles: levelingProfiles },
+            ai: { conversations: aiConversations },
+            music: { sessions: musicSessions },
+          },
+        });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/systems/overview failed', err as Error);
+        res.status(500).json({ error: 'Failed to build systems overview' });
+      }
+    });
+
+    // ---- Tickets ----
+    this.app.get('/api/tickets', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const status = String(req.query.status || 'all');
+        const sqlite = this.sqliteOrNull();
+        if (!sqlite) return res.json([]);
+        const filter = status === 'open' || status === 'closed' ? ` AND t.status = '${status}'` : '';
+        const rows = this.safeAll(
+          sqlite,
+          `SELECT t.*, u.username AS user_name, a.username AS assignee_name
+           FROM tickets t
+           LEFT JOIN users u ON u.id = t.user_id
+           LEFT JOIN users a ON a.id = t.assigned_to
+           WHERE t.guild_id = ?${filter}
+           ORDER BY t.created_at DESC LIMIT 250`,
+          [guildId],
+        );
+        res.json(rows.map((t: any) => ({
+          id: t.id,
+          guildId: t.guild_id,
+          userId: t.user_id,
+          username: t.user_name || null,
+          channelId: t.channel_id,
+          category: t.category,
+          status: t.status,
+          assignedTo: t.assigned_to,
+          assigneeName: t.assignee_name || null,
+          closeReason: t.close_reason,
+          createdAt: this.toIso(t.created_at),
+          updatedAt: this.toIso(t.updated_at),
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/tickets failed', err as Error);
+        res.status(500).json({ error: 'Failed to load tickets' });
+      }
+    });
+
+    this.app.post('/api/tickets/:id/:action', async (req: any, res: any) => {
+      try {
+        const ticket = await this.appRef.tickets?.getTicket?.(req.params.id);
+        if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), ticket.guildId)) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        const actor = this.requestUser(req)?.id || 'dashboard';
+        const reason = String(req.body?.reason || 'Handled from the dashboard');
+        switch (req.params.action) {
+          case 'claim':
+            await this.appRef.tickets.claimTicket(ticket.id, actor);
+            break;
+          case 'close':
+            await this.appRef.tickets.closeTicket(ticket.id, actor, reason, true);
+            break;
+          case 'reopen':
+            await this.appRef.tickets.reopenTicket(ticket.id, actor);
+            break;
+          case 'delete':
+            await this.appRef.tickets.deleteTicket(ticket.id, actor);
+            break;
+          default:
+            return res.status(400).json({ error: 'Unknown ticket action' });
+        }
+        res.json({ success: true });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Ticket action failed' });
+      }
+    });
+
+    // ---- Giveaways ----
+    this.app.get('/api/giveaways', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const list = await this.appRef.giveaways?.listGiveaways?.(guildId) ?? [];
+        res.json(list.map((g: any) => ({
+          id: g.id,
+          guildId: g.guildId,
+          channelId: g.channelId,
+          hostId: g.hostId,
+          prize: g.prize,
+          description: g.description,
+          status: g.status,
+          endsAt: g.endsAt instanceof Date ? g.endsAt.toISOString() : this.toIso(g.endsAt),
+          winnerCount: g.winnerCount,
+          winnerIds: g.winnerIds ?? [],
+          requiredRoles: g.requiredRoles ?? [],
+          entryCount: g.entryCount,
+          prizeAmount: g.prizeAmount,
+          funded: g.funded,
+          createdAt: g.createdAt instanceof Date ? g.createdAt.toISOString() : this.toIso(g.createdAt),
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/giveaways failed', err as Error);
+        res.status(500).json({ error: 'Failed to load giveaways' });
+      }
+    });
+
+    this.app.post('/api/giveaways/:id/:action', async (req: any, res: any) => {
+      try {
+        const giveaway = await this.appRef.giveaways?.getGiveaway?.(req.params.id);
+        if (!giveaway) return res.status(404).json({ error: 'Giveaway not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), giveaway.guildId)) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        const actor = this.requestUser(req)?.id || 'dashboard';
+        if (req.params.action === 'end') {
+          await this.appRef.giveaways.endGiveaway(giveaway.id, actor);
+          return res.json({ success: true });
+        }
+        if (req.params.action === 'cancel') {
+          await this.appRef.giveaways.cancelGiveaway(giveaway.id, actor);
+          return res.json({ success: true });
+        }
+        if (req.params.action === 'reroll') {
+          const winners = await this.appRef.giveaways.rerollGiveaway(giveaway.id);
+          return res.json({ success: true, winners });
+        }
+        return res.status(400).json({ error: 'Unknown giveaway action' });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Giveaway action failed' });
+      }
+    });
+
+    // ---- Economy games ----
+    this.app.get('/api/games', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const sqlite = this.sqliteOrNull();
+        if (!sqlite) return res.json([]);
+        const rows = this.safeAll(
+          sqlite,
+          `SELECT g.*, (SELECT COUNT(*) FROM economy_game_players p WHERE p.game_id = g.id) AS player_count
+           FROM economy_games g WHERE g.guild_id = ?
+           ORDER BY g.created_at DESC LIMIT 200`,
+          [guildId],
+        );
+        res.json(rows.map((g: any) => ({
+          id: g.id,
+          guildId: g.guild_id,
+          channelId: g.channel_id,
+          hostId: g.host_id,
+          type: g.type,
+          prizePool: Number(g.prize_pool ?? 0),
+          entryFee: Number(g.entry_fee ?? 0),
+          status: g.status,
+          winnerId: g.winner_id,
+          playerCount: Number(g.player_count ?? 0),
+          endsAt: this.toIso(g.ends_at),
+          createdAt: this.toIso(g.created_at),
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/games failed', err as Error);
+        res.status(500).json({ error: 'Failed to load games' });
+      }
+    });
+
+    this.app.post('/api/games/:id/end', async (req: any, res: any) => {
+      try {
+        const game = await this.appRef.economyGames?.getGameAsync?.(req.params.id);
+        if (!game) return res.status(404).json({ error: 'Game not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), game.guildId)) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        const result = await this.appRef.economyGames.endGame(game.id);
+        res.json({ success: true, ...result });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Could not end the game' });
+      }
+    });
+
+    // ---- Staff applications ----
+    this.app.get('/api/staffapps', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const status = String(req.query.status || 'all');
+        const sqlite = this.sqliteOrNull();
+        if (!sqlite) return res.json([]);
+        const filter = ['pending', 'approved', 'denied'].includes(status) ? ` AND s.status = '${status}'` : '';
+        const rows = this.safeAll(
+          sqlite,
+          `SELECT s.*, u.username AS user_name
+           FROM staff_applications s
+           LEFT JOIN users u ON u.id = s.user_id
+           WHERE s.guild_id = ?${filter}
+           ORDER BY s.created_at DESC LIMIT 250`,
+          [guildId],
+        );
+        const parse = (value: any) => {
+          if (Array.isArray(value)) return value;
+          try { return JSON.parse(value || '[]'); } catch { return []; }
+        };
+        res.json(rows.map((s: any) => ({
+          id: s.id,
+          guildId: s.guild_id,
+          userId: s.user_id,
+          username: s.user_name || null,
+          roleId: s.role_id,
+          answers: parse(s.answers),
+          status: s.status,
+          reviewerId: s.reviewer_id,
+          reviewReason: s.review_reason,
+          createdAt: this.toIso(s.created_at),
+          reviewedAt: this.toIso(s.reviewed_at),
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/staffapps failed', err as Error);
+        res.status(500).json({ error: 'Failed to load applications' });
+      }
+    });
+
+    this.app.post('/api/staffapps/:id/:action', async (req: any, res: any) => {
+      try {
+        const action = req.params.action;
+        if (action !== 'approve' && action !== 'deny') {
+          return res.status(400).json({ error: 'Unknown application action' });
+        }
+        const sqlite = this.sqliteOrNull();
+        const row = sqlite ? this.safeGet(sqlite, 'SELECT guild_id FROM staff_applications WHERE id = ?', [req.params.id]) : null;
+        if (!row) return res.status(404).json({ error: 'Application not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), String(row.guild_id))) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        const reviewer = this.requestUser(req)?.id || 'dashboard';
+        const result = await this.appRef.staffapps.reviewApplication(req.params.id, reviewer, action, String(req.body?.reason || ''));
+        if (!result.ok) return res.status(400).json({ error: result.message });
+        res.json({ success: true, message: result.message });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Application review failed' });
+      }
+    });
+
+    // ---- Temporary voice ----
+    this.app.get('/api/tempvc', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const sqlite = this.sqliteOrNull();
+        const config = this.appRef.tempvc?.getGuildConfig?.(guildId) ?? null;
+        const rows = sqlite
+          ? this.safeAll(sqlite, 'SELECT * FROM tempvc_instances WHERE guild_id = ? ORDER BY created_at DESC', [guildId])
+          : [];
+        const client = this.appRef.getClient?.();
+        const guild = client?.guilds?.cache?.get(guildId);
+        res.json({
+          guildId,
+          config,
+          instances: rows.map((i: any) => ({
+            id: i.id,
+            guildId: i.guild_id,
+            channelId: i.channel_id,
+            ownerId: i.owner_id,
+            categoryId: i.category_id,
+            channelName: guild?.channels?.cache?.get?.(i.channel_id)?.name ?? null,
+            memberCount: guild?.channels?.cache?.get?.(i.channel_id)?.members?.size ?? null,
+            createdAt: this.toIso(i.created_at),
+          })),
+        });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/tempvc failed', err as Error);
+        res.status(500).json({ error: 'Failed to load temp voice data' });
+      }
+    });
+
+    this.app.delete('/api/tempvc/:channelId', async (req: any, res: any) => {
+      try {
+        const sqlite = this.sqliteOrNull();
+        const row = sqlite ? this.safeGet(sqlite, 'SELECT * FROM tempvc_instances WHERE channel_id = ?', [req.params.channelId]) : null;
+        if (!row) return res.status(404).json({ error: 'Temp voice channel not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), String(row.guild_id))) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        await this.appRef.tempvc.deleteTempVC(req.params.channelId);
+        res.json({ success: true });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Could not delete the channel' });
+      }
+    });
+
+    // ---- Community (per-guild welcome / goodbye / autoroles) ----
+    this.app.get('/api/community', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const row = await this.readGuildSettings(guildId);
+        const globalConfig = this.appRef.community?.getConfig?.() ?? {};
+        const roles = (() => {
+          const value = row?.autorole_ids;
+          if (Array.isArray(value)) return value.map(String);
+          try { return JSON.parse(value || '[]').map(String); } catch { return []; }
+        })();
+        res.json({
+          guildId,
+          welcome: {
+            enabled: row?.welcome_enabled ?? Boolean(globalConfig?.welcome?.enabled),
+            channel: row?.welcome_channel_id ?? globalConfig?.welcome?.channel ?? '',
+            message: row?.welcome_message ?? globalConfig?.welcome?.message ?? 'Welcome {user} to {server}!',
+            embed: globalConfig?.welcome?.embed !== false,
+            sendImage: globalConfig?.welcome?.sendImage !== false,
+          },
+          goodbye: {
+            enabled: row?.goodbye_enabled ?? Boolean(globalConfig?.goodbye?.enabled),
+            channel: row?.goodbye_channel_id ?? globalConfig?.goodbye?.channel ?? '',
+            message: row?.goodbye_message ?? globalConfig?.goodbye?.message ?? 'Goodbye {username}!',
+          },
+          autoroles: {
+            enabled: row?.autoroles_enabled ?? Boolean(globalConfig?.autoroles?.enabled),
+            roleIds: roles,
+          },
+          source: row ? 'guild' : 'global',
+        });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/community failed', err as Error);
+        res.status(500).json({ error: 'Failed to load community settings' });
+      }
+    });
+
+    this.app.post('/api/community', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const body = req.body ?? {};
+        const patch: any = {};
+        if (body.welcome) {
+          if (body.welcome.enabled !== undefined) patch.welcome_enabled = Boolean(body.welcome.enabled);
+          if (body.welcome.channel !== undefined) patch.welcome_channel_id = String(body.welcome.channel);
+          if (body.welcome.message !== undefined) patch.welcome_message = String(body.welcome.message);
+        }
+        if (body.goodbye) {
+          if (body.goodbye.enabled !== undefined) patch.goodbye_enabled = Boolean(body.goodbye.enabled);
+          if (body.goodbye.channel !== undefined) patch.goodbye_channel_id = String(body.goodbye.channel);
+          if (body.goodbye.message !== undefined) patch.goodbye_message = String(body.goodbye.message);
+        }
+        if (body.autoroles) {
+          if (body.autoroles.enabled !== undefined) patch.autoroles_enabled = Boolean(body.autoroles.enabled);
+          if (Array.isArray(body.autoroles.roleIds)) patch.autorole_ids = body.autoroles.roleIds.map(String);
+        }
+        await this.writeGuildSettings(guildId, patch);
+        res.json({ success: true });
+      } catch (err: any) {
+        res.status(500).json({ error: err.message || 'Failed to save community settings' });
+      }
+    });
+
+    // ---- Automation jobs ----
+    this.app.get('/api/automation', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const jobs = await this.appRef.automation?.listJobs?.(guildId) ?? [];
+        res.json(jobs.map((job: any) => ({
+          ...job,
+          lastRun: job.lastRun ? new Date(job.lastRun).toISOString() : null,
+          nextRun: job.nextRun ? new Date(job.nextRun).toISOString() : null,
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/automation failed', err as Error);
+        res.status(500).json({ error: 'Failed to load automation jobs' });
+      }
+    });
+
+    this.app.post('/api/automation', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const { type, cron, channelId, message, title, description, color } = req.body ?? {};
+        if (!type || !cron) return res.status(400).json({ error: 'type and cron are required' });
+        const jobConfig: any = { channelId: String(channelId || '') };
+        if (type === 'message') jobConfig.message = String(message || '');
+        if (type === 'embed') {
+          jobConfig.title = String(title || '');
+          jobConfig.description = String(description || message || '');
+          jobConfig.color = String(color || '#5865f2');
+        }
+        if (type === 'log') jobConfig.message = String(message || 'Scheduled log tick');
+        const id = await this.appRef.automation.addJob({
+          guildId,
+          type: String(type),
+          cronExpression: String(cron),
+          enabled: true,
+          config: jobConfig,
+        });
+        res.json({ success: true, id });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Could not create the job' });
+      }
+    });
+
+    this.app.post('/api/automation/:id/:action', async (req: any, res: any) => {
+      try {
+        const sqlite = this.sqliteOrNull();
+        const row = sqlite ? this.safeGet(sqlite, 'SELECT guild_id, enabled FROM automation_jobs WHERE id = ?', [req.params.id]) : null;
+        if (!row) return res.status(404).json({ error: 'Job not found' });
+        if (!this.auth.canAccessGuild(this.requestUser(req), String(row.guild_id))) {
+          return res.status(403).json({ error: 'guild_forbidden' });
+        }
+        const action = req.params.action;
+        if (action === 'run') {
+          await this.appRef.automation.runJobNow(req.params.id);
+          return res.json({ success: true });
+        }
+        if (action === 'toggle') {
+          const next = typeof req.body?.enabled === 'boolean' ? req.body.enabled : !Boolean(row.enabled);
+          await this.appRef.automation.setJobEnabled(req.params.id, next);
+          return res.json({ success: true, enabled: next });
+        }
+        if (action === 'delete') {
+          await this.appRef.automation.removeJob(req.params.id);
+          return res.json({ success: true });
+        }
+        return res.status(400).json({ error: 'Unknown automation action' });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Automation action failed' });
+      }
+    });
+
+    // ---- AI ----
+    this.app.get('/api/ai/status', async (_req: any, res: any) => {
+      try {
+        const config = this.appRef.ai?.getConfig?.() ?? {};
+        const sqlite = this.sqliteOrNull();
+        const conversations = sqlite ? Number(this.safeGet(sqlite, 'SELECT COUNT(*) c FROM ai_conversations')?.c ?? 0) : 0;
+        res.json({
+          enabled: Boolean(config.enabled),
+          displayName: config.displayName ?? 'Sukuna',
+          provider: config.provider ?? 'gemini',
+          model: config.model ?? '',
+          hasApiKey: Boolean(config.apiKey),
+          channelIds: config.channelIds ?? [],
+          historySize: config.historySize,
+          batchWindowMs: config.batchWindowMs,
+          replyCooldownSeconds: config.replyCooldownSeconds,
+          decisionCooldownSeconds: config.decisionCooldownSeconds,
+          maxRepliesPerHour: config.maxRepliesPerHour,
+          maxMessageLength: config.maxMessageLength,
+          temperature: config.temperature,
+          conversations,
+        });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/ai/status failed', err as Error);
+        res.status(500).json({ error: 'Failed to read AI status' });
+      }
+    });
+
+    this.app.get('/api/ai/conversations', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const sqlite = this.sqliteOrNull();
+        if (!sqlite) return res.json([]);
+        const rows = this.safeAll(
+          sqlite,
+          `SELECT id, guild_id, user_id, channel_id, provider, model, messages, created_at, updated_at
+           FROM ai_conversations WHERE guild_id = ? ORDER BY updated_at DESC LIMIT 50`,
+          [guildId],
+        );
+        res.json(rows.map((row: any) => {
+          let count = 0;
+          try {
+            const parsed = typeof row.messages === 'string' ? JSON.parse(row.messages) : row.messages;
+            count = Array.isArray(parsed) ? parsed.length : 0;
+          } catch { count = 0; }
+          return {
+            id: row.id,
+            userId: row.user_id,
+            channelId: row.channel_id,
+            provider: row.provider,
+            model: row.model,
+            messageCount: count,
+            createdAt: this.toIso(row.created_at),
+            updatedAt: this.toIso(row.updated_at),
+          };
+        }));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/ai/conversations failed', err as Error);
+        res.status(500).json({ error: 'Failed to load conversations' });
+      }
+    });
+
+    this.app.post('/api/ai/test', async (req: any, res: any) => {
+      try {
+        const prompt = String(req.body?.prompt || '').trim();
+        if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+        if (!this.appRef.ai?.testAsk) return res.status(503).json({ error: 'AI service unavailable' });
+        const client = this.appRef.getClient?.();
+        const guild = req.body?.guildId ? client?.guilds?.cache?.get(String(req.body.guildId)) : undefined;
+        const channel = req.body?.channelId ? guild?.channels?.cache?.get(String(req.body.channelId)) : undefined;
+        const started = Date.now();
+        const result = await this.appRef.ai.testAsk(prompt, guild, channel);
+        res.json({ success: true, latencyMs: Date.now() - started, ...result });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'AI request failed' });
+      }
+    });
+
+    // ---- Music ----
+    this.app.get('/api/music/status', async (_req: any, res: any) => {
+      try {
+        const status = this.appRef.music?.getStatus?.() ?? { enabled: false, ready: false, players: [] };
+        res.json(status);
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/music/status failed', err as Error);
+        res.status(500).json({ error: 'Failed to read music status' });
+      }
+    });
+
+    this.app.get('/api/music/queue', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const music = this.appRef.music;
+        if (!music) return res.json({ ready: false, nowPlaying: null, queue: [], session: null });
+        const [nowPlaying, queue, session] = await Promise.all([
+          music.getNowPlaying?.(guildId).catch(() => null) ?? null,
+          music.getQueue?.(guildId).catch(() => []) ?? [],
+          music.getSession?.(guildId).catch(() => null) ?? null,
+        ]);
+        res.json({ ready: Boolean(music.isReady), nowPlaying, queue, session });
+      } catch (err: any) {
+        res.json({ ready: false, nowPlaying: null, queue: [], session: null, error: err.message });
+      }
+    });
+
+    this.app.post('/api/music/controls', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const action = String(req.body?.action || '');
+        const music = this.appRef.music;
+        if (!music) return res.status(503).json({ error: 'Music service unavailable' });
+        switch (action) {
+          case 'skip': await music.skip(guildId); break;
+          case 'stop': await music.stop(guildId); break;
+          case 'pause': await music.pause(guildId); break;
+          case 'resume': await music.resume(guildId); break;
+          case 'volume': {
+            const volume = Math.max(0, Math.min(200, Number(req.body?.volume ?? 50)));
+            await music.setVolume(guildId, volume);
+            break;
+          }
+          default:
+            return res.status(400).json({ error: 'Unknown music action' });
+        }
+        res.json({ success: true });
+      } catch (err: any) {
+        res.status(400).json({ error: err.message || 'Music action failed' });
+      }
+    });
+
+    // ---- Analytics ----
+    this.app.get('/api/analytics', async (req: any, res: any) => {
+      try {
+        const user = this.requestUser(req);
+        const canSeeGlobal = this.auth.disabled || Boolean(user?.isOwner);
+        let guildId = req.query.guildId ? String(req.query.guildId) : '';
+        if (guildId) {
+          const checked = this.requireGuild(req, res, guildId);
+          if (!checked) return;
+          guildId = checked;
+        } else if (!canSeeGlobal) {
+          const checked = this.requireGuild(req, res);
+          if (!checked) return;
+          guildId = checked;
+        }
+        const days = Math.min(60, Math.max(1, parseInt(req.query.days as string) || 14));
+        const [stats, series] = await Promise.all([
+          guildId ? this.appRef.analytics?.getGuildStats?.(guildId) : this.appRef.analytics?.getStats?.(),
+          this.appRef.analytics?.getActivitySeries?.(guildId || undefined, days) ?? [],
+        ]);
+        res.json({ guildId: guildId || null, global: !guildId, stats: stats ?? {}, series });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/analytics failed', err as Error);
+        res.status(500).json({ error: 'Failed to load analytics' });
       }
     });
 
@@ -1254,16 +1979,51 @@ export class WebServer {
     }
   }
 
-  private resolveGuildId(explicit?: string): string {
+  private resolveGuildId(explicit?: string, user?: DashboardUser | null): string {
     if (explicit) return explicit;
     try {
       const client = this.appRef.getClient?.();
-      const firstGuild = client?.guilds?.cache?.first?.();
-      if (firstGuild) return firstGuild.id;
+      const guilds: any[] = client?.guilds?.cache ? [...client.guilds.cache.values()] : [];
+      const allowed = user ? this.auth.filterGuilds(user, guilds.map((g) => String(g.id))) : guilds.map((g) => String(g.id));
+      const firstAllowed = guilds.find((g) => allowed.includes(String(g.id)));
+      if (firstAllowed) return String(firstAllowed.id);
+      if (guilds[0]) return String(guilds[0].id);
     } catch {
       // Discord client not ready yet — fall through to the default bucket
     }
     return 'global';
+  }
+
+  private requestUser(req: any): DashboardUser | null {
+    return (req?.dashboardUser as DashboardUser | undefined) ?? null;
+  }
+
+  /** Guild ids the current user is allowed to query, scoped to the bot's guilds. */
+  private scopeGuildIds(req: any): string[] {
+    const client = this.appRef.getClient?.();
+    const all: string[] = client?.guilds?.cache ? [...client.guilds.cache.keys()].map(String) : [];
+    const user = this.requestUser(req);
+    if (!user) return [];
+    if (this.auth.disabled || user.isOwner) return all;
+    return all.filter((id) => user.guildIds.includes(id));
+  }
+
+  /**
+   * Resolve the guild for a request and enforce per-guild authorization.
+   * Returns null after writing a 400/403 response.
+   */
+  private requireGuild(req: any, res: any, explicit?: string): string | null {
+    const user = this.requestUser(req);
+    const guildId = explicit || String(req.query?.guildId || req.body?.guildId || '') || this.resolveGuildId(undefined, user);
+    if (!guildId || guildId === 'global') {
+      res.status(400).json({ error: 'guild_required', message: 'Select a server first.' });
+      return null;
+    }
+    if (!this.auth.canAccessGuild(user, guildId)) {
+      res.status(403).json({ error: 'guild_forbidden', message: 'You do not have access to this server.' });
+      return null;
+    }
+    return guildId;
   }
 
   private defaultGuildSettings(guildId: string): any {

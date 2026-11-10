@@ -7,6 +7,17 @@ const PAGE_META = {
   economy: { title: 'Economy', subtitle: 'Balances, transactions and currency settings' },
   leveling: { title: 'Leveling', subtitle: 'Leaderboards, XP and rewards' },
   cards: { title: 'Cards', subtitle: 'Design welcome and rank cards' },
+  tickets: { title: 'Tickets', subtitle: 'Support tickets, claims and closures' },
+  giveaways: { title: 'Giveaways', subtitle: 'Escrow-funded giveaways and winners' },
+  games: { title: 'Economy games', subtitle: 'Dice, coinflip and prize games' },
+  staffapps: { title: 'Staff applications', subtitle: 'Review and approve applicants' },
+  tempvc: { title: 'Temporary voice', subtitle: 'Live temporary voice channels' },
+  community: { title: 'Community', subtitle: 'Welcome, goodbye and autoroles' },
+  automation: { title: 'Automation', subtitle: 'Scheduled background jobs' },
+  analytics: { title: 'Analytics', subtitle: 'Message tracking and the stats collector' },
+  ai: { title: 'AI assistant', subtitle: 'Provider, limits and conversations' },
+  music: { title: 'Music', subtitle: 'Lavalink node and playback queues' },
+  analytics: { title: 'Analytics', subtitle: 'Activity, moderation and economy trends' },
   settings: { title: 'Settings', subtitle: 'Configure every module of the bot' },
   system: { title: 'System', subtitle: 'Runtime, process and host diagnostics' },
 };
@@ -52,6 +63,7 @@ const app = {
     this.setupForms();
     this.setupColorPairs();
     this.setupCardEditors();
+    this.loadMe();
 
     if (initialPage !== 'dashboard') this.openPage(initialPage, false);
     this.setActiveNav(initialPage);
@@ -126,6 +138,11 @@ const app = {
 
   openPage(page, updateHash = true) {
     if (!PAGE_META[page]) return;
+    const ownerOnly = ['settings', 'cards', 'system'];
+    if (this._me && !this._me.user?.isOwner && ownerOnly.includes(page)) {
+      this.showAlert('That area is restricted to the bot owner.', 'error');
+      page = 'dashboard';
+    }
     this.currentPage = page;
 
     document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
@@ -165,6 +182,16 @@ const app = {
     if (page === 'leveling') this.loadLeveling();
     if (page === 'cards') this.loadCardsConfig();
     if (page === 'system') this.fetchSystemInfo();
+    if (page === 'tickets') this.loadTickets();
+    if (page === 'giveaways') this.loadGiveaways();
+    if (page === 'games') this.loadGames();
+    if (page === 'staffapps') this.loadStaffApps();
+    if (page === 'tempvc') this.loadTempVC();
+    if (page === 'community') this.loadCommunity();
+    if (page === 'automation') this.loadAutomation();
+    if (page === 'ai') this.loadAI();
+    if (page === 'music') this.loadMusic();
+    if (page === 'analytics') this.loadAnalytics();
     if (page === 'settings') {
       this.openSettingsSection(this.settingsSection || 'overview', false);
       this.loadSettings();
@@ -214,6 +241,7 @@ const app = {
       music: 'toggleMusic',
       tempvc: 'tvc_enabled',
       automation: 'auto_enabled',
+      analytics: 'ana_enabled',
       moderation: 'mod_enabled',
       tickets: 'tix_enabled',
       staffapps: 'sapp_enabled',
@@ -236,15 +264,60 @@ const app = {
   async request(endpoint, options = {}) {
     try {
       const res = await fetch(`${API}${endpoint}`, {
-        headers: { 'Content-Type': 'application/json', ...options.headers },
         ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        credentials: 'same-origin',
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (res.status === 401) {
+        window.location.href = '/auth/login';
+        throw new Error('Your session expired — redirecting to Discord sign-in.');
+      }
+      if (!res.ok) {
+        let message = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          message = body?.message || body?.error || message;
+        } catch { /* response was not JSON */ }
+        throw new Error(message);
+      }
       return await res.json();
     } catch (err) {
       console.error('API error:', err);
       throw err;
     }
+  },
+
+  async loadMe() {
+    try {
+      const me = await this.request('/auth/me');
+      this._me = me;
+      const chip = document.getElementById('userChip');
+      const avatar = document.getElementById('userAvatar');
+      const name = document.getElementById('userName');
+      const role = document.getElementById('userRole');
+      if (chip) chip.style.display = 'flex';
+      if (name) name.textContent = me?.user?.displayName || me?.user?.username || 'Signed in';
+      if (role) role.textContent = me?.user?.isOwner ? 'Bot owner' : 'Server admin';
+      if (avatar) {
+        const url = me?.user?.avatar
+          ? `https://cdn.discordapp.com/avatars/${me.user.id}/${me.user.avatar}.png?size=64`
+          : '';
+        if (url) { avatar.src = url; avatar.style.display = 'grid'; } else { avatar.style.display = 'none'; }
+      }
+      if (!me?.user?.isOwner) {
+        document.querySelectorAll('.nav-btn[data-page="settings"], .nav-btn[data-page="cards"], .nav-btn[data-page="system"]')
+          .forEach((btn) => { btn.style.display = 'none'; });
+      }
+    } catch (err) {
+      this._me = null;
+    }
+  },
+
+  async logout() {
+    try {
+      await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch { /* ignore — we are leaving anyway */ }
+    window.location.href = '/login';
   },
 
   async requestBlob(endpoint, options = {}) {
@@ -716,6 +789,7 @@ const app = {
       console.error('Failed to load overview:', err);
       this.renderOverview(null);
     }
+    this.loadSystemTiles();
   },
 
   renderOverview(data) {
@@ -990,6 +1064,19 @@ const app = {
           this.refreshChannelPickers().catch(() => undefined);
         });
       }
+
+      // Populate every per-system server picker (data-guild-select).
+      document.querySelectorAll('select[data-guild-select]').forEach((sel) => {
+        const saved = sel.value;
+        sel.innerHTML = '<option value="">Select a server</option>';
+        guilds.forEach((g) => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = g.name;
+          sel.appendChild(opt);
+        });
+        sel.value = saved || (guilds[0] ? guilds[0].id : '');
+      });
     } catch (err) {
       console.error('Failed to fetch guilds:', err);
     }
@@ -1387,6 +1474,16 @@ const app = {
     if (this.currentPage === 'cards') this.loadCardsConfig();
     if (this.currentPage === 'settings') this.loadSettings();
     if (this.currentPage === 'system') { this.fetchSystemInfo(); this.fetchProcessInfo(); }
+    if (this.currentPage === 'tickets') this.loadTickets();
+    if (this.currentPage === 'giveaways') this.loadGiveaways();
+    if (this.currentPage === 'games') this.loadGames();
+    if (this.currentPage === 'staffapps') this.loadStaffApps();
+    if (this.currentPage === 'tempvc') this.loadTempVC();
+    if (this.currentPage === 'community') this.loadCommunity();
+    if (this.currentPage === 'automation') this.loadAutomation();
+    if (this.currentPage === 'ai') this.loadAI();
+    if (this.currentPage === 'music') this.loadMusic();
+    if (this.currentPage === 'analytics') this.loadAnalytics();
     if (!silent) this.showAlert('Dashboard refreshed', 'success');
   },
 
@@ -1497,6 +1594,7 @@ const app = {
       ['economy', (cfg) => this.fillEconomy(cfg)],
       ['tempvc', (cfg) => this.fillTempvc(cfg)],
       ['automation', (cfg) => this.fillAutomation(cfg)],
+      ['analytics', (cfg) => this.fillAnalytics(cfg)],
       ['community', (cfg) => this.fillCommunity(cfg)],
       ['tickets', (cfg) => this.fillTickets(cfg)],
       ['staffapps', (cfg) => this.fillStaffApps(cfg)],
@@ -2046,6 +2144,19 @@ const app = {
     });
   },
 
+  fillAnalytics(cfg) {
+    cfg = cfg || {};
+    this.setBool('ana_enabled', cfg.enabled !== false);
+    this.setBool('ana_trackMessages', cfg.trackMessages === true);
+  },
+
+  async saveAnalyticsConfig() {
+    await this.saveServiceConfig('analytics', 'Analytics', {
+      enabled: this.bool('ana_enabled'),
+      trackMessages: this.bool('ana_trackMessages'),
+    });
+  },
+
   fillCommunity(cfg) {
     if (!cfg) return;
     this._community = cfg;
@@ -2349,6 +2460,735 @@ const app = {
       this.showAlert('Restarting...', 'info');
     } catch (err) {
       this.showAlert(err.message || 'Failed to restart');
+    }
+  },
+
+  // ---------- Shared renderers for the system pages ----------
+
+  sysGuild(selectId) {
+    return document.getElementById(selectId)?.value || '';
+  },
+
+  sysMetrics(cards) {
+    const list = (cards || []).filter(Boolean);
+    if (!list.length) return '';
+    return `<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">${list.map((c) => `
+      <div class="stat-card">
+        <p class="text-slate-400 text-xs uppercase tracking-wider">${c.label}</p>
+        <h3 class="text-2xl font-bold stat-number">${c.value}</h3>
+        ${c.sub ? `<p class="text-xs text-slate-500 mt-1">${c.sub}</p>` : ''}
+      </div>`).join('')}</div>`;
+  },
+
+  sysTable(columns, rows, emptyText = 'Nothing to show yet.') {
+    if (!rows || rows.length === 0) {
+      return `<div class="empty-state p-8 text-center text-slate-500">${emptyText}</div>`;
+    }
+    return `<div class="table-container"><table class="w-full text-left border-collapse">
+      <thead><tr class="border-b border-white/5 text-slate-400 text-sm uppercase tracking-wider">
+        ${columns.map((c) => `<th class="pb-4 font-medium ${c.align || ''}">${c.label}</th>`).join('')}
+      </tr></thead>
+      <tbody class="text-sm divide-y divide-white/5">
+        ${rows.map((row) => `<tr class="hover:bg-white/5">${row.map((cell, i) => `<td class="py-3 px-2 ${columns[i]?.align || ''}">${cell}</td>`).join('')}</tr>`).join('')}
+      </tbody>
+    </table></div>`;
+  },
+
+  sysBadge(text, tone = 'neutral') {
+    return `<span class="badge badge-${tone}">${this.escapeHtml(text)}</span>`;
+  },
+
+  sysDate(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleString();
+  },
+
+  sysPerson(id, name) {
+    const label = name || (id ? `Member ${String(id).slice(0, 6)}` : 'Unknown');
+    return `<div class="font-medium text-slate-200">${this.escapeHtml(label)}</div><div class="text-xs text-slate-500 font-mono">${this.escapeHtml(id || '')}</div>`;
+  },
+
+  sysError(err) {
+    return `<div class="empty-state p-8 text-center text-red-400">${this.escapeHtml(err?.message || 'Failed to load data.')}</div>`;
+  },
+
+  sysEmpty(message) {
+    return `<div class="empty-state p-8 text-center text-slate-500">${this.escapeHtml(message)}</div>`;
+  },
+
+  async sysChannelOptions(guildId, selected, { textOnly = true } = {}) {
+    let channels = [];
+    try {
+      const entry = await this.fetchGuildChannels(guildId);
+      channels = entry?.channels ?? [];
+    } catch { /* ignore */ }
+    const usable = textOnly ? channels.filter((c) => c.type === 0 || c.type === 5) : channels;
+    const options = usable.map((c) => {
+      const name = c.type === 0 ? `#${c.name}` : c.name;
+      const sel = String(selected) === String(c.id) ? ' selected' : '';
+      return `<option value="${this.escapeHtml(c.id)}"${sel}>${this.escapeHtml(name)}</option>`;
+    }).join('');
+    return `<option value="">Not set</option>${options}`;
+  },
+
+  // ---------- Tickets ----------
+
+  async loadTickets() {
+    const el = document.getElementById('ticketContent');
+    if (!el) return;
+    const guildId = this.sysGuild('ticketGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view tickets.'); return; }
+    const status = document.getElementById('ticketStatus')?.value || 'all';
+    try {
+      const tickets = await this.request(`/tickets?guildId=${guildId}&status=${status}`);
+      const open = tickets.filter((t) => t.status === 'open').length;
+      const claimed = tickets.filter((t) => t.assignedTo).length;
+      const rows = tickets.map((t) => {
+        const actions = [];
+        if (t.status === 'open') {
+          if (!t.assignedTo) actions.push(`<button onclick="app.ticketAction('${t.id}','claim')" class="btn-ghost text-xs">Claim</button>`);
+          actions.push(`<button onclick="app.ticketAction('${t.id}','close')" class="btn-ghost text-xs">Close</button>`);
+        } else {
+          actions.push(`<button onclick="app.ticketAction('${t.id}','reopen')" class="btn-ghost text-xs">Reopen</button>`);
+        }
+        actions.push(`<button onclick="app.ticketAction('${t.id}','delete')" class="btn-ghost text-xs text-red-400">Delete</button>`);
+        return [
+          this.sysPerson(t.userId, t.username),
+          this.sysBadge(t.status, t.status === 'open' ? 'success' : 'neutral'),
+          this.escapeHtml(t.category || '—'),
+          t.assignedTo ? this.sysPerson(t.assignedTo, t.assigneeName) : '<span class="text-slate-500">Unclaimed</span>',
+          `<span class="text-xs text-slate-400">${this.sysDate(t.createdAt)}</span>`,
+          `<div class="flex gap-1 justify-end">${actions.join('')}</div>`,
+        ];
+      });
+      el.innerHTML = this.sysMetrics([
+        { label: 'Tickets', value: this.formatNumber(tickets.length), sub: `filter: ${status}` },
+        { label: 'Open', value: this.formatNumber(open) },
+        { label: 'Claimed', value: this.formatNumber(claimed) },
+        { label: 'Server', value: this.escapeHtml(guildId) },
+      ]) + this.sysTable([
+        { label: 'Member' }, { label: 'Status' }, { label: 'Category' }, { label: 'Assigned to' }, { label: 'Opened' }, { label: 'Actions', align: 'text-right' },
+      ], rows, 'No tickets match this filter.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async ticketAction(id, action) {
+    if (action === 'delete' && !confirm('Delete this ticket and its channel?')) return;
+    try {
+      await this.request(`/tickets/${id}/${action}`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: `Handled from the dashboard (${action})` }),
+      });
+      this.showAlert(`Ticket ${action} succeeded`, 'success');
+      this.loadTickets();
+    } catch (err) {
+      this.showAlert(err.message || 'Ticket action failed', 'error');
+    }
+  },
+
+  // ---------- Giveaways ----------
+
+  async loadGiveaways() {
+    const el = document.getElementById('giveawayContent');
+    if (!el) return;
+    const guildId = this.sysGuild('giveawayGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view giveaways.'); return; }
+    try {
+      const list = await this.request(`/giveaways?guildId=${guildId}`);
+      const active = list.filter((g) => g.status === 'active');
+      const escrow = active.filter((g) => g.funded).reduce((sum, g) => sum + Number(g.prizeAmount || 0), 0);
+      const entries = active.reduce((sum, g) => sum + Number(g.entryCount || 0), 0);
+      const rows = list.map((g) => {
+        const actions = [];
+        if (g.status === 'active') {
+          actions.push(`<button onclick="app.giveawayAction('${g.id}','end')" class="btn-ghost text-xs">End now</button>`);
+          actions.push(`<button onclick="app.giveawayAction('${g.id}','cancel')" class="btn-ghost text-xs text-red-400">Cancel</button>`);
+        } else if (g.status === 'ended' && !g.funded) {
+          actions.push(`<button onclick="app.giveawayAction('${g.id}','reroll')" class="btn-ghost text-xs">Reroll</button>`);
+        }
+        const winners = (g.winnerIds || []).map((w) => `<span class="badge badge-info mr-1">${this.escapeHtml(String(w).slice(0, 8))}</span>`).join('');
+        return [
+          `<div class="font-medium text-slate-200">${this.escapeHtml(g.prize)}</div><div class="text-xs text-slate-500 font-mono">${this.escapeHtml(g.id)}</div>`,
+          this.sysBadge(g.status, g.status === 'active' ? 'success' : 'neutral'),
+          `${this.formatNumber(g.entryCount)} entries`,
+          g.funded ? `${this.formatNumber(g.prizeAmount)} escrowed` : '<span class="text-slate-500">No prize pool</span>',
+          `<span class="text-xs text-slate-400">${this.sysDate(g.endsAt)}</span>`,
+          winners ? `<div class="text-xs">${winners}</div>` : '<span class="text-xs text-slate-500">—</span>',
+          `<div class="flex gap-1 justify-end">${actions.join('')}</div>`,
+        ];
+      });
+      el.innerHTML = this.sysMetrics([
+        { label: 'Giveaways', value: this.formatNumber(list.length) },
+        { label: 'Running', value: this.formatNumber(active.length) },
+        { label: 'Entries', value: this.formatNumber(entries) },
+        { label: 'In escrow', value: this.formatNumber(escrow) },
+      ]) + this.sysTable([
+        { label: 'Prize' }, { label: 'Status' }, { label: 'Entries' }, { label: 'Pool' }, { label: 'Ends' }, { label: 'Winners' }, { label: 'Actions', align: 'text-right' },
+      ], rows, 'No giveaways yet — create one with /giveaway create.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async giveawayAction(id, action) {
+    if (action === 'cancel' && !confirm('Cancel this giveaway and refund the escrow?')) return;
+    try {
+      const result = await this.request(`/giveaways/${id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+      this.showAlert(action === 'reroll' ? `New winners: ${(result.winners || []).join(', ') || 'none'}` : `Giveaway ${action} succeeded`, 'success');
+      this.loadGiveaways();
+    } catch (err) {
+      this.showAlert(err.message || 'Giveaway action failed', 'error');
+    }
+  },
+
+  // ---------- Economy games ----------
+
+  async loadGames() {
+    const el = document.getElementById('gameContent');
+    if (!el) return;
+    const guildId = this.sysGuild('gameGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view games.'); return; }
+    try {
+      const games = await this.request(`/games?guildId=${guildId}`);
+      const active = games.filter((g) => g.status !== 'finished');
+      const pool = active.reduce((sum, g) => sum + Number(g.prizePool || 0), 0);
+      const rows = games.map((g) => {
+        const actions = [];
+        if (g.status !== 'finished') {
+          actions.push(`<button onclick="app.gameAction('${g.id}')" class="btn-ghost text-xs">End now</button>`);
+        }
+        return [
+          `<div class="font-medium text-slate-200">${this.escapeHtml(String(g.type || 'game').replace(/_/g, ' '))}</div><div class="text-xs text-slate-500 font-mono">${this.escapeHtml(g.id)}</div>`,
+          this.sysBadge(g.status, g.status === 'finished' ? 'neutral' : 'success'),
+          `${this.formatNumber(g.prizePool)} pool`,
+          `${this.formatNumber(g.entryFee)} fee`,
+          `${g.playerCount} players`,
+          `<span class="text-xs text-slate-400">${this.sysDate(g.endsAt)}</span>`,
+          `<div class="flex gap-1 justify-end">${actions.join('')}</div>`,
+        ];
+      });
+      el.innerHTML = this.sysMetrics([
+        { label: 'Games', value: this.formatNumber(games.length) },
+        { label: 'Running', value: this.formatNumber(active.length) },
+        { label: 'Players', value: this.formatNumber(games.reduce((s, g) => s + Number(g.playerCount || 0), 0)) },
+        { label: 'Prize pool', value: this.formatNumber(pool) },
+      ]) + this.sysTable([
+        { label: 'Game' }, { label: 'Status' }, { label: 'Pool' }, { label: 'Fee' }, { label: 'Players' }, { label: 'Ends' }, { label: 'Actions', align: 'text-right' },
+      ], rows, 'No games running. Start one with /dice, /coinflip or /giveaway_game.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async gameAction(id) {
+    if (!confirm('End this game now? The winner is picked and the pool is paid out.')) return;
+    try {
+      const result = await this.request(`/games/${id}/end`, { method: 'POST', body: JSON.stringify({}) });
+      this.showAlert(result.winnerId ? `Winner: ${result.winnerUsername || result.winnerId}` : 'No winner — the pool was refunded', 'success');
+      this.loadGames();
+    } catch (err) {
+      this.showAlert(err.message || 'Could not end the game', 'error');
+    }
+  },
+
+  // ---------- Staff applications ----------
+
+  async loadStaffApps() {
+    const el = document.getElementById('staffContent');
+    if (!el) return;
+    const guildId = this.sysGuild('staffGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view applications.'); return; }
+    const status = document.getElementById('staffStatus')?.value || 'pending';
+    try {
+      const apps = await this.request(`/staffapps?guildId=${guildId}&status=${status}`);
+      this._staffApps = apps;
+      const rows = apps.map((app) => {
+        const actions = [`<button onclick="app.viewStaffApp('${app.id}')" class="btn-ghost text-xs">Answers</button>`];
+        if (app.status === 'pending') {
+          actions.push(`<button onclick="app.staffAction('${app.id}','approve')" class="btn-ghost text-xs text-green-400">Approve</button>`);
+          actions.push(`<button onclick="app.staffAction('${app.id}','deny')" class="btn-ghost text-xs text-red-400">Deny</button>`);
+        }
+        return [
+          this.sysPerson(app.userId, app.username),
+          `<span class="font-mono text-xs text-slate-300">${this.escapeHtml(app.roleId)}</span>`,
+          this.sysBadge(app.status, app.status === 'approved' ? 'success' : app.status === 'denied' ? 'danger' : 'warning'),
+          `<span class="text-xs text-slate-400">${this.sysDate(app.createdAt)}</span>`,
+          app.reviewerId ? `<span class="text-xs text-slate-400 font-mono">${this.escapeHtml(app.reviewerId)}</span>` : '<span class="text-slate-500">—</span>',
+          `<div class="flex gap-1 justify-end">${actions.join('')}</div>`,
+        ];
+      });
+      el.innerHTML = this.sysMetrics([
+        { label: 'Applications', value: this.formatNumber(apps.length), sub: `filter: ${status}` },
+        { label: 'Pending', value: this.formatNumber(apps.filter((a) => a.status === 'pending').length) },
+        { label: 'Approved', value: this.formatNumber(apps.filter((a) => a.status === 'approved').length) },
+        { label: 'Denied', value: this.formatNumber(apps.filter((a) => a.status === 'denied').length) },
+      ]) + this.sysTable([
+        { label: 'Applicant' }, { label: 'Role' }, { label: 'Status' }, { label: 'Submitted' }, { label: 'Reviewer' }, { label: 'Actions', align: 'text-right' },
+      ], rows, 'No applications with this status.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  viewStaffApp(id) {
+    const app = (this._staffApps || []).find((a) => a.id === id);
+    if (!app) return;
+    const answers = (app.answers || []).map((a) => `
+      <div class="border-b border-white/5 py-2">
+        <div class="text-xs uppercase tracking-wider text-slate-400">${this.escapeHtml(a.question || 'Question')}</div>
+        <div class="text-sm text-slate-200 mt-1">${this.escapeHtml(a.answer || '—')}</div>
+      </div>`).join('');
+    this.showModal('staffAppModal', `
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400">Applicant</span><span class="font-mono">${this.escapeHtml(app.userId)}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Role</span><span class="font-mono">${this.escapeHtml(app.roleId)}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Status</span><span>${this.sysBadge(app.status)}</span></div>
+        <div class="mt-3">${answers || '<div class="empty-state">No answers stored</div>'}</div>
+      </div>`, 'Staff application');
+  },
+
+  async staffAction(id, action) {
+    if (action === 'deny' && !confirm('Deny this application? The applicant is notified by DM.')) return;
+    try {
+      await this.request(`/staffapps/${id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+      this.showAlert(`Application ${action}d`, 'success');
+      this.loadStaffApps();
+    } catch (err) {
+      this.showAlert(err.message || 'Application review failed', 'error');
+    }
+  },
+
+  // ---------- Temporary voice ----------
+
+  async loadTempVC() {
+    const el = document.getElementById('tempvcContent');
+    if (!el) return;
+    const guildId = this.sysGuild('tempvcGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view temporary voice channels.'); return; }
+    try {
+      const data = await this.request(`/tempvc?guildId=${guildId}`);
+      const instances = data.instances || [];
+      const cfg = data.config;
+      const rows = instances.map((i) => [
+        `<div class="font-medium text-slate-200">${this.escapeHtml(i.channelName || i.channelId)}</div><div class="text-xs text-slate-500 font-mono">${this.escapeHtml(i.channelId)}</div>`,
+        this.sysPerson(i.ownerId),
+        i.memberCount === null ? '<span class="text-slate-500">—</span>' : `${i.memberCount} in room`,
+        `<span class="text-xs text-slate-400">${this.sysDate(i.createdAt)}</span>`,
+        `<div class="flex gap-1 justify-end"><button onclick="app.deleteTempVC('${i.channelId}')" class="btn-ghost text-xs text-red-400">Delete</button></div>`,
+      ]);
+      el.innerHTML = this.sysMetrics([
+        { label: 'Status', value: cfg ? (cfg.enabled ? 'Enabled' : 'Disabled') : 'Not set up', sub: 'join-to-create' },
+        { label: 'Live rooms', value: this.formatNumber(instances.length) },
+        { label: 'Hub channel', value: cfg?.createChannelId ? this.escapeHtml(String(cfg.createChannelId).slice(0, 8)) : '—' },
+        { label: 'Category', value: cfg?.categoryId ? this.escapeHtml(String(cfg.categoryId).slice(0, 8)) : '—' },
+      ]) + this.sysTable([
+        { label: 'Channel' }, { label: 'Owner' }, { label: 'Members' }, { label: 'Created' }, { label: 'Actions', align: 'text-right' },
+      ], rows, 'No temporary voice channels are live right now.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async deleteTempVC(channelId) {
+    if (!confirm('Delete this temporary voice channel?')) return;
+    try {
+      await this.request(`/tempvc/${channelId}`, { method: 'DELETE' });
+      this.showAlert('Temporary voice channel deleted', 'success');
+      this.loadTempVC();
+    } catch (err) {
+      this.showAlert(err.message || 'Could not delete the channel', 'error');
+    }
+  },
+
+  // ---------- Community (welcome / goodbye / autoroles) ----------
+
+  async loadCommunity() {
+    const el = document.getElementById('communityContent');
+    if (!el) return;
+    const guildId = this.sysGuild('communityGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to configure community messages.'); return; }
+    try {
+      const data = await this.request(`/community?guildId=${guildId}`);
+      const welcomeOptions = await this.sysChannelOptions(guildId, data.welcome.channel);
+      const goodbyeOptions = await this.sysChannelOptions(guildId, data.goodbye.channel);
+      el.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="stat-card">
+            <h3 class="font-bold text-lg mb-4">Welcome message</h3>
+            <div class="space-y-4">
+              <label class="flex items-center gap-2 text-sm text-slate-300">
+                <input type="checkbox" id="cmWelcomeEnabled" ${data.welcome.enabled ? 'checked' : ''}> Enable welcome messages
+              </label>
+              <div>
+                <label class="field-label">Channel</label>
+                <select id="cmWelcomeChannel" class="input-field">${welcomeOptions}</select>
+              </div>
+              <div>
+                <label class="field-label">Message</label>
+                <textarea id="cmWelcomeMessage" class="input-field" rows="3">${this.escapeHtml(data.welcome.message || '')}</textarea>
+                <p class="hint">Placeholders: {user}, {username}, {server}, {count}</p>
+              </div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <h3 class="font-bold text-lg mb-4">Goodbye message</h3>
+            <div class="space-y-4">
+              <label class="flex items-center gap-2 text-sm text-slate-300">
+                <input type="checkbox" id="cmGoodbyeEnabled" ${data.goodbye.enabled ? 'checked' : ''}> Enable goodbye messages
+              </label>
+              <div>
+                <label class="field-label">Channel</label>
+                <select id="cmGoodbyeChannel" class="input-field">${goodbyeOptions}</select>
+              </div>
+              <div>
+                <label class="field-label">Message</label>
+                <textarea id="cmGoodbyeMessage" class="input-field" rows="3">${this.escapeHtml(data.goodbye.message || '')}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card mt-6">
+          <h3 class="font-bold text-lg mb-4">Autoroles</h3>
+          <div class="space-y-4">
+            <label class="flex items-center gap-2 text-sm text-slate-300">
+              <input type="checkbox" id="cmAutorolesEnabled" ${data.autoroles.enabled ? 'checked' : ''}> Grant roles automatically on join
+            </label>
+            <div>
+              <label class="field-label">Role IDs (comma separated)</label>
+              <input type="text" id="cmAutoroleIds" class="input-field" value="${this.escapeHtml((data.autoroles.roleIds || []).join(', '))}" placeholder="123456789012345678, 987654321098765432">
+            </div>
+            <button onclick="app.saveCommunitySettings()" class="btn-primary">Save community settings</button>
+            <p class="hint">Values are stored per server in <code>guild_settings</code> and override the global defaults.</p>
+          </div>
+        </div>`;
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async saveCommunitySettings() {
+    const guildId = this.sysGuild('communityGuildSelect');
+    if (!guildId) return;
+    const roleIds = (document.getElementById('cmAutoroleIds')?.value || '')
+      .split(',').map((v) => v.trim()).filter(Boolean);
+    const payload = {
+      guildId,
+      welcome: {
+        enabled: document.getElementById('cmWelcomeEnabled')?.checked,
+        channel: document.getElementById('cmWelcomeChannel')?.value || '',
+        message: document.getElementById('cmWelcomeMessage')?.value || '',
+      },
+      goodbye: {
+        enabled: document.getElementById('cmGoodbyeEnabled')?.checked,
+        channel: document.getElementById('cmGoodbyeChannel')?.value || '',
+        message: document.getElementById('cmGoodbyeMessage')?.value || '',
+      },
+      autoroles: {
+        enabled: document.getElementById('cmAutorolesEnabled')?.checked,
+        roleIds,
+      },
+    };
+    try {
+      await this.request('/community', { method: 'POST', body: JSON.stringify(payload) });
+      this.showAlert('Community settings saved', 'success');
+      this.loadCommunity();
+    } catch (err) {
+      this.showAlert(err.message || 'Failed to save community settings', 'error');
+    }
+  },
+
+  // ---------- Automation ----------
+
+  async loadAutomation() {
+    const el = document.getElementById('automationContent');
+    if (!el) return;
+    const guildId = this.sysGuild('automationGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to manage automation jobs.'); return; }
+    try {
+      const jobs = await this.request(`/automation?guildId=${guildId}`);
+      const channelOptions = await this.sysChannelOptions(guildId, '', { textOnly: false });
+      const rows = jobs.map((job) => {
+        const actions = [
+          `<button onclick="app.automationAction('${job.id}','run')" class="btn-ghost text-xs">Run</button>`,
+          `<button onclick="app.automationAction('${job.id}','toggle')" class="btn-ghost text-xs">${job.enabled ? 'Pause' : 'Enable'}</button>`,
+          `<button onclick="app.automationAction('${job.id}','delete')" class="btn-ghost text-xs text-red-400">Delete</button>`,
+        ];
+        return [
+          `<div class="font-medium text-slate-200">${this.escapeHtml(job.type)}</div><div class="text-xs text-slate-500 font-mono">${this.escapeHtml(job.id)}</div>`,
+          `<span class="font-mono text-xs">${this.escapeHtml(job.cronExpression)}</span>`,
+          this.sysBadge(job.enabled ? 'enabled' : 'paused', job.enabled ? 'success' : 'warning'),
+          `<span class="text-xs text-slate-400">${this.sysDate(job.nextRun)}</span>`,
+          `<span class="text-xs text-slate-400">${this.sysDate(job.lastRun)}</span>`,
+          `<div class="flex gap-1 justify-end">${actions.join('')}</div>`,
+        ];
+      });
+      el.innerHTML = `
+        <div class="stat-card mb-6">
+          <h3 class="font-bold text-lg mb-4">Schedule a new job</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label class="field-label">Type</label>
+              <select id="autoType" class="input-field">
+                <option value="message">Message</option>
+                <option value="embed">Embed</option>
+                <option value="log">Log only</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Cron</label>
+              <input type="text" id="autoCron" class="input-field" value="0 9 * * *" placeholder="0 9 * * *">
+            </div>
+            <div>
+              <label class="field-label">Channel</label>
+              <select id="autoChannel" class="input-field">${channelOptions}</select>
+            </div>
+            <div>
+              <label class="field-label">Message</label>
+              <input type="text" id="autoMessage" class="input-field" placeholder="Scheduled message">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            <div>
+              <label class="field-label">Embed title (embed jobs)</label>
+              <input type="text" id="autoTitle" class="input-field" placeholder="Daily reminder">
+            </div>
+            <div>
+              <label class="field-label">Embed description</label>
+              <input type="text" id="autoDescription" class="input-field" placeholder="Optional description">
+            </div>
+          </div>
+          <button onclick="app.createAutomationJob()" class="btn-primary mt-4">Create job</button>
+          <p class="hint">5-field cron (minute hour day month weekday). The scheduler checks every 30 seconds.</p>
+        </div>` + this.sysMetrics([
+          { label: 'Jobs', value: this.formatNumber(jobs.length) },
+          { label: 'Enabled', value: this.formatNumber(jobs.filter((j) => j.enabled).length) },
+          { label: 'Paused', value: this.formatNumber(jobs.filter((j) => !j.enabled).length) },
+          { label: 'Next run', value: jobs.length ? this.sysDate(jobs.map((j) => j.nextRun).sort()[0]) : '—' },
+        ]) + this.sysTable([
+          { label: 'Job' }, { label: 'Schedule' }, { label: 'State' }, { label: 'Next run' }, { label: 'Last run' }, { label: 'Actions', align: 'text-right' },
+        ], rows, 'No automation jobs yet.');
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  async createAutomationJob() {
+    const guildId = this.sysGuild('automationGuildSelect');
+    if (!guildId) return;
+    const payload = {
+      guildId,
+      type: document.getElementById('autoType')?.value || 'message',
+      cron: document.getElementById('autoCron')?.value || '',
+      channelId: document.getElementById('autoChannel')?.value || '',
+      message: document.getElementById('autoMessage')?.value || '',
+      title: document.getElementById('autoTitle')?.value || '',
+      description: document.getElementById('autoDescription')?.value || '',
+    };
+    try {
+      await this.request('/automation', { method: 'POST', body: JSON.stringify(payload) });
+      this.showAlert('Automation job created', 'success');
+      this.loadAutomation();
+    } catch (err) {
+      this.showAlert(err.message || 'Could not create the job', 'error');
+    }
+  },
+
+  async automationAction(id, action) {
+    if (action === 'delete' && !confirm('Delete this automation job?')) return;
+    try {
+      await this.request(`/automation/${id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+      this.showAlert(`Job ${action} succeeded`, 'success');
+      this.loadAutomation();
+    } catch (err) {
+      this.showAlert(err.message || 'Automation action failed', 'error');
+    }
+  },
+
+  // ---------- AI ----------
+
+  async loadAI() {
+    const el = document.getElementById('aiContent');
+    if (!el) return;
+    const guildId = this.sysGuild('aiGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view AI activity.'); return; }
+    let status = null;
+    let statusError = null;
+    try {
+      status = await this.request('/ai/status');
+    } catch (err) {
+      statusError = err.message;
+    }
+    let conversations = [];
+    try {
+      conversations = await this.request(`/ai/conversations?guildId=${guildId}`);
+    } catch (err) {
+      conversations = [];
+    }
+    const rows = conversations.map((c) => [
+      this.sysPerson(c.userId),
+      `<span class="font-mono text-xs text-slate-300">${this.escapeHtml(c.channelId)}</span>`,
+      `${this.escapeHtml(c.provider)} · ${this.escapeHtml(c.model)}`,
+      `${c.messageCount} messages`,
+      `<span class="text-xs text-slate-400">${this.sysDate(c.updatedAt)}</span>`,
+    ]);
+    const tester = status ? `
+      <div class="stat-card mt-6">
+        <h3 class="font-bold text-lg mb-4">Test the assistant</h3>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="text" id="aiTestPrompt" class="input-field flex-1" placeholder="Ask something…">
+          <button onclick="app.testAI()" class="btn-primary">Send</button>
+        </div>
+        <div id="aiTestResult" class="mt-4 text-sm text-slate-300"></div>
+      </div>` : '';
+    el.innerHTML = (statusError
+      ? `<div class="stat-card mb-6 text-sm text-slate-400">AI status is restricted to the bot owner (${this.escapeHtml(statusError)}).</div>`
+      : this.sysMetrics([
+        { label: 'Provider', value: this.escapeHtml(status?.provider || '—'), sub: status?.model },
+        { label: 'State', value: status?.enabled ? 'Enabled' : 'Disabled' },
+        { label: 'API key', value: status?.hasApiKey ? 'Configured' : 'Missing' },
+        { label: 'Conversations', value: this.formatNumber(conversations.length), sub: 'this server' },
+      ])) + this.sysTable([
+        { label: 'User' }, { label: 'Channel' }, { label: 'Model' }, { label: 'Messages' }, { label: 'Updated' },
+      ], rows, 'No AI conversations recorded for this server yet.') + tester;
+  },
+
+  async testAI() {
+    const prompt = (document.getElementById('aiTestPrompt')?.value || '').trim();
+    if (!prompt) { this.showAlert('Type a prompt first', 'info'); return; }
+    const result = document.getElementById('aiTestResult');
+    if (result) result.textContent = 'Asking…';
+    try {
+      const guildId = this.sysGuild('aiGuildSelect');
+      const response = await this.request('/ai/test', { method: 'POST', body: JSON.stringify({ prompt, guildId }) });
+      if (result) result.textContent = response.message || 'No response';
+    } catch (err) {
+      if (result) result.textContent = '';
+      this.showAlert(err.message || 'AI request failed', 'error');
+    }
+  },
+
+  // ---------- Music ----------
+
+  async loadMusic() {
+    const el = document.getElementById('musicContent');
+    if (!el) return;
+    const guildId = this.sysGuild('musicGuildSelect');
+    if (!guildId) { el.innerHTML = this.sysEmpty('Select a server to view playback.'); return; }
+    let status = null;
+    let statusError = null;
+    try {
+      status = await this.request('/music/status');
+    } catch (err) {
+      statusError = err.message;
+    }
+    let queue = { nowPlaying: null, queue: [], ready: false };
+    try {
+      queue = await this.request(`/music/queue?guildId=${guildId}`);
+    } catch { /* node down */ }
+    const rows = (queue.queue || []).map((track, index) => [
+      `${index + 1}`,
+      `<div class="font-medium text-slate-200">${this.escapeHtml(track.title || track.info?.title || 'Unknown')}</div><div class="text-xs text-slate-500">${this.escapeHtml(track.author || track.info?.author || '')}</div>`,
+      `<span class="text-xs text-slate-400">${this.sysDate(track.duration || track.info?.length)}</span>`,
+    ]);
+    const nowPlaying = queue.nowPlaying?.track
+      ? `<div class="stat-card mb-6"><p class="text-slate-400 text-xs uppercase tracking-wider">Now playing</p><h3 class="text-xl font-bold">${this.escapeHtml(queue.nowPlaying.track.title || queue.nowPlaying.track.info?.title || 'Unknown')}</h3><p class="text-sm text-slate-400">${queue.nowPlaying.paused ? 'Paused' : 'Playing'}</p>
+          <div class="flex gap-2 mt-4">
+            <button onclick="app.musicControl('skip')" class="btn-ghost text-xs">Skip</button>
+            <button onclick="app.musicControl('pause')" class="btn-ghost text-xs">Pause</button>
+            <button onclick="app.musicControl('resume')" class="btn-ghost text-xs">Resume</button>
+            <button onclick="app.musicControl('stop')" class="btn-ghost text-xs text-red-400">Stop</button>
+          </div></div>`
+      : '';
+    el.innerHTML = (statusError
+      ? `<div class="stat-card mb-6 text-sm text-slate-400">Music status is restricted to the bot owner (${this.escapeHtml(statusError)}).</div>`
+      : this.sysMetrics([
+        { label: 'Node', value: status?.ready ? 'Connected' : 'Offline', sub: `${status?.host || 'localhost'}:${status?.port || 2333}` },
+        { label: 'Enabled', value: status?.enabled ? 'Yes' : 'No' },
+        { label: 'Players', value: this.formatNumber((status?.players || []).length) },
+        { label: 'Queued', value: this.formatNumber((queue.queue || []).length) },
+      ])) + nowPlaying + this.sysTable([
+        { label: '#' }, { label: 'Track' }, { label: 'Length' },
+      ], rows, 'The queue is empty.');
+  },
+
+  async musicControl(action) {
+    const guildId = this.sysGuild('musicGuildSelect');
+    if (!guildId) return;
+    try {
+      await this.request('/music/controls', { method: 'POST', body: JSON.stringify({ guildId, action }) });
+      this.showAlert(`Music ${action} sent`, 'success');
+      this.loadMusic();
+    } catch (err) {
+      this.showAlert(err.message || 'Music action failed', 'error');
+    }
+  },
+
+  // ---------- Analytics ----------
+
+  async loadAnalytics() {
+    const el = document.getElementById('analyticsContent');
+    if (!el) return;
+    const guildId = this.sysGuild('analyticsGuildSelect');
+    const days = document.getElementById('analyticsDays')?.value || '14';
+    try {
+      const data = await this.request(`/analytics?guildId=${guildId}&days=${days}`);
+      const stats = data.stats || {};
+      const series = data.series || [];
+      const max = Math.max(1, ...series.map((p) => Number(p.messages || 0)));
+      const chart = series.map((point) => {
+        const height = Math.round((Number(point.messages || 0) / max) * 100);
+        return `<div class="flex-1 flex flex-col items-center gap-1" title="${this.escapeHtml(point.date)}: ${point.messages || 0} messages, ${point.moderationCases || 0} moderation">
+          <div class="w-full bg-white/5 rounded-t" style="height:120px;display:flex;align-items:flex-end">
+            <div style="height:${Math.max(2, height)}%;width:100%;background:linear-gradient(180deg,#60a5fa,#2563eb);border-radius:4px 4px 0 0"></div>
+          </div>
+          <span class="text-[10px] text-slate-500">${this.escapeHtml(String(point.date).slice(5))}</span>
+        </div>`;
+      }).join('');
+      el.innerHTML = this.sysMetrics([
+        { label: 'Messages', value: this.formatNumber(stats.messages ?? stats.totalMessages ?? 0) },
+        { label: 'Members', value: this.formatNumber(stats.trackedMembers ?? stats.totalUsers ?? 0) },
+        { label: 'Moderation', value: this.formatNumber(stats.moderationCases ?? stats.totalModerationCases ?? 0) },
+        { label: 'Economy', value: this.formatNumber(stats.economyTotalBalance ?? 0), sub: `${stats.economyAccounts ?? 0} wallets` },
+      ]) + `<div class="stat-card mb-6"><h3 class="font-bold text-lg mb-4">Messages per day</h3><div class="flex items-end gap-1">${chart || '<div class="empty-state">No activity recorded</div>'}</div></div>`;
+    } catch (err) {
+      el.innerHTML = this.sysError(err);
+    }
+  },
+
+  // ---------- System tiles on the dashboard ----------
+
+  async loadSystemTiles() {
+    const el = document.getElementById('systemTiles');
+    if (!el) return;
+    try {
+      const data = await this.request('/systems/overview');
+      const c = data.counts || {};
+      const tiles = [
+        { page: 'tickets', label: 'Tickets', value: c.tickets?.open ?? 0, sub: 'open now', tone: '#60a5fa' },
+        { page: 'giveaways', label: 'Giveaways', value: c.giveaways?.active ?? 0, sub: 'running', tone: '#f472b6' },
+        { page: 'games', label: 'Games', value: c.games?.active ?? 0, sub: 'in progress', tone: '#34d399' },
+        { page: 'staffapps', label: 'Staff apps', value: c.staffapps?.pending ?? 0, sub: 'pending', tone: '#facc15' },
+        { page: 'tempvc', label: 'Temp voice', value: c.tempvc?.instances ?? 0, sub: 'live rooms', tone: '#a78bfa' },
+        { page: 'automation', label: 'Automation', value: c.automation?.enabled ?? 0, sub: 'jobs enabled', tone: '#22d3ee' },
+        { page: 'ai', label: 'AI', value: c.ai?.conversations ?? 0, sub: 'conversations', tone: '#fb923c' },
+        { page: 'music', label: 'Music', value: c.music?.sessions ?? 0, sub: 'sessions', tone: '#c084fc' },
+        { page: 'moderation', label: 'Moderation', value: c.moderation?.cases ?? 0, sub: `${c.moderation?.warnings ?? 0} warnings`, tone: '#ef4444' },
+        { page: 'economy', label: 'Economy', value: this.formatNumber(c.economy?.totalBalance ?? 0), sub: `${c.economy?.accounts ?? 0} wallets`, tone: '#fbbf24' },
+        { page: 'leveling', label: 'Leveling', value: this.formatNumber(c.leveling?.profiles ?? 0), sub: 'ranked members', tone: '#38bdf8' },
+        { page: 'analytics', label: 'Analytics', value: '↗', sub: 'open analytics', tone: '#94a3b8' },
+      ];
+      el.innerHTML = tiles.map((t) => `
+        <button type="button" onclick="app.openPage('${t.page}')" class="stat-card text-left w-full">
+          <p class="text-slate-400 text-xs uppercase tracking-wider">${t.label}</p>
+          <h3 class="text-2xl font-bold stat-number" style="color:${t.tone}">${t.value}</h3>
+          <p class="text-xs text-slate-500">${t.sub}</p>
+        </button>`).join('');
+    } catch (err) {
+      el.innerHTML = `<div class="empty-state">${this.escapeHtml(err.message || 'Unable to load system state.')}</div>`;
     }
   },
 

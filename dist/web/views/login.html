@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070a12">
+  <title>Sukuna Bot — Sign in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.compiled.css">
+  <style>
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 1.25rem;
+      background:
+        radial-gradient(900px 500px at 15% 0%, rgba(220, 38, 38, .16), transparent 60%),
+        radial-gradient(800px 500px at 85% 10%, rgba(59, 130, 246, .12), transparent 55%),
+        #070a12;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      padding: 2.25rem;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: linear-gradient(180deg, rgba(23, 29, 44, .92), rgba(12, 16, 26, .96));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+    }
+    .login-brand { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.6rem; }
+    .login-mark {
+      width: 3rem; height: 3rem; border-radius: 16px;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 1.35rem; color: #fff;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      box-shadow: 0 12px 30px rgba(239, 68, 68, .35);
+    }
+    .login-title { font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; }
+    .login-sub { color: #8b93a7; font-size: .8rem; }
+    .login-h1 { font-size: 1.75rem; font-weight: 800; line-height: 1.15; margin-bottom: .6rem; }
+    .login-p { color: #9aa3b6; font-size: .92rem; line-height: 1.6; margin-bottom: 1.6rem; }
+    .discord-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: .7rem;
+      padding: .9rem 1rem; border-radius: 14px; font-weight: 700; font-size: .95rem;
+      color: #fff; background: #5865f2; border: 1px solid rgba(255, 255, 255, .08);
+      transition: transform .15s ease, background .15s ease;
+      text-decoration: none;
+    }
+    .discord-btn:hover { background: #4752c4; transform: translateY(-1px); }
+    .discord-btn svg { width: 22px; height: 22px; }
+    .login-error {
+      margin-bottom: 1.25rem; padding: .85rem 1rem; border-radius: 12px;
+      font-size: .85rem; line-height: 1.5;
+      background: rgba(239, 68, 68, .1); border: 1px solid rgba(239, 68, 68, .28); color: #fca5a5;
+    }
+    .login-note { margin-top: 1.4rem; color: #6b7385; font-size: .78rem; line-height: 1.55; }
+    .login-note code { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-card">
+      <div class="login-brand">
+        <div class="login-mark" aria-hidden="true">S</div>
+        <div>
+          <div class="login-title">Sukuna<span style="color:#ef4444">Bot</span></div>
+          <div class="login-sub">Command Center</div>
+        </div>
+      </div>
+
+      <h1 class="login-h1">Sign in to your<br>command center.</h1>
+      <p class="login-p">
+        The dashboard is protected by Discord. Sign in with the account you use
+        to manage your server — access is limited to servers where you have
+        <strong>Manage Server</strong> or <strong>Administrator</strong>.
+      </p>
+
+      <div id="loginError" class="login-error" hidden></div>
+      <div id="loginSetup" class="login-error" hidden>
+        Discord login is not configured. Set <code>DISCORD_CLIENT_ID</code>,
+        <code>DISCORD_CLIENT_SECRET</code> and <code>DASHBOARD_URL</code>, then add
+        <code>&lt;DASHBOARD_URL&gt;/auth/callback</code> as an OAuth2 redirect URI in the
+        Discord Developer Portal.
+      </div>
+
+      <a class="discord-btn" href="/auth/login" id="loginButton">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.6A19.8 19.8 0 0 0 15.4 3l-.3.6a14.6 14.6 0 0 1 4.4 1.4 14 14 0 0 0-3.1-1A14.6 14.6 0 0 1 12 4a14.6 14.6 0 0 1-4.4-.1 14 14 0 0 0-3.1 1A14.6 14.6 0 0 1 8.9 3.6L8.6 3a19.8 19.8 0 0 0-4.9 1.6C.9 9.1.2 13.5.5 17.9a19.9 19.9 0 0 0 6 3l.8-1.3a12.8 12.8 0 0 1-2.1-1l.5-.4a14.3 14.3 0 0 0 12.6 0l.5.4a12.8 12.8 0 0 1-2.1 1l.8 1.3a19.9 19.9 0 0 0 6-3c.4-5.1-.7-9.4-3.2-13.3ZM8.7 15.2c-1.2 0-2.2-1.1-2.2-2.4 0-1.3 1-2.4 2.2-2.4 1.2 0 2.2 1.1 2.2 2.4 0 1.3-1 2.4-2.2 2.4Zm6.6 0c-1.2 0-2.2-1.1-2.2-2.4 0-1.3 1-2.4 2.2-2.4 1.2 0 2.2 1.1 2.2 2.4 0 1.3-1 2.4-2.2 2.4Z"/></svg>
+        Continue with Discord
+      </a>
+
+      <p class="login-note">
+        Local development without OAuth? Set <code>DASHBOARD_AUTH_DISABLED=true</code>
+        in <code>.env</code>. Never enable that on a public deployment.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const box = document.getElementById('loginError');
+      const setup = document.getElementById('loginSetup');
+      const button = document.getElementById('loginButton');
+      const messages = {
+        denied: 'Discord sign-in was cancelled.',
+        state: 'The sign-in request expired or was tampered with. Please try again.',
+        forbidden: 'That Discord account cannot manage any server this bot is in. Ask the bot owner for access.',
+        failed: 'Discord sign-in failed. Check the bot logs and try again.',
+        not_configured: 'Discord login is not configured on this dashboard.',
+      };
+      if (error === 'not_configured') {
+        setup.hidden = false;
+        button.style.display = 'none';
+      } else if (error) {
+        box.hidden = false;
+        box.textContent = messages[error] || 'Sign-in failed. Please try again.';
+      }
+    })();
+  </script>
+</body>
+</html>

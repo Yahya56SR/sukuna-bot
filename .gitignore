@@ -3,3 +3,5 @@ npm-debug.log
 .env
 data/
 logs/
+smoke*.out
+smoke*.err
