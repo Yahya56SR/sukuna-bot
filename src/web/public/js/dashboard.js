@@ -11,8 +11,25 @@ const PAGE_META = {
   system: { title: 'System', subtitle: 'Runtime, process and host diagnostics' },
 };
 
+const SETTINGS_META = {
+  overview: { title: 'Settings', subtitle: 'Configure every system of Sukuna in one place', label: 'Overview' },
+  general: { title: 'Bot & modules', subtitle: 'Prefix, web port and module master switches', label: 'Bot & modules' },
+  leveling: { title: 'Leveling', subtitle: 'XP curve, rewards, announcements and the staff track', label: 'Leveling' },
+  economy: { title: 'Economy', subtitle: 'Currency, starting balance and defaults', label: 'Economy' },
+  welcome: { title: 'Welcome & goodbye', subtitle: 'Join and leave messages and welcome cards', label: 'Welcome & goodbye' },
+  ai: { title: 'AI assistant', subtitle: 'Model, prompt, channels and reply limits', label: 'AI assistant' },
+  music: { title: 'Music', subtitle: 'Lavalink, volume and playback limits', label: 'Music' },
+  tempvc: { title: 'Temporary voice', subtitle: 'Join-to-create channels and control panel', label: 'Temporary voice' },
+  automation: { title: 'Automation', subtitle: 'Scheduled background jobs', label: 'Automation' },
+  moderation: { title: 'Moderation', subtitle: 'Log channel and default reason', label: 'Moderation' },
+  tickets: { title: 'Tickets', subtitle: 'Category and support roles', label: 'Tickets' },
+  staffapps: { title: 'Staff applications', subtitle: 'Questions, roles and reviewers', label: 'Staff applications' },
+  advanced: { title: 'Danger zone', subtitle: 'Restart, shut down or clear logs', label: 'Danger zone' },
+};
+
 const app = {
   currentPage: 'dashboard',
+  settingsSection: 'overview',
   intervalId: null,
   // caches for friendly pickers
   _guildCache: new Map(),
@@ -23,8 +40,9 @@ const app = {
   _overview: null,
 
   init() {
-    const hashPage = (window.location.hash || '').replace('#', '');
+    const [hashPage, hashSection] = (window.location.hash || '').replace('#', '').split('/');
     const initialPage = PAGE_META[hashPage] ? hashPage : 'dashboard';
+    if (hashPage === 'settings' && SETTINGS_META[hashSection]) this.settingsSection = hashSection;
 
     this.setupNav();
     this.fetchStatus();
@@ -38,8 +56,12 @@ const app = {
     if (initialPage !== 'dashboard') this.openPage(initialPage, false);
     this.setActiveNav(initialPage);
     window.addEventListener('hashchange', () => {
-      const page = (window.location.hash || '').replace('#', '');
-      if (PAGE_META[page] && page !== this.currentPage) this.openPage(page, false);
+      const [page, section] = (window.location.hash || '').replace('#', '').split('/');
+      if (!PAGE_META[page]) return;
+      if (page === 'settings' && SETTINGS_META[section] && section !== this.settingsSection) {
+        this.openSettingsSection(section, false);
+      }
+      if (page !== this.currentPage) this.openPage(page, false);
     });
 
     // Close the mobile menu when growing to desktop width so it does not
@@ -75,7 +97,16 @@ const app = {
     document.querySelectorAll('[data-page]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const page = e.currentTarget.getAttribute('data-page');
+        if (page === 'settings') this.settingsSection = 'overview';
         this.openPage(page);
+      });
+    });
+
+    document.querySelectorAll('[data-settings-section], [data-settings-open]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const section = btn.getAttribute('data-settings-section') || btn.getAttribute('data-settings-open');
+        if (this.currentPage !== 'settings') this.openPage('settings', false);
+        this.openSettingsSection(section);
       });
     });
   },
@@ -107,15 +138,22 @@ const app = {
     const target = document.getElementById(`page-${page}`);
     if (target) target.classList.add('active');
 
-    const meta = PAGE_META[page];
-    const title = document.getElementById('pageTitle');
-    const subtitle = document.getElementById('pageSubtitle');
-    if (title) title.textContent = meta.title;
-    if (subtitle) subtitle.textContent = meta.subtitle;
-    document.title = `Sukuna Bot — ${meta.title}`;
+    if (page === 'settings') {
+      this.applySettingsSectionMeta(this.settingsSection);
+    } else {
+      const meta = PAGE_META[page];
+      const title = document.getElementById('pageTitle');
+      const subtitle = document.getElementById('pageSubtitle');
+      if (title) title.textContent = meta.title;
+      if (subtitle) subtitle.textContent = meta.subtitle;
+      document.title = `Sukuna Bot — ${meta.title}`;
+    }
 
-    if (updateHash && window.location.hash !== `#${page}`) {
-      history.replaceState(null, '', `#${page}`);
+    if (updateHash) {
+      const hash = page === 'settings' ? `#settings/${this.settingsSection || 'overview'}` : `#${page}`;
+      if (window.location.hash !== hash) {
+        history.replaceState(null, '', hash);
+      }
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -127,7 +165,72 @@ const app = {
     if (page === 'leveling') this.loadLeveling();
     if (page === 'cards') this.loadCardsConfig();
     if (page === 'system') this.fetchSystemInfo();
-    if (page === 'settings') this.loadSettings();
+    if (page === 'settings') {
+      this.openSettingsSection(this.settingsSection || 'overview', false);
+      this.loadSettings();
+    }
+  },
+
+  applySettingsSectionMeta(section) {
+    const meta = SETTINGS_META[section] || SETTINGS_META.overview;
+    const title = document.getElementById('pageTitle');
+    const subtitle = document.getElementById('pageSubtitle');
+    if (title) title.textContent = section === 'overview' ? 'Settings' : `Settings · ${meta.label}`;
+    if (subtitle) subtitle.textContent = meta.subtitle;
+    document.title = `Sukuna Bot — Settings · ${meta.label}`;
+  },
+
+  openSettingsSection(section = 'overview', updateHash = true) {
+    const id = SETTINGS_META[section] ? section : 'overview';
+    this.settingsSection = id;
+
+    document.querySelectorAll('[data-settings-pane]').forEach(el => {
+      el.classList.toggle('active', el.getAttribute('data-settings-pane') === id);
+    });
+    document.querySelectorAll('.settings-nav-btn[data-settings-section]').forEach(btn => {
+      const active = btn.getAttribute('data-settings-section') === id;
+      btn.classList.toggle('active', active);
+      if (active) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    });
+    this.applySettingsSectionMeta(id);
+    this.refreshSettingsOverview();
+
+    if (updateHash && this.currentPage === 'settings') {
+      const hash = `#settings/${id}`;
+      if (window.location.hash !== hash) history.replaceState(null, '', hash);
+    }
+
+    const body = document.querySelector('.settings-body');
+    if (body && window.innerWidth <= 860) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+
+  refreshSettingsOverview() {
+    const states = {
+      leveling: 'toggleLeveling',
+      economy: 'toggleEconomy',
+      welcome: 'wel_enabled',
+      ai: 'toggleAI',
+      music: 'toggleMusic',
+      tempvc: 'tvc_enabled',
+      automation: 'auto_enabled',
+      moderation: 'mod_enabled',
+      tickets: 'tix_enabled',
+      staffapps: 'sapp_enabled',
+    };
+    for (const [section, inputId] of Object.entries(states)) {
+      const input = document.getElementById(inputId);
+      const on = !!input && input.checked;
+      document.querySelectorAll(`[data-overview-state="${section}"]`).forEach(el => {
+        el.textContent = on ? 'On' : 'Off';
+        el.classList.toggle('on', on);
+        el.classList.toggle('off', !on);
+        if (el.classList.contains('badge')) {
+          el.classList.remove('badge-neutral', 'badge-success');
+          el.classList.add(on ? 'badge-success' : 'badge-neutral');
+        }
+      });
+    }
   },
 
   async request(endpoint, options = {}) {
@@ -234,9 +337,10 @@ const app = {
 
   // ---------- Guild / channel / role pickers (no raw IDs) ----------
   selectedGuildId() {
+    const settings = document.getElementById('settingsGuildSelect')?.value;
     const lvl = document.getElementById('lvlGuildSelect')?.value;
     const mod = document.getElementById('modGuildSelect')?.value;
-    return lvl || mod || '';
+    return settings || lvl || mod || '';
   },
 
   async fetchGuildChannels(guildId) {
@@ -862,12 +966,14 @@ const app = {
       });
 
       // Populate guild selects
-      const selects = ['modGuildSelect', 'lvlGuildSelect'];
+      const selects = ['modGuildSelect', 'lvlGuildSelect', 'settingsGuildSelect'];
       selects.forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const saved = sel.value;
-        sel.innerHTML = '<option value="">Select a server</option>';
+        sel.innerHTML = id === 'settingsGuildSelect'
+          ? '<option value="">Auto (first server)</option>'
+          : '<option value="">Select a server</option>';
         guilds.forEach(g => {
           const opt = document.createElement('option');
           opt.value = g.id;
@@ -876,6 +982,14 @@ const app = {
         });
         sel.value = saved;
       });
+      const settingsGuild = document.getElementById('settingsGuildSelect');
+      if (settingsGuild && !settingsGuild.dataset.bound) {
+        settingsGuild.dataset.bound = '1';
+        settingsGuild.addEventListener('change', () => {
+          this._guildCache.delete(settingsGuild.value);
+          this.refreshChannelPickers().catch(() => undefined);
+        });
+      }
     } catch (err) {
       console.error('Failed to fetch guilds:', err);
     }
@@ -1396,6 +1510,18 @@ const app = {
     }
     // preload channels/roles for pickers (best-effort)
     this.refreshChannelPickers().catch(() => undefined);
+    this.bindSettingsOverviewInputs();
+    this.refreshSettingsOverview();
+  },
+
+  bindSettingsOverviewInputs() {
+    ['toggleLeveling', 'toggleEconomy', 'toggleAI', 'toggleMusic', 'wel_enabled', 'tvc_enabled',
+      'auto_enabled', 'mod_enabled', 'tix_enabled', 'sapp_enabled'].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input || input.dataset.overviewBound) return;
+      input.dataset.overviewBound = '1';
+      input.addEventListener('change', () => this.refreshSettingsOverview());
+    });
   },
 
   fillLeveling(cfg, channels, roles) {

@@ -573,700 +573,953 @@
 
     <!-- Settings Page -->
     <section id="page-settings" class="page">
-      <h2 class="text-2xl font-bold mb-6">Settings</h2>
-      <p class="text-sm text-slate-500 mb-6">Every system can be configured here. Changes apply immediately and survive restarts.</p>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Bot & Web -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🤖 Bot Configuration</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Command Prefix</label>
-              <input type="text" id="cmdPrefix" class="input-field" value="!">
+      <div class="settings-shell">
+        <aside class="settings-rail" aria-label="Settings navigation">
+          <div class="settings-rail-head">
+            <span class="settings-eyebrow">Configuration</span>
+            <h2 class="settings-rail-title">Systems</h2>
+            <p class="settings-rail-sub">Pick one system and configure it without scrolling through everything else.</p>
+          </div>
+          <div class="settings-rail-guild">
+            <label class="field-label" for="settingsGuildSelect">Working server</label>
+            <select id="settingsGuildSelect" class="input-field">
+              <option value="">Auto (first server)</option>
+            </select>
+            <p class="hint">Channel and role pickers load from this server.</p>
+          </div>
+          <nav class="settings-nav" aria-label="Settings sections">
+            <p class="settings-nav-label">Configuration</p>
+            <button type="button" class="settings-nav-btn active" data-settings-section="overview"><span class="settings-nav-icon" aria-hidden="true">🧭</span><span>Overview</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="general"><span class="settings-nav-icon" aria-hidden="true">⚙️</span><span>Bot & modules</span></button>
+            <p class="settings-nav-label">Community</p>
+            <button type="button" class="settings-nav-btn" data-settings-section="leveling"><span class="settings-nav-icon" aria-hidden="true">📈</span><span>Leveling</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="economy"><span class="settings-nav-icon" aria-hidden="true">💰</span><span>Economy</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="welcome"><span class="settings-nav-icon" aria-hidden="true">👋</span><span>Welcome</span></button>
+            <button type="button" class="settings-nav-btn" onclick="app.openPage('cards')"><span class="settings-nav-icon" aria-hidden="true">🎨</span><span>Card design</span></button>
+            <p class="settings-nav-label">Engagement</p>
+            <button type="button" class="settings-nav-btn" data-settings-section="ai"><span class="settings-nav-icon" aria-hidden="true">🧠</span><span>AI assistant</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="music"><span class="settings-nav-icon" aria-hidden="true">🎵</span><span>Music</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="tempvc"><span class="settings-nav-icon" aria-hidden="true">🎙️</span><span>Temp voice</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="automation"><span class="settings-nav-icon" aria-hidden="true">🤖</span><span>Automation</span></button>
+            <p class="settings-nav-label">Safety</p>
+            <button type="button" class="settings-nav-btn" data-settings-section="moderation"><span class="settings-nav-icon" aria-hidden="true">🛡️</span><span>Moderation</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="tickets"><span class="settings-nav-icon" aria-hidden="true">🎫</span><span>Tickets</span></button>
+            <button type="button" class="settings-nav-btn" data-settings-section="staffapps"><span class="settings-nav-icon" aria-hidden="true">🧾</span><span>Staff apps</span></button>
+            <p class="settings-nav-label">Advanced</p>
+            <button type="button" class="settings-nav-btn" data-settings-section="advanced"><span class="settings-nav-icon" aria-hidden="true">🚨</span><span>Danger zone</span></button>
+          </nav>
+        </aside>
+        <div class="settings-body">
+          <div class="settings-pane active" data-settings-pane="overview">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Configuration hub</span>
+                <h3>Every system, one place</h3>
+                <p>Each system has its own page with its own save button. Changes apply immediately and survive restarts.</p>
+              </div>
+              <span class="badge badge-success">Live config</span>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Web Port (current)</label>
-              <input type="number" id="webPort" class="input-field" value="3000" readonly>
-              <p class="text-xs text-slate-500 mt-1">Set by your host (SERVER_PORT). Shown for reference.</p>
+            <div class="settings-hub-grid">
+              <button type="button" class="settings-hub-card" data-settings-open="general">
+                <span class="settings-hub-icon" aria-hidden="true">⚙️</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Bot & modules</strong><span class="settings-hub-state">Open</span></span>
+                  <span class="settings-hub-desc">Prefix, web port and master switches</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="leveling">
+                <span class="settings-hub-icon" aria-hidden="true">📈</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Leveling</strong><span class="settings-hub-state" data-overview-state="leveling">—</span></span>
+                  <span class="settings-hub-desc">XP curve, rewards and announcements</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="economy">
+                <span class="settings-hub-icon" aria-hidden="true">💰</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Economy</strong><span class="settings-hub-state" data-overview-state="economy">—</span></span>
+                  <span class="settings-hub-desc">Currency, starting balance and defaults</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="welcome">
+                <span class="settings-hub-icon" aria-hidden="true">👋</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Welcome & goodbye</strong><span class="settings-hub-state" data-overview-state="welcome">—</span></span>
+                  <span class="settings-hub-desc">Join and leave messages and cards</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="ai">
+                <span class="settings-hub-icon" aria-hidden="true">🧠</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>AI assistant</strong><span class="settings-hub-state" data-overview-state="ai">—</span></span>
+                  <span class="settings-hub-desc">Model, prompt, channels and limits</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="music">
+                <span class="settings-hub-icon" aria-hidden="true">🎵</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Music</strong><span class="settings-hub-state" data-overview-state="music">—</span></span>
+                  <span class="settings-hub-desc">Lavalink, volume and playback limits</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="tempvc">
+                <span class="settings-hub-icon" aria-hidden="true">🎙️</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Temporary voice</strong><span class="settings-hub-state" data-overview-state="tempvc">—</span></span>
+                  <span class="settings-hub-desc">Join-to-create channels and panel</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="automation">
+                <span class="settings-hub-icon" aria-hidden="true">🤖</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Automation</strong><span class="settings-hub-state" data-overview-state="automation">—</span></span>
+                  <span class="settings-hub-desc">Scheduled background jobs</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="moderation">
+                <span class="settings-hub-icon" aria-hidden="true">🛡️</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Moderation</strong><span class="settings-hub-state" data-overview-state="moderation">—</span></span>
+                  <span class="settings-hub-desc">Log channel and default reason</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="tickets">
+                <span class="settings-hub-icon" aria-hidden="true">🎫</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Tickets</strong><span class="settings-hub-state" data-overview-state="tickets">—</span></span>
+                  <span class="settings-hub-desc">Category and support roles</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" data-settings-open="staffapps">
+                <span class="settings-hub-icon" aria-hidden="true">🧾</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Staff applications</strong><span class="settings-hub-state" data-overview-state="staffapps">—</span></span>
+                  <span class="settings-hub-desc">Questions, roles and reviewers</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
+              <button type="button" class="settings-hub-card" onclick="app.openPage('cards')">
+                <span class="settings-hub-icon" aria-hidden="true">🎨</span>
+                <span class="settings-hub-body">
+                  <span class="settings-hub-top"><strong>Card design</strong><span class="settings-hub-state">Open</span></span>
+                  <span class="settings-hub-desc">Welcome and rank card appearance</span>
+                </span>
+                <span class="settings-hub-arrow" aria-hidden="true">→</span>
+              </button>
             </div>
-            <div class="flex gap-3">
-              <button onclick="app.saveConfig('bot')" class="btn-primary flex-1">Save Bot Config</button>
-              <button onclick="app.reloadConfig()" class="btn-secondary flex-1">Reload Commands</button>
+            <div class="settings-hub-note">
+              <div>
+                <strong>Looking for the danger zone?</strong>
+                <p>Restart, shut down and log tools live on their own page so they are never a stray click away.</p>
+              </div>
+              <button type="button" class="btn-secondary" data-settings-open="advanced">Open danger zone</button>
             </div>
           </div>
-        </div>
-
-        <!-- Module toggles -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🧩 Module Settings</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Leveling Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" checked id="toggleLeveling">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
+          <div class="settings-pane" data-settings-pane="general">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Configuration</span>
+                <h3>⚙️ Bot & modules</h3>
+                <p>Command prefix, the web port and the master switches that turn each module on or off.</p>
+              </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">AI Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="toggleAI">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Command Prefix</label>
+                            <input type="text" id="cmdPrefix" class="input-field" value="!">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Web Port (current)</label>
+                            <input type="number" id="webPort" class="input-field" value="3000" readonly>
+                            <p class="text-xs text-slate-500 mt-1">Set by your host (SERVER_PORT). Shown for reference.</p>
+                          </div>
+                          <div class="flex gap-3">
+                            <button onclick="app.saveConfig('bot')" class="btn-primary flex-1">Save Bot Config</button>
+                            <button onclick="app.reloadConfig()" class="btn-secondary flex-1">Reload Commands</button>
+                          </div>
+                        </div>
+                      </div>
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Leveling Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" checked id="toggleLeveling">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">AI Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="toggleAI">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Music Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="toggleMusic">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Economy Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="toggleEconomy">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <button onclick="app.saveModuleConfig()" class="btn-primary w-full">Save Module Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Music Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="toggleMusic">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Economy Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="toggleEconomy">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <button onclick="app.saveModuleConfig()" class="btn-primary w-full">Save Module Settings</button>
           </div>
-        </div>
-
-        <!-- Leveling -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">📈 Leveling</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="lvl_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
+          <div class="settings-pane" data-settings-pane="leveling">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Community</span>
+                <h3>📈 Leveling</h3>
+                <p>XP curve, message, voice and command XP, role rewards, announcements and the staff track.</p>
+              </div>
+              <span class="badge badge-neutral" data-overview-state="leveling">—</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Formula</label>
-                <select id="lvl_formula" class="input-field">
-                  <option value="linear">Linear</option>
-                  <option value="quadratic">Quadratic</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Base XP / Level</label>
-                <input type="number" id="lvl_baseXp" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Multiplier</label>
-                <input type="number" step="any" id="lvl_multiplier" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Level</label>
-                <input type="number" id="lvl_maxLevel" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Color</label>
-                <div class="color-wrap">
-                  <input type="color" id="lvl_defaultColorPicker" value="#0099ff">
-                  <input type="text" id="lvl_defaultColor" class="input-field" placeholder="#0099ff">
-                </div>
-                <p class="hint">Pick a color for level-up announcements.</p>
-              </div>
-              <div class="flex items-center justify-between pt-6">
-                <span class="text-sm text-slate-300">Ignore Bots</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" id="lvl_ignoreBots">
-                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-            </div>
-            <h4 class="text-sm font-bold text-slate-300 pt-2">Message XP</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-300">Enabled</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" id="lvl_msg_enabled">
-                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min</label>
-                <input type="number" id="lvl_msg_min" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max</label>
-                <input type="number" id="lvl_msg_max" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
-                <input type="number" id="lvl_msg_cooldown" class="input-field">
-              </div>
-            </div>
-            <h4 class="text-sm font-bold text-slate-300 pt-2">Voice XP</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-300">Enabled</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" id="lvl_voice_enabled">
-                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min / min</label>
-                <input type="number" id="lvl_voice_min" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max / min</label>
-                <input type="number" id="lvl_voice_max" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
-                <input type="number" id="lvl_voice_cooldown" class="input-field">
-              </div>
-            </div>
-            <h4 class="text-sm font-bold text-slate-300 pt-2">Command XP</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-300">Enabled</span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" class="sr-only peer" id="lvl_cmd_enabled">
-                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                </label>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Amount</label>
-                <input type="number" id="lvl_cmd_amount" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
-                <input type="number" id="lvl_cmd_cooldown" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Weekend Multiplier</label>
-                <input type="number" step="any" id="lvl_mult_weekend" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Booster Multiplier</label>
-                <input type="number" step="any" id="lvl_mult_booster" class="input-field">
-              </div>
-            </div>
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">🚫 No-XP Channels</h4>
-              <p class="hint mb-2">Members earn no XP in these channels. Pick from your servers — no IDs needed.</p>
-              <div class="flex gap-2 mb-2">
-                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
-                <button type="button" onclick="app.clearChannelSelection('noXp')" class="btn-ghost text-sm">Clear</button>
-              </div>
-              <div id="lvl_noXpChannelsUI" class="checklist">
-                <span class="hint">Loading channels… pick a server in the Leveling page first, then return here.</span>
-              </div>
-            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="lvl_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Formula</label>
+                              <select id="lvl_formula" class="input-field">
+                                <option value="linear">Linear</option>
+                                <option value="quadratic">Quadratic</option>
+                                <option value="custom">Custom</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Base XP / Level</label>
+                              <input type="number" id="lvl_baseXp" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">XP Multiplier</label>
+                              <input type="number" step="any" id="lvl_multiplier" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Level</label>
+                              <input type="number" id="lvl_maxLevel" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Announcement Color</label>
+                              <div class="color-wrap">
+                                <input type="color" id="lvl_defaultColorPicker" value="#0099ff">
+                                <input type="text" id="lvl_defaultColor" class="input-field" placeholder="#0099ff">
+                              </div>
+                              <p class="hint">Pick a color for level-up announcements.</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-6">
+                              <span class="text-sm text-slate-300">Ignore Bots</span>
+                              <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="lvl_ignoreBots">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                              </label>
+                            </div>
+                          </div>
+                          <h4 class="text-sm font-bold text-slate-300 pt-2">Message XP</h4>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between">
+                              <span class="text-sm text-slate-300">Enabled</span>
+                              <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="lvl_msg_enabled">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                              </label>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min</label>
+                              <input type="number" id="lvl_msg_min" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max</label>
+                              <input type="number" id="lvl_msg_max" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                              <input type="number" id="lvl_msg_cooldown" class="input-field">
+                            </div>
+                          </div>
+                          <h4 class="text-sm font-bold text-slate-300 pt-2">Voice XP</h4>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between">
+                              <span class="text-sm text-slate-300">Enabled</span>
+                              <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="lvl_voice_enabled">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                              </label>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Min / min</label>
+                              <input type="number" id="lvl_voice_min" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max / min</label>
+                              <input type="number" id="lvl_voice_max" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                              <input type="number" id="lvl_voice_cooldown" class="input-field">
+                            </div>
+                          </div>
+                          <h4 class="text-sm font-bold text-slate-300 pt-2">Command XP</h4>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="flex items-center justify-between">
+                              <span class="text-sm text-slate-300">Enabled</span>
+                              <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" id="lvl_cmd_enabled">
+                                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                              </label>
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Amount</label>
+                              <input type="number" id="lvl_cmd_amount" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Cooldown (s)</label>
+                              <input type="number" id="lvl_cmd_cooldown" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Weekend Multiplier</label>
+                              <input type="number" step="any" id="lvl_mult_weekend" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Booster Multiplier</label>
+                              <input type="number" step="any" id="lvl_mult_booster" class="input-field">
+                            </div>
+                          </div>
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">🚫 No-XP Channels</h4>
+                            <p class="hint mb-2">Members earn no XP in these channels. Pick from your servers — no IDs needed.</p>
+                            <div class="flex gap-2 mb-2">
+                              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
+                              <button type="button" onclick="app.clearChannelSelection('noXp')" class="btn-ghost text-sm">Clear</button>
+                            </div>
+                            <div id="lvl_noXpChannelsUI" class="checklist">
+                              <span class="hint">Loading channels… pick a server in the Leveling page first, then return here.</span>
+                            </div>
+                          </div>
 
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">✅ XP Whitelist</h4>
-              <p class="hint mb-2">If set, XP is earned ONLY in these channels. Leave empty to allow XP everywhere (except No-XP).</p>
-              <div class="flex gap-2 mb-2">
-                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
-                <button type="button" onclick="app.clearChannelSelection('whitelist')" class="btn-ghost text-sm">Clear</button>
-              </div>
-              <div id="lvl_xpWhitelistUI" class="checklist">
-                <span class="hint">Loading channels…</span>
-              </div>
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">✅ XP Whitelist</h4>
+                            <p class="hint mb-2">If set, XP is earned ONLY in these channels. Leave empty to allow XP everywhere (except No-XP).</p>
+                            <div class="flex gap-2 mb-2">
+                              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channel list</button>
+                              <button type="button" onclick="app.clearChannelSelection('whitelist')" class="btn-ghost text-sm">Clear</button>
+                            </div>
+                            <div id="lvl_xpWhitelistUI" class="checklist">
+                              <span class="hint">Loading channels…</span>
+                            </div>
+                          </div>
+
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">🧮 XP per Level (Custom curve)</h4>
+                            <p class="hint mb-2">Only used when Formula = Custom. Each row: Total XP needed to reach that level.</p>
+                            <div id="lvl_customXpTableUI" class="row-editor"></div>
+                            <div class="flex gap-2 mt-3">
+                              <button type="button" onclick="app.addCustomXpRow()" class="btn-secondary flex-1 text-sm">+ Add level</button>
+                              <button type="button" onclick="app.generateMelee6Table()" class="btn-ghost text-sm">Generate MEE6 curve</button>
+                              <button type="button" onclick="app.clearCustomXpTable()" class="btn-ghost text-sm">Clear</button>
+                            </div>
+                          </div>
+
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">🛡️ Who counts as Staff?</h4>
+                            <p class="hint mb-2">Members with any of these roles are on the <b>staff track</b> (staff gift roles + staff announcements). Members with Manage Messages / Kick / Ban / Admin are always treated as staff too.</p>
+                            <div id="lvl_staffRolesUI" class="checklist">
+                              <span class="hint">Loading roles… pick a server in the Leveling page first.</span>
+                            </div>
+                            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+                          </div>
+
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">🎁 Level Roles</h4>
+                            <p class="hint mb-2">Both tracks use the <b>same XP curve</b> — only the gift roles differ. “Replaces lower” only affects the same track.</p>
+
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Roles</h5>
+                            <div id="lvl_memberRolesUI" class="row-editor"></div>
+                            <div class="mt-2">
+                              <button type="button" onclick="app.addLevelRoleRow('member')" class="btn-secondary w-full text-sm">+ Add member role</button>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Roles</h5>
+                            <div id="lvl_staffLevelRolesUI" class="row-editor"></div>
+                            <div class="mt-2">
+                              <button type="button" onclick="app.addLevelRoleRow('staff')" class="btn-secondary w-full text-sm">+ Add staff role</button>
+                            </div>
+                            <!-- legacy container kept for compat (hidden) -->
+                            <div id="lvl_levelRolesUI" class="hidden"></div>
+                          </div>
+
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">📣 Level-Up Announcements</h4>
+                            <p class="hint mb-2">Staff level-ups go to the <b>staff channel</b>; member level-ups go to the <b>member channel</b>. If a track has no channel, it falls back to the other track.</p>
+
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Announcements</h5>
+                            <div id="lvl_memberAnnounceUI" class="row-editor"></div>
+                            <div class="mt-2">
+                              <button type="button" onclick="app.addAnnounceChannelRow('member')" class="btn-secondary w-full text-sm">+ Add member channel</button>
+                            </div>
+
+                            <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Announcements</h5>
+                            <div id="lvl_staffAnnounceUI" class="row-editor"></div>
+                            <div class="mt-2">
+                              <button type="button" onclick="app.addAnnounceChannelRow('staff')" class="btn-secondary w-full text-sm">+ Add staff channel</button>
+                            </div>
+                            <!-- legacy container kept for compat (hidden) -->
+                            <div id="lvl_announceChannelsUI" class="hidden"></div>
+                          </div>
+
+                          <div class="subcard">
+                            <h4 class="text-sm font-bold text-slate-300 mb-1">⚡ Role XP Multipliers</h4>
+                            <p class="hint mb-2">Extra XP for members with specific roles (e.g. Booster ×2). Multipliers stack.</p>
+                            <div id="lvl_roleMultipliersUI" class="row-editor"></div>
+                            <div class="flex gap-2 mt-3">
+                              <button type="button" onclick="app.addRoleMultiplierRow()" class="btn-secondary flex-1 text-sm">+ Add multiplier</button>
+                            </div>
+                          </div>
+
+                          <!-- Legacy hidden fields (kept for backward-compatible saves / tests) -->
+                          <textarea id="lvl_noXpChannels" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_xpWhitelist" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_customXpTable" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_levelRoles" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_announceChannels" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_memberLevelRoles" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_staffLevelRoles" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_memberAnnounce" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_staffAnnounce" class="hidden" rows="2"></textarea>
+                          <textarea id="lvl_staffRoles" class="hidden" rows="2"></textarea>
+                          <button onclick="app.saveLevelingConfig()" class="btn-primary w-full">Save Leveling Settings</button>
+                        </div>
+                      </div>
             </div>
-
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">🧮 XP per Level (Custom curve)</h4>
-              <p class="hint mb-2">Only used when Formula = Custom. Each row: Total XP needed to reach that level.</p>
-              <div id="lvl_customXpTableUI" class="row-editor"></div>
-              <div class="flex gap-2 mt-3">
-                <button type="button" onclick="app.addCustomXpRow()" class="btn-secondary flex-1 text-sm">+ Add level</button>
-                <button type="button" onclick="app.generateMelee6Table()" class="btn-ghost text-sm">Generate MEE6 curve</button>
-                <button type="button" onclick="app.clearCustomXpTable()" class="btn-ghost text-sm">Clear</button>
-              </div>
-            </div>
-
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">🛡️ Who counts as Staff?</h4>
-              <p class="hint mb-2">Members with any of these roles are on the <b>staff track</b> (staff gift roles + staff announcements). Members with Manage Messages / Kick / Ban / Admin are always treated as staff too.</p>
-              <div id="lvl_staffRolesUI" class="checklist">
-                <span class="hint">Loading roles… pick a server in the Leveling page first.</span>
-              </div>
-              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
-            </div>
-
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">🎁 Level Roles</h4>
-              <p class="hint mb-2">Both tracks use the <b>same XP curve</b> — only the gift roles differ. “Replaces lower” only affects the same track.</p>
-
-              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Roles</h5>
-              <div id="lvl_memberRolesUI" class="row-editor"></div>
-              <div class="mt-2">
-                <button type="button" onclick="app.addLevelRoleRow('member')" class="btn-secondary w-full text-sm">+ Add member role</button>
-              </div>
-
-              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Roles</h5>
-              <div id="lvl_staffLevelRolesUI" class="row-editor"></div>
-              <div class="mt-2">
-                <button type="button" onclick="app.addLevelRoleRow('staff')" class="btn-secondary w-full text-sm">+ Add staff role</button>
-              </div>
-              <!-- legacy container kept for compat (hidden) -->
-              <div id="lvl_levelRolesUI" class="hidden"></div>
-            </div>
-
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">📣 Level-Up Announcements</h4>
-              <p class="hint mb-2">Staff level-ups go to the <b>staff channel</b>; member level-ups go to the <b>member channel</b>. If a track has no channel, it falls back to the other track.</p>
-
-              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-3 mb-2">👥 Member Announcements</h5>
-              <div id="lvl_memberAnnounceUI" class="row-editor"></div>
-              <div class="mt-2">
-                <button type="button" onclick="app.addAnnounceChannelRow('member')" class="btn-secondary w-full text-sm">+ Add member channel</button>
-              </div>
-
-              <h5 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Announcements</h5>
-              <div id="lvl_staffAnnounceUI" class="row-editor"></div>
-              <div class="mt-2">
-                <button type="button" onclick="app.addAnnounceChannelRow('staff')" class="btn-secondary w-full text-sm">+ Add staff channel</button>
-              </div>
-              <!-- legacy container kept for compat (hidden) -->
-              <div id="lvl_announceChannelsUI" class="hidden"></div>
-            </div>
-
-            <div class="subcard">
-              <h4 class="text-sm font-bold text-slate-300 mb-1">⚡ Role XP Multipliers</h4>
-              <p class="hint mb-2">Extra XP for members with specific roles (e.g. Booster ×2). Multipliers stack.</p>
-              <div id="lvl_roleMultipliersUI" class="row-editor"></div>
-              <div class="flex gap-2 mt-3">
-                <button type="button" onclick="app.addRoleMultiplierRow()" class="btn-secondary flex-1 text-sm">+ Add multiplier</button>
-              </div>
-            </div>
-
-            <!-- Legacy hidden fields (kept for backward-compatible saves / tests) -->
-            <textarea id="lvl_noXpChannels" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_xpWhitelist" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_customXpTable" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_levelRoles" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_announceChannels" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_memberLevelRoles" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_staffLevelRoles" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_memberAnnounce" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_staffAnnounce" class="hidden" rows="2"></textarea>
-            <textarea id="lvl_staffRoles" class="hidden" rows="2"></textarea>
-            <button onclick="app.saveLevelingConfig()" class="btn-primary w-full">Save Leveling Settings</button>
           </div>
-        </div>
-
-        <!-- AI -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🧠 AI Assistant</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="ai_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
+          <div class="settings-pane" data-settings-pane="economy">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Community</span>
+                <h3>💰 Economy</h3>
+                <p>Currency name, starting balance and the defaults used when new members join.</p>
+              </div>
+              <span class="badge badge-neutral" data-overview-state="economy">—</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Display Name</label>
-                <input type="text" id="ai_displayName" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Model</label>
-                <input type="text" id="ai_model" class="input-field">
-              </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="eco_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Starting Balance (new users)</label>
+                            <input type="number" id="eco_startingBalance" class="input-field">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Currency Name</label>
+                            <input type="text" id="eco_currencyName" class="input-field">
+                          </div>
+                          <button onclick="app.saveEconomyConfig()" class="btn-primary w-full">Save Economy Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">System Prompt</label>
-              <textarea id="ai_systemPrompt" class="input-field" rows="3"></textarea>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">AI Channel IDs (comma-separated)</label>
-              <input type="text" id="ai_channelIds" class="input-field" placeholder="e.g. 1234567890, 0987654321">
-              <p class="hint">Tip: pick channels below, or paste IDs. Empty = listens nowhere.</p>
-              <div id="ai_channelPickerUI" class="checklist mt-2">
-                <span class="hint">Loading channels…</span>
-              </div>
-              <div class="flex gap-2 mt-2">
-                <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
-                <button type="button" onclick="app.syncAiChannelPicker()" class="btn-ghost text-sm">Apply picker to text field</button>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">History Size</label>
-                <input type="number" id="ai_historySize" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Batch Window (ms)</label>
-                <input type="number" id="ai_batchWindowMs" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Reply Cooldown (s)</label>
-                <input type="number" id="ai_replyCooldown" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Decision Cooldown (s)</label>
-                <input type="number" id="ai_decisionCooldown" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Replies / Hour</label>
-                <input type="number" id="ai_maxReplies" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Message Length</label>
-                <input type="number" id="ai_maxMessageLength" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Temperature</label>
-                <input type="number" step="any" id="ai_temperature" class="input-field">
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Request Timeout (ms)</label>
-                <input type="number" id="ai_requestTimeout" class="input-field">
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Show Typing Indicator</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="ai_showTyping">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">API Key (write-only, leave empty to keep)</label>
-              <input type="password" id="ai_apiKey" class="input-field" autocomplete="off" placeholder="••••••••">
-            </div>
-            <button onclick="app.saveAiConfig()" class="btn-primary w-full">Save AI Settings</button>
           </div>
-        </div>
-
-        <!-- Music -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🎵 Music</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="mus_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="settings-pane" data-settings-pane="welcome">
+            <div class="settings-pane-head">
               <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Host</label>
-                <input type="text" id="mus_host" class="input-field">
+                <span class="settings-eyebrow">Community</span>
+                <h3>👋 Welcome & goodbye</h3>
+                <p>Join and leave messages, welcome card delivery and the channels they post to.</p>
               </div>
+              <span class="badge badge-neutral" data-overview-state="welcome">—</span>
+            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Welcome enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="wel_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome channel</label>
+                            <select id="wel_channel" class="input-field">
+                              <option value="">No channel</option>
+                            </select>
+                            <input type="text" id="wel_channelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome message (also sent as text)</label>
+                            <textarea id="wel_message" class="input-field" rows="3" placeholder="Welcome {user} to {server}! 🎉"></textarea>
+                            <div class="flex flex-wrap gap-1.5 mt-2">
+                              <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{user}')">+ {user}</button>
+                              <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{username}')">+ {username}</button>
+                              <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{server}')">+ {server}</button>
+                              <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{memberCount}')">+ {memberCount}</button>
+                            </div>
+                            <p class="hint">{user} pings the member. {username} = display name (for images).</p>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome image text</label>
+                            <textarea id="wel_imageMessage" class="input-field" rows="2" placeholder="Welcome {username} to {server}!"></textarea>
+                            <p class="hint">Drawn on the welcome card. Images can't ping — use {username}.</p>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Send welcome card image</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="wel_sendImage" checked>
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Use embed for text</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="wel_embed" checked>
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Goodbye enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="bye_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye channel</label>
+                            <select id="bye_channel" class="input-field">
+                              <option value="">No channel</option>
+                            </select>
+                            <input type="text" id="bye_channelManual" class="input-field mt-2" placeholder="Or paste ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye message</label>
+                            <textarea id="bye_message" class="input-field" rows="2" placeholder="Goodbye {username}, we will miss you!"></textarea>
+                          </div>
+                          <div class="flex gap-2">
+                            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
+                            <button type="button" onclick="app.testWelcome()" class="btn-secondary flex-1 text-sm">Send test welcome</button>
+                          </div>
+                          <button onclick="app.saveCommunityConfig()" class="btn-primary w-full">Save Welcome Settings</button>
+                        </div>
+                      </div>
+            </div>
+          </div>
+          <div class="settings-pane" data-settings-pane="ai">
+            <div class="settings-pane-head">
               <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Port</label>
-                <input type="number" id="mus_port" class="input-field">
+                <span class="settings-eyebrow">Engagement</span>
+                <h3>🧠 AI assistant</h3>
+                <p>Model, prompt, listening channels, rate limits and how replies behave.</p>
               </div>
+              <span class="badge badge-neutral" data-overview-state="ai">—</span>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Password (write-only)</label>
-              <input type="password" id="mus_password" class="input-field" autocomplete="off" placeholder="••••••••">
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="ai_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Display Name</label>
+                              <input type="text" id="ai_displayName" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Model</label>
+                              <input type="text" id="ai_model" class="input-field">
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">System Prompt</label>
+                            <textarea id="ai_systemPrompt" class="input-field" rows="3"></textarea>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">AI Channel IDs (comma-separated)</label>
+                            <input type="text" id="ai_channelIds" class="input-field" placeholder="e.g. 1234567890, 0987654321">
+                            <p class="hint">Tip: pick channels below, or paste IDs. Empty = listens nowhere.</p>
+                            <div id="ai_channelPickerUI" class="checklist mt-2">
+                              <span class="hint">Loading channels…</span>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
+                              <button type="button" onclick="app.syncAiChannelPicker()" class="btn-ghost text-sm">Apply picker to text field</button>
+                            </div>
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">History Size</label>
+                              <input type="number" id="ai_historySize" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Batch Window (ms)</label>
+                              <input type="number" id="ai_batchWindowMs" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Reply Cooldown (s)</label>
+                              <input type="number" id="ai_replyCooldown" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Decision Cooldown (s)</label>
+                              <input type="number" id="ai_decisionCooldown" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Replies / Hour</label>
+                              <input type="number" id="ai_maxReplies" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Message Length</label>
+                              <input type="number" id="ai_maxMessageLength" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Temperature</label>
+                              <input type="number" step="any" id="ai_temperature" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Request Timeout (ms)</label>
+                              <input type="number" id="ai_requestTimeout" class="input-field">
+                            </div>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Show Typing Indicator</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="ai_showTyping">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">API Key (write-only, leave empty to keep)</label>
+                            <input type="password" id="ai_apiKey" class="input-field" autocomplete="off" placeholder="••••••••">
+                          </div>
+                          <button onclick="app.saveAiConfig()" class="btn-primary w-full">Save AI Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          </div>
+          <div class="settings-pane" data-settings-pane="music">
+            <div class="settings-pane-head">
               <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Volume</label>
-                <input type="number" id="mus_volume" class="input-field">
+                <span class="settings-eyebrow">Engagement</span>
+                <h3>🎵 Music</h3>
+                <p>Lavalink connection details, default volume and playback limits.</p>
               </div>
+              <span class="badge badge-neutral" data-overview-state="music">—</span>
+            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="mus_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Host</label>
+                              <input type="text" id="mus_host" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Port</label>
+                              <input type="number" id="mus_port" class="input-field">
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Lavalink Password (write-only)</label>
+                            <input type="password" id="mus_password" class="input-field" autocomplete="off" placeholder="••••••••">
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Volume</label>
+                              <input type="number" id="mus_volume" class="input-field">
+                            </div>
+                            <div>
+                              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Playlist Size</label>
+                              <input type="number" id="mus_maxPlaylist" class="input-field">
+                            </div>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Allow Skip</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="mus_allowSkip">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Allow Repeat</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="mus_allowRepeat">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <button onclick="app.saveMusicConfig()" class="btn-primary w-full">Save Music Settings</button>
+                        </div>
+                      </div>
+            </div>
+          </div>
+          <div class="settings-pane" data-settings-pane="tempvc">
+            <div class="settings-pane-head">
               <div>
-                <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Max Playlist Size</label>
-                <input type="number" id="mus_maxPlaylist" class="input-field">
+                <span class="settings-eyebrow">Engagement</span>
+                <h3>🎙️ Temporary voice</h3>
+                <p>Join-to-create channel, category and the control panel message.</p>
               </div>
+              <span class="badge badge-neutral" data-overview-state="tempvc">—</span>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Allow Skip</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="mus_allowSkip">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="tvc_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Create Channel</label>
+                            <select id="tvc_createChannelId" class="input-field">
+                              <option value="">Select…</option>
+                            </select>
+                            <input type="text" id="tvc_createChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Category</label>
+                            <select id="tvc_categoryId" class="input-field">
+                              <option value="">Select…</option>
+                            </select>
+                            <input type="text" id="tvc_categoryIdManual" class="input-field mt-2" placeholder="Or paste ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Channel</label>
+                            <select id="tvc_panelChannelId" class="input-field">
+                              <option value="">Select…</option>
+                            </select>
+                            <input type="text" id="tvc_panelChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Message ID</label>
+                            <input type="text" id="tvc_panelMessageId" class="input-field" placeholder="Filled after panel is posted">
+                          </div>
+                          <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm">Refresh channels</button>
+                          <button onclick="app.saveTempvcConfig()" class="btn-primary w-full">Save TempVC Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Allow Repeat</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="mus_allowRepeat">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <button onclick="app.saveMusicConfig()" class="btn-primary w-full">Save Music Settings</button>
           </div>
-        </div>
-
-        <!-- Moderation -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🛡️ Moderation</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="mod_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Log Channel</label>
-              <select id="mod_logChannelId" class="input-field">
-                <option value="">No log channel</option>
-              </select>
-              <input type="text" id="mod_logChannelIdManual" class="input-field mt-2" placeholder="Or paste a channel ID manually">
-              <p class="hint">Moderation cases are posted here.</p>
-              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh channels</button>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Reason</label>
-              <input type="text" id="mod_defaultReason" class="input-field">
-            </div>
-            <button onclick="app.saveModerationConfig()" class="btn-primary w-full">Save Moderation Settings</button>
-          </div>
-        </div>
-
-        <!-- Economy -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">💰 Economy</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="eco_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Starting Balance (new users)</label>
-              <input type="number" id="eco_startingBalance" class="input-field">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Currency Name</label>
-              <input type="text" id="eco_currencyName" class="input-field">
-            </div>
-            <button onclick="app.saveEconomyConfig()" class="btn-primary w-full">Save Economy Settings</button>
-          </div>
-        </div>
-
-        <!-- TempVC -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🎙️ Temporary Voice</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="tvc_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Create Channel</label>
-              <select id="tvc_createChannelId" class="input-field">
-                <option value="">Select…</option>
-              </select>
-              <input type="text" id="tvc_createChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Category</label>
-              <select id="tvc_categoryId" class="input-field">
-                <option value="">Select…</option>
-              </select>
-              <input type="text" id="tvc_categoryIdManual" class="input-field mt-2" placeholder="Or paste ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Channel</label>
-              <select id="tvc_panelChannelId" class="input-field">
-                <option value="">Select…</option>
-              </select>
-              <input type="text" id="tvc_panelChannelIdManual" class="input-field mt-2" placeholder="Or paste ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel Message ID</label>
-              <input type="text" id="tvc_panelMessageId" class="input-field" placeholder="Filled after panel is posted">
-            </div>
-            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm">Refresh channels</button>
-            <button onclick="app.saveTempvcConfig()" class="btn-primary w-full">Save TempVC Settings</button>
-          </div>
-        </div>
-
-        <!-- Automation -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">⚙️ Automation</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="auto_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <p class="text-xs text-slate-500">Master switch for scheduled automation jobs. Individual jobs are managed in the database.</p>
-            <button onclick="app.saveAutomationConfig()" class="btn-primary w-full">Save Automation Settings</button>
-          </div>
-        </div>
-
-        <!-- Welcome / Goodbye -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">👋 Welcome</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Welcome enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="wel_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome channel</label>
-              <select id="wel_channel" class="input-field">
-                <option value="">No channel</option>
-              </select>
-              <input type="text" id="wel_channelManual" class="input-field mt-2" placeholder="Or paste channel ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome message (also sent as text)</label>
-              <textarea id="wel_message" class="input-field" rows="3" placeholder="Welcome {user} to {server}! 🎉"></textarea>
-              <div class="flex flex-wrap gap-1.5 mt-2">
-                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{user}')">+ {user}</button>
-                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{username}')">+ {username}</button>
-                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{server}')">+ {server}</button>
-                <button type="button" class="placeholder-btn" onclick="app.insertPlaceholder('wel_message','{memberCount}')">+ {memberCount}</button>
+          <div class="settings-pane" data-settings-pane="automation">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Engagement</span>
+                <h3>🤖 Automation</h3>
+                <p>Master switch for the scheduled jobs that run in the background.</p>
               </div>
-              <p class="hint">{user} pings the member. {username} = display name (for images).</p>
+              <span class="badge badge-neutral" data-overview-state="automation">—</span>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Welcome image text</label>
-              <textarea id="wel_imageMessage" class="input-field" rows="2" placeholder="Welcome {username} to {server}!"></textarea>
-              <p class="hint">Drawn on the welcome card. Images can't ping — use {username}.</p>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="auto_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <p class="text-xs text-slate-500">Master switch for scheduled automation jobs. Individual jobs are managed in the database.</p>
+                          <button onclick="app.saveAutomationConfig()" class="btn-primary w-full">Save Automation Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Send welcome card image</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="wel_sendImage" checked>
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Use embed for text</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="wel_embed" checked>
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Goodbye enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="bye_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye channel</label>
-              <select id="bye_channel" class="input-field">
-                <option value="">No channel</option>
-              </select>
-              <input type="text" id="bye_channelManual" class="input-field mt-2" placeholder="Or paste ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Goodbye message</label>
-              <textarea id="bye_message" class="input-field" rows="2" placeholder="Goodbye {username}, we will miss you!"></textarea>
-            </div>
-            <div class="flex gap-2">
-              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary flex-1 text-sm">Refresh channels</button>
-              <button type="button" onclick="app.testWelcome()" class="btn-secondary flex-1 text-sm">Send test welcome</button>
-            </div>
-            <button onclick="app.saveCommunityConfig()" class="btn-primary w-full">Save Welcome Settings</button>
           </div>
-        </div>
-
-        <!-- Tickets -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🎫 Tickets</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="tix_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Ticket category</label>
-              <select id="tix_category" class="input-field">
-                <option value="">No category (root)</option>
-              </select>
-              <input type="text" id="tix_categoryManual" class="input-field mt-2" placeholder="Or paste category ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Support roles (staff who see tickets)</label>
-              <div id="tix_supportRolesUI" class="checklist">
-                <span class="hint">Loading roles…</span>
+          <div class="settings-pane" data-settings-pane="moderation">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Safety</span>
+                <h3>🛡️ Moderation</h3>
+                <p>Moderation switch, case log channel and the default reason for actions.</p>
               </div>
-              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+              <span class="badge badge-neutral" data-overview-state="moderation">—</span>
             </div>
-            <button onclick="app.saveTicketsConfig()" class="btn-primary w-full">Save Ticket Settings</button>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="mod_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Log Channel</label>
+                            <select id="mod_logChannelId" class="input-field">
+                              <option value="">No log channel</option>
+                            </select>
+                            <input type="text" id="mod_logChannelIdManual" class="input-field mt-2" placeholder="Or paste a channel ID manually">
+                            <p class="hint">Moderation cases are posted here.</p>
+                            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh channels</button>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Default Reason</label>
+                            <input type="text" id="mod_defaultReason" class="input-field">
+                          </div>
+                          <button onclick="app.saveModerationConfig()" class="btn-primary w-full">Save Moderation Settings</button>
+                        </div>
+                      </div>
+            </div>
           </div>
-        </div>
-
-        <!-- Staff Applications -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">🛡️ Staff Applications</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-300">Enabled</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" id="sapp_enabled">
-                <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-            <p class="hint">Flow: <b>1.</b> pick a staff role → <b>2.</b> answer questions (modal) → <b>3.</b> an <b>Admin</b> approves/denies with buttons. Only admins (Administrator permission or an **Admin**-named role; or the roles below) can review.</p>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Open staff roles</label>
-              <div id="sapp_staffRolesUI" class="checklist">
-                <span class="hint">Loading roles…</span>
+          <div class="settings-pane" data-settings-pane="tickets">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Safety</span>
+                <h3>🎫 Tickets</h3>
+                <p>Where tickets open and which support roles can see them.</p>
               </div>
-              <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+              <span class="badge badge-neutral" data-overview-state="tickets">—</span>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Approver roles (optional)</label>
-              <div id="sapp_approverRolesUI" class="checklist">
-                <span class="hint">Loading roles… empty = Administrator permission or an “Admin” role.</span>
-              </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="tix_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Ticket category</label>
+                            <select id="tix_category" class="input-field">
+                              <option value="">No category (root)</option>
+                            </select>
+                            <input type="text" id="tix_categoryManual" class="input-field mt-2" placeholder="Or paste category ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Support roles (staff who see tickets)</label>
+                            <div id="tix_supportRolesUI" class="checklist">
+                              <span class="hint">Loading roles…</span>
+                            </div>
+                            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+                          </div>
+                          <button onclick="app.saveTicketsConfig()" class="btn-primary w-full">Save Ticket Settings</button>
+                        </div>
+                      </div>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel channel</label>
-              <select id="sapp_panelChannel" class="input-field">
-                <option value="">No panel</option>
-              </select>
-              <input type="text" id="sapp_panelChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Review channel (where admins approve)</label>
-              <select id="sapp_reviewChannel" class="input-field">
-                <option value="">Same as panel</option>
-              </select>
-              <input type="text" id="sapp_reviewChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Questions (one per line, max 45 chars each)</label>
-              <textarea id="sapp_questions" class="input-field" rows="5" placeholder="Why do you want to join the staff team?&#10;How active are you on Discord?"></textarea>
-              <p class="hint">Applicants see these in a modal, 5 at a time. Keep each short.</p>
-            </div>
-            <button onclick="app.saveStaffAppsConfig()" class="btn-primary w-full">Save Application Settings</button>
           </div>
-        </div>
-
-        <!-- Danger zone -->
-        <div class="stat-card">
-          <h3 class="font-bold text-lg mb-4">Danger Zone</h3>
-          <div class="space-y-3">
-            <button onclick="app.confirmShutdown()" class="btn-ghost text-red-400 hover:bg-red-500/10 border-red-500/20 flex items-center gap-2 w-full justify-center">🛑 Shutdown Bot</button>
-            <button onclick="app.confirmRestart()" class="btn-ghost text-orange-400 hover:bg-orange-500/10 border-orange-500/20 flex items-center gap-2 w-full justify-center">🔄 Restart Bot</button>
-            <button onclick="app.clearLogs()" class="btn-ghost text-yellow-400 hover:bg-yellow-500/10 border-yellow-500/20 flex items-center gap-2 w-full justify-center">🗑️ Clear Logs</button>
+          <div class="settings-pane" data-settings-pane="staffapps">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Safety</span>
+                <h3>🧾 Staff applications</h3>
+                <p>Application questions, open roles, reviewers and the channels applications use.</p>
+              </div>
+              <span class="badge badge-neutral" data-overview-state="staffapps">—</span>
+            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Enabled</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="sapp_enabled">
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <p class="hint">Flow: <b>1.</b> pick a staff role → <b>2.</b> answer questions (modal) → <b>3.</b> an <b>Admin</b> approves/denies with buttons. Only admins (Administrator permission or an **Admin**-named role; or the roles below) can review.</p>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Open staff roles</label>
+                            <div id="sapp_staffRolesUI" class="checklist">
+                              <span class="hint">Loading roles…</span>
+                            </div>
+                            <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Approver roles (optional)</label>
+                            <div id="sapp_approverRolesUI" class="checklist">
+                              <span class="hint">Loading roles… empty = Administrator permission or an “Admin” role.</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel channel</label>
+                            <select id="sapp_panelChannel" class="input-field">
+                              <option value="">No panel</option>
+                            </select>
+                            <input type="text" id="sapp_panelChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Review channel (where admins approve)</label>
+                            <select id="sapp_reviewChannel" class="input-field">
+                              <option value="">Same as panel</option>
+                            </select>
+                            <input type="text" id="sapp_reviewChannelManual" class="input-field mt-2" placeholder="Or paste channel ID">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Questions (one per line, max 45 chars each)</label>
+                            <textarea id="sapp_questions" class="input-field" rows="5" placeholder="Why do you want to join the staff team?&#10;How active are you on Discord?"></textarea>
+                            <p class="hint">Applicants see these in a modal, 5 at a time. Keep each short.</p>
+                          </div>
+                          <button onclick="app.saveStaffAppsConfig()" class="btn-primary w-full">Save Application Settings</button>
+                        </div>
+                      </div>
+            </div>
+          </div>
+          <div class="settings-pane" data-settings-pane="advanced">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Advanced</span>
+                <h3>🚨 Danger zone</h3>
+                <p>Restart, shut down or clear logs. These actions affect the running bot immediately.</p>
+              </div>
+              <span class="badge badge-danger">Careful</span>
+            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-3">
+                          <button onclick="app.confirmShutdown()" class="btn-ghost text-red-400 hover:bg-red-500/10 border-red-500/20 flex items-center gap-2 w-full justify-center">🛑 Shutdown Bot</button>
+                          <button onclick="app.confirmRestart()" class="btn-ghost text-orange-400 hover:bg-orange-500/10 border-orange-500/20 flex items-center gap-2 w-full justify-center">🔄 Restart Bot</button>
+                          <button onclick="app.clearLogs()" class="btn-ghost text-yellow-400 hover:bg-yellow-500/10 border-yellow-500/20 flex items-center gap-2 w-full justify-center">🗑️ Clear Logs</button>
+                        </div>
+                      </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
-
     <!-- Cards Page -->
     <section id="page-cards" class="page">
       <div class="mb-6">
