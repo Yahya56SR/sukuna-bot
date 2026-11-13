@@ -6,6 +6,7 @@ exports.isAdminMember = isAdminMember;
 const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const embed_1 = require("../utils/embed");
+const panel_1 = require("../utils/panel");
 const schema_1 = require("../database/schema");
 const id_1 = require("../utils/id");
 exports.STAFFAPP_PREFIX = 'staffapp:';
@@ -23,7 +24,10 @@ exports.DEFAULT_STAFFAPP_CONFIG = {
         'Anything else we should know?',
     ],
     maxQuestionLength: 1000,
+    roleDescriptions: {},
 };
+/** Semantic emoji keys for staff roles that do not carry their own unicode emoji. */
+const ROLE_EMOJI_FALLBACK = ['staffTeam', 'designer', 'developer', 'eventHost', 'partnership', 'settings', 'role', 'member'];
 function getDefaultStaffAppConfig() {
     return JSON.parse(JSON.stringify(exports.DEFAULT_STAFFAPP_CONFIG));
 }
@@ -96,6 +100,9 @@ class StaffApplications {
             this.config.questions = [];
         // Discord modal: max 5 inputs per modal, label max 45 chars
         this.config.questions = this.config.questions.map((q) => String(q || '').trim().slice(0, 45)).filter(Boolean);
+        if (!this.config.roleDescriptions || typeof this.config.roleDescriptions !== 'object') {
+            this.config.roleDescriptions = {};
+        }
     }
     setConfig(next) {
         const merged = { ...this.config, ...(next ?? {}) };
@@ -127,6 +134,59 @@ class StaffApplications {
     }
     reviewChannelId() {
         return this.config.reviewChannelId || this.config.panelChannelId || '';
+    }
+    // ---------- Panel ----------
+    /** Emoji shown for a staff role — roles may carry their own unicode emoji. */
+    roleEmoji(role, index) {
+        if (role?.unicodeEmoji)
+            return String(role.unicodeEmoji);
+        return ROLE_EMOJI_FALLBACK[index % ROLE_EMOJI_FALLBACK.length] ?? 'staff';
+    }
+    /**
+     * Builds the big staff application panel: rich description, a feature line
+     * per open role, banner artwork and one apply button per role.
+     */
+    async buildPanel(guild) {
+        const cfg = this.config;
+        const roles = cfg.staffRoles
+            .map((rid) => guild.roles.cache.get(rid))
+            .filter(Boolean);
+        const features = roles.map((role, index) => ({
+            emoji: this.roleEmoji(role, index),
+            label: role.name,
+            value: String(cfg.roleDescriptions?.[role.id] ?? '').trim() || `Join the ${role.name} team`,
+        }));
+        const buttons = roles.map((role, index) => ({
+            id: `${exports.STAFFAPP_PREFIX}apply:${role.id}`,
+            label: role.name,
+            emoji: this.roleEmoji(role, index),
+            style: discord_js_1.ButtonStyle.Primary,
+        }));
+        if (buttons.length === 0) {
+            buttons.push({ id: `${exports.STAFFAPP_PREFIX}apply`, label: 'Apply now', emoji: 'staff', style: discord_js_1.ButtonStyle.Primary });
+        }
+        const invite = guild.vanityURLCode
+            ? ` ${(0, panel_1.panelLink)('Join the server', `https://discord.gg/${guild.vanityURLCode}`)}.`
+            : '';
+        return (0, panel_1.buildPanelPayload)({
+            emoji: 'staff',
+            title: 'Staff Applications',
+            guildName: guild.name,
+            guildIconUrl: guild.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+            color: embed_1.BRAND.gold,
+            intro: `We're looking for active and dedicated members to join our team and help our community grow!${invite}`,
+            features,
+            note: 'Click the button below to submit your application. Serious applicants only!',
+            banner: {
+                title: 'Staff Applications',
+                subtitle: guild.name,
+                emoji: '🛡️',
+                accent: '#ffd700',
+                accentSecondary: '#f97316',
+            },
+            buttons,
+            footer: `${guild.name} • Staff Applications`,
+        });
     }
     // ---------- Role selection step ----------
     async promptRoleSelection(interaction) {
@@ -165,6 +225,32 @@ class StaffApplications {
             .setValue(r.id)));
         const row = new discord_js_1.ActionRowBuilder().addComponents(menu);
         await interaction.reply({ content: '🛡️ Which staff role are you applying for?', components: [row], flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+    }
+    /**
+     * Starts an application for one specific role — used by the per-role
+     * buttons on the panel (no select menu needed).
+     */
+    async promptApplyForRole(interaction, roleId) {
+        if (!this.config.enabled) {
+            await interaction.reply({ content: 'Staff applications are disabled.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        const guild = interaction.guild ?? this.client?.guilds.cache.get(interaction.guildId);
+        if (!guild) {
+            await interaction.reply({ content: 'Server not found.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        if (!roleId || !this.config.staffRoles.includes(roleId)) {
+            await interaction.reply({ content: 'That role is no longer open for applications.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        const member = guild.members.cache.get(interaction.user.id)
+            ?? await guild.members.fetch(interaction.user.id).catch(() => null);
+        if (member?.roles.cache.has(roleId)) {
+            await interaction.reply({ content: `You already have <@&${roleId}>.`, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
+            return;
+        }
+        await this.promptQuestions(interaction, guild.id, roleId).catch(() => undefined);
     }
     // ---------- Questions modal (chunked: 5 per modal) ----------
     async promptQuestions(interaction, guildId, roleId, partialAnswers = [], chunk = 0) {
@@ -589,15 +675,12 @@ class StaffApplicationsCommands {
                             return;
                         }
                         const channel = interaction.options.getChannel('channel', true);
-                        const embed = (0, embed_1.brandedEmbed)(embed_1.BRAND.gold)
-                            .setTitle('🛡️ Join the Staff Team')
-                            .setDescription('Want to help run the server? Apply below!\n\n' +
-                            '**How it works:**\n1. Click **Apply** and pick a role\n2. Answer a few questions\n3. An **Admin** reviews your application\n\n' +
-                            `Open roles: ${cfg.staffRoles.map((r) => `<@&${r}>`).join('  ')}`)
-                            .setFooter({ text: 'Sukuna Bot • Staff Applications' })
-                            .setTimestamp();
-                        const row = new discord_js_1.ActionRowBuilder().addComponents(new discord_js_1.ButtonBuilder().setCustomId(`${exports.STAFFAPP_PREFIX}apply`).setLabel('Apply').setEmoji('🛡️').setStyle(discord_js_1.ButtonStyle.Primary));
-                        await channel.send({ embeds: [embed], components: [row] }).catch(() => undefined);
+                        const panel = await this.service.buildPanel(guild);
+                        await channel.send({
+                            embeds: [panel.embed],
+                            components: panel.components,
+                            files: panel.files,
+                        }).catch(() => undefined);
                         // Save the panel channel so /apply buttons keep working after restart config
                         this.service.setConfig({ panelChannelId: channel.id, reviewChannelId: this.service.getConfig().reviewChannelId || channel.id });
                         await interaction.reply({ content: `✅ Staff panel posted in ${channel}.`, flags: MessageFlags.Ephemeral }).catch(() => undefined);

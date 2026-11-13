@@ -128,6 +128,12 @@ export class InteractionRouter {
       await this.staffApplications.promptRoleSelection(interaction);
       return;
     }
+    // Per-role apply button on the panel: staffapp:apply:<roleId>
+    const applyForRole = customId.match(/^staffapp:apply:(\d+)$/);
+    if (applyForRole) {
+      await this.staffApplications.promptApplyForRole(interaction, applyForRole[1] ?? '');
+      return;
+    }
     // approve / deny
     const m = customId.match(/^staffapp:(approve|deny):([a-zA-Z0-9]+)$/);
     if (m) {
@@ -174,7 +180,8 @@ export class InteractionRouter {
       await interaction.reply({ content: 'Tickets are not available.', flags: MessageFlags.Ephemeral }).catch(() => undefined);
       return;
     }
-    // ticket:claim:<id> | ticket:close:<id> | ticket:reopen:<id> | ticket:delete:<id> | ticket:panel:create
+    // ticket:claim:<id> | ticket:close:<id> | ticket:reopen:<id> | ticket:delete:<id>
+    // ticket:panel:create | ticket:panel:create:<categoryKey>
     const parts = String(interaction.customId).split(':');
     const action = parts[1] ?? '';
     const ticketId = parts[2] ?? '';
@@ -206,10 +213,18 @@ export class InteractionRouter {
         await this.ticketsService.deleteTicket(ticketId, interaction.user.id);
         await interaction.editReply(`🗑️ Ticket \`${ticketId}\` deleted.`).catch(() => undefined);
       } else if (action === 'panel' && ticketId === 'create') {
-        // Panel "Open a ticket" button
-        const { ticketButtons: _tb } = require('../modules/TicketsManager');
-        void _tb;
-        const id = await this.ticketsService.createTicket(interaction.user.id, interaction.guildId, 'general', 'Opened via panel button');
+        // Panel button — ticket:panel:create[:<categoryKey>]
+        const categoryKey = parts[3] ?? '';
+        const category = categoryKey
+          ? this.ticketsService.getCategory?.(categoryKey)
+          : undefined;
+        const label = category?.label || 'General';
+        const id = await this.ticketsService.createTicket(
+          interaction.user.id,
+          interaction.guildId,
+          label,
+          category ? `Opened via panel (${label})` : 'Opened via panel button',
+        );
         const ticket = await this.ticketsService.getTicket(id);
         await interaction.editReply(`🎫 Your ticket is ready: <#${ticket?.channelId}>`).catch(() => undefined);
       } else {

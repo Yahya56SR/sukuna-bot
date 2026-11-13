@@ -838,6 +838,8 @@
             <button type="button" class="settings-nav-btn" data-settings-section="moderation"><span class="settings-nav-icon" aria-hidden="true">🛡️</span><span>Moderation</span></button>
             <button type="button" class="settings-nav-btn" data-settings-section="tickets"><span class="settings-nav-icon" aria-hidden="true">🎫</span><span>Tickets</span></button>
             <button type="button" class="settings-nav-btn" data-settings-section="staffapps"><span class="settings-nav-icon" aria-hidden="true">🧾</span><span>Staff apps</span></button>
+            <p class="settings-nav-label">Appearance</p>
+            <button type="button" class="settings-nav-btn" data-settings-section="panels"><span class="settings-nav-icon" aria-hidden="true">🖼️</span><span>Panels & emoji</span></button>
             <p class="settings-nav-label">Advanced</p>
             <button type="button" class="settings-nav-btn" data-settings-section="advanced"><span class="settings-nav-icon" aria-hidden="true">🚨</span><span>Danger zone</span></button>
           </nav>
@@ -1709,6 +1711,11 @@
                             </div>
                             <button type="button" onclick="app.refreshChannelPickers()" class="btn-secondary w-full text-sm mt-2">Refresh roles</button>
                           </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Panel categories (key | Label | emoji | description)</label>
+                            <textarea id="tix_categories" class="input-field" rows="6" placeholder="pub | Pub | pub | Report spam or pub issues&#10;bugs | Bugs | bug | Report bugs or issues"></textarea>
+                            <p class="hint">One button per line on the ticket panel. Leave empty to use the defaults. Emoji takes a panel emoji key (pub, bug, abuse, server, staffReport, donate) or a literal emoji.</p>
+                          </div>
                           <button onclick="app.saveTicketsConfig()" class="btn-primary w-full">Save Ticket Settings</button>
                         </div>
                       </div>
@@ -1766,7 +1773,64 @@
                             <textarea id="sapp_questions" class="input-field" rows="5" placeholder="Why do you want to join the staff team?&#10;How active are you on Discord?"></textarea>
                             <p class="hint">Applicants see these in a modal, 5 at a time. Keep each short.</p>
                           </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Role pitch (one per line: Role Name = short description)</label>
+                            <textarea id="sapp_roleDescriptions" class="input-field" rows="4" placeholder="Staff Team = Moderate and assist members&#10;Designer = Create visuals &amp; graphics"></textarea>
+                            <p class="hint">Shown on the staff panel next to each role button. Roles without a line get a default line.</p>
+                          </div>
                           <button onclick="app.saveStaffAppsConfig()" class="btn-primary w-full">Save Application Settings</button>
+                        </div>
+                      </div>
+            </div>
+          </div>
+          <div class="settings-pane" data-settings-pane="panels">
+            <div class="settings-pane-head">
+              <div>
+                <span class="settings-eyebrow">Appearance</span>
+                <h3>🖼️ Panels &amp; custom emoji</h3>
+                <p>Panels (staff apps, tickets, temp voice, giveaways) share one look. Point the bot at your emoji server so they use your own emoji.</p>
+              </div>
+              <span class="badge badge-neutral" id="panelsEmojiBadge">—</span>
+            </div>
+            <div class="settings-stack">
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-300">Banner artwork</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" class="sr-only peer" id="panels_banner" checked>
+                              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                            </label>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Emoji server (ID or name)</label>
+                            <input type="text" id="panels_emojiGuild" class="input-field" placeholder="Emoji Hub">
+                            <p class="hint">Leave empty and the bot auto-detects a server with “emoji” in its name.</p>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Emoji map (one per line)</label>
+                            <textarea id="panels_emojiMap" class="input-field" rows="7" placeholder="staff = sukuna_staff&#10;ticket = sukuna_ticket&#10;donate = &lt;a:money:123456789012345678&gt;"></textarea>
+                            <p class="hint">Map a panel key to an emoji name from your emoji server, or paste the emoji itself.</p>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Banner accent (hex, optional)</label>
+                            <input type="text" id="panels_accent" class="input-field" placeholder="#ef4444">
+                            <p class="hint">Overrides the accent colour of every generated banner artwork.</p>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Available emoji</label>
+                            <div id="panels_emojiList" class="checklist">
+                              <span class="hint">Loading emoji…</span>
+                            </div>
+                            <button type="button" onclick="app.refreshPanelEmojis()" class="btn-secondary w-full text-sm mt-2">Refresh emoji</button>
+                          </div>
+                          <button onclick="app.savePanelsConfig()" class="btn-primary w-full">Save Panel Settings</button>
+                        </div>
+                      </div>
+              <div class="stat-card">
+                        <div class="space-y-4">
+                          <p class="hint">Keys used by the panels: <b>staff</b>, <b>staffTeam</b>, <b>designer</b>, <b>developer</b>, <b>eventHost</b>, <b>partnership</b>, <b>ticket</b>, <b>tempvc</b>, <b>giveaway</b>, <b>support</b>, <b>pub</b>, <b>bug</b>, <b>abuse</b>, <b>server</b>, <b>staffReport</b>, <b>donate</b>, <b>link</b>, <b>mouse</b>, <b>check</b>, <b>cross</b>, <b>warning</b>, <b>member</b>, <b>question</b>, <b>clock</b>, <b>sparkles</b>, <b>voice</b>, <b>settings</b>, <b>role</b>, <b>home</b>, <b>arrow</b>, <b>ping</b>, <b>rules</b>, <b>ban</b>, <b>mute</b>, <b>kick</b>, <b>clear</b>, <b>wave</b>, <b>eye</b>, <b>lock</b>, <b>unlock</b>, <b>trash</b>, <b>pencil</b>, <b>crown</b>, <b>shield</b>, <b>logo</b>.</p>
+                          <p class="hint">Anything without a match falls back to the bot's own emoji, so panels never break.</p>
                         </div>
                       </div>
             </div>

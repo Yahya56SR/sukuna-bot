@@ -75,15 +75,8 @@ class TempVCCommands {
             await interaction.reply({ content: 'Set up temp VC first with `/tempvc setup`.', flags: discord_js_1.MessageFlags.Ephemeral });
             return;
         }
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(0xef4444)
-            .setTitle('🔊 Temporary Voice — Sukuna')
-            .setDescription(`Join <#${cfg.createChannelId}> and a private room opens for you instantly.\n\n` +
-            'Use the buttons below while you are inside your room to rename it, set a limit, lock/hide it, or delete it. Only the room owner (or whoever claims an abandoned room) can manage it.')
-            .addFields({ name: '✨ How it works', value: `1. Join <#${cfg.createChannelId}>\n2. Your room appears in <#${cfg.categoryId}>\n3. Manage it with the buttons`, inline: true }, { name: '🎛️ Controls', value: 'Rename • Limit • Lock/Unlock\nHide/Show • Invite • Kick\nClaim • Delete', inline: true })
-            .setFooter({ text: 'Sukuna Bot • TempVC' })
-            .setTimestamp();
-        const rows = this.service.getPanelButtons();
+        const guild = interaction.guild ?? null;
+        const panel = await this.service.buildPanel(cfg, guild);
         const existingMessageId = cfg.panelMessageId;
         let message = null;
         if (existingMessageId) {
@@ -95,10 +88,10 @@ class TempVCCommands {
             }
         }
         if (message) {
-            await message.edit({ embeds: [embed], components: rows });
+            await message.edit({ embeds: [panel.embed], components: panel.components, files: panel.files });
         }
         else {
-            message = await channel.send({ embeds: [embed], components: rows });
+            message = await channel.send({ embeds: [panel.embed], components: panel.components, files: panel.files });
         }
         await this.service.setPanel(channel.id, message.id, interaction.guildId ?? undefined);
         await interaction.reply({ content: `✅ Temp VC panel posted in ${channel}.`, flags: discord_js_1.MessageFlags.Ephemeral });

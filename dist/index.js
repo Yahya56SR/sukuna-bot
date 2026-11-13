@@ -47,6 +47,7 @@ class SukunaApp {
         const { CommunityManager } = require('./modules/CommunityManager');
         const { TicketsManager } = require('./modules/TicketsManager');
         const { StaffApplications } = require('./modules/StaffApplications');
+        const { PanelService } = require('./services/PanelService');
         const { WebServer } = require('./web/WebServer');
         this.config = initializeConfig();
         this.logger = new Logger();
@@ -233,6 +234,12 @@ class SukunaApp {
                 configurable: false,
             },
         });
+        this.panels = new PanelService(this.logger, {
+            banner: process.env.PANELS_BANNER !== 'false',
+            emojiGuild: process.env.PANELS_EMOJI_GUILD || '',
+            emojiMap: process.env.PANELS_EMOJI_MAP || '',
+            accent: process.env.PANELS_ACCENT || '',
+        });
         this.web = new WebServer(this.logger, this, parseInt(process.env.SERVER_PORT || process.env.PORT || '3000'));
     }
     static getInstance() {
@@ -387,6 +394,9 @@ class SukunaApp {
             this.client = await this.discord.initialize();
             this.logger.info('Sukuna Bot', 'Discord client initialized successfully');
             this.economyGames.setClient(this.client);
+            // Panels use the bot's own custom emoji — pull them from the emoji server.
+            this.panels.setClient(this.client);
+            await this.panels.refreshEmojis(this.client).catch(() => 0);
             // Set client on services that need it
             this.leveling.setClient(this.client);
             this.tempvc.setDb(this.database.getDb());

@@ -18,6 +18,7 @@ import { giveaways as giveawaysTable, giveawayEntries } from '../database/schema
 import type { DrizzleDb } from '../types/database';
 import { shortId } from '../utils/id';
 import { formatNumber } from '../utils/embed';
+import { buildPanel, type PanelFeature } from '../utils/panel';
 import type { EconomyService } from './economy/EconomyService';
 
 export interface GiveawayConfig {
@@ -219,18 +220,32 @@ export class GiveawaysManager {
 
   private buildEmbed(giveaway: Giveaway): EmbedBuilder {
     const ended = giveaway.status !== 'active';
-    const embed = new EmbedBuilder()
-      .setColor(ended ? '#00ff00' : '#ffd700')
-      .setTitle(ended ? '🎉 Giveaway Ended!' : '🎉 Giveaway!')
-      .setDescription(
-        `**Prize:** ${giveaway.prize}\n` +
-          (giveaway.description ? `**Description:** ${giveaway.description}\n` : '') +
-          (giveaway.prizeAmount > 0 ? `**Prize pool:** ${formatNumber(giveaway.prizeAmount)} coins\n` : '') +
-          `**Hosted by:** <@${giveaway.hostId}>\n` +
-          (ended ? '' : `**Ends:** ${timestamp(giveaway.endsAt)}\n`) +
-          `**Entries:** ${formatNumber(giveaway.entryCount)}`
-      )
-      .setFooter({ text: ended ? `Giveaway ${giveaway.id}` : 'Click Enter to participate!' });
+    const guild = this.client?.guilds.cache.get(giveaway.guildId);
+
+    const features: PanelFeature[] = [
+      { emoji: 'giveaway', label: 'Prize', value: giveaway.prize },
+      ...(giveaway.prizeAmount > 0
+        ? [{ emoji: 'donate', label: 'Prize pool', value: `${formatNumber(giveaway.prizeAmount)} coins` } as PanelFeature]
+        : []),
+      { emoji: 'member', label: 'Hosted by', value: `<@${giveaway.hostId}>`, code: false },
+      ...(ended ? [] : [{ emoji: 'clock', label: 'Ends', value: timestamp(giveaway.endsAt), code: false } as PanelFeature]),
+      { emoji: 'ticket', label: 'Entries', value: formatNumber(giveaway.entryCount) },
+    ];
+
+    const embed = buildPanel({
+      emoji: 'giveaway',
+      title: ended ? 'Giveaway Ended' : 'Giveaway',
+      guildName: guild?.name,
+      guildIconUrl: guild?.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+      color: ended ? '#00ff00' : '#ffd700',
+      intro: giveaway.description || 'Enter below for a chance to win — good luck!',
+      features,
+      note: ended
+        ? 'Thanks to everyone who entered — the winner(s) have been picked.'
+        : 'Click **Enter** below to take part!',
+      footer: ended ? `Giveaway ${giveaway.id}` : 'Click Enter to participate!',
+    });
+
     if (giveaway.eligibleRoles.length > 0) {
       embed.addFields({ name: 'Required roles', value: giveaway.eligibleRoles.map((r) => `<@&${r}>`).join(', ') });
     }
@@ -239,7 +254,7 @@ export class GiveawaysManager {
     } else if (ended) {
       embed.addFields({ name: 'Winners', value: 'No valid entries.' });
     }
-    return embed.setTimestamp();
+    return embed;
   }
 
   private async sendGiveawayMessage(channel: TextChannel, giveaway: Giveaway): Promise<void> {

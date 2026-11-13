@@ -5,20 +5,21 @@ const discord_js_1 = require("discord.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../../database/schema");
 const id_1 = require("../../utils/id");
+const panel_1 = require("../../utils/panel");
 /** Config rows are keyed by guild; the dashboard's legacy single config lives in 'global'. */
 const GLOBAL_GUILD = 'global';
 const PANEL_PREFIX = 'tempvc:';
 const PANEL_BUTTONS = [
-    { id: 'rename', label: 'RENAME', emoji: '✏️', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'limit', label: 'LIMIT', emoji: '👥', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'lock', label: 'LOCK', emoji: '🔒', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'unlock', label: 'UNLOCK', emoji: '🔓', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'invite', label: 'INVITE', emoji: '✉️', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'delete', label: 'DELETE', emoji: '🗑️', style: discord_js_1.ButtonStyle.Danger },
-    { id: 'hide', label: 'HIDE', emoji: '👁️', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'show', label: 'SHOW', emoji: '👁️', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'claim', label: 'CLAIM', emoji: '✅', style: discord_js_1.ButtonStyle.Success },
-    { id: 'kick', label: 'KICK', emoji: '👢', style: discord_js_1.ButtonStyle.Danger },
+    { id: 'rename', label: 'RENAME', emoji: 'pencil', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'limit', label: 'LIMIT', emoji: 'member', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'lock', label: 'LOCK', emoji: 'lock', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'unlock', label: 'UNLOCK', emoji: 'unlock', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'invite', label: 'INVITE', emoji: 'link', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'delete', label: 'DELETE', emoji: 'trash', style: discord_js_1.ButtonStyle.Danger },
+    { id: 'hide', label: 'HIDE', emoji: 'eye', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'show', label: 'SHOW', emoji: 'eye', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'claim', label: 'CLAIM', emoji: 'check', style: discord_js_1.ButtonStyle.Success },
+    { id: 'kick', label: 'KICK', emoji: 'kick', style: discord_js_1.ButtonStyle.Danger },
 ];
 function rowToConfig(row) {
     return {
@@ -230,19 +231,45 @@ class TempVCService {
         return this.instances.get(channelId);
     }
     getPanelButtons() {
-        const rows = [];
-        for (let i = 0; i < PANEL_BUTTONS.length; i += 5) {
-            const row = new discord_js_1.ActionRowBuilder();
-            for (const btn of PANEL_BUTTONS.slice(i, i + 5)) {
-                row.addComponents(new discord_js_1.ButtonBuilder()
-                    .setCustomId(`${PANEL_PREFIX}${btn.id}`)
-                    .setLabel(btn.label)
-                    .setEmoji(btn.emoji)
-                    .setStyle(btn.style));
-            }
-            rows.push(row);
-        }
-        return rows;
+        return (0, panel_1.panelButtonRows)(PANEL_BUTTONS.map((button) => ({ ...button, id: `${PANEL_PREFIX}${button.id}` })), 5);
+    }
+    /**
+     * Builds the big temp VC control panel: intro, a bullet per control,
+     * banner artwork and the control buttons.
+     */
+    async buildPanel(cfg, guild) {
+        const createMention = cfg.createChannelId ? `<#${cfg.createChannelId}>` : '`Create VC`';
+        const categoryMention = cfg.categoryId ? `<#${cfg.categoryId}>` : 'a category';
+        const features = [
+            { emoji: 'voice', label: 'Create', value: `Join ${createMention} and a room opens for you` },
+            { emoji: 'pencil', label: 'Rename', value: 'Give your room any name you like' },
+            { emoji: 'member', label: 'Limit', value: 'Set how many people can join' },
+            { emoji: 'lock', label: 'Lock / Unlock', value: 'Control who can join your room' },
+            { emoji: 'eye', label: 'Hide / Show', value: 'Control who can see your room' },
+            { emoji: 'link', label: 'Invite', value: 'Bring someone into your room' },
+            { emoji: 'check', label: 'Claim', value: 'Take over an abandoned room' },
+            { emoji: 'kick', label: 'Kick', value: 'Remove a member from your room' },
+            { emoji: 'trash', label: 'Delete', value: 'Remove the room for good' },
+        ];
+        return (0, panel_1.buildPanelPayload)({
+            emoji: 'tempvc',
+            title: 'Temporary Voice',
+            guildName: guild?.name,
+            guildIconUrl: guild?.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+            color: 0xef4444,
+            intro: `Join ${createMention} and a private room opens for you instantly in ${categoryMention}. Use the buttons below while you are inside your room.`,
+            features,
+            note: 'Only the room owner (or whoever claims an abandoned room) can manage it.',
+            banner: {
+                title: 'Temporary Voice',
+                subtitle: guild?.name,
+                emoji: '🔊',
+                accent: '#ef4444',
+                accentSecondary: '#f97316',
+            },
+            buttons: PANEL_BUTTONS.map((button) => ({ ...button, id: `${PANEL_PREFIX}${button.id}` })),
+            footer: `${guild?.name ?? 'Sukuna Bot'} • Temporary Voice`,
+        });
     }
     async resolveMember(interaction) {
         const member = interaction.member;
@@ -455,20 +482,11 @@ class TempVCService {
         const config = this.getConfig(target);
         if (!config)
             return null;
-        const createMention = config.createChannelId ? `<#${config.createChannelId}>` : '`Create VC`';
-        const categoryMention = config.categoryId ? `<#${config.categoryId}>` : 'a category';
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(0xef4444)
-            .setTitle('🔊 Temporary Voice — Sukuna')
-            .setDescription(`Join ${createMention} and a private room opens for you instantly.\n\n` +
-            'Use the buttons below while you are inside your room to rename it, set a limit, lock/hide it, or delete it. Only the room owner (or whoever claims an abandoned room) can manage it.')
-            .addFields({ name: '✨ How it works', value: `1. Join ${createMention}\n2. Your room appears in ${categoryMention}\n3. Manage it with the buttons (or \`/tempvc\` commands)`, inline: true }, { name: '🎛️ Controls', value: 'Rename • Limit • Lock/Unlock\nHide/Show • Invite • Kick\nClaim (if abandoned) • Delete', inline: true }, { name: '💡 Tips', value: 'Empty rooms auto-delete.\nCreate is instant — no queue.\nOwners can set a member limit.', inline: true })
-            .setFooter({ text: 'Sukuna Bot • TempVC' })
-            .setTimestamp();
-        const rows = this.getPanelButtons();
+        const guild = guildId ? this.client?.guilds.cache.get(guildId) : null;
+        const panel = await this.buildPanel(config, guild);
         let message = null;
         try {
-            message = await channel.send({ embeds: [embed], components: rows });
+            message = await channel.send({ embeds: [panel.embed], components: panel.components, files: panel.files });
             await this.setPanel(channel.id, message.id, target);
             return message;
         }

@@ -669,6 +669,28 @@ export class WebServer {
       }
     });
 
+    // ---- Panels: custom emoji server, mapping and live preview ----
+    this.app.get('/api/panels/emojis', (_req: any, res: any) => {
+      try {
+        const overview = this.appRef.panels?.getEmojiOverview?.() ?? { count: 0, guild: '', custom: [], resolved: {} };
+        res.json(overview);
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/panels/emojis failed', err as Error);
+        res.status(500).json({ error: 'Failed to fetch panel emoji' });
+      }
+    });
+
+    this.app.post('/api/panels/refresh-emojis', async (_req: any, res: any) => {
+      try {
+        const count = await this.appRef.panels?.refreshEmojis?.() ?? 0;
+        const stats = this.appRef.panels?.getEmojiStats?.() ?? { count, guild: '' };
+        res.json({ success: true, count, guild: stats.guild });
+      } catch (err) {
+        this.logger.error('Web Server', 'POST /api/panels/refresh-emojis failed', err as Error);
+        res.status(500).json({ error: (err as Error).message || 'Failed to refresh emoji' });
+      }
+    });
+
     // ---- Cards: welcome + rank templates (web editor) ----
     // Dedicated routes before the generic /api/config/:service fallback.
     // GET returns the live templates; preview renders server-side PNG and
@@ -1701,7 +1723,7 @@ export class WebServer {
   }
 
   private static readonly CONFIG_SERVICES = [
-    'bot', 'leveling', 'ai', 'music', 'moderation', 'economy', 'automation', 'analytics', 'tempvc', 'web', 'cards', 'community', 'tickets', 'staffapps',
+    'bot', 'leveling', 'ai', 'music', 'moderation', 'economy', 'automation', 'analytics', 'tempvc', 'web', 'cards', 'community', 'tickets', 'staffapps', 'panels',
   ];
 
   /** Raw (unmasked) config object for a service, or null if unavailable. */
@@ -1736,6 +1758,8 @@ export class WebServer {
         return app.tickets?.getConfig?.() ?? null;
       case 'staffapps':
         return app.staffapps?.getConfig?.() ?? null;
+      case 'panels':
+        return app.panels?.getConfig?.() ?? null;
       default:
         return null;
     }
@@ -1855,6 +1879,13 @@ export class WebServer {
         app.staffapps?.setConfig?.(incoming);
         break;
       }
+      case 'panels': {
+        const current = app.panels?.getConfig?.() ?? {};
+        const next = { ...current };
+        this.deepAssignConfig(next, incoming);
+        app.panels?.setConfig?.(next);
+        break;
+      }
       case 'leveling': case 'ai': case 'moderation':
       case 'economy': case 'automation': case 'analytics': {
         const target = app[service]?.config;
@@ -1960,6 +1991,12 @@ export class WebServer {
           } else if (row.key === 'staffapps') {
             const app: any = this.appRef;
             app.staffapps?.setConfig?.(saved);
+          } else if (row.key === 'panels') {
+            const app: any = this.appRef;
+            const current = app.panels?.getConfig?.() ?? {};
+            const next = { ...current };
+            this.deepAssignConfig(next, saved);
+            app.panels?.setConfig?.(next);
           } else {
             const target = (this.appRef as any)?.[row.key]?.config;
             if (!target) continue;

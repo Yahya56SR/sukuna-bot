@@ -9,6 +9,7 @@ const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../database/schema");
 const id_1 = require("../utils/id");
 const embed_1 = require("../utils/embed");
+const panel_1 = require("../utils/panel");
 exports.GIVEAWAY_PREFIX = 'giveaway:';
 function giveawayButtons(giveawayId, status) {
     const row = new discord_js_1.ActionRowBuilder();
@@ -171,16 +172,29 @@ class GiveawaysManager {
     }
     buildEmbed(giveaway) {
         const ended = giveaway.status !== 'active';
-        const embed = new discord_js_1.EmbedBuilder()
-            .setColor(ended ? '#00ff00' : '#ffd700')
-            .setTitle(ended ? '🎉 Giveaway Ended!' : '🎉 Giveaway!')
-            .setDescription(`**Prize:** ${giveaway.prize}\n` +
-            (giveaway.description ? `**Description:** ${giveaway.description}\n` : '') +
-            (giveaway.prizeAmount > 0 ? `**Prize pool:** ${(0, embed_1.formatNumber)(giveaway.prizeAmount)} coins\n` : '') +
-            `**Hosted by:** <@${giveaway.hostId}>\n` +
-            (ended ? '' : `**Ends:** ${timestamp(giveaway.endsAt)}\n`) +
-            `**Entries:** ${(0, embed_1.formatNumber)(giveaway.entryCount)}`)
-            .setFooter({ text: ended ? `Giveaway ${giveaway.id}` : 'Click Enter to participate!' });
+        const guild = this.client?.guilds.cache.get(giveaway.guildId);
+        const features = [
+            { emoji: 'giveaway', label: 'Prize', value: giveaway.prize },
+            ...(giveaway.prizeAmount > 0
+                ? [{ emoji: 'donate', label: 'Prize pool', value: `${(0, embed_1.formatNumber)(giveaway.prizeAmount)} coins` }]
+                : []),
+            { emoji: 'member', label: 'Hosted by', value: `<@${giveaway.hostId}>`, code: false },
+            ...(ended ? [] : [{ emoji: 'clock', label: 'Ends', value: timestamp(giveaway.endsAt), code: false }]),
+            { emoji: 'ticket', label: 'Entries', value: (0, embed_1.formatNumber)(giveaway.entryCount) },
+        ];
+        const embed = (0, panel_1.buildPanel)({
+            emoji: 'giveaway',
+            title: ended ? 'Giveaway Ended' : 'Giveaway',
+            guildName: guild?.name,
+            guildIconUrl: guild?.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+            color: ended ? '#00ff00' : '#ffd700',
+            intro: giveaway.description || 'Enter below for a chance to win — good luck!',
+            features,
+            note: ended
+                ? 'Thanks to everyone who entered — the winner(s) have been picked.'
+                : 'Click **Enter** below to take part!',
+            footer: ended ? `Giveaway ${giveaway.id}` : 'Click Enter to participate!',
+        });
         if (giveaway.eligibleRoles.length > 0) {
             embed.addFields({ name: 'Required roles', value: giveaway.eligibleRoles.map((r) => `<@&${r}>`).join(', ') });
         }
@@ -190,7 +204,7 @@ class GiveawaysManager {
         else if (ended) {
             embed.addFields({ name: 'Winners', value: 'No valid entries.' });
         }
-        return embed.setTimestamp();
+        return embed;
     }
     async sendGiveawayMessage(channel, giveaway) {
         const message = await channel.send({

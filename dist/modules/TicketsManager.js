@@ -1,13 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TicketsCommands = exports.TicketsManager = exports.TICKET_PREFIX = void 0;
+exports.TicketsCommands = exports.TicketsManager = exports.TICKET_PREFIX = exports.DEFAULT_TICKET_CATEGORIES = void 0;
 exports.ticketButtons = ticketButtons;
 exports.ticketWelcomeEmbed = ticketWelcomeEmbed;
+exports.ticketWelcomePanel = ticketWelcomePanel;
 const discord_js_1 = require("discord.js");
 const embed_1 = require("../utils/embed");
+const panel_1 = require("../utils/panel");
 const drizzle_orm_1 = require("drizzle-orm");
 const schema_1 = require("../database/schema");
 const id_1 = require("../utils/id");
+/** Default support categories — mirrors the classic "ticket panel" layout. */
+exports.DEFAULT_TICKET_CATEGORIES = [
+    { key: 'pub', label: 'Pub', emoji: 'pub', description: 'Report spam or pub issues' },
+    { key: 'bugs', label: 'Bugs', emoji: 'bug', description: 'Report bugs or issues' },
+    { key: 'abuse', label: 'Abuse', emoji: 'abuse', description: 'Report abuse or harassment' },
+    { key: 'server', label: 'Server', emoji: 'server', description: 'Server info or requests' },
+    { key: 'staff', label: 'Staff', emoji: 'staffReport', description: 'Report staff issues' },
+    { key: 'donate', label: 'Donate', emoji: 'donate', description: 'Support the server' },
+];
 exports.TICKET_PREFIX = 'ticket:';
 function ticketButtons(ticketId, status) {
     const row = new discord_js_1.ActionRowBuilder();
@@ -30,6 +41,45 @@ function ticketWelcomeEmbed(opts) {
         'Please describe your issue in detail below. Staff can use **Claim** to take ownership, or **Close** when done.')
         .setAuthor({ name: opts.guildName })
         .addFields({ name: 'Status', value: '🟢 Open', inline: true }, { name: 'Assigned to', value: 'Unclaimed', inline: true });
+}
+/**
+ * The panel shown inside a freshly opened ticket channel — same visual
+ * language as the big ticket panel so the whole flow feels consistent.
+ */
+async function ticketWelcomePanel(opts) {
+    const features = [
+        { emoji: 'support', label: 'Describe your issue', value: 'Tell the staff what happened, step by step' },
+        { emoji: 'check', label: 'Claim', value: 'Staff take ownership of your ticket' },
+        { emoji: 'cross', label: 'Close', value: 'Mark the ticket as resolved when it is done' },
+    ];
+    const reason = String(opts.reason ?? '').trim();
+    if (reason && reason !== 'No reason provided') {
+        features.unshift({ emoji: 'question', label: 'Your issue', value: reason.slice(0, 100) });
+    }
+    const payload = await (0, panel_1.buildPanelPayload)({
+        emoji: 'ticket',
+        title: `${opts.category} Ticket`,
+        guildName: opts.guildName,
+        guildIconUrl: opts.guildIconUrl,
+        color: embed_1.BRAND.blue,
+        intro: `Hey <@${opts.userId}> — thanks for reaching out. Staff will be with you shortly.`,
+        features,
+        note: `Ticket ID: \`${opts.ticketId}\` • only you and the staff team can see this channel.`,
+        banner: {
+            title: 'Support Ticket',
+            subtitle: opts.guildName,
+            emoji: '🎫',
+            accent: '#0099ff',
+            accentSecondary: '#a855f7',
+        },
+        buttons: [],
+        footer: `${opts.guildName} • Ticket ${opts.ticketId}`,
+    });
+    return {
+        embed: payload.embed,
+        components: ticketButtons(opts.ticketId, 'open'),
+        files: payload.files,
+    };
 }
 function toTicket(row) {
     const status = row.status === 'closed' || row.status === 'resolved' ? row.status : 'open';
@@ -54,16 +104,85 @@ class TicketsManager {
         this.db = null;
         this.tickets = new Map();
         this.logger = logger;
-        this.config = config;
+        this.config = { ...config };
+        // Normalises the config so `categories` always exists (dashboard merges
+        // only into keys that are already present).
+        this.setConfig(this.config);
     }
     setDb(db) {
         this.db = db;
     }
     setConfig(config) {
-        this.config = config;
+        this.config = { ...config, categories: this.cleanCategories(config.categories) };
     }
     getConfig() {
         return this.config;
+    }
+    /** Normalises configured categories, falling back to the defaults. */
+    cleanCategories(categories) {
+        if (!Array.isArray(categories))
+            return [];
+        const cleaned = categories
+            .map((category) => ({
+            key: String(category?.key ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+            label: String(category?.label ?? '').trim().slice(0, 80),
+            emoji: String(category?.emoji ?? 'ticket').trim() || 'ticket',
+            description: String(category?.description ?? '').trim().slice(0, 120),
+        }))
+            .filter((category) => category.key && category.label);
+        return cleaned;
+    }
+    /** Categories shown on the panel — configured ones, else the defaults. */
+    getCategories() {
+        const configured = this.cleanCategories(this.config.categories);
+        return configured.length ? configured : exports.DEFAULT_TICKET_CATEGORIES;
+    }
+    /** Finds a category by key. */
+    getCategory(key) {
+        return this.getCategories().find((category) => category.key === key);
+    }
+    /**
+     * Builds the big ticket panel: intro, a bullet per category, banner
+     * artwork and one button per category.
+     */
+    async buildPanel(guild) {
+        const categories = this.getCategories();
+        const features = categories.map((category) => ({
+            emoji: category.emoji,
+            label: category.label,
+            value: category.description,
+        }));
+        const buttons = categories.map((category) => ({
+            id: `${exports.TICKET_PREFIX}panel:create:${category.key}`,
+            label: category.label,
+            emoji: category.emoji,
+            style: discord_js_1.ButtonStyle.Primary,
+        }));
+        if (buttons.length === 0) {
+            buttons.push({ id: `${exports.TICKET_PREFIX}panel:create`, label: 'Open a ticket', emoji: 'ticket', style: discord_js_1.ButtonStyle.Primary });
+        }
+        const invite = guild.vanityURLCode
+            ? ` ${(0, panel_1.panelLink)('Join the server', `https://discord.gg/${guild.vanityURLCode}`)}.`
+            : '';
+        return (0, panel_1.buildPanelPayload)({
+            emoji: 'ticket',
+            title: 'Ticket Support System',
+            guildName: guild.name,
+            guildIconUrl: guild.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+            color: embed_1.BRAND.blue,
+            intro: `We want to keep our community safe, friendly and fun for everyone. Pick a category below and staff will pick it up in a private channel.${invite}`,
+            features,
+            note: 'Use these modules for assistance or to report issues. Our team is here to help!',
+            banner: {
+                title: 'Ticket Support System',
+                subtitle: guild.name,
+                emoji: '🎫',
+                accent: '#0099ff',
+                accentSecondary: '#a855f7',
+            },
+            buttons,
+            footer: `${guild.name} • Ticket Support`,
+        });
     }
     async initialize(client) {
         try {
@@ -232,15 +351,19 @@ class TicketsManager {
         }
         // Welcome panel inside the ticket
         try {
-            const embed = ticketWelcomeEmbed({ userId, category: ticket.category, ticketId: id, guildName: guild.name })
-                .setFooter({ text: `Ticket ${id} • ${reason}` });
-            if (reason && reason !== 'No reason provided') {
-                embed.addFields({ name: 'Issue', value: reason.slice(0, 900) });
-            }
+            const welcome = await ticketWelcomePanel({
+                userId,
+                category: ticket.category,
+                ticketId: id,
+                guildName: guild.name,
+                guildIconUrl: guild.iconURL({ extension: 'png', size: 256 }) ?? undefined,
+                reason,
+            });
             await channel.send({
                 content: `<@${userId}>`,
-                embeds: [embed],
-                components: ticketButtons(id, 'open'),
+                embeds: [welcome.embed],
+                components: welcome.components,
+                files: welcome.files,
                 allowedMentions: { users: [userId] },
             });
         }
@@ -487,11 +610,12 @@ class TicketsCommands {
                     }
                     else if (sub === 'panel') {
                         const channel = interaction.options.getChannel('channel', true);
-                        const embed = (0, embed_1.brandedEmbed)(embed_1.BRAND.blue)
-                            .setTitle('🎫 Need help? Open a ticket')
-                            .setDescription('Click the button below and staff will pick it up in a private channel.\n\nYour ticket is only visible to you and staff.');
-                        const row = new discord_js_1.ActionRowBuilder().addComponents(new discord_js_1.ButtonBuilder().setCustomId('ticket:panel:create').setLabel('Open a ticket').setEmoji('🎫').setStyle(discord_js_1.ButtonStyle.Primary));
-                        await channel.send({ embeds: [embed], components: [row] }).catch(() => undefined);
+                        const panel = await this.service.buildPanel(guild);
+                        await channel.send({
+                            embeds: [panel.embed],
+                            components: panel.components,
+                            files: panel.files,
+                        }).catch(() => undefined);
                         await interaction.reply({ content: `✅ Ticket panel posted in ${channel}.`, flags: MessageFlags.Ephemeral }).catch(() => undefined);
                     }
                 }

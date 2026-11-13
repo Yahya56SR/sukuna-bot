@@ -1598,6 +1598,7 @@ const app = {
       ['community', (cfg) => this.fillCommunity(cfg)],
       ['tickets', (cfg) => this.fillTickets(cfg)],
       ['staffapps', (cfg) => this.fillStaffApps(cfg)],
+      ['panels', (cfg) => this.fillPanels(cfg)],
     ];
     for (const [service, fill] of loaders) {
       try {
@@ -2360,7 +2361,31 @@ const app = {
     if (catSel) catSel.value = cfg.category || '';
     this.setVal('tix_categoryManual', cfg.category || '');
     this._pendingTicketRoles = cfg.supportRoles || [];
+    this.setVal('tix_categories', this.ticketCategoryLines(cfg.categories));
     if (this._cachedRoles?.length) this.renderRoleChecklist('tix_supportRolesUI', this._cachedRoles, this._pendingTicketRoles, (ids) => { this._pendingTicketRoles = ids; });
+  }
+
+  /** `key | Label | emoji | description` lines → category objects. */
+  parseTicketCategories(text) {
+    const out = [];
+    for (const line of String(text || '').split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const parts = trimmed.split('|').map(p => p.trim());
+      if (parts.length < 2 || !parts[0] || !parts[1]) continue;
+      out.push({
+        key: parts[0].toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+        label: parts[1],
+        emoji: parts[2] || 'ticket',
+        description: parts[3] || '',
+      });
+    }
+    return out;
+  }
+
+  /** Category objects → `key | Label | emoji | description` lines. */
+  ticketCategoryLines(categories) {
+    return (categories || []).map(c => `${c.key} | ${c.label} | ${c.emoji || ''} | ${c.description || ''}`).join('\n');
   },
   async saveTicketsConfig() {
     const manual = document.getElementById('tix_categoryManual')?.value?.trim();
@@ -2370,6 +2395,7 @@ const app = {
       category: manual || picked,
       supportRoles: this._pendingTicketRoles || [],
       closeVote: false,
+      categories: this.parseTicketCategories(this.val('tix_categories')),
     });
   },
 
@@ -2384,6 +2410,7 @@ const app = {
     if (reviewSel) reviewSel.value = cfg.reviewChannelId || '';
     this.setVal('sapp_reviewChannelManual', cfg.reviewChannelId || '');
     this.setVal('sapp_questions', (cfg.questions || []).join('\n'));
+    this.setVal('sapp_roleDescriptions', this.roleDescriptionLines(cfg.roleDescriptions));
     this._pendingAppRoles = cfg.staffRoles || [];
     this._pendingApproverRoles = cfg.approverRoleIds || [];
     if (this._cachedRoles?.length) {
@@ -2391,8 +2418,59 @@ const app = {
       this.renderRoleChecklist('sapp_approverRolesUI', this._cachedRoles, this._pendingApproverRoles, (ids) => { this._pendingApproverRoles = ids; });
     }
   },
-  async saveStaffAppsConfig() {
-    const questions = this.val('sapp_questions').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 10);
+  fillPanels(cfg) {
+    cfg = cfg || {};
+    this._panels = cfg;
+    this.setBool('panels_banner', cfg.banner !== false);
+    this.setVal('panels_emojiGuild', cfg.emojiGuild || '');
+    this.setVal('panels_emojiMap', cfg.emojiMap || '');
+    this.setVal('panels_accent', cfg.accent || '');
+    this.loadPanelEmojis();
+  }
+
+  async savePanelsConfig() {
+    await this.saveServiceConfig('panels', 'Panels', {
+      banner: this.bool('panels_banner'),
+      emojiGuild: this.val('panels_emojiGuild').trim(),
+      emojiMap: this.val('panels_emojiMap'),
+      accent: this.val('panels_accent').trim(),
+    });
+    this.loadPanelEmojis();
+  }
+
+  async loadPanelEmojis() {
+    const list = document.getElementById('panels_emojiList');
+    const badge = document.getElementById('panelsEmojiBadge');
+    try {
+      const data = await this.request('/panels/emojis');
+      const custom = data.custom || [];
+      if (badge) badge.textContent = `${data.count || 0} emoji`;
+      if (!list) return;
+      if (!custom.length) {
+        list.innerHTML = '<span class="hint">No custom emoji loaded yet. Set the emoji server above and press Refresh.</span>';
+        return;
+      }
+      list.innerHTML = custom.map((e) => (
+        `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 text-xs text-slate-300">
+          <span>${e.value}</span><span class="text-slate-500">${e.name}</span>
+        </span>`
+      )).join('');
+    } catch (err) {
+      if (list) list.innerHTML = '<span class="hint">Could not load emoji list.</span>';
+    }
+  }
+
+  async refreshPanelEmojis() {
+    try {
+      const result = await this.request('/panels/refresh-emojis', { method: 'POST' });
+      this.showAlert(`Loaded ${result.count || 0} custom emoji from ${result.guild || 'the emoji server'}`, 'success');
+      await this.loadPanelEmojis();
+    } catch (err) {
+      this.showAlert(err.message || 'Failed to refresh emoji', 'error');
+    }
+  }
+
+  async saveStaffAppsConfig() {    const questions = this.val('sapp_questions').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 10);
     if (questions.length === 0) return this.showAlert('Add at least one application question.', 'error');
     const panelManual = document.getElementById('sapp_panelChannelManual')?.value?.trim();
     const panelPicked = document.getElementById('sapp_panelChannel')?.value || '';
@@ -2407,7 +2485,36 @@ const app = {
       approverRoleIds: this._pendingApproverRoles || [],
       questions,
       maxQuestionLength: 1000,
+      roleDescriptions: this.parseRoleDescriptionLines(this.val('sapp_roleDescriptions')),
     });
+  }
+
+  /** `Role Name = pitch` lines → { roleId: pitch }. */
+  parseRoleDescriptionLines(text) {
+    const out = {};
+    const roles = this._cachedRoles || [];
+    for (const line of String(text || '').split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx <= 0) continue;
+      const key = trimmed.slice(0, idx).trim();
+      const value = trimmed.slice(idx + 1).trim();
+      if (!key || !value) continue;
+      const role = roles.find(r => r.name.toLowerCase() === key.toLowerCase() || r.id === key);
+      const roleId = role?.id || (/^\d+$/.test(key) ? key : '');
+      if (roleId) out[roleId] = value;
+    }
+    return out;
+  }
+
+  /** { roleId: pitch } → `Role Name = pitch` lines. */
+  roleDescriptionLines(map) {
+    const roles = this._cachedRoles || [];
+    return Object.entries(map || {}).map(([roleId, description]) => {
+      const role = roles.find(r => r.id === roleId);
+      return `${role ? role.name : roleId} = ${description}`;
+    }).join('\n');
   },
 
   async saveModuleConfig() {
