@@ -194,6 +194,30 @@ describe('dashboard script', () => {
     const source = fs.readFileSync(path.join(process.cwd(), 'src/web/public/js/dashboard.js'), 'utf8');
     expect(() => new vm.Script(source)).not.toThrow();
   });
+
+  it('registers every settings nav section', () => {
+    const js = fs.readFileSync(path.join(process.cwd(), 'src/web/public/js/dashboard.js'), 'utf8');
+    const html = fs.readFileSync(path.join(process.cwd(), 'src/web/views/index.html'), 'utf8');
+
+    // Sections the nav can open.
+    const sections = [...html.matchAll(/data-settings-section="([a-z]+)"/g)].map((m) => m[1]);
+    const panes = [...html.matchAll(/data-settings-pane="([a-z]+)"/g)].map((m) => m[1]);
+    expect(sections.length).toBeGreaterThan(0);
+
+    for (const section of new Set(sections)) {
+      // A pane must exist for the section…
+      expect(panes).toContain(section);
+      // …and the section must be known to SETTINGS_META, otherwise
+      // openSettingsSection() silently falls back to the overview.
+      const meta = new RegExp(`\\n\\s*${section}:\\s*\\{`).exec(js);
+      expect(meta, `SETTINGS_META is missing "${section}"`).toBeTruthy();
+    }
+
+    // Every pane must be reachable from the nav.
+    for (const pane of new Set(panes)) {
+      expect(sections).toContain(pane);
+    }
+  });
 });
 
 describe('leaderboard panel', () => {

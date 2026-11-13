@@ -35,6 +35,7 @@ const SETTINGS_META = {
   moderation: { title: 'Moderation', subtitle: 'Log channel and default reason', label: 'Moderation' },
   tickets: { title: 'Tickets', subtitle: 'Category and support roles', label: 'Tickets' },
   staffapps: { title: 'Staff applications', subtitle: 'Questions, roles and reviewers', label: 'Staff applications' },
+  panels: { title: 'Panels & emoji', subtitle: 'Custom emoji, panel icons and canvas fonts', label: 'Panels & emoji' },
   advanced: { title: 'Danger zone', subtitle: 'Restart, shut down or clear logs', label: 'Danger zone' },
 };
 
