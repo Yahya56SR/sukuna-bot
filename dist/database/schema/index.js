@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.economyGamePlayers = exports.economyGames = exports.tempvcInstances = exports.tempvcConfigs = exports.guildSettings = exports.automationJobs = exports.musicSessions = exports.aiConversations = exports.staffApplications = exports.giveawayEntries = exports.giveaways = exports.tickets = exports.levelingProfiles = exports.levelingHistory = exports.economyAccounts = exports.economyTransactions = exports.warnings = exports.moderationCases = exports.messages = exports.roles = exports.channels = exports.guildMembers = exports.guilds = exports.users = void 0;
+exports.economyGamePlayers = exports.economyGames = exports.tempvcInstances = exports.tempvcConfigs = exports.guildSettings = exports.automationJobs = exports.musicSessions = exports.aiConversations = exports.staffApplications = exports.giveawayEntries = exports.giveaways = exports.tickets = exports.leaderboardBoards = exports.levelingProfiles = exports.levelingHistory = exports.economyAccounts = exports.economyTransactions = exports.warnings = exports.moderationCases = exports.messages = exports.roles = exports.channels = exports.guildMembers = exports.guilds = exports.users = void 0;
 const sqlite_core_1 = require("drizzle-orm/sqlite-core");
 /**
  * Global user metadata. XP and balance are intentionally *not* authoritative
@@ -149,12 +149,18 @@ exports.levelingHistory = (0, sqlite_core_1.sqliteTable)('leveling_history', {
  * Guild-scoped level profile. `total_xp` is the single source of truth;
  * the level is derived from it. The per-source timestamps replace the old
  * in-memory cooldown map so cooldowns survive restarts.
+ *
+ * `track` splits the profile onto the **member** board or the **staff**
+ * board (`member` | `staff`). It is kept in sync with the guild roles by
+ * the leveling service so both leaderboards can be queried with a cheap
+ * indexed filter instead of scanning every member.
  */
 exports.levelingProfiles = (0, sqlite_core_1.sqliteTable)('leveling_profiles', {
     guild_id: (0, sqlite_core_1.text)('guild_id').notNull(),
     user_id: (0, sqlite_core_1.text)('user_id').notNull(),
     total_xp: (0, sqlite_core_1.integer)('total_xp').notNull().default(0),
     level: (0, sqlite_core_1.integer)('level').notNull().default(1),
+    track: (0, sqlite_core_1.text)('track').notNull().default('member'),
     last_message_at: (0, sqlite_core_1.integer)('last_message_at', { mode: 'timestamp' }),
     last_voice_at: (0, sqlite_core_1.integer)('last_voice_at', { mode: 'timestamp' }),
     last_command_at: (0, sqlite_core_1.integer)('last_command_at', { mode: 'timestamp' }),
@@ -162,6 +168,27 @@ exports.levelingProfiles = (0, sqlite_core_1.sqliteTable)('leveling_profiles', {
 }, (table) => ({
     pk: (0, sqlite_core_1.primaryKey)({ columns: [table.guild_id, table.user_id] }),
     xpIdx: (0, sqlite_core_1.index)('leveling_profiles_xp_idx').on(table.guild_id, table.total_xp),
+    trackIdx: (0, sqlite_core_1.index)('leveling_profiles_track_idx').on(table.guild_id, table.track, table.total_xp),
+}));
+/**
+ * A live leaderboard panel posted in a channel. One row per guild + board
+ * (`members` | `staff`) — the bot keeps the message up to date so the
+ * channel always shows the current ranking.
+ */
+exports.leaderboardBoards = (0, sqlite_core_1.sqliteTable)('leaderboard_boards', {
+    id: (0, sqlite_core_1.text)('id').notNull(),
+    guild_id: (0, sqlite_core_1.text)('guild_id').notNull(),
+    board: (0, sqlite_core_1.text)('board').notNull().default('members'),
+    channel_id: (0, sqlite_core_1.text)('channel_id').notNull(),
+    message_id: (0, sqlite_core_1.text)('message_id'),
+    rows: (0, sqlite_core_1.integer)('rows').notNull().default(25),
+    enabled: (0, sqlite_core_1.integer)('enabled', { mode: 'boolean' }).notNull().default(true),
+    created_at: (0, sqlite_core_1.integer)('created_at', { mode: 'timestamp' }).notNull().$default(() => new Date()),
+    updated_at: (0, sqlite_core_1.integer)('updated_at', { mode: 'timestamp' }).notNull().$default(() => new Date()),
+}, (table) => ({
+    pk: (0, sqlite_core_1.primaryKey)({ columns: [table.guild_id, table.board] }),
+    idIdx: (0, sqlite_core_1.index)('leaderboard_boards_id_idx').on(table.id),
+    guildIdx: (0, sqlite_core_1.index)('leaderboard_boards_guild_idx').on(table.guild_id),
 }));
 exports.tickets = (0, sqlite_core_1.sqliteTable)('tickets', {
     id: (0, sqlite_core_1.text)('id').primaryKey(),

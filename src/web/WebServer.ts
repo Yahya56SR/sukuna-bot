@@ -10,6 +10,8 @@ import { welcomeCard } from '../utils/welcomecard';
 import { rankCard, leaderboardCard } from '../utils/rankcard';
 import { DashboardAuth, DashboardUser } from './auth';
 
+const { normalizeBoard } = require('../modules/leveling/LeaderboardService');
+
 export class WebServer {
   private app: express.Application;
   private port: number;
@@ -582,10 +584,86 @@ export class WebServer {
         const guildId = this.requireGuild(req, res, req.query.guildId as string);
         if (!guildId) return;
         const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
-        const leaderboard = await this.appRef.leveling.getLeaderboard?.(guildId, limit) ?? [];
+        // `board=members` (default) or `board=staff` — the two boards never mix.
+        const board = normalizeBoard(req.query.board);
+        const track = board === 'staff' ? 'staff' : board === 'members' ? 'member' : null;
+        const leaderboard = await this.appRef.leveling.getLeaderboard?.(guildId, limit, track) ?? [];
         res.json(leaderboard);
       } catch (err) {
+        this.logger.error('Web Server', 'GET /api/leveling/leaderboard failed', err as Error);
         res.status(500).json({ error: 'Failed to fetch leaderboard' });
+      }
+    });
+
+    // ---- Live leaderboards (one panel per guild + board) ----
+    this.app.get('/api/leveling/boards', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const boards = await this.appRef.leaderboards?.listBoards?.(guildId) ?? [];
+        res.json(boards.map((b: any) => ({
+          board: b.board,
+          channelId: b.channelId,
+          messageId: b.messageId,
+          rows: b.rows,
+          enabled: b.enabled,
+          updatedAt: b.updatedAt ? new Date(b.updatedAt).toISOString() : null,
+        })));
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/leveling/boards failed', err as Error);
+        res.status(500).json({ error: 'Failed to fetch leaderboards' });
+      }
+    });
+
+    this.app.post('/api/leveling/boards', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.body?.guildId);
+        if (!guildId) return;
+        const board = normalizeBoard(req.body?.board);
+        if (!board) {
+          return res.status(400).json({ error: 'board must be "members" or "staff"' });
+        }
+        const channelId = String(req.body?.channelId ?? '');
+        if (!channelId) {
+          return res.status(400).json({ error: 'channelId is required' });
+        }
+        const rows = Math.min(100, Math.max(3, parseInt(req.body?.rows) || 25));
+        const client = this.appRef.getClient?.();
+        const guild = client?.guilds?.cache?.get(guildId);
+        if (!guild) {
+          return res.status(404).json({ error: 'Guild not found' });
+        }
+        const channel = await client.channels.fetch(channelId).catch(() => null);
+        if (!channel || channel.type !== 0) {
+          return res.status(400).json({ error: 'That channel is not a text channel' });
+        }
+        const live = await this.appRef.leaderboards.postBoard(guild, board, channelId, rows);
+        res.json({
+          success: true,
+          board: live.board,
+          channelId: live.channelId,
+          messageId: live.messageId,
+          rows: live.rows,
+        });
+      } catch (err: any) {
+        this.logger.error('Web Server', 'POST /api/leveling/boards failed', err);
+        res.status(400).json({ error: err.message || 'Failed to publish the leaderboard' });
+      }
+    });
+
+    this.app.delete('/api/leveling/boards/:board', async (req: any, res: any) => {
+      try {
+        const guildId = this.requireGuild(req, res, req.query.guildId as string);
+        if (!guildId) return;
+        const board = normalizeBoard(req.params.board);
+        if (!board) {
+          return res.status(400).json({ error: 'board must be "members" or "staff"' });
+        }
+        const removed = await this.appRef.leaderboards?.removeBoard?.(guildId, board) ?? false;
+        res.json({ success: removed });
+      } catch (err: any) {
+        this.logger.error('Web Server', 'DELETE /api/leveling/boards failed', err);
+        res.status(400).json({ error: err.message || 'Failed to remove the leaderboard' });
       }
     });
 

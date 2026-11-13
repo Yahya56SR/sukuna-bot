@@ -575,6 +575,12 @@
         </div>
       </div>
 
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        <button type="button" id="lblTabMembers" onclick="app.setLevelingBoard('members')" class="btn-secondary text-sm">🏆 Members leaderboard</button>
+        <button type="button" id="lblTabStaff" onclick="app.setLevelingBoard('staff')" class="btn-secondary text-sm">🛡️ Staff leaderboard</button>
+        <span class="hint ml-1" id="lblBoardHint">Members ranked by XP.</span>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div class="stat-card">
           <p class="text-slate-400 text-sm uppercase tracking-wider">Total Users</p>
@@ -605,6 +611,46 @@
             <tr class="skeleton h-12"><td class="p-4" colspan="5"></td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Live leaderboards (one panel per board, per server) -->
+      <div class="stat-card mt-6">
+        <h3 class="text-sm font-bold text-slate-300 mb-1">📊 Live Leaderboards</h3>
+        <p class="hint mb-4">Publish the <b>members</b> board and the <b>staff</b> board as live panels in their own channels. The bot keeps both panels up to date.</p>
+
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🏆 Members Leaderboard</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Channel</label>
+            <select id="lbl_membersChannel" class="input-field">
+              <option value="">Not published</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Ranks shown</label>
+            <input type="number" id="lbl_membersRows" class="input-field" min="3" max="100" value="25">
+          </div>
+        </div>
+
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">🛡️ Staff Leaderboard</h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Channel</label>
+            <select id="lbl_staffChannel" class="input-field">
+              <option value="">Not published</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Ranks shown</label>
+            <input type="number" id="lbl_staffRows" class="input-field" min="3" max="100" value="25">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <button type="button" onclick="app.saveLeaderboardBoards()" class="btn-primary text-sm">Save Live Boards</button>
+          <button type="button" onclick="app.removeLeaderboardBoard('members')" class="btn-ghost text-sm">Remove members board</button>
+          <button type="button" onclick="app.removeLeaderboardBoard('staff')" class="btn-ghost text-sm">Remove staff board</button>
+        </div>
       </div>
 
       <!-- Set XP Modal -->

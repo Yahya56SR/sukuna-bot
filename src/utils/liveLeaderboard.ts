@@ -7,6 +7,10 @@
  * artwork) ABOVE the text, real separators between the zones, and the
  * `MessageFlags.IsComponentsV2` flag on the message.
  *
+ * Two boards are rendered with this kit: the **members** leaderboard and
+ * the **staff** leaderboard. Each one has its own theme (colour, emoji,
+ * wording) so they can never be mistaken for one another.
+ *
  * Data comes from LevelingService (Sukuna XP curve), visuals mirror
  * MEE6 + the L7aj live board.
  */
@@ -52,6 +56,34 @@ const ZONES: Zone[] = [
 
 const MEDALS = ['medal1', 'medal2', 'medal3'];
 
+/** Visual identity of a single board. */
+export interface LeaderboardTheme {
+  /** Container accent colour. */
+  accentColor: number;
+  /** Emoji key used in the title. */
+  titleEmoji: string;
+  /** Emoji key shown next to the head count. */
+  scopeEmoji: string;
+  /** Label describing who is on the board ("members" / "staff team"). */
+  scopeLabel: string;
+  /**
+   * What the number next to the label counts:
+   * `guild` — every member of the server, `ranked` — the people on the board.
+   */
+  countMode: 'guild' | 'ranked';
+  /** Show the Diamond/Gold/Silver zones (only useful for long boards). */
+  zones: boolean;
+}
+
+export const DEFAULT_THEME: LeaderboardTheme = {
+  accentColor: 0x2b2d63,
+  titleEmoji: 'trophy',
+  scopeEmoji: 'members',
+  scopeLabel: 'members',
+  countMode: 'guild',
+  zones: true,
+};
+
 function formatXp(value: number): string {
   return Math.floor(value).toLocaleString('en-US');
 }
@@ -81,6 +113,20 @@ export function freshnessLabel(updatedAt: number, now: number = Date.now()): str
   return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
 }
 
+export interface LeaderboardPanelOptions {
+  entries: LiveEntry[];
+  guild: Guild;
+  /** How many ranks the board shows (defaults to the entry count). */
+  rows?: number | undefined;
+  /** Full title — falls back to "<guild> leaderboard". */
+  title?: string | undefined;
+  updatedAt?: number | undefined;
+  /** Attachment url for the podium artwork. */
+  podiumUrl?: string | undefined;
+  theme?: Partial<LeaderboardTheme> | undefined;
+  rankChanges?: { movedUp: number; newOnList: number } | undefined;
+}
+
 /**
  * Build the leaderboard container.
  *
@@ -88,24 +134,26 @@ export function freshnessLabel(updatedAt: number, now: number = Date.now()): str
  * the leaderboard text (an embed image would sit below the fields, and
  * markdown images are not rendered inside component text at all).
  */
-export function buildContentPanel(
-  entries: LiveEntry[],
-  guild: Guild,
-  rows: number,
-  titleOverride: string,
-  updatedAt: number = Date.now(),
-  rankChanges?: { movedUp: number; newOnList: number },
-  podiumUrl?: string,
-): ContainerBuilder {
-  const title = (titleOverride || '').trim() || `${guild.name} leaderboard`;
+export function buildContentPanel(options: LeaderboardPanelOptions): ContainerBuilder {
+  const {
+    entries,
+    guild,
+    updatedAt = Date.now(),
+    podiumUrl,
+    rankChanges,
+  } = options;
+  const theme: LeaderboardTheme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
+  const rows = Math.max(1, options.rows ?? entries.length);
+  const title = (options.title ?? '').trim() || `${guild.name} leaderboard`;
   const top = entries.slice(0, 3);
+  const scopeCount = theme.countMode === 'ranked' ? entries.length : guild.memberCount;
 
-  const container = new ContainerBuilder().setAccentColor(0x2b2d63);
+  const container = new ContainerBuilder().setAccentColor(theme.accentColor);
 
   // 1. Header
   container.addTextDisplayComponents((textDisplay) =>
     textDisplay.setContent(
-      `# ${resolveEmoji('trophy')} ${title}\n${resolveEmoji('members')} **${guild.memberCount.toLocaleString('en-US')}** members · ${resolveEmoji('sparkles')} *Ranked by experience*`,
+      `# ${resolveEmoji(theme.titleEmoji)} ${title}\n${resolveEmoji(theme.scopeEmoji)} **${scopeCount.toLocaleString('en-US')}** ${theme.scopeLabel} · ${resolveEmoji('sparkles')} *Ranked by experience*`,
     ),
   );
 
@@ -137,38 +185,55 @@ export function buildContentPanel(
   // 5. Zones
   let budget = 4000;
 
-  for (const zone of ZONES) {
-    const from = zone.from;
-    if (from > rows || from > entries.length + 1) continue;
-    const to = Math.min(zone.to, rows);
-    const zoneEntries = entries.filter((e) => e.rank >= from && e.rank <= to);
-    if (zoneEntries.length === 0) continue;
+  if (theme.zones) {
+    for (const zone of ZONES) {
+      const from = zone.from;
+      if (from > rows || from > entries.length + 1) continue;
+      const to = Math.min(zone.to, rows);
+      const zoneEntries = entries.filter((e) => e.rank >= from && e.rank <= to);
+      if (zoneEntries.length === 0) continue;
 
-    const above = entries[from - 2];
-    const first = entries[from - 1];
-    const gap = above && first ? Math.max(0, above.totalXp - first.totalXp) : 0;
-    const target =
-      from === 4 ? 'Top 3' : (ZONES.find((z) => z.to === from - 1)?.name ?? 'the next zone');
-    const header =
-      gap > 0
-        ? `Ranks ${from} – ${to} ${resolveEmoji('bolt')} \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
-        : `Ranks ${from} – ${to}`;
+      const above = entries[from - 2];
+      const first = entries[from - 1];
+      const gap = above && first ? Math.max(0, above.totalXp - first.totalXp) : 0;
+      const target =
+        from === 4 ? 'Top 3' : (ZONES.find((z) => z.to === from - 1)?.name ?? 'the next zone');
+      const header =
+        gap > 0
+          ? `Ranks ${from} – ${to} ${resolveEmoji('bolt')} \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
+          : `Ranks ${from} – ${to}`;
 
-    const lines = zoneEntries.map((entry) => {
-      const rankLabel = String(entry.rank).padStart(2, '0');
-      const bar = progressBar(entry.percent, 6);
-      return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
-    });
+      const lines = zoneEntries.map((entry) => {
+        const rankLabel = String(entry.rank).padStart(2, '0');
+        const bar = progressBar(entry.percent, 6);
+        return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
+      });
 
-    const room = Math.min(1000, budget - zone.name.length - 20);
-    if (room < 160) break;
-    const body = clampText(`${header}\n${lines.join('\n')}`, room);
-    budget -= body.length + zone.name.length + 20;
+      const room = Math.min(1000, budget - zone.name.length - 20);
+      if (room < 160) break;
+      const body = clampText(`${header}\n${lines.join('\n')}`, room);
+      budget -= body.length + zone.name.length + 20;
 
-    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents((textDisplay) =>
-      textDisplay.setContent(`## ${resolveEmoji(zone.emoji)} ${zone.name}\n${body}`),
-    );
+      container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+      container.addTextDisplayComponents((textDisplay) =>
+        textDisplay.setContent(`## ${resolveEmoji(zone.emoji)} ${zone.name}\n${body}`),
+      );
+    }
+  } else {
+    // Short boards (a small staff team) get a plain ranked list instead of
+    // the zone layout — the zones only make sense on long boards.
+    const listEntries = entries.filter((e) => e.rank > 3);
+    if (listEntries.length > 0) {
+      const lines = listEntries.map((entry) => {
+        const rankLabel = String(entry.rank).padStart(2, '0');
+        const bar = progressBar(entry.percent, 6);
+        return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
+      });
+      container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+      container.addTextDisplayComponents((textDisplay) =>
+        textDisplay.setContent(`## ${resolveEmoji('list')} Full ranking\n${clampText(lines.join('\n'), 900)}`),
+      );
+    }
   }
 
   // 6. Footer
@@ -185,14 +250,19 @@ export function buildContentPanel(
   return container;
 }
 
-/** Collect entries from LevelingService in MEE6 display shape. */
+/**
+ * Collect entries from LevelingService in MEE6 display shape.
+ *
+ * `track` picks the board: `member` (default) or `staff`.
+ */
 export async function collectEntries(
   service: any,
   guild: Guild,
   limit: number,
   client?: any,
+  track?: 'member' | 'staff' | null,
 ): Promise<LiveEntry[]> {
-  const rows = await service.getLeaderboard(guild.id, limit);
+  const rows = await service.getLeaderboard(guild.id, limit, track ?? undefined);
   const out: LiveEntry[] = [];
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -209,9 +279,9 @@ export async function collectEntries(
       rank: i + 1,
       userId,
       username: member?.displayName ?? user?.globalName ?? user?.username ?? row.username ?? 'Unknown',
-      avatarUrl: member
-        ? member.displayAvatarURL({ extension: 'png', size: 256 })
-        : user?.displayAvatarURL?.({ extension: 'png', size: 256 }) ?? '',
+      avatarUrl: member?.displayAvatarURL?.({ extension: 'png', size: 256 })
+        ?? user?.displayAvatarURL?.({ extension: 'png', size: 256 })
+        ?? '',
       level,
       totalXp,
       xpInLevel: progress.current,
@@ -223,7 +293,7 @@ export async function collectEntries(
 }
 
 /**
- * Build the components + podium attachment payload for a /leaderboard call.
+ * Build the components + podium attachment payload for a leaderboard call.
  * Falls back to text-only if the podium render fails.
  */
 export async function buildMessagePayload(
@@ -232,7 +302,17 @@ export async function buildMessagePayload(
   rows: number,
   title: string,
   updatedAt: number = Date.now(),
+  theme?: Partial<LeaderboardTheme>,
 ): Promise<{ components: any[]; files: AttachmentBuilder[]; flags: MessageFlags.IsComponentsV2 }> {
+  const panel = (podiumUrl?: string) => buildContentPanel({
+    entries,
+    guild,
+    rows,
+    title,
+    updatedAt,
+    podiumUrl,
+    theme,
+  });
   try {
     const buffer = await leaderboardPodium.generate(
       entries.slice(0, 3).map((e) => ({
@@ -245,13 +325,13 @@ export async function buildMessagePayload(
     );
     const file = new AttachmentBuilder(buffer, { name: 'top-3.png' });
     return {
-      components: [buildContentPanel(entries, guild, rows, title, updatedAt, undefined, 'attachment://top-3.png')],
+      components: [panel('attachment://top-3.png')],
       files: [file],
       flags: MessageFlags.IsComponentsV2,
     };
   } catch {
     return {
-      components: [buildContentPanel(entries, guild, rows, title, updatedAt)],
+      components: [panel()],
       files: [],
       flags: MessageFlags.IsComponentsV2,
     };

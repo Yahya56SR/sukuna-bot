@@ -186,11 +186,25 @@ class DatabaseManager {
         user_id TEXT NOT NULL,
         total_xp INTEGER NOT NULL DEFAULT 0,
         level INTEGER NOT NULL DEFAULT 1,
+        track TEXT NOT NULL DEFAULT 'member',
         last_message_at INTEGER,
         last_voice_at INTEGER,
         last_command_at INTEGER,
         updated_at INTEGER NOT NULL,
         PRIMARY KEY (guild_id, user_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS leaderboard_boards (
+        id TEXT NOT NULL,
+        guild_id TEXT NOT NULL,
+        board TEXT NOT NULL DEFAULT 'members',
+        channel_id TEXT NOT NULL,
+        message_id TEXT,
+        rows INTEGER NOT NULL DEFAULT 25,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (guild_id, board)
       );
 
       CREATE TABLE IF NOT EXISTS tickets (
@@ -372,6 +386,9 @@ class DatabaseManager {
         this.ensureColumn('automation_jobs', 'run_count', 'INTEGER NOT NULL DEFAULT 0');
         this.ensureColumn('tempvc_configs', 'guild_id', "TEXT NOT NULL DEFAULT 'global'");
         this.ensureColumn('tempvc_instances', 'guild_id', "TEXT NOT NULL DEFAULT 'global'");
+        // The staff/member split lives on the profile row so each leaderboard
+        // can be queried with an indexed filter.
+        this.ensureColumn('leveling_profiles', 'track', "TEXT NOT NULL DEFAULT 'member'");
         this.sqlite.exec(`
       CREATE INDEX IF NOT EXISTS guild_members_guild_id_idx ON guild_members(guild_id);
       CREATE INDEX IF NOT EXISTS guild_members_user_id_idx ON guild_members(user_id);
@@ -382,6 +399,9 @@ class DatabaseManager {
       CREATE INDEX IF NOT EXISTS economy_transactions_created_idx ON economy_transactions(created_at);
       CREATE INDEX IF NOT EXISTS economy_accounts_balance_idx ON economy_accounts(guild_id, balance);
       CREATE INDEX IF NOT EXISTS leveling_profiles_xp_idx ON leveling_profiles(guild_id, total_xp);
+      CREATE INDEX IF NOT EXISTS leveling_profiles_track_idx ON leveling_profiles(guild_id, track, total_xp);
+      CREATE INDEX IF NOT EXISTS leaderboard_boards_guild_idx ON leaderboard_boards(guild_id);
+      CREATE UNIQUE INDEX IF NOT EXISTS leaderboard_boards_id_idx ON leaderboard_boards(id);
       CREATE INDEX IF NOT EXISTS tickets_guild_id_idx ON tickets(guild_id);
       CREATE INDEX IF NOT EXISTS tickets_channel_idx ON tickets(channel_id);
       CREATE INDEX IF NOT EXISTS giveaways_status_idx ON giveaways(status, ends_at);

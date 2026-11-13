@@ -11,15 +11,33 @@ import {
 } from 'discord.js';
 import { Logger } from '../../infrastructure/Logger';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { levelingHistory, levelingProfiles } from '../../database/schema';
+import { levelingHistory, levelingProfiles, users } from '../../database/schema';
 import type { DrizzleDb } from '../../types/database';
 import { levelingEmbed, progressBar, formatNumber, brandedEmbed, BRAND, errorEmbed } from '../../utils/embed';
 import { rankCard } from '../../utils/rankcard';
-import { buildRankCard, buildLeaderboardPanel } from '../../utils/rankEmbeds';
-import { collectEntries, buildMessagePayload } from '../../utils/liveLeaderboard';
+import { buildRankCard } from '../../utils/rankEmbeds';
 import { newId } from '../../utils/id';
 
 export type XpFormula = 'linear' | 'quadratic' | 'exponential' | 'custom';
+
+/**
+ * Which leaderboard a profile belongs to.
+ *
+ * `member` — regular community members (the public leaderboard).
+ * `staff`  — the staff team (staff roles or moderation permissions).
+ *
+ * The track is stored on the profile row so both boards can be read with
+ * a single indexed query instead of scanning every member of the guild.
+ */
+export type LevelingTrack = 'member' | 'staff';
+
+/** Accepts the aliases the dashboard and the commands use. */
+export function normalizeTrack(track: unknown): LevelingTrack | null {
+  const value = String(track ?? '').trim().toLowerCase();
+  if (value === 'staff' || value === 'staffs' || value === 'staffboard') return 'staff';
+  if (value === 'member' || value === 'members' || value === 'everyone') return 'member';
+  return null;
+}
 
 export interface LevelRole {
   level: number;
@@ -304,6 +322,11 @@ export class LevelingService {
     const column = this.sourceColumn(source);
     const db = this.db;
 
+    // Resolved before the write so the staff/member track is stored in the
+    // same transaction as the XP itself.
+    const isStaff = await this.isStaff(guildId, userId).catch(() => false);
+    const track: LevelingTrack = isStaff ? 'staff' : 'member';
+
     const outcome = db.transaction((tx) => {
       const now = Math.floor(Date.now() / 1000);
       const row = tx.get<any>(sql`
@@ -324,19 +347,20 @@ export class LevelingService {
       if (!row) {
         if (column) {
           tx.run(sql`
-            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, ${sql.identifier(column)}, updated_at)
-            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${now}, ${now})
+            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, track, ${sql.identifier(column)}, updated_at)
+            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${track}, ${now}, ${now})
           `);
         } else {
           tx.run(sql`
-            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, updated_at)
-            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${now})
+            INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, track, updated_at)
+            VALUES (${guildId}, ${userId}, ${totalXp}, ${newLevel}, ${track}, ${now})
           `);
         }
       } else {
         const setParts = [
           sql`total_xp = ${totalXp}`,
           sql`level = ${newLevel}`,
+          sql`track = ${track}`,
           sql`updated_at = ${now}`,
         ];
         if (column) setParts.push(sql`${sql.identifier(column)} = ${now}`);
@@ -361,7 +385,6 @@ export class LevelingService {
     const totalXp = outcome.totalXp;
     const leveledUp = newLevel > oldLevel;
 
-    const isStaff = await this.isStaff(guildId, userId).catch(() => false);
     const result: LevelUpResult = {
       leveledUp,
       oldLevel,
@@ -402,13 +425,15 @@ export class LevelingService {
     const inLevel = Math.max(0, total - this.xpForLevel(level));
     const now = Math.floor(Date.now() / 1000);
     const db = this.db;
+    const isStaff = await this.isStaff(guildId, userId).catch(() => false);
+    const track: LevelingTrack = isStaff ? 'staff' : 'member';
 
     db.transaction((tx) => {
       tx.run(sql`
-        INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, updated_at)
-        VALUES (${guildId}, ${userId}, ${total}, ${level}, ${now})
+        INSERT INTO leveling_profiles (guild_id, user_id, total_xp, level, track, updated_at)
+        VALUES (${guildId}, ${userId}, ${total}, ${level}, ${track}, ${now})
         ON CONFLICT(guild_id, user_id) DO UPDATE SET
-          total_xp = ${total}, level = ${level}, updated_at = ${now},
+          total_xp = ${total}, level = ${level}, track = ${track}, updated_at = ${now},
           last_message_at = NULL, last_voice_at = NULL, last_command_at = NULL
       `);
       tx.run(sql`
@@ -601,41 +626,134 @@ export class LevelingService {
     return { level, xp: Math.max(0, totalXP - this.xpForLevel(level)), totalXP };
   }
 
-  public async getLeaderboard(guildId: string, limit = 10): Promise<any[]> {
+  /**
+   * The ranked list for one board.
+   *
+   * `track` selects the board: `member` (public members leaderboard) or
+   * `staff` (the staff team leaderboard). When it is omitted every profile
+   * is returned — that is the "all players" list used by the dashboard.
+   */
+  public async getLeaderboard(guildId: string, limit = 10, track?: LevelingTrack | null): Promise<any[]> {
     if (!this.db) return [];
+    const capped = Math.max(1, Math.min(1000, Math.floor(limit)));
+    const filters = [eq(levelingProfiles.guild_id, guildId)];
+    if (track) filters.push(eq(levelingProfiles.track, track));
     const rows = await this.db
-      .select()
+      .select({
+        userId: levelingProfiles.user_id,
+        level: levelingProfiles.level,
+        totalXp: levelingProfiles.total_xp,
+        track: levelingProfiles.track,
+        username: users.username,
+      })
       .from(levelingProfiles)
-      .where(eq(levelingProfiles.guild_id, guildId))
+      .leftJoin(users, eq(users.id, levelingProfiles.user_id))
+      .where(and(...filters))
       .orderBy(desc(levelingProfiles.total_xp))
-      .limit(Math.max(1, Math.min(1000, Math.floor(limit))));
+      .limit(capped);
     return rows.map((r: any) => ({
-      id: r.user_id,
-      user_id: r.user_id,
-      username: '',
-      level: r.level,
-      xp: Math.max(0, Number(r.total_xp ?? 0) - this.xpForLevel(Number(r.level ?? 1))),
-      total_xp: Number(r.total_xp ?? 0),
+      id: r.userId,
+      user_id: r.userId,
+      username: r.username ?? '',
+      level: Number(r.level ?? 1),
+      xp: Math.max(0, Number(r.totalXp ?? 0) - this.xpForLevel(Number(r.level ?? 1))),
+      total_xp: Number(r.totalXp ?? 0),
+      track: r.track === 'staff' ? 'staff' : 'member',
     }));
   }
 
-  public async getRankPosition(guildId: string, userId: string): Promise<number> {
+  /** Position of a user on their board (1 = best). */
+  public async getRankPosition(guildId: string, userId: string, track?: LevelingTrack | null): Promise<number> {
     if (!this.db) return 0;
     const current = await this.getLevel(guildId, userId);
     if (!current) return 0;
+    // A member has no rank on the staff board (and vice versa).
+    if (track) {
+      const stored = await this.getTrack(guildId, userId);
+      if (stored && stored !== track) return 0;
+    }
+    const trackFilter = track ? sql` AND track = ${track}` : sql``;
     const row = await this.db.get<{ value: number }>(sql`
       SELECT COUNT(*) + 1 AS value FROM leveling_profiles
-      WHERE guild_id = ${guildId} AND total_xp > ${current.totalXP}
+      WHERE guild_id = ${guildId} AND total_xp > ${current.totalXP}${trackFilter}
     `);
     return Number(row?.value ?? 0);
   }
 
-  public async countRanked(guildId?: string): Promise<number> {
+  public async countRanked(guildId?: string, track?: LevelingTrack | null): Promise<number> {
     if (!this.db) return 0;
+    const trackFilter = track ? sql` AND track = ${track}` : sql``;
     const row = guildId
-      ? await this.db.get<{ value: number }>(sql`SELECT COUNT(*) AS value FROM leveling_profiles WHERE guild_id = ${guildId}`)
-      : await this.db.get<{ value: number }>(sql`SELECT COUNT(*) AS value FROM leveling_profiles`);
+      ? await this.db.get<{ value: number }>(sql`SELECT COUNT(*) AS value FROM leveling_profiles WHERE guild_id = ${guildId}${trackFilter}`)
+      : await this.db.get<{ value: number }>(sql`SELECT COUNT(*) AS value FROM leveling_profiles WHERE 1=1${trackFilter}`);
     return Number(row?.value ?? 0);
+  }
+
+  /** The track a user belongs to, as stored on the profile row. */
+  public async getTrack(guildId: string, userId: string): Promise<LevelingTrack | null> {
+    if (!this.db) return null;
+    const row = await this.db.get<{ track: string }>(sql`
+      SELECT track FROM leveling_profiles WHERE guild_id = ${guildId} AND user_id = ${userId}
+    `);
+    const track = normalizeTrack(row?.track);
+    return track;
+  }
+
+  /** Moves a profile between the member and the staff board. */
+  public async setTrack(guildId: string, userId: string, track: LevelingTrack): Promise<void> {
+    if (!this.db) return;
+    await this.db.run(sql`
+      UPDATE leveling_profiles SET track = ${track} WHERE guild_id = ${guildId} AND user_id = ${userId}
+    `);
+  }
+
+  /**
+   * Re-checks a single member and moves their profile to the matching
+   * board. Called when someone is promoted / demoted.
+   */
+  public async syncMemberTrack(guildId: string, member: GuildMember | null | undefined): Promise<LevelingTrack | null> {
+    if (!this.db || !member) return null;
+    const track: LevelingTrack = this.isStaffMember(member) ? 'staff' : 'member';
+    const current = await this.getTrack(guildId, member.id);
+    if (current === track) return track;
+    await this.setTrack(guildId, member.id, track);
+    return track;
+  }
+
+  /**
+   * Re-checks every ranked member of a guild and fixes their board.
+   *
+   * Only members that are cached are checked (no API calls), so this is
+   * cheap enough to run whenever a board is rendered.
+   */
+  public async refreshGuildTracks(guildId: string): Promise<{ staff: number; member: number }> {
+    const result = { staff: 0, member: 0 };
+    if (!this.db || !this.client) return result;
+    const guild = this.client.guilds.cache.get(guildId);
+    if (!guild) return result;
+
+    const rows = await this.db.get<{ count: number }>(sql`
+      SELECT COUNT(*) AS count FROM leveling_profiles WHERE guild_id = ${guildId}
+    `);
+    const total = Number(rows?.count ?? 0);
+    if (total === 0) return result;
+
+    const profiles = await this.db.select({
+      userId: levelingProfiles.user_id,
+      track: levelingProfiles.track,
+    }).from(levelingProfiles).where(eq(levelingProfiles.guild_id, guildId));
+    if (!profiles.length) return result;
+
+    for (const profile of profiles) {
+      const member = guild.members.cache.get(profile.userId);
+      if (!member) continue;
+      const track: LevelingTrack = this.isStaffMember(member) ? 'staff' : 'member';
+      if (track === 'staff') result.staff++;
+      else result.member++;
+      if (normalizeTrack(profile.track) === track) continue;
+      await this.setTrack(guildId, profile.userId, track);
+    }
+    return result;
   }
 
   public mee6InfoFor(totalXP: number, level: number): { level: number; xpInLevel: number; xpForNext: number; totalXp: number } {
@@ -670,7 +788,9 @@ export class LevelingCommands {
   }
 
   public getCommands(): any[] {
-    return [this.levelCommand, this.rankCommand, this.leaderboardCommand, this.xpCommand, this.rolesCommand, this.setxpCommand];
+    // The leaderboard commands live in LeaderboardService — they need the
+    // board service to render the members / staff boards.
+    return [this.levelCommand, this.rankCommand, this.xpCommand, this.rolesCommand, this.setxpCommand];
   }
 
   private levelCommand: any = {
@@ -690,10 +810,11 @@ export class LevelingCommands {
           await interaction.reply({ content: 'No leveling data found yet. Chat to earn XP!', flags: MessageFlags.Ephemeral });
           return;
         }
-        const rank = await this.service.getRankPosition(interaction.guildId, user.id);
-        const totalRanked = await this.service.countRanked(interaction.guildId);
-        const info = this.service.mee6InfoFor(data.totalXP, data.level);
         const isStaff = await this.service.isStaff(interaction.guildId, user.id).catch(() => false);
+        const track: LevelingTrack = isStaff ? 'staff' : 'member';
+        const rank = await this.service.getRankPosition(interaction.guildId, user.id, track);
+        const totalRanked = await this.service.countRanked(interaction.guildId, track);
+        const info = this.service.mee6InfoFor(data.totalXP, data.level);
         await interaction.deferReply();
         try {
           const buffer = await rankCard.generate({
@@ -761,8 +882,10 @@ export class LevelingCommands {
           await interaction.reply({ content: 'No leveling data found yet.', flags: MessageFlags.Ephemeral });
           return;
         }
-        const rank = await this.service.getRankPosition(interaction.guildId, user.id);
-        const totalRanked = await this.service.countRanked(interaction.guildId);
+        const isStaff = await this.service.isStaff(interaction.guildId, user.id).catch(() => false);
+        const track: LevelingTrack = isStaff ? 'staff' : 'member';
+        const rank = await this.service.getRankPosition(interaction.guildId, user.id, track);
+        const totalRanked = await this.service.countRanked(interaction.guildId, track);
         const info = this.service.mee6InfoFor(data.totalXP, data.level);
         await interaction.deferReply();
         try {
@@ -793,39 +916,6 @@ export class LevelingCommands {
       } catch (error) {
         this.logger.error('Leveling Commands', 'Failed to get rank', error as Error);
         await this.replyError(interaction, 'Failed to get rank.');
-      }
-    },
-  };
-
-  private leaderboardCommand: any = {
-    data: new SlashCommandBuilder()
-      .setName('leaderboard')
-      .setDescription('View the server leveling leaderboard')
-      .addIntegerOption((option) => option.setName('limit').setDescription('Number of entries (default 10)').setMinValue(1).setMaxValue(25)),
-    execute: async (interaction: ChatInputCommandInteraction) => {
-      if (!interaction.guild || !interaction.guildId) {
-        await interaction.reply({ content: 'This command can only be used in a server.', flags: MessageFlags.Ephemeral });
-        return;
-      }
-      const limit = interaction.options.getInteger('limit') ?? 10;
-      try {
-        const rows = await this.service.getLeaderboard(interaction.guildId, limit);
-        if (rows.length === 0) {
-          await interaction.reply({ content: 'No leveling data found yet.', flags: MessageFlags.Ephemeral });
-          return;
-        }
-        await interaction.deferReply();
-        const entries = await collectEntries(this.service, interaction.guild, Math.max(limit, 10), interaction.client);
-        const payload = await buildMessagePayload(entries, interaction.guild, Math.min(25, Math.max(10, limit)), '', Date.now());
-        await interaction.editReply(payload).catch(async () => {
-          const panel = buildLeaderboardPanel(entries.map((e: any) => ({
-            userId: e.userId, username: e.username, level: e.level, totalXp: e.totalXp,
-          })), interaction.guild?.name ?? 'this server');
-          await interaction.editReply({ components: [panel], flags: MessageFlags.IsComponentsV2 });
-        });
-      } catch (error) {
-        this.logger.error('Leveling Commands', 'Failed to get leaderboard', error as Error);
-        await this.replyError(interaction, 'Failed to get leaderboard.');
       }
     },
   };

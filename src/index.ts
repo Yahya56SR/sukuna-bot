@@ -36,6 +36,7 @@ export class SukunaApp {
   public readonly interactions: any;
   public readonly moderation: any;
   public readonly leveling: any;
+  public readonly leaderboards: any;
   public readonly economy: any;
   public readonly ai: any;
   public readonly music: any;
@@ -62,6 +63,7 @@ export class SukunaApp {
     const { InteractionRouter } = require('./discord/InteractionRouter');
     const { ModerationService } = require('./modules/moderation/ModerationService');
     const { LevelingService } = require('./modules/leveling/LevelingService');
+    const { LeaderboardService } = require('./modules/leveling/LeaderboardService');
     const { EconomyService } = require('./modules/economy/EconomyService');
     const { AIService } = require('./modules/ai/AIService');
     const { MusicService } = require('./modules/music/MusicService');
@@ -126,6 +128,12 @@ this.leveling = new LevelingService(this.logger, {
         defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
         ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
         maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
+      });
+      // The two leaderboards (members + staff) live in their own service.
+      this.leaderboards = new LeaderboardService(this.logger, this.leveling, {
+        enabled: process.env.LEADERBOARD_ENABLED !== 'false',
+        refreshMinutes: parseInt(process.env.LEADERBOARD_REFRESH_MINUTES || '5'),
+        defaultRows: parseInt(process.env.LEADERBOARD_DEFAULT_ROWS || '25'),
       });
       this.economy = new EconomyService(this.logger);
       this.ai = new AIService(this.logger, aiConfigFromEnv());
@@ -297,6 +305,16 @@ this.leveling = new LevelingService(this.logger, {
       }
       this.logger.info('Sukuna Bot', `Registered ${levelingCommands.getCommands().length} leveling commands`);
 
+      // Leaderboards (members board + staff board + live board manager)
+      this.leaderboards.setDb(this.database.getDb());
+      this.leaderboards.setClient(this.client);
+      await this.leaderboards.initialize();
+      const leaderboardCommands = new (require('./modules/leveling/LeaderboardService').LeaderboardCommands)(this.leaderboards, this.logger);
+      for (const cmd of leaderboardCommands.getCommands()) {
+        this.commands.registerCommand(cmd);
+      }
+      this.logger.info('Sukuna Bot', `Registered ${leaderboardCommands.getCommands().length} leaderboard commands`);
+
       this.economy.setDb(this.database.getDb());
       this.logger.info('Sukuna Bot', 'Economy service connected to database');
 
@@ -327,6 +345,7 @@ this.leveling = new LevelingService(this.logger, {
 
       // Set client on services that need it
       this.leveling.setClient(this.client);
+      this.leaderboards.setClient(this.client);
 
       this.tempvc.setDb(this.database.getDb());
       this.tempvc.setClient(this.client);
@@ -480,6 +499,23 @@ this.leveling = new LevelingService(this.logger, {
         }
       });
 
+      // Keep the staff / member boards in sync when someone is promoted or
+      // demoted — their profile moves to the other leaderboard.
+      this.client.on(Events.GuildMemberUpdate, async (oldMember: any, newMember: any) => {
+        try {
+          const oldRoles = oldMember?.roles?.cache;
+          const newRoles = newMember?.roles?.cache;
+          if (!oldRoles || !newRoles) return;
+          const rolesChanged =
+            oldRoles.size !== newRoles.size ||
+            [...oldRoles.keys()].some((id: string) => !newRoles.has(id));
+          if (!rolesChanged) return;
+          await this.leveling.syncMemberTrack(newMember.guild.id, newMember);
+        } catch (err) {
+          this.logger.warn('Sukuna Bot', 'Member track sync failed', err as Error);
+        }
+      });
+
       // Set up AI + leveling message handlers
       this.client.on(Events.MessageCreate, async (message) => {
         // AI first (it intentionally ignores bots internally).
@@ -525,6 +561,7 @@ this.leveling = new LevelingService(this.logger, {
       await this.commands.shutdown();
       await this.moderation.shutdown();
       await this.leveling.shutdown();
+      try { await this.leaderboards.shutdown(); } catch { /* best-effort */ }
       await this.economy.shutdown();
       await this.economyGames.shutdown();
       await this.ai.shutdown();

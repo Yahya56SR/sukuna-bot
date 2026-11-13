@@ -36,6 +36,7 @@ class SukunaApp {
         const { InteractionRouter } = require('./discord/InteractionRouter');
         const { ModerationService } = require('./modules/moderation/ModerationService');
         const { LevelingService } = require('./modules/leveling/LevelingService');
+        const { LeaderboardService } = require('./modules/leveling/LeaderboardService');
         const { EconomyService } = require('./modules/economy/EconomyService');
         const { AIService } = require('./modules/ai/AIService');
         const { MusicService } = require('./modules/music/MusicService');
@@ -154,6 +155,12 @@ class SukunaApp {
             defaultColor: process.env.LEVELING_DEFAULT_COLOR || '#0099ff',
             ignoreBots: process.env.LEVELING_IGNORE_BOTS !== 'false',
             maxLevel: parseInt(process.env.LEVELING_MAX_LEVEL || '100'),
+        });
+        // The two leaderboards (members + staff) live in their own service.
+        this.leaderboards = new LeaderboardService(this.logger, this.leveling, {
+            enabled: process.env.LEADERBOARD_ENABLED !== 'false',
+            refreshMinutes: parseInt(process.env.LEADERBOARD_REFRESH_MINUTES || '5'),
+            defaultRows: parseInt(process.env.LEADERBOARD_DEFAULT_ROWS || '25'),
         });
         this.economy = new EconomyService(this.logger);
         this.ai = new AIService(this.logger, aiConfigFromEnv());
@@ -384,6 +391,15 @@ class SukunaApp {
                 this.commands.registerCommand(cmd);
             }
             this.logger.info('Sukuna Bot', `Registered ${levelingCommands.getCommands().length} leveling commands`);
+            // Leaderboards (members board + staff board + live board manager)
+            this.leaderboards.setDb(this.database.getDb());
+            this.leaderboards.setClient(this.client);
+            await this.leaderboards.initialize();
+            const leaderboardCommands = new (require('./modules/leveling/LeaderboardService').LeaderboardCommands)(this.leaderboards, this.logger);
+            for (const cmd of leaderboardCommands.getCommands()) {
+                this.commands.registerCommand(cmd);
+            }
+            this.logger.info('Sukuna Bot', `Registered ${leaderboardCommands.getCommands().length} leaderboard commands`);
             this.economy.setDb(this.database.getDb());
             this.logger.info('Sukuna Bot', 'Economy service connected to database');
             const economyCommands = new (require('./modules/economy/EconomyService').EconomyCommands)(this.economy, this.logger);
@@ -408,6 +424,7 @@ class SukunaApp {
             await this.panels.refreshEmojis(this.client).catch(() => 0);
             // Set client on services that need it
             this.leveling.setClient(this.client);
+            this.leaderboards.setClient(this.client);
             this.tempvc.setDb(this.database.getDb());
             this.tempvc.setClient(this.client);
             await this.tempvc.initialize();
@@ -553,6 +570,24 @@ class SukunaApp {
                     this.logger.warn('Sukuna Bot', 'Voice XP handling failed', err);
                 }
             });
+            // Keep the staff / member boards in sync when someone is promoted or
+            // demoted — their profile moves to the other leaderboard.
+            this.client.on(discord_js_1.Events.GuildMemberUpdate, async (oldMember, newMember) => {
+                try {
+                    const oldRoles = oldMember?.roles?.cache;
+                    const newRoles = newMember?.roles?.cache;
+                    if (!oldRoles || !newRoles)
+                        return;
+                    const rolesChanged = oldRoles.size !== newRoles.size ||
+                        [...oldRoles.keys()].some((id) => !newRoles.has(id));
+                    if (!rolesChanged)
+                        return;
+                    await this.leveling.syncMemberTrack(newMember.guild.id, newMember);
+                }
+                catch (err) {
+                    this.logger.warn('Sukuna Bot', 'Member track sync failed', err);
+                }
+            });
             // Set up AI + leveling message handlers
             this.client.on(discord_js_1.Events.MessageCreate, async (message) => {
                 // AI first (it intentionally ignores bots internally).
@@ -593,6 +628,10 @@ class SukunaApp {
             await this.commands.shutdown();
             await this.moderation.shutdown();
             await this.leveling.shutdown();
+            try {
+                await this.leaderboards.shutdown();
+            }
+            catch { /* best-effort */ }
             await this.economy.shutdown();
             await this.economyGames.shutdown();
             await this.ai.shutdown();

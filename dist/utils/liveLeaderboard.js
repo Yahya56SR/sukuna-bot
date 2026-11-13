@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_THEME = void 0;
 exports.freshnessLabel = freshnessLabel;
 exports.buildContentPanel = buildContentPanel;
 exports.collectEntries = collectEntries;
@@ -12,6 +13,10 @@ exports.buildMessagePayload = buildMessagePayload;
  * Built on **Components v2**: a container with a media gallery (the podium
  * artwork) ABOVE the text, real separators between the zones, and the
  * `MessageFlags.IsComponentsV2` flag on the message.
+ *
+ * Two boards are rendered with this kit: the **members** leaderboard and
+ * the **staff** leaderboard. Each one has its own theme (colour, emoji,
+ * wording) so they can never be mistaken for one another.
  *
  * Data comes from LevelingService (Sukuna XP curve), visuals mirror
  * MEE6 + the L7aj live board.
@@ -26,6 +31,14 @@ const ZONES = [
     { emoji: 'silver', name: 'Silver Zone', from: 19, to: 25 },
 ];
 const MEDALS = ['medal1', 'medal2', 'medal3'];
+exports.DEFAULT_THEME = {
+    accentColor: 0x2b2d63,
+    titleEmoji: 'trophy',
+    scopeEmoji: 'members',
+    scopeLabel: 'members',
+    countMode: 'guild',
+    zones: true,
+};
 function formatXp(value) {
     return Math.floor(value).toLocaleString('en-US');
 }
@@ -62,12 +75,16 @@ function freshnessLabel(updatedAt, now = Date.now()) {
  * the leaderboard text (an embed image would sit below the fields, and
  * markdown images are not rendered inside component text at all).
  */
-function buildContentPanel(entries, guild, rows, titleOverride, updatedAt = Date.now(), rankChanges, podiumUrl) {
-    const title = (titleOverride || '').trim() || `${guild.name} leaderboard`;
+function buildContentPanel(options) {
+    const { entries, guild, updatedAt = Date.now(), podiumUrl, rankChanges, } = options;
+    const theme = { ...exports.DEFAULT_THEME, ...(options.theme ?? {}) };
+    const rows = Math.max(1, options.rows ?? entries.length);
+    const title = (options.title ?? '').trim() || `${guild.name} leaderboard`;
     const top = entries.slice(0, 3);
-    const container = new discord_js_1.ContainerBuilder().setAccentColor(0x2b2d63);
+    const scopeCount = theme.countMode === 'ranked' ? entries.length : guild.memberCount;
+    const container = new discord_js_1.ContainerBuilder().setAccentColor(theme.accentColor);
     // 1. Header
-    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`# ${(0, emoji_1.resolveEmoji)('trophy')} ${title}\n${(0, emoji_1.resolveEmoji)('members')} **${guild.memberCount.toLocaleString('en-US')}** members · ${(0, emoji_1.resolveEmoji)('sparkles')} *Ranked by experience*`));
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`# ${(0, emoji_1.resolveEmoji)(theme.titleEmoji)} ${title}\n${(0, emoji_1.resolveEmoji)(theme.scopeEmoji)} **${scopeCount.toLocaleString('en-US')}** ${theme.scopeLabel} · ${(0, emoji_1.resolveEmoji)('sparkles')} *Ranked by experience*`));
     // 2. Podium image (ABOVE the leaderboard text)
     if (podiumUrl) {
         container.addMediaGalleryComponents(new discord_js_1.MediaGalleryBuilder().addItems(new discord_js_1.MediaGalleryItemBuilder()
@@ -81,33 +98,49 @@ function buildContentPanel(entries, guild, rows, titleOverride, updatedAt = Date
     container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`## ${(0, emoji_1.resolveEmoji)('crown')} Top 3\n${topLines.length > 0 ? clampText(topLines.join('\n'), 900) : 'No ranked members yet.'}`));
     // 5. Zones
     let budget = 4000;
-    for (const zone of ZONES) {
-        const from = zone.from;
-        if (from > rows || from > entries.length + 1)
-            continue;
-        const to = Math.min(zone.to, rows);
-        const zoneEntries = entries.filter((e) => e.rank >= from && e.rank <= to);
-        if (zoneEntries.length === 0)
-            continue;
-        const above = entries[from - 2];
-        const first = entries[from - 1];
-        const gap = above && first ? Math.max(0, above.totalXp - first.totalXp) : 0;
-        const target = from === 4 ? 'Top 3' : (ZONES.find((z) => z.to === from - 1)?.name ?? 'the next zone');
-        const header = gap > 0
-            ? `Ranks ${from} – ${to} ${(0, emoji_1.resolveEmoji)('bolt')} \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
-            : `Ranks ${from} – ${to}`;
-        const lines = zoneEntries.map((entry) => {
-            const rankLabel = String(entry.rank).padStart(2, '0');
-            const bar = (0, level_1.progressBar)(entry.percent, 6);
-            return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
-        });
-        const room = Math.min(1000, budget - zone.name.length - 20);
-        if (room < 160)
-            break;
-        const body = clampText(`${header}\n${lines.join('\n')}`, room);
-        budget -= body.length + zone.name.length + 20;
-        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`## ${(0, emoji_1.resolveEmoji)(zone.emoji)} ${zone.name}\n${body}`));
+    if (theme.zones) {
+        for (const zone of ZONES) {
+            const from = zone.from;
+            if (from > rows || from > entries.length + 1)
+                continue;
+            const to = Math.min(zone.to, rows);
+            const zoneEntries = entries.filter((e) => e.rank >= from && e.rank <= to);
+            if (zoneEntries.length === 0)
+                continue;
+            const above = entries[from - 2];
+            const first = entries[from - 1];
+            const gap = above && first ? Math.max(0, above.totalXp - first.totalXp) : 0;
+            const target = from === 4 ? 'Top 3' : (ZONES.find((z) => z.to === from - 1)?.name ?? 'the next zone');
+            const header = gap > 0
+                ? `Ranks ${from} – ${to} ${(0, emoji_1.resolveEmoji)('bolt')} \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
+                : `Ranks ${from} – ${to}`;
+            const lines = zoneEntries.map((entry) => {
+                const rankLabel = String(entry.rank).padStart(2, '0');
+                const bar = (0, level_1.progressBar)(entry.percent, 6);
+                return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
+            });
+            const room = Math.min(1000, budget - zone.name.length - 20);
+            if (room < 160)
+                break;
+            const body = clampText(`${header}\n${lines.join('\n')}`, room);
+            budget -= body.length + zone.name.length + 20;
+            container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`## ${(0, emoji_1.resolveEmoji)(zone.emoji)} ${zone.name}\n${body}`));
+        }
+    }
+    else {
+        // Short boards (a small staff team) get a plain ranked list instead of
+        // the zone layout — the zones only make sense on long boards.
+        const listEntries = entries.filter((e) => e.rank > 3);
+        if (listEntries.length > 0) {
+            const lines = listEntries.map((entry) => {
+                const rankLabel = String(entry.rank).padStart(2, '0');
+                const bar = (0, level_1.progressBar)(entry.percent, 6);
+                return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
+            });
+            container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+            container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`## ${(0, emoji_1.resolveEmoji)('list')} Full ranking\n${clampText(lines.join('\n'), 900)}`));
+        }
     }
     // 6. Footer
     const label = freshnessLabel(updatedAt);
@@ -123,9 +156,13 @@ function buildContentPanel(entries, guild, rows, titleOverride, updatedAt = Date
     container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${footerText}`));
     return container;
 }
-/** Collect entries from LevelingService in MEE6 display shape. */
-async function collectEntries(service, guild, limit, client) {
-    const rows = await service.getLeaderboard(guild.id, limit);
+/**
+ * Collect entries from LevelingService in MEE6 display shape.
+ *
+ * `track` picks the board: `member` (default) or `staff`.
+ */
+async function collectEntries(service, guild, limit, client, track) {
+    const rows = await service.getLeaderboard(guild.id, limit, track ?? undefined);
     const out = [];
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -147,9 +184,9 @@ async function collectEntries(service, guild, limit, client) {
             rank: i + 1,
             userId,
             username: member?.displayName ?? user?.globalName ?? user?.username ?? row.username ?? 'Unknown',
-            avatarUrl: member
-                ? member.displayAvatarURL({ extension: 'png', size: 256 })
-                : user?.displayAvatarURL?.({ extension: 'png', size: 256 }) ?? '',
+            avatarUrl: member?.displayAvatarURL?.({ extension: 'png', size: 256 })
+                ?? user?.displayAvatarURL?.({ extension: 'png', size: 256 })
+                ?? '',
             level,
             totalXp,
             xpInLevel: progress.current,
@@ -160,10 +197,19 @@ async function collectEntries(service, guild, limit, client) {
     return out;
 }
 /**
- * Build the components + podium attachment payload for a /leaderboard call.
+ * Build the components + podium attachment payload for a leaderboard call.
  * Falls back to text-only if the podium render fails.
  */
-async function buildMessagePayload(entries, guild, rows, title, updatedAt = Date.now()) {
+async function buildMessagePayload(entries, guild, rows, title, updatedAt = Date.now(), theme) {
+    const panel = (podiumUrl) => buildContentPanel({
+        entries,
+        guild,
+        rows,
+        title,
+        updatedAt,
+        podiumUrl,
+        theme,
+    });
     try {
         const buffer = await rankcard_1.leaderboardPodium.generate(entries.slice(0, 3).map((e) => ({
             username: e.username,
@@ -174,14 +220,14 @@ async function buildMessagePayload(entries, guild, rows, title, updatedAt = Date
         })));
         const file = new discord_js_1.AttachmentBuilder(buffer, { name: 'top-3.png' });
         return {
-            components: [buildContentPanel(entries, guild, rows, title, updatedAt, undefined, 'attachment://top-3.png')],
+            components: [panel('attachment://top-3.png')],
             files: [file],
             flags: discord_js_1.MessageFlags.IsComponentsV2,
         };
     }
     catch {
         return {
-            components: [buildContentPanel(entries, guild, rows, title, updatedAt)],
+            components: [panel()],
             files: [],
             flags: discord_js_1.MessageFlags.IsComponentsV2,
         };

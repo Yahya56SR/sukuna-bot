@@ -229,14 +229,14 @@ describe('leaderboard panel', () => {
   ];
 
   it('never leaks markdown image syntax into the text', () => {
-    const panel = buildContentPanel(entries, guild, 10, '');
+    const panel = buildContentPanel({ entries, guild, rows: 10 });
     const body = texts(panel).join('\n');
     expect(body).not.toContain('attachment://');
     expect(body).not.toContain('![');
   });
 
   it('puts the podium media ABOVE the leaderboard content', () => {
-    const panel = buildContentPanel(entries, guild, 10, '', Date.now(), undefined, 'attachment://top-3.png');
+    const panel = buildContentPanel({ entries, guild, rows: 10, updatedAt: Date.now(), podiumUrl: 'attachment://top-3.png' });
     const components = panel.toJSON().components;
     const galleryIndex = components.findIndex((c: any) => c.type === 12);
     const topIndex = components.findIndex((c: any) => c.type === 10 && String(c.content).includes('Top 3'));

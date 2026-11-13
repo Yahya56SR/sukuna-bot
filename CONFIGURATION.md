@@ -99,6 +99,67 @@ PANELS_ACCENT=#ef4444
   button per category; empty uses the built-in Pub / Bugs / Abuse / Server /
   Staff / Donate list.
 
+## Leaderboards
+
+The bot runs **two separate leaderboards** per server:
+
+| Board | Who is on it | Command | Look |
+| --- | --- | --- | --- |
+| 👥 Members | Everyone except the staff team | `/leaderboard` | Trophy, indigo accent, zone layout |
+| 🛡️ Staff | The staff team only | `/staffboard` (staff only) | Shield, red accent, plain ranking |
+
+Both boards read the same XP data — the difference is the **track** stored on
+each leveling profile (`member` or `staff`), so the two rankings never
+overlap and each board can be queried with an indexed filter.
+
+### Who counts as staff
+
+A member is on the staff track when they have **one of the configured staff
+roles** or a moderation permission (Manage Messages / Kick / Ban / Admin /
+Manage Guild). Configure the roles in the dashboard under
+**Leveling → Who counts as Staff?** (`LEVELING_STAFF_ROLES` in `.env`).
+
+The track is kept up to date automatically:
+
+- on every XP gain (message, voice, command),
+- when a member is promoted or demoted (`guildMemberUpdate`),
+- whenever a board is rendered (cached members are re-checked).
+
+### Live boards
+
+A live board is a panel in a channel that the bot keeps up to date.
+
+| Command | What it does |
+| --- | --- |
+| `/board post board:members\|staff channel:#board rows:25` | Publishes (or moves) a live board |
+| `/board refresh board:members\|staff` | Refreshes it right now |
+| `/board remove board:members\|staff` | Deletes the panel and the board |
+| `/board list` | Shows the live boards of the server |
+
+The same thing can be done from the dashboard (**Leveling → Live
+Leaderboards**): pick a channel and the number of ranks for each board.
+
+Live boards are rendered **without** the podium artwork, so a refresh is a
+single component edit — the panel can never pile up attachments. The
+interactive `/leaderboard` and `/staffboard` commands still show the full
+MEE6-style podium.
+
+### Environment variables
+
+```bash
+LEADERBOARD_ENABLED=true
+LEADERBOARD_REFRESH_MINUTES=5   # refresh interval of the live boards
+LEADERBOARD_DEFAULT_ROWS=25     # ranks shown when nothing else is set
+```
+
+### Files
+
+| File | Purpose |
+| --- | --- |
+| `src/modules/leveling/LeaderboardService.ts` | The two boards: rendering, live panels, refresh loop, commands |
+| `src/utils/liveLeaderboard.ts` | MEE6-style panel (top 3, zones, progress bars) + per-board themes |
+| `src/modules/leveling/LevelingService.ts` | XP accounting and the track-aware leaderboard queries |
+
 ## Icons & Fonts
 
 ### Custom icons

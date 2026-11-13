@@ -158,12 +158,18 @@ export const levelingHistory = sqliteTable('leveling_history', {
  * Guild-scoped level profile. `total_xp` is the single source of truth;
  * the level is derived from it. The per-source timestamps replace the old
  * in-memory cooldown map so cooldowns survive restarts.
+ *
+ * `track` splits the profile onto the **member** board or the **staff**
+ * board (`member` | `staff`). It is kept in sync with the guild roles by
+ * the leveling service so both leaderboards can be queried with a cheap
+ * indexed filter instead of scanning every member.
  */
 export const levelingProfiles = sqliteTable('leveling_profiles', {
   guild_id: text('guild_id').notNull(),
   user_id: text('user_id').notNull(),
   total_xp: integer('total_xp').notNull().default(0),
   level: integer('level').notNull().default(1),
+  track: text('track').notNull().default('member'),
   last_message_at: integer('last_message_at', { mode: 'timestamp' }),
   last_voice_at: integer('last_voice_at', { mode: 'timestamp' }),
   last_command_at: integer('last_command_at', { mode: 'timestamp' }),
@@ -171,6 +177,28 @@ export const levelingProfiles = sqliteTable('leveling_profiles', {
 }, (table) => ({
   pk: primaryKey({ columns: [table.guild_id, table.user_id] }),
   xpIdx: index('leveling_profiles_xp_idx').on(table.guild_id, table.total_xp),
+  trackIdx: index('leveling_profiles_track_idx').on(table.guild_id, table.track, table.total_xp),
+}));
+
+/**
+ * A live leaderboard panel posted in a channel. One row per guild + board
+ * (`members` | `staff`) — the bot keeps the message up to date so the
+ * channel always shows the current ranking.
+ */
+export const leaderboardBoards = sqliteTable('leaderboard_boards', {
+  id: text('id').notNull(),
+  guild_id: text('guild_id').notNull(),
+  board: text('board').notNull().default('members'),
+  channel_id: text('channel_id').notNull(),
+  message_id: text('message_id'),
+  rows: integer('rows').notNull().default(25),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+  created_at: integer('created_at', { mode: 'timestamp' }).notNull().$default(() => new Date()),
+  updated_at: integer('updated_at', { mode: 'timestamp' }).notNull().$default(() => new Date()),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.guild_id, table.board] }),
+  idIdx: index('leaderboard_boards_id_idx').on(table.id),
+  guildIdx: index('leaderboard_boards_guild_idx').on(table.guild_id),
 }));
 
 export const tickets = sqliteTable('tickets', {

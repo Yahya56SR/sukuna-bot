@@ -48,6 +48,8 @@ const app = {
   _cards: null,
   _cardsPreviewTimers: {},
   _leveling: null,
+  _levelingBoard: 'members',
+  _leaderboards: [],
   _community: null,
   _overview: null,
 
@@ -466,6 +468,8 @@ const app = {
       tix_category: 'No category (root)',
       sapp_panelChannel: 'No panel',
       sapp_reviewChannel: 'Same as panel',
+      lbl_membersChannel: 'Not published',
+      lbl_staffChannel: 'Not published',
     };
     for (const [id, emptyLabel] of Object.entries(selects)) {
       const sel = document.getElementById(id);
@@ -1334,10 +1338,88 @@ const app = {
           if (this._leveling) this.fillLeveling(this._leveling, data.channels || [], data.roles || []);
         }
       });
-      const leaderboard = await this.request(`/leveling/leaderboard?guildId=${guildId}&limit=20`);
+      const leaderboard = await this.request(`/leveling/leaderboard?guildId=${guildId}&board=${this._levelingBoard}&limit=20`);
       this.renderLevelTable(leaderboard);
+      const boards = await this.request(`/leveling/boards?guildId=${guildId}`);
+      this._leaderboards = Array.isArray(boards) ? boards : [];
+      this.fillLeaderboardBoards(this._leaderboards);
     } catch (err) {
       this.showAlert('Failed to load leveling data');
+    }
+  },
+
+  /** Switch between the members board and the staff board. */
+  setLevelingBoard(board) {
+    this._levelingBoard = board === 'staff' ? 'staff' : 'members';
+    const members = document.getElementById('lblTabMembers');
+    const staff = document.getElementById('lblTabStaff');
+    const hint = document.getElementById('lblBoardHint');
+    if (members) members.classList.toggle('btn-primary', this._levelingBoard === 'members');
+    if (members) members.classList.toggle('btn-secondary', this._levelingBoard !== 'members');
+    if (staff) staff.classList.toggle('btn-primary', this._levelingBoard === 'staff');
+    if (staff) staff.classList.toggle('btn-secondary', this._levelingBoard !== 'staff');
+    if (hint) {
+      hint.textContent = this._levelingBoard === 'staff'
+        ? 'Staff team ranked by XP.'
+        : 'Members ranked by XP.';
+    }
+    this.loadLeveling();
+  },
+
+  /** Fill the live board pickers from the saved boards. */
+  fillLeaderboardBoards(boards) {
+    const list = Array.isArray(boards) ? boards : [];
+    for (const board of ['members', 'staff']) {
+      const live = list.find(b => b.board === board);
+      const channel = document.getElementById(`lbl_${board}Channel`);
+      const rows = document.getElementById(`lbl_${board}Rows`);
+      if (channel) channel.value = live?.channelId || '';
+      if (rows) rows.value = live?.rows || 25;
+    }
+  },
+
+  /** Publish (or update) both live leaderboards. */
+  async saveLeaderboardBoards() {
+    const guildId = document.getElementById('lvlGuildSelect')?.value;
+    if (!guildId) {
+      this.showAlert('Pick a server first.', 'info');
+      return;
+    }
+    try {
+      for (const board of ['members', 'staff']) {
+        const channelId = document.getElementById(`lbl_${board}Channel`)?.value || '';
+        const rows = parseInt(document.getElementById(`lbl_${board}Rows`)?.value || '25', 10) || 25;
+        const existing = (this._leaderboards || []).find(b => b.board === board);
+        if (!channelId) {
+          // Empty channel = remove the board.
+          if (existing) await this.request(`/leveling/boards/${board}?guildId=${guildId}`, { method: 'DELETE' });
+          continue;
+        }
+        if (existing && existing.channelId === channelId && existing.rows === rows) continue;
+        await this.request('/leveling/boards', {
+          method: 'POST',
+          body: JSON.stringify({ guildId, board, channelId, rows }),
+        });
+      }
+      this.showAlert('Live leaderboards saved', 'success');
+      await this.loadLeveling();
+    } catch (err) {
+      this.showAlert(err.message || 'Failed to save the leaderboards');
+    }
+  },
+
+  async removeLeaderboardBoard(board) {
+    const guildId = document.getElementById('lvlGuildSelect')?.value;
+    if (!guildId) {
+      this.showAlert('Pick a server first.', 'info');
+      return;
+    }
+    try {
+      await this.request(`/leveling/boards/${board}?guildId=${guildId}`, { method: 'DELETE' });
+      this.showAlert(`${board === 'staff' ? 'Staff' : 'Members'} leaderboard removed`, 'success');
+      await this.loadLeveling();
+    } catch (err) {
+      this.showAlert(err.message || 'Failed to remove the leaderboard');
     }
   },
 
