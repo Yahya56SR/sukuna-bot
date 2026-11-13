@@ -1,6 +1,6 @@
 import { createCanvas } from '@napi-rs/canvas';
 import type { SKRSContext2D } from '@napi-rs/canvas';
-import { ensureFonts, FONT_STACK, ellipsize } from './fonts';
+import { ensureFontsAsync, FONT_STACK, EMOJI_STACK, ellipsize } from './fonts';
 
 /**
  * Panel banner artwork — the full-width image that makes a Discord panel
@@ -41,7 +41,7 @@ function rgba(hex: string, alpha: number): string {
 }
 
 export async function generatePanelBanner(opts: PanelBannerOptions): Promise<Buffer> {
-  ensureFonts();
+  await ensureFontsAsync();
 
   const width = opts.width ?? 1024;
   const height = opts.height ?? 300;
@@ -150,7 +150,7 @@ function drawText(
   // Emoji badge.
   let cursorY = 66;
   if (opts.emoji) {
-    ctx.font = '54px "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji", sans-serif';
+    ctx.font = `54px ${EMOJI_STACK}`;
     ctx.fillText(opts.emoji, centerX, cursorY);
     cursorY += 62;
   }

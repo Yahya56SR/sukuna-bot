@@ -73,6 +73,26 @@ export function ticketButtons(ticketId: string, status: Ticket['status']): Actio
   return [row];
 }
 
+/**
+ * Ticket action buttons in the panel-kit shape — they are rendered inside the
+ * panel container, next to the ticket details.
+ */
+export function ticketPanelButtons(ticketId: string, status: Ticket['status']): PanelButton[] {
+  if (status === 'open') {
+    return [
+      { id: `${TICKET_PREFIX}claim:${ticketId}`, label: 'Claim', emoji: 'shield', style: ButtonStyle.Success },
+      { id: `${TICKET_PREFIX}close:${ticketId}`, label: 'Close', emoji: 'lock', style: ButtonStyle.Secondary },
+    ];
+  }
+  if (status === 'resolved') {
+    return [
+      { id: `${TICKET_PREFIX}reopen:${ticketId}`, label: 'Reopen', emoji: 'unlock', style: ButtonStyle.Primary },
+      { id: `${TICKET_PREFIX}delete:${ticketId}`, label: 'Delete', emoji: 'trash', style: ButtonStyle.Danger },
+    ];
+  }
+  return [{ id: `${TICKET_PREFIX}reopen:${ticketId}`, label: 'Reopen', emoji: 'unlock', style: ButtonStyle.Primary }];
+}
+
 export function ticketWelcomeEmbed(opts: {
   userId: string;
   category: string;
@@ -133,11 +153,11 @@ export async function ticketWelcomePanel(opts: {
       accent: '#0099ff',
       accentSecondary: '#a855f7',
     },
-    buttons: [],
+    buttons: ticketPanelButtons(opts.ticketId, 'open'),
   });
 
   return {
-    components: [...payload.components, ...ticketButtons(opts.ticketId, 'open')],
+    components: payload.components,
     files: payload.files,
     flags: payload.flags,
   };

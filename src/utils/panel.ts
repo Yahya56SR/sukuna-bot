@@ -11,7 +11,6 @@ import {
   resolveColor,
   SectionBuilder,
   SeparatorBuilder,
-  TextDisplayBuilder,
   ThumbnailBuilder,
 } from 'discord.js';
 import { BRAND } from './embed';
@@ -113,7 +112,8 @@ function clamp(value: string, max: number): string {
 
 /**
  * Builds the panel container: title (with the server icon), intro, feature
- * bullets, closing note — separated by real separator components.
+ * bullets, closing note and the button grid — separated by real separator
+ * components.
  */
 export function buildPanel(opts: PanelOptions): ContainerBuilder {
   const container = new ContainerBuilder();
@@ -125,52 +125,49 @@ export function buildPanel(opts: PanelOptions): ContainerBuilder {
   if (opts.guildIconUrl) {
     container.addSectionComponents(
       new SectionBuilder()
-        .addTextDisplayComponents(new TextDisplayBuilder().setContent(heading))
+        .addTextDisplayComponents((textDisplay) => textDisplay.setContent(heading))
         .setThumbnailAccessory(new ThumbnailBuilder().setURL(opts.guildIconUrl)),
     );
   } else {
-    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(heading));
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(heading));
   }
 
   if (opts.intro) {
-    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(clamp(opts.intro, 4000)));
+    const intro = clamp(opts.intro, 4000);
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(intro));
   }
 
-  if (opts.features?.length) {
+  const features = opts.features;
+  if (features?.length) {
+    const body = clamp(features.map(panelFeature).join('\n'), 4000);
     container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        clamp(opts.features.map(panelFeature).join('\n'), 4000),
-      ),
-    );
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(body));
   }
 
-  if (opts.steps?.length) {
+  const steps = opts.steps;
+  if (steps?.length) {
+    const body = clamp(panelSteps(steps), 4000);
     container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(clamp(panelSteps(opts.steps), 4000)),
-    );
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(body));
   }
 
   for (const section of (opts.sections ?? []).slice(0, 10)) {
     container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000),
-      ),
+    container.addTextDisplayComponents((textDisplay) =>
+      textDisplay.setContent(clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000)),
     );
   }
 
   if (opts.note) {
     container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(clamp(`• ${opts.note}`, 4000)),
+    container.addTextDisplayComponents((textDisplay) =>
+      textDisplay.setContent(clamp(`• ${opts.note}`, 4000)),
     );
   }
 
   if (opts.footer) {
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(clamp(`-# ${opts.footer}`, 4000)),
+    container.addTextDisplayComponents((textDisplay) =>
+      textDisplay.setContent(clamp(`-# ${opts.footer}`, 4000)),
     );
   }
 
@@ -274,12 +271,20 @@ export interface PanelPayload {
   flags: MessageFlags.IsComponentsV2;
 }
 
-/** Convenience wrapper: build the container, wire the banner and the buttons. */
+/**
+ * Convenience wrapper: build the container, wire the banner and the buttons.
+ *
+ * The button grid lives INSIDE the container so the whole panel reads as one
+ * box — title, artwork and buttons share the same accent colour.
+ */
 export async function buildPanelPayload(
   opts: PanelOptions & { buttons?: PanelButton[] | undefined; banner?: PanelBannerOptions | null | undefined; perRow?: number | undefined },
 ): Promise<PanelPayload> {
   const container = buildPanel(opts);
   const files = opts.banner ? await attachPanelBanner(container, opts.banner) : [];
-  const components: any[] = [container, ...panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5)];
-  return { components, files, flags: MessageFlags.IsComponentsV2 };
+
+  const rows = panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5);
+  if (rows.length) container.addActionRowComponents(...rows);
+
+  return { components: [container], files, flags: MessageFlags.IsComponentsV2 };
 }

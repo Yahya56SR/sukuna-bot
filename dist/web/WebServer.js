@@ -658,6 +658,16 @@ class WebServer {
                 res.status(500).json({ error: 'Failed to fetch panel emoji' });
             }
         });
+        this.app.get('/api/panels/fonts', (_req, res) => {
+            try {
+                const { fontStatus } = require('../utils/fonts');
+                res.json({ fonts: fontStatus() });
+            }
+            catch (err) {
+                this.logger.error('Web Server', 'GET /api/panels/fonts failed', err);
+                res.status(500).json({ error: 'Failed to read the font status' });
+            }
+        });
         this.app.post('/api/panels/refresh-emojis', async (_req, res) => {
             try {
                 const count = await this.appRef.panels?.refreshEmojis?.() ?? 0;

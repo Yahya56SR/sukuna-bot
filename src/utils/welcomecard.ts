@@ -1,6 +1,6 @@
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import type { SKRSContext2D } from '@napi-rs/canvas';
-import { ensureFonts, FONT_STACK, ellipsize } from './fonts';
+import { ensureFontsAsync, FONT_STACK, ellipsize } from './fonts';
 import path from 'path';
 import { DEFAULT_CARD_CONFIG, type WelcomeCardTemplate } from '../config/CardTemplates';
 
@@ -23,7 +23,7 @@ export class WelcomeCardCanvas {
   height = 512;
 
   async generate(data: WelcomeCardData): Promise<Buffer> {
-    ensureFonts();
+    await ensureFontsAsync();
     const t: WelcomeCardTemplate = { ...DEFAULT_CARD_CONFIG.welcome, ...(data.template ?? {}) };
 
     const canvas = createCanvas(this.width, this.height);

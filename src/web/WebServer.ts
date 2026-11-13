@@ -680,8 +680,17 @@ export class WebServer {
       }
     });
 
-    this.app.post('/api/panels/refresh-emojis', async (_req: any, res: any) => {
+    this.app.get('/api/panels/fonts', (_req: any, res: any) => {
       try {
+        const { fontStatus } = require('../utils/fonts');
+        res.json({ fonts: fontStatus() });
+      } catch (err) {
+        this.logger.error('Web Server', 'GET /api/panels/fonts failed', err as Error);
+        res.status(500).json({ error: 'Failed to read the font status' });
+      }
+    });
+
+    this.app.post('/api/panels/refresh-emojis', async (_req: any, res: any) => {      try {
         const count = await this.appRef.panels?.refreshEmojis?.() ?? 0;
         const stats = this.appRef.panels?.getEmojiStats?.() ?? { count, guild: '' };
         res.json({ success: true, count, guild: stats.guild });

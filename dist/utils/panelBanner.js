@@ -18,7 +18,7 @@ function rgba(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 async function generatePanelBanner(opts) {
-    (0, fonts_1.ensureFonts)();
+    await (0, fonts_1.ensureFontsAsync)();
     const width = opts.width ?? 1024;
     const height = opts.height ?? 300;
     const accent = opts.accent ?? DEFAULT_ACCENT;
@@ -96,7 +96,7 @@ function drawText(ctx, opts, width, accent) {
     // Emoji badge.
     let cursorY = 66;
     if (opts.emoji) {
-        ctx.font = '54px "Segoe UI Emoji", "Segoe UI Symbol", "Apple Color Emoji", sans-serif';
+        ctx.font = `54px ${fonts_1.EMOJI_STACK}`;
         ctx.fillText(opts.emoji, centerX, cursorY);
         cursorY += 62;
     }

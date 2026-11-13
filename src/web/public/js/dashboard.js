@@ -2426,6 +2426,25 @@ const app = {
     this.setVal('panels_emojiMap', cfg.emojiMap || '');
     this.setVal('panels_accent', cfg.accent || '');
     this.loadPanelEmojis();
+    this.loadPanelFonts();
+  },
+
+  async loadPanelFonts() {
+    const list = document.getElementById('panels_fontList');
+    if (!list) return;
+    try {
+      const data = await this.request('/panels/fonts');
+      const fonts = data.fonts || [];
+      list.innerHTML = fonts.length
+        ? fonts.map((f) => (
+          `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs ${f.available ? 'bg-slate-800/60 text-slate-300' : 'bg-amber-500/10 text-amber-300'}">
+            <span>${f.available ? '✓' : '↓'}</span><span>${f.alias}</span>
+          </span>`
+        )).join('')
+        : '<span class="hint">No font information available.</span>';
+    } catch (err) {
+      list.innerHTML = '<span class="hint">Could not load the font status.</span>';
+    }
   },
 
   async savePanelsConfig() {
@@ -2440,24 +2459,64 @@ const app = {
 
   async loadPanelEmojis() {
     const list = document.getElementById('panels_emojiList');
+    const picker = document.getElementById('panels_emojiPicker');
+    const preview = document.getElementById('panels_emojiPreview');
     const badge = document.getElementById('panelsEmojiBadge');
     try {
       const data = await this.request('/panels/emojis');
       const custom = data.custom || [];
       if (badge) badge.textContent = `${data.count || 0} emoji`;
-      if (!list) return;
-      if (!custom.length) {
-        list.innerHTML = '<span class="hint">No custom emoji loaded yet. Set the emoji server above and press Refresh.</span>';
-        return;
+
+      if (list) {
+        if (!custom.length) {
+          list.innerHTML = '<span class="hint">No custom emoji loaded yet. Set the emoji server above and press Refresh.</span>';
+        } else {
+          list.innerHTML = custom.map((e) => (
+            `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 text-xs text-slate-300">
+              <span>${e.value}</span><span class="text-slate-500">${e.name}</span>
+            </span>`
+          )).join('');
+        }
       }
-      list.innerHTML = custom.map((e) => (
-        `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 text-xs text-slate-300">
-          <span>${e.value}</span><span class="text-slate-500">${e.name}</span>
-        </span>`
-      )).join('');
+
+      // Picker — click a key to map it to the emoji of your choice.
+      if (picker) {
+        const keys = Object.keys(data.resolved || {});
+        picker.innerHTML = keys.length
+          ? keys.map((key) => (
+            `<button type="button" onclick="app.usePanelEmoji('${key}')" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 text-xs text-slate-300">
+              <span>${data.resolved[key]}</span><span class="text-slate-500">${key}</span>
+            </button>`
+          )).join('')
+          : '<span class="hint">No emoji keys loaded yet.</span>';
+      }
+
+      if (preview) {
+        const resolved = data.resolved || {};
+        const entries = Object.entries(resolved).slice(0, 60);
+        preview.innerHTML = entries.length
+          ? entries.map(([key, value]) => (
+            `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800/60 text-xs text-slate-300">
+              <span>${value}</span><span class="text-slate-500">${key}</span>
+            </span>`
+          )).join('')
+          : '<span class="hint">Nothing to preview yet.</span>';
+      }
     } catch (err) {
       if (list) list.innerHTML = '<span class="hint">Could not load emoji list.</span>';
     }
+  },
+
+  /** Inserts `key = <emoji>` into the emoji map textarea. */
+  usePanelEmoji(key) {
+    const textarea = document.getElementById('panels_emojiMap');
+    if (!textarea) return;
+    const value = (this._panelEmojiValues && this._panelEmojiValues[key]) || '';
+    if (!value) return;
+    const line = `${key} = ${value}`;
+    const current = textarea.value.replace(/\s*$/, '');
+    textarea.value = current ? `${current}\n${line}` : line;
+    textarea.focus();
   },
 
   async refreshPanelEmojis() {

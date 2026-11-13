@@ -102,9 +102,13 @@ describe('panel kit', () => {
       buttons: [{ id: 'ticket:panel:create:pub', label: 'Pub', emoji: 'pub' }],
     });
     expect(payload.flags).toBe(MessageFlags.IsComponentsV2);
-    expect(payload.components).toHaveLength(2);
-    expect(payload.components[0].toJSON().type).toBe(17);
-    expect(payload.components[1].toJSON().type).toBe(1);
+    expect(payload.components).toHaveLength(1);
+    const container = payload.components[0].toJSON();
+    expect(container.type).toBe(17);
+    // The button grid lives INSIDE the container.
+    const rows = container.components.filter((c: any) => c.type === 1);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].components[0].custom_id).toBe('ticket:panel:create:pub');
     expect(texts(payload.components[0]).join('\n')).toContain('Pub');
   });
 

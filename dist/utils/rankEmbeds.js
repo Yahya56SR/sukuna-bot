@@ -4,6 +4,7 @@ exports.buildRankCard = buildRankCard;
 exports.buildLeaderboardPanel = buildLeaderboardPanel;
 const discord_js_1 = require("discord.js");
 const level_1 = require("./level");
+const emoji_1 = require("./emoji");
 /**
  * Text fallback for the rank card — used only when the canvas renderer fails.
  * Components v2 container (no embeds).
@@ -13,7 +14,7 @@ function buildRankCard(opts) {
     const percent = (0, level_1.progressPercent)(info);
     const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
     const container = new discord_js_1.ContainerBuilder().setAccentColor(0xef4444);
-    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent([
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent([
         `**${user.username}**`,
         `**Level ${info.level}**`,
         `${(0, level_1.progressBar)(percent)}  \`${percent}%\``,
@@ -25,7 +26,7 @@ function buildRankCard(opts) {
         ...(opts.position && opts.position > 0 ? [`**Rank:** #${opts.position}`] : []),
     ].join('\n')));
     container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`-# ${opts.guildName}`));
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${opts.guildName}`));
     return container;
 }
 /**
@@ -39,8 +40,8 @@ function buildLeaderboardPanel(entries, guildName) {
     })
         .join('\n');
     const container = new discord_js_1.ContainerBuilder().setAccentColor(0xf59e0b);
-    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`# 🏆 Top members\n${description || 'No ranked members yet.'}`));
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`# ${(0, emoji_1.resolveEmoji)('trophy')} Top members\n${description || 'No ranked members yet.'}`));
     container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`-# ${guildName}`));
+    container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${guildName}`));
     return container;
 }

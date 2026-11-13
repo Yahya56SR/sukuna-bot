@@ -45,7 +45,8 @@ function clamp(value, max) {
 }
 /**
  * Builds the panel container: title (with the server icon), intro, feature
- * bullets, closing note — separated by real separator components.
+ * bullets, closing note and the button grid — separated by real separator
+ * components.
  */
 function buildPanel(opts) {
     const container = new discord_js_1.ContainerBuilder();
@@ -55,33 +56,38 @@ function buildPanel(opts) {
     const heading = `# ${panelTitle(opts.guildName, opts.title, opts.emoji)}`;
     if (opts.guildIconUrl) {
         container.addSectionComponents(new discord_js_1.SectionBuilder()
-            .addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(heading))
+            .addTextDisplayComponents((textDisplay) => textDisplay.setContent(heading))
             .setThumbnailAccessory(new discord_js_1.ThumbnailBuilder().setURL(opts.guildIconUrl)));
     }
     else {
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(heading));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(heading));
     }
     if (opts.intro) {
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(opts.intro, 4000)));
+        const intro = clamp(opts.intro, 4000);
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(intro));
     }
-    if (opts.features?.length) {
+    const features = opts.features;
+    if (features?.length) {
+        const body = clamp(features.map(panelFeature).join('\n'), 4000);
         container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(opts.features.map(panelFeature).join('\n'), 4000)));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(body));
     }
-    if (opts.steps?.length) {
+    const steps = opts.steps;
+    if (steps?.length) {
+        const body = clamp(panelSteps(steps), 4000);
         container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(panelSteps(opts.steps), 4000)));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(body));
     }
     for (const section of (opts.sections ?? []).slice(0, 10)) {
         container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000)));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000)));
     }
     if (opts.note) {
         container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`• ${opts.note}`, 4000)));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(clamp(`• ${opts.note}`, 4000)));
     }
     if (opts.footer) {
-        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`-# ${opts.footer}`, 4000)));
+        container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(clamp(`-# ${opts.footer}`, 4000)));
     }
     return container;
 }
@@ -155,10 +161,17 @@ async function attachPanelBanner(container, banner) {
         return [];
     }
 }
-/** Convenience wrapper: build the container, wire the banner and the buttons. */
+/**
+ * Convenience wrapper: build the container, wire the banner and the buttons.
+ *
+ * The button grid lives INSIDE the container so the whole panel reads as one
+ * box — title, artwork and buttons share the same accent colour.
+ */
 async function buildPanelPayload(opts) {
     const container = buildPanel(opts);
     const files = opts.banner ? await attachPanelBanner(container, opts.banner) : [];
-    const components = [container, ...panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5)];
-    return { components, files, flags: discord_js_1.MessageFlags.IsComponentsV2 };
+    const rows = panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5);
+    if (rows.length)
+        container.addActionRowComponents(...rows);
+    return { components: [container], files, flags: discord_js_1.MessageFlags.IsComponentsV2 };
 }

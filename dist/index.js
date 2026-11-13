@@ -254,6 +254,15 @@ class SukunaApp {
         // The API routes already handle a not-yet-connected client gracefully.
         await this.web.start();
         this.logger.info('Sukuna Bot', 'Web dashboard started');
+        // Warm the canvas fonts in the background — missing fonts (symbols,
+        // Arabic, colour emoji) are downloaded so cards never show empty boxes.
+        void require('./utils/fonts').ensureFontsAsync({
+            includeOptional: true,
+            logger: {
+                info: (message) => this.logger.info('Fonts', message),
+                warn: (message) => this.logger.warn('Fonts', message),
+            },
+        }).catch(() => undefined);
         try {
             this.logger.info('Sukuna Bot', 'Starting application initialization...');
             await this.database.initialize();

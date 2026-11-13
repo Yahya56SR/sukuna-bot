@@ -98,3 +98,40 @@ PANELS_ACCENT=#ef4444
 - **Tickets → Panel categories** (`key | Label | emoji | description`) creates one
   button per category; empty uses the built-in Pub / Bugs / Abuse / Server /
   Staff / Donate list.
+
+## Icons & Fonts
+
+### Custom icons
+
+Every icon in a panel is a **semantic key** (`ticket`, `staff`, `donate`,
+`medal1`, `trophy`, …) resolved through the emoji registry, so nothing is
+hardcoded:
+
+| Priority | Source | Example |
+| --- | --- | --- |
+| 1 | Direct override in the dashboard | `ticket = <a:money:123456789012345678>` |
+| 2 | Alias to an emoji in the bot's emoji server | `ticket = sukuna_ticket` |
+| 3 | The bot's built-in emoji | `<:ticket:1570774090027900928>` |
+
+The **Panels & emoji** page has a picker: click a key to write the mapping
+line into the map, and a live preview of every key.
+
+### Canvas fonts
+
+`src/utils/fonts.ts` owns the font catalog. Missing fonts are **downloaded
+automatically** into `data/fonts` the first time a canvas is rendered, so a
+bare Linux container still draws Arabic names, symbols and colour emoji
+instead of empty boxes.
+
+- Core: Noto Sans (regular/bold), Noto Serif, Noto Sans Mono
+- Symbols: Noto Sans Symbols 2, Noto Sans Symbols, Noto Sans Math
+- Scripts: Arabic, Naskh Arabic, Hebrew, Devanagari, Thai
+- Emoji: Noto Color Emoji, Noto Emoji (both optional, ~7 MB)
+
+Downloads are best-effort — a failure never breaks a render, the card simply
+falls back to the next font in the stack. The **Panels & emoji** page shows
+which fonts are present.
+
+Fancy unicode that no card font can draw (for example the mathematical
+letters in `𝓘𝓼𝓶𝓪𝓲𝓵`) is folded back to plain ASCII with NFKC normalisation
+before it is drawn, so such names never render as empty boxes.

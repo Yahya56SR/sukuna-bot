@@ -19,7 +19,7 @@ class WelcomeCardCanvas {
         this.height = 512;
     }
     async generate(data) {
-        (0, fonts_1.ensureFonts)();
+        await (0, fonts_1.ensureFontsAsync)();
         const t = { ...CardTemplates_1.DEFAULT_CARD_CONFIG.welcome, ...(data.template ?? {}) };
         const canvas = (0, canvas_1.createCanvas)(this.width, this.height);
         const ctx = canvas.getContext('2d');

@@ -20,6 +20,9 @@ exports.PANEL_EMOJI_KEYS = [
     'member', 'question', 'clock', 'sparkles', 'voice', 'settings', 'role',
     'home', 'arrow', 'ping', 'rules', 'ban', 'mute', 'kick', 'clear', 'wave',
     'eye', 'lock', 'unlock', 'trash', 'pencil', 'crown', 'shield', 'logo',
+    'medal1', 'medal2', 'medal3', 'trophy', 'diamond', 'gold', 'silver',
+    'members', 'bolt', 'refresh', 'newBadge', 'upArrow', 'gift', 'hourglass',
+    'list', 'info', 'folder', 'chart', 'target',
 ];
 /** The bot's own emoji — used when no override is mapped. */
 exports.EMOJI_FALLBACKS = {
@@ -68,6 +71,25 @@ exports.EMOJI_FALLBACKS = {
     crown: '<:crown:1570773987984810014>',
     shield: '<:shield:1570774075331317770>',
     logo: '<:logo:1570774028635869345>',
+    medal1: '🥇',
+    medal2: '🥈',
+    medal3: '🥉',
+    trophy: '🏆',
+    diamond: '💎',
+    gold: '🏅',
+    silver: '⚪',
+    members: '👥',
+    bolt: '⚡',
+    refresh: '🔄',
+    newBadge: '🆕',
+    upArrow: '▲',
+    gift: '🎁',
+    hourglass: '⏳',
+    list: '📋',
+    info: 'ℹ️',
+    folder: '📁',
+    chart: '📊',
+    target: '🎯',
 };
 /** Lower-cased lookup so `staffTeam` and `staffteam` both resolve. */
 const FALLBACK_LOOKUP = new Map(Object.entries(exports.EMOJI_FALLBACKS).map(([key, value]) => [key.toLowerCase(), value]));

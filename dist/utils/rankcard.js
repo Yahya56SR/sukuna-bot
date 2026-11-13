@@ -19,7 +19,7 @@ class RankCardCanvas {
         this.height = 300;
     }
     async generate(data) {
-        (0, fonts_1.ensureFonts)();
+        await (0, fonts_1.ensureFontsAsync)();
         const t = { ...CardTemplates_1.DEFAULT_CARD_CONFIG.rank, ...(data.template ?? {}) };
         const canvas = (0, canvas_1.createCanvas)(this.width, this.height);
         const ctx = canvas.getContext('2d');
@@ -233,7 +233,7 @@ class RankCardCanvas {
         ctx.closePath();
     }
     fitText(ctx, text, maxWidth) {
-        return (0, fonts_1.ellipsize)((t) => ctx.measureText(t).width, text, maxWidth);
+        return (0, fonts_1.ellipsize)((t) => ctx.measureText(t).width, (0, fonts_1.normalizeCanvasText)(text), maxWidth);
     }
 }
 exports.RankCardCanvas = RankCardCanvas;
@@ -247,7 +247,7 @@ class LeaderboardCanvas {
         this.headerHeight = 120;
     }
     async generate(rows, guildName, title = '🏆 Top members', template) {
-        (0, fonts_1.ensureFonts)();
+        await (0, fonts_1.ensureFontsAsync)();
         const t = { ...CardTemplates_1.DEFAULT_CARD_CONFIG.leaderboard, ...(template ?? rows[0]?.template ?? {}) };
         const height = this.headerHeight + rows.length * this.rowHeight + 30;
         const canvas = (0, canvas_1.createCanvas)(this.width, height);
@@ -305,7 +305,7 @@ class LeaderboardCanvas {
         ctx.textAlign = 'left';
         ctx.font = `26px ${fonts_1.FONT_STACK}`;
         ctx.fillStyle = t.textColor;
-        ctx.fillText((0, fonts_1.ellipsize)((t2) => ctx.measureText(t2).width, row.username, 400), 160, centerY + 9);
+        ctx.fillText((0, fonts_1.ellipsize)((t2) => ctx.measureText(t2).width, (0, fonts_1.normalizeCanvasText)(row.username), 400), 160, centerY + 9);
         ctx.textAlign = 'right';
         ctx.font = `bold 24px ${fonts_1.FONT_STACK}`;
         ctx.fillStyle = '#00b0f4';
@@ -376,7 +376,7 @@ class LeaderboardPodiumCanvas {
         this.height = 360;
     }
     async generate(entries) {
-        (0, fonts_1.ensureFonts)();
+        await (0, fonts_1.ensureFontsAsync)();
         const canvas = (0, canvas_1.createCanvas)(this.width, this.height);
         const ctx = canvas.getContext('2d');
         this.drawBackground(ctx);
@@ -437,7 +437,7 @@ class LeaderboardPodiumCanvas {
         ctx.textBaseline = 'alphabetic';
         ctx.font = `bold ${hero ? 26 : 24}px ${fonts_1.FONT_STACK}`;
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText((0, fonts_1.ellipsize)((t) => ctx.measureText(t).width, entry.username, slot.width - 36), centerX, nameY);
+        ctx.fillText((0, fonts_1.ellipsize)((t) => ctx.measureText(t).width, (0, fonts_1.normalizeCanvasText)(entry.username), slot.width - 36), centerX, nameY);
         ctx.font = `${hero ? 18 : 16}px ${fonts_1.FONT_STACK}`;
         ctx.fillStyle = '#b9bbbe';
         ctx.fillText(`Lv ${entry.level} · ${Math.floor(entry.totalXp).toLocaleString('en-US')} XP`, centerX, xpY);

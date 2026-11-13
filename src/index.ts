@@ -214,6 +214,16 @@ this.leveling = new LevelingService(this.logger, {
     await this.web.start();
     this.logger.info('Sukuna Bot', 'Web dashboard started');
 
+    // Warm the canvas fonts in the background — missing fonts (symbols,
+    // Arabic, colour emoji) are downloaded so cards never show empty boxes.
+    void require('./utils/fonts').ensureFontsAsync({
+      includeOptional: true,
+      logger: {
+        info: (message: string) => this.logger.info('Fonts', message),
+        warn: (message: string) => this.logger.warn('Fonts', message),
+      },
+    }).catch(() => undefined);
+
     try {
       this.logger.info('Sukuna Bot', 'Starting application initialization...');
 

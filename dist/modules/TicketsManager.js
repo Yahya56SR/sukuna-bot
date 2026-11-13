@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TicketsCommands = exports.TicketsManager = exports.TICKET_PREFIX = exports.DEFAULT_TICKET_CATEGORIES = void 0;
 exports.ticketButtons = ticketButtons;
+exports.ticketPanelButtons = ticketPanelButtons;
 exports.ticketWelcomeEmbed = ticketWelcomeEmbed;
 exports.ticketWelcomePanel = ticketWelcomePanel;
 const discord_js_1 = require("discord.js");
@@ -32,6 +33,25 @@ function ticketButtons(ticketId, status) {
         row.addComponents(new discord_js_1.ButtonBuilder().setCustomId(`${exports.TICKET_PREFIX}reopen:${ticketId}`).setLabel('Reopen').setEmoji('🔓').setStyle(discord_js_1.ButtonStyle.Primary));
     }
     return [row];
+}
+/**
+ * Ticket action buttons in the panel-kit shape — they are rendered inside the
+ * panel container, next to the ticket details.
+ */
+function ticketPanelButtons(ticketId, status) {
+    if (status === 'open') {
+        return [
+            { id: `${exports.TICKET_PREFIX}claim:${ticketId}`, label: 'Claim', emoji: 'shield', style: discord_js_1.ButtonStyle.Success },
+            { id: `${exports.TICKET_PREFIX}close:${ticketId}`, label: 'Close', emoji: 'lock', style: discord_js_1.ButtonStyle.Secondary },
+        ];
+    }
+    if (status === 'resolved') {
+        return [
+            { id: `${exports.TICKET_PREFIX}reopen:${ticketId}`, label: 'Reopen', emoji: 'unlock', style: discord_js_1.ButtonStyle.Primary },
+            { id: `${exports.TICKET_PREFIX}delete:${ticketId}`, label: 'Delete', emoji: 'trash', style: discord_js_1.ButtonStyle.Danger },
+        ];
+    }
+    return [{ id: `${exports.TICKET_PREFIX}reopen:${ticketId}`, label: 'Reopen', emoji: 'unlock', style: discord_js_1.ButtonStyle.Primary }];
 }
 function ticketWelcomeEmbed(opts) {
     return (0, embed_1.brandedEmbed)(embed_1.BRAND.blue)
@@ -73,10 +93,10 @@ async function ticketWelcomePanel(opts) {
             accent: '#0099ff',
             accentSecondary: '#a855f7',
         },
-        buttons: [],
+        buttons: ticketPanelButtons(opts.ticketId, 'open'),
     });
     return {
-        components: [...payload.components, ...ticketButtons(opts.ticketId, 'open')],
+        components: payload.components,
         files: payload.files,
         flags: payload.flags,
     };

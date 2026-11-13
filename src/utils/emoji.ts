@@ -23,6 +23,9 @@ export const PANEL_EMOJI_KEYS = [
   'member', 'question', 'clock', 'sparkles', 'voice', 'settings', 'role',
   'home', 'arrow', 'ping', 'rules', 'ban', 'mute', 'kick', 'clear', 'wave',
   'eye', 'lock', 'unlock', 'trash', 'pencil', 'crown', 'shield', 'logo',
+  'medal1', 'medal2', 'medal3', 'trophy', 'diamond', 'gold', 'silver',
+  'members', 'bolt', 'refresh', 'newBadge', 'upArrow', 'gift', 'hourglass',
+  'list', 'info', 'folder', 'chart', 'target',
 ] as const;
 
 export type PanelEmojiKey = typeof PANEL_EMOJI_KEYS[number];
@@ -74,6 +77,25 @@ export const EMOJI_FALLBACKS: Record<PanelEmojiKey, string> = {
   crown: '<:crown:1570773987984810014>',
   shield: '<:shield:1570774075331317770>',
   logo: '<:logo:1570774028635869345>',
+  medal1: '🥇',
+  medal2: '🥈',
+  medal3: '🥉',
+  trophy: '🏆',
+  diamond: '💎',
+  gold: '🏅',
+  silver: '⚪',
+  members: '👥',
+  bolt: '⚡',
+  refresh: '🔄',
+  newBadge: '🆕',
+  upArrow: '▲',
+  gift: '🎁',
+  hourglass: '⏳',
+  list: '📋',
+  info: 'ℹ️',
+  folder: '📁',
+  chart: '📊',
+  target: '🎯',
 };
 
 /** Lower-cased lookup so `staffTeam` and `staffteam` both resolve. */

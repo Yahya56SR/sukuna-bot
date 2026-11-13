@@ -1,6 +1,6 @@
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import type { SKRSContext2D } from '@napi-rs/canvas';
-import { ensureFonts, FONT_STACK, ellipsize } from './fonts';
+import { ensureFontsAsync, FONT_STACK, ellipsize, normalizeCanvasText } from './fonts';
 import path from 'path';
 import { DEFAULT_CARD_CONFIG, type RankCardTemplate, type LeaderboardTemplate } from '../config/CardTemplates';
 
@@ -37,7 +37,7 @@ export class RankCardCanvas {
   height = 300;
 
   async generate(data: RankCardData): Promise<Buffer> {
-    ensureFonts();
+    await ensureFontsAsync();
     const t: RankCardTemplate = { ...DEFAULT_CARD_CONFIG.rank, ...(data.template ?? {}) };
 
     const canvas = createCanvas(this.width, this.height);
@@ -286,7 +286,7 @@ export class RankCardCanvas {
   }
 
   private fitText(ctx: SKRSContext2D, text: string, maxWidth: number): string {
-    return ellipsize((t) => ctx.measureText(t).width, text, maxWidth);
+    return ellipsize((t) => ctx.measureText(t).width, normalizeCanvasText(text), maxWidth);
   }
 }
 
@@ -304,7 +304,7 @@ export class LeaderboardCanvas {
     title = '🏆 Top members',
     template?: Partial<LeaderboardTemplate>,
   ): Promise<Buffer> {
-    ensureFonts();
+    await ensureFontsAsync();
     const t: LeaderboardTemplate = { ...DEFAULT_CARD_CONFIG.leaderboard, ...(template ?? rows[0]?.template ?? {}) };
 
     const height = this.headerHeight + rows.length * this.rowHeight + 30;
@@ -381,7 +381,7 @@ export class LeaderboardCanvas {
     ctx.font = `26px ${FONT_STACK}`;
     ctx.fillStyle = t.textColor;
     ctx.fillText(
-      ellipsize((t2) => ctx.measureText(t2).width, row.username, 400),
+      ellipsize((t2) => ctx.measureText(t2).width, normalizeCanvasText(row.username), 400),
       160,
       centerY + 9,
     );
@@ -482,7 +482,7 @@ export class LeaderboardPodiumCanvas {
   height = 360;
 
   async generate(entries: PodiumEntry[]): Promise<Buffer> {
-    ensureFonts();
+    await ensureFontsAsync();
 
     const canvas = createCanvas(this.width, this.height);
     const ctx = canvas.getContext('2d');
@@ -562,7 +562,7 @@ export class LeaderboardPodiumCanvas {
     ctx.font = `bold ${hero ? 26 : 24}px ${FONT_STACK}`;
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(
-      ellipsize((t) => ctx.measureText(t).width, entry.username, slot.width - 36),
+      ellipsize((t) => ctx.measureText(t).width, normalizeCanvasText(entry.username), slot.width - 36),
       centerX,
       nameY,
     );

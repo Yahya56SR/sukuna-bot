@@ -18,11 +18,11 @@ import {
   MediaGalleryItemBuilder,
   MessageFlags,
   SeparatorBuilder,
-  TextDisplayBuilder,
   type Guild,
 } from 'discord.js';
 import { leaderboardPodium } from './rankcard';
 import { progressBar } from './level';
+import { resolveEmoji } from './emoji';
 
 export interface LiveEntry {
   rank: number;
@@ -37,6 +37,7 @@ export interface LiveEntry {
 }
 
 interface Zone {
+  /** Emoji key — resolved through the registry so it can be customised. */
   emoji: string;
   name: string;
   from: number;
@@ -44,12 +45,12 @@ interface Zone {
 }
 
 const ZONES: Zone[] = [
-  { emoji: '💎', name: 'Diamond Zone', from: 4, to: 10 },
-  { emoji: '🏅', name: 'Gold Zone', from: 11, to: 18 },
-  { emoji: '⚪', name: 'Silver Zone', from: 19, to: 25 },
+  { emoji: 'diamond', name: 'Diamond Zone', from: 4, to: 10 },
+  { emoji: 'gold', name: 'Gold Zone', from: 11, to: 18 },
+  { emoji: 'silver', name: 'Silver Zone', from: 19, to: 25 },
 ];
 
-const MEDALS = ['🥇', '🥈', '🥉'];
+const MEDALS = ['medal1', 'medal2', 'medal3'];
 
 function formatXp(value: number): string {
   return Math.floor(value).toLocaleString('en-US');
@@ -102,9 +103,9 @@ export function buildContentPanel(
   const container = new ContainerBuilder().setAccentColor(0x2b2d63);
 
   // 1. Header
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(
-      `# 🏆 ${title}\n👥 **${guild.memberCount.toLocaleString('en-US')}** members · ✨ *Ranked by experience*`,
+  container.addTextDisplayComponents((textDisplay) =>
+    textDisplay.setContent(
+      `# ${resolveEmoji('trophy')} ${title}\n${resolveEmoji('members')} **${guild.memberCount.toLocaleString('en-US')}** members · ${resolveEmoji('sparkles')} *Ranked by experience*`,
     ),
   );
 
@@ -125,11 +126,11 @@ export function buildContentPanel(
   // 4. Top 3
   const topLines = top.map(
     (entry, index) =>
-      `${MEDALS[index]} ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${progressBar(entry.percent, 6)} ${entry.percent}%`,
+      `${resolveEmoji(MEDALS[index] ?? 'medal1')} ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${progressBar(entry.percent, 6)} ${entry.percent}%`,
   );
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(
-      `## 👑 Top 3\n${topLines.length > 0 ? clampText(topLines.join('\n'), 900) : 'No ranked members yet.'}`,
+  container.addTextDisplayComponents((textDisplay) =>
+    textDisplay.setContent(
+      `## ${resolveEmoji('crown')} Top 3\n${topLines.length > 0 ? clampText(topLines.join('\n'), 900) : 'No ranked members yet.'}`,
     ),
   );
 
@@ -150,7 +151,7 @@ export function buildContentPanel(
       from === 4 ? 'Top 3' : (ZONES.find((z) => z.to === from - 1)?.name ?? 'the next zone');
     const header =
       gap > 0
-        ? `Ranks ${from} – ${to} ⚡ \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
+        ? `Ranks ${from} – ${to} ${resolveEmoji('bolt')} \`${formatXp(gap)} XP\` to pass #${from - 1} and enter ${target}`
         : `Ranks ${from} – ${to}`;
 
     const lines = zoneEntries.map((entry) => {
@@ -165,21 +166,21 @@ export function buildContentPanel(
     budget -= body.length + zone.name.length + 20;
 
     container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-    container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`## ${zone.emoji} ${zone.name}\n${body}`),
+    container.addTextDisplayComponents((textDisplay) =>
+      textDisplay.setContent(`## ${resolveEmoji(zone.emoji)} ${zone.name}\n${body}`),
     );
   }
 
   // 6. Footer
   const label = freshnessLabel(updatedAt);
-  let footerText = `🔄 Updates automatically · last update ${label}`;
+  let footerText = `${resolveEmoji('refresh')} Updates automatically · last update ${label}`;
   if (rankChanges && (rankChanges.movedUp > 0 || rankChanges.newOnList > 0)) {
     const parts: string[] = [];
-    if (rankChanges.movedUp > 0) parts.push(`▲ ${rankChanges.movedUp} rank change${rankChanges.movedUp === 1 ? '' : 's'} in the last 24h`);
-    if (rankChanges.newOnList > 0) parts.push(`🆕 ${rankChanges.newOnList} new on the list`);
+    if (rankChanges.movedUp > 0) parts.push(`${resolveEmoji('upArrow')} ${rankChanges.movedUp} rank change${rankChanges.movedUp === 1 ? '' : 's'} in the last 24h`);
+    if (rankChanges.newOnList > 0) parts.push(`${resolveEmoji('newBadge')} ${rankChanges.newOnList} new on the list`);
     footerText = `${parts.join(' · ')}\n${footerText}`;
   }
-  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${footerText}`));
+  container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${footerText}`));
 
   return container;
 }

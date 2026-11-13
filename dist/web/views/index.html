@@ -1810,7 +1810,20 @@
                           <div>
                             <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Emoji map (one per line)</label>
                             <textarea id="panels_emojiMap" class="input-field" rows="7" placeholder="staff = sukuna_staff&#10;ticket = sukuna_ticket&#10;donate = &lt;a:money:123456789012345678&gt;"></textarea>
-                            <p class="hint">Map a panel key to an emoji name from your emoji server, or paste the emoji itself.</p>
+                            <p class="hint">Map a panel key to an emoji name from your emoji server, or paste the emoji itself. Pick from the list below to insert a line.</p>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Emoji picker</label>
+                            <div id="panels_emojiPicker" class="checklist">
+                              <span class="hint">Loading emoji…</span>
+                            </div>
+                            <button type="button" onclick="app.refreshPanelEmojis()" class="btn-secondary w-full text-sm mt-2">Refresh emoji</button>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Live preview</label>
+                            <div id="panels_emojiPreview" class="checklist">
+                              <span class="hint">Loading…</span>
+                            </div>
                           </div>
                           <div>
                             <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Banner accent (hex, optional)</label>
@@ -1822,7 +1835,13 @@
                             <div id="panels_emojiList" class="checklist">
                               <span class="hint">Loading emoji…</span>
                             </div>
-                            <button type="button" onclick="app.refreshPanelEmojis()" class="btn-secondary w-full text-sm mt-2">Refresh emoji</button>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-400 uppercase mb-2">Canvas fonts</label>
+                            <div id="panels_fontList" class="checklist">
+                              <span class="hint">Loading fonts…</span>
+                            </div>
+                            <p class="hint">Missing fonts are downloaded automatically into <code>data/fonts</code> so cards never show empty boxes.</p>
                           </div>
                           <button onclick="app.savePanelsConfig()" class="btn-primary w-full">Save Panel Settings</button>
                         </div>

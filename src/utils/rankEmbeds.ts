@@ -1,5 +1,6 @@
-import { ContainerBuilder, SeparatorBuilder, TextDisplayBuilder, User } from 'discord.js';
+import { ContainerBuilder, SeparatorBuilder, User } from 'discord.js';
 import { LevelInfo, progressBar, progressPercent } from './level';
+import { resolveEmoji } from './emoji';
 
 export interface RankCardOptions {
   user: User;
@@ -18,8 +19,8 @@ export function buildRankCard(opts: RankCardOptions): ContainerBuilder {
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
 
   const container = new ContainerBuilder().setAccentColor(0xef4444);
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(
+  container.addTextDisplayComponents((textDisplay) =>
+    textDisplay.setContent(
       [
         `**${user.username}**`,
         `**Level ${info.level}**`,
@@ -34,7 +35,7 @@ export function buildRankCard(opts: RankCardOptions): ContainerBuilder {
     ),
   );
   container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${opts.guildName}`));
+  container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${opts.guildName}`));
 
   return container;
 }
@@ -61,11 +62,13 @@ export function buildLeaderboardPanel(
     .join('\n');
 
   const container = new ContainerBuilder().setAccentColor(0xf59e0b);
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`# 🏆 Top members\n${description || 'No ranked members yet.'}`),
+  container.addTextDisplayComponents((textDisplay) =>
+    textDisplay.setContent(
+      `# ${resolveEmoji('trophy')} Top members\n${description || 'No ranked members yet.'}`,
+    ),
   );
   container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
-  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${guildName}`));
+  container.addTextDisplayComponents((textDisplay) => textDisplay.setContent(`-# ${guildName}`));
 
   return container;
 }
