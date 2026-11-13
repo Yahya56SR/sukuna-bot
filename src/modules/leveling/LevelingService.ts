@@ -15,7 +15,7 @@ import { levelingHistory, levelingProfiles } from '../../database/schema';
 import type { DrizzleDb } from '../../types/database';
 import { levelingEmbed, progressBar, formatNumber, brandedEmbed, BRAND, errorEmbed } from '../../utils/embed';
 import { rankCard } from '../../utils/rankcard';
-import { buildRankCard, buildLeaderboardEmbed } from '../../utils/rankEmbeds';
+import { buildRankCard, buildLeaderboardPanel } from '../../utils/rankEmbeds';
 import { collectEntries, buildMessagePayload } from '../../utils/liveLeaderboard';
 import { newId } from '../../utils/id';
 
@@ -727,12 +727,15 @@ export class LevelingCommands {
           await interaction.editReply({ files: [attachment], embeds: [captionEmbed] });
         } catch (cardErr) {
           this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr as Error);
-          await interaction.editReply({ embeds: [buildRankCard({
-            user: user as any,
-            info,
-            guildName: interaction.guild?.name ?? 'this server',
-            position: rank || undefined,
-          })] });
+          await interaction.editReply({
+            components: [buildRankCard({
+              user: user as any,
+              info,
+              guildName: interaction.guild?.name ?? 'this server',
+              position: rank || undefined,
+            })],
+            flags: MessageFlags.IsComponentsV2,
+          });
         }
       } catch (error) {
         this.logger.error('Leveling Commands', 'Failed to get level', error as Error);
@@ -777,12 +780,15 @@ export class LevelingCommands {
           await interaction.editReply({ files: [new AttachmentBuilder(buffer, { name: 'rank.png' })] });
         } catch (cardErr) {
           this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr as Error);
-          await interaction.editReply({ embeds: [buildRankCard({
-            user: user as any,
-            info,
-            guildName: interaction.guild?.name ?? 'this server',
-            position: rank || undefined,
-          })] });
+          await interaction.editReply({
+            components: [buildRankCard({
+              user: user as any,
+              info,
+              guildName: interaction.guild?.name ?? 'this server',
+              position: rank || undefined,
+            })],
+            flags: MessageFlags.IsComponentsV2,
+          });
         }
       } catch (error) {
         this.logger.error('Leveling Commands', 'Failed to get rank', error as Error);
@@ -812,10 +818,10 @@ export class LevelingCommands {
         const entries = await collectEntries(this.service, interaction.guild, Math.max(limit, 10), interaction.client);
         const payload = await buildMessagePayload(entries, interaction.guild, Math.min(25, Math.max(10, limit)), '', Date.now());
         await interaction.editReply(payload).catch(async () => {
-          const embed = buildLeaderboardEmbed(entries.map((e: any) => ({
+          const panel = buildLeaderboardPanel(entries.map((e: any) => ({
             userId: e.userId, username: e.username, level: e.level, totalXp: e.totalXp,
           })), interaction.guild?.name ?? 'this server');
-          await interaction.editReply({ embeds: [embed] });
+          await interaction.editReply({ components: [panel], flags: MessageFlags.IsComponentsV2 });
         });
       } catch (error) {
         this.logger.error('Leveling Commands', 'Failed to get leaderboard', error as Error);

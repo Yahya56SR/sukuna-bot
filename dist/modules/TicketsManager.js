@@ -65,6 +65,7 @@ async function ticketWelcomePanel(opts) {
         intro: `Hey <@${opts.userId}> — thanks for reaching out. Staff will be with you shortly.`,
         features,
         note: `Ticket ID: \`${opts.ticketId}\` • only you and the staff team can see this channel.`,
+        footer: `${opts.guildName} • Ticket ${opts.ticketId}`,
         banner: {
             title: 'Support Ticket',
             subtitle: opts.guildName,
@@ -73,12 +74,11 @@ async function ticketWelcomePanel(opts) {
             accentSecondary: '#a855f7',
         },
         buttons: [],
-        footer: `${opts.guildName} • Ticket ${opts.ticketId}`,
     });
     return {
-        embed: payload.embed,
-        components: ticketButtons(opts.ticketId, 'open'),
+        components: [...payload.components, ...ticketButtons(opts.ticketId, 'open')],
         files: payload.files,
+        flags: payload.flags,
     };
 }
 function toTicket(row) {
@@ -360,10 +360,9 @@ class TicketsManager {
                 reason,
             });
             await channel.send({
-                content: `<@${userId}>`,
-                embeds: [welcome.embed],
                 components: welcome.components,
                 files: welcome.files,
+                flags: welcome.flags,
                 allowedMentions: { users: [userId] },
             });
         }
@@ -612,9 +611,9 @@ class TicketsCommands {
                         const channel = interaction.options.getChannel('channel', true);
                         const panel = await this.service.buildPanel(guild);
                         await channel.send({
-                            embeds: [panel.embed],
                             components: panel.components,
                             files: panel.files,
+                            flags: panel.flags,
                         }).catch(() => undefined);
                         await interaction.reply({ content: `✅ Ticket panel posted in ${channel}.`, flags: MessageFlags.Ephemeral }).catch(() => undefined);
                     }

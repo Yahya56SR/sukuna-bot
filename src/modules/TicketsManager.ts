@@ -104,7 +104,7 @@ export async function ticketWelcomePanel(opts: {
   guildName: string;
   guildIconUrl?: string | undefined;
   reason?: string | undefined;
-}): Promise<{ embed: EmbedBuilder; components: ActionRowBuilder<ButtonBuilder>[]; files: any[] }> {
+}): Promise<{ components: any[]; files: any[]; flags: number }> {
   const features: PanelFeature[] = [
     { emoji: 'support', label: 'Describe your issue', value: 'Tell the staff what happened, step by step' },
     { emoji: 'check', label: 'Claim', value: 'Staff take ownership of your ticket' },
@@ -125,6 +125,7 @@ export async function ticketWelcomePanel(opts: {
     intro: `Hey <@${opts.userId}> — thanks for reaching out. Staff will be with you shortly.`,
     features,
     note: `Ticket ID: \`${opts.ticketId}\` • only you and the staff team can see this channel.`,
+    footer: `${opts.guildName} • Ticket ${opts.ticketId}`,
     banner: {
       title: 'Support Ticket',
       subtitle: opts.guildName,
@@ -133,13 +134,12 @@ export async function ticketWelcomePanel(opts: {
       accentSecondary: '#a855f7',
     },
     buttons: [],
-    footer: `${opts.guildName} • Ticket ${opts.ticketId}`,
   });
 
   return {
-    embed: payload.embed,
-    components: ticketButtons(opts.ticketId, 'open'),
+    components: [...payload.components, ...ticketButtons(opts.ticketId, 'open')],
     files: payload.files,
+    flags: payload.flags,
   };
 }
 
@@ -434,10 +434,9 @@ export class TicketsManager {
         reason,
       });
       await (channel as TextChannel).send({
-        content: `<@${userId}>`,
-        embeds: [welcome.embed],
         components: welcome.components,
         files: welcome.files,
+        flags: welcome.flags,
         allowedMentions: { users: [userId] },
       });
     } catch (err) {
@@ -702,9 +701,9 @@ export class TicketsCommands {
           const channel = interaction.options.getChannel('channel', true);
           const panel = await this.service.buildPanel(guild);
           await channel.send({
-            embeds: [panel.embed],
             components: panel.components,
             files: panel.files,
+            flags: panel.flags,
           }).catch(() => undefined);
           await interaction.reply({ content: `✅ Ticket panel posted in ${channel}.`, flags: MessageFlags.Ephemeral }).catch(() => undefined);
         }

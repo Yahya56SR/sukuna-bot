@@ -33,11 +33,25 @@ Module Configuration
 ## Panels & Custom Emoji
 
 All "big" Discord panels (staff applications, ticket support, temporary voice,
-giveaways) are built by one shared kit so they always look the same.
+giveaways, leaderboard) are built by one shared kit so they always look the
+same.
+
+They use **Components v2** (`MessageFlags.IsComponentsV2`, `1 << 15`) — a
+message with components v2 carries no embeds and no content, so the title,
+the dividers and the artwork are real components:
+
+| Component | Type | Used for |
+| --- | --- | --- |
+| Container | 17 | The panel box with its accent colour |
+| Section | 9 | Title + server icon (thumbnail accessory) |
+| Text Display | 10 | Title, intro, feature bullets, note, footer |
+| Separator | 14 | The thin divider lines between sections |
+| Media Gallery | 12 | The banner / podium artwork (attachments are not shown on their own in v2) |
+| Action Row + Button | 1 / 2 | The button grid (5 per row, 25 max) |
 
 | File | Purpose |
 | --- | --- |
-| `src/utils/panel.ts` | Embed/button builder — title, dividers, feature bullets, button grid, banner wiring |
+| `src/utils/panel.ts` | Container/button builder — title, separators, feature bullets, button grid, banner wiring |
 | `src/utils/panelBanner.ts` | Renders the full-width banner artwork (1024×300 PNG) with `@napi-rs/canvas` |
 | `src/utils/emoji.ts` | Emoji registry — maps semantic keys (`ticket`, `staff`, `donate`, …) to the bot's own emoji |
 | `src/services/PanelService.ts` | Loads the emoji server, applies the emoji map, owns the panel look config |
@@ -45,14 +59,15 @@ giveaways) are built by one shared kit so they always look the same.
 ### Panel layout
 
 ```
-<emoji> <Server> • <Section>          ← big bold title
-<intro paragraph, optional link>      ← description
-──────────────────────────────        ← thin divider
-• <emoji> **Label**: `value`          ← feature bullets
-──────────────────────────────
-• <emoji> <closing note>
-[big banner artwork]                  ← generated PNG
-[button grid]                         ← 5 buttons per row, 25 max
+Container
+  Section      # <emoji> <Server> • <Section>        [server icon]
+  TextDisplay  <intro paragraph, optional link>
+  Separator
+  TextDisplay  • <emoji> **Label**: `value`
+  Separator
+  TextDisplay  • <emoji> <closing note>
+  MediaGallery [big banner artwork]
+ActionRow     [button grid — 5 buttons per row]
 ```
 
 ### Dashboard → Settings → Panels & emoji

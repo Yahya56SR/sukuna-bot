@@ -2363,7 +2363,7 @@ const app = {
     this._pendingTicketRoles = cfg.supportRoles || [];
     this.setVal('tix_categories', this.ticketCategoryLines(cfg.categories));
     if (this._cachedRoles?.length) this.renderRoleChecklist('tix_supportRolesUI', this._cachedRoles, this._pendingTicketRoles, (ids) => { this._pendingTicketRoles = ids; });
-  }
+  },
 
   /** `key | Label | emoji | description` lines → category objects. */
   parseTicketCategories(text) {
@@ -2381,7 +2381,7 @@ const app = {
       });
     }
     return out;
-  }
+  },
 
   /** Category objects → `key | Label | emoji | description` lines. */
   ticketCategoryLines(categories) {
@@ -2426,7 +2426,7 @@ const app = {
     this.setVal('panels_emojiMap', cfg.emojiMap || '');
     this.setVal('panels_accent', cfg.accent || '');
     this.loadPanelEmojis();
-  }
+  },
 
   async savePanelsConfig() {
     await this.saveServiceConfig('panels', 'Panels', {
@@ -2436,7 +2436,7 @@ const app = {
       accent: this.val('panels_accent').trim(),
     });
     this.loadPanelEmojis();
-  }
+  },
 
   async loadPanelEmojis() {
     const list = document.getElementById('panels_emojiList');
@@ -2458,7 +2458,7 @@ const app = {
     } catch (err) {
       if (list) list.innerHTML = '<span class="hint">Could not load emoji list.</span>';
     }
-  }
+  },
 
   async refreshPanelEmojis() {
     try {
@@ -2468,9 +2468,10 @@ const app = {
     } catch (err) {
       this.showAlert(err.message || 'Failed to refresh emoji', 'error');
     }
-  }
+  },
 
-  async saveStaffAppsConfig() {    const questions = this.val('sapp_questions').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 10);
+  async saveStaffAppsConfig() {
+    const questions = this.val('sapp_questions').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 10);
     if (questions.length === 0) return this.showAlert('Add at least one application question.', 'error');
     const panelManual = document.getElementById('sapp_panelChannelManual')?.value?.trim();
     const panelPicked = document.getElementById('sapp_panelChannel')?.value || '';
@@ -2487,7 +2488,7 @@ const app = {
       maxQuestionLength: 1000,
       roleDescriptions: this.parseRoleDescriptionLines(this.val('sapp_roleDescriptions')),
     });
-  }
+  },
 
   /** `Role Name = pitch` lines → { roleId: pitch }. */
   parseRoleDescriptionLines(text) {
@@ -2506,7 +2507,7 @@ const app = {
       if (roleId) out[roleId] = value;
     }
     return out;
-  }
+  },
 
   /** { roleId: pitch } → `Role Name = pitch` lines. */
   roleDescriptionLines(map) {

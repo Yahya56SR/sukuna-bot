@@ -544,7 +544,11 @@ export class TempVCService {
 
     let message: Message | null = null;
     try {
-      message = await channel.send({ embeds: [panel.embed], components: panel.components, files: panel.files });
+      message = await channel.send({
+        components: panel.components,
+        files: panel.files,
+        flags: panel.flags,
+      });
       await this.setPanel(channel.id, message.id, target);
       return message;
     } catch (err) {

@@ -88,10 +88,10 @@ class TempVCCommands {
             }
         }
         if (message) {
-            await message.edit({ embeds: [panel.embed], components: panel.components, files: panel.files });
+            await message.edit({ components: panel.components, files: panel.files, flags: panel.flags });
         }
         else {
-            message = await channel.send({ embeds: [panel.embed], components: panel.components, files: panel.files });
+            message = await channel.send({ components: panel.components, files: panel.files, flags: panel.flags });
         }
         await this.service.setPanel(channel.id, message.id, interaction.guildId ?? undefined);
         await interaction.reply({ content: `✅ Temp VC panel posted in ${channel}.`, flags: discord_js_1.MessageFlags.Ephemeral });

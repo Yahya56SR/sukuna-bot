@@ -4,7 +4,15 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ColorResolvable,
-  EmbedBuilder,
+  ContainerBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  MessageFlags,
+  resolveColor,
+  SectionBuilder,
+  SeparatorBuilder,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
 } from 'discord.js';
 import { BRAND } from './embed';
 import { resolveEmoji } from './emoji';
@@ -14,24 +22,22 @@ import { generatePanelBanner, type PanelBannerOptions } from './panelBanner';
  * Sukuna Bot panel kit — one place that builds the big, branded Discord
  * panels used by staff applications, tickets, temporary voice and giveaways.
  *
- * The layout mirrors the "large panel" style popular on Discord:
+ * Built on **Components v2** (`MessageFlags.IsComponentsV2`):
  *
- *   <emoji> <Server> • <Section>            ← big bold title
- *   <intro paragraph, optional link>        ← description
- *   ──────────────────────────────          ← thin divider
- *   • <emoji> **Label**: `value`            ← feature bullets
- *   ──────────────────────────────
- *   • <emoji> <closing note>
- *   [big banner artwork]                    ← generated image
- *   [button grid]                           ← up to 5 buttons per row
+ *   ┌ Container (accent colour) ───────────────────────┐
+ *   │ # <emoji> <Server> • <Section>        [icon]     │
+ *   │ <intro paragraph, optional link>                │
+ *   │ ───────────────────────────────────              │
+ *   │ • <emoji> **Label**: `value`                     │
+ *   │ ───────────────────────────────────              │
+ *   │ • <emoji> <closing note>                         │
+ *   │ [banner artwork]                                 │
+ *   └──────────────────────────────────────────────────┘
+ *   [button grid — 5 per row]
+ *
+ * Components v2 messages carry no embeds and no content, so the title,
+ * dividers and artwork are real components instead of markdown hacks.
  */
-
-export const PANEL_DIVIDER = '----------------------------------------';
-
-/** Discord renders a line made only of dashes as a thin separator. */
-export function panelDivider(): string {
-  return PANEL_DIVIDER;
-}
 
 export interface PanelFeature {
   emoji?: string | undefined;
@@ -61,7 +67,7 @@ export interface PanelSection {
   inline?: boolean | undefined;
 }
 
-/** `**1.** Do the thing` — a numbered list inside a description or field. */
+/** `**1.** Do the thing` — a numbered list. */
 export function panelSteps(steps: string[]): string {
   return steps.map((step, i) => `**${i + 1}.** ${step}`).join('\n');
 }
@@ -77,13 +83,13 @@ export function panelTitle(guildName: string | undefined, title: string, icon?: 
 }
 
 export interface PanelOptions {
-  /** Emoji prefix shown in the embed title. */
+  /** Emoji prefix shown in the panel title. */
   emoji?: string | undefined;
   /** Section name, e.g. `Staff Applications`. */
   title: string;
   /** Server name — the title becomes `<Server> • <Section>`. */
   guildName?: string | undefined;
-  /** Server icon shown as the embed thumbnail. */
+  /** Server icon shown next to the title. */
   guildIconUrl?: string | undefined;
   color?: ColorResolvable | undefined;
   /** Opening paragraph. May contain markdown/links. */
@@ -92,16 +98,12 @@ export interface PanelOptions {
   features?: PanelFeature[] | undefined;
   /** Numbered steps rendered under a divider. */
   steps?: string[] | undefined;
-  /** Side-by-side info fields rendered under the description. */
+  /** Extra info blocks rendered after the bullets. */
   sections?: PanelSection[] | undefined;
   /** Closing line rendered under the last divider. */
   note?: string | undefined;
-  /** Remote banner image (overrides the generated artwork). */
-  bannerUrl?: string | undefined;
-  /** Footer text. */
+  /** Footer line rendered at the very bottom. */
   footer?: string | undefined;
-  /** Timestamp — pass `null` to hide it. */
-  timestamp?: number | Date | null | undefined;
 }
 
 function clamp(value: string, max: number): string {
@@ -110,54 +112,69 @@ function clamp(value: string, max: number): string {
 }
 
 /**
- * Builds the panel embed. The description is assembled top to bottom:
- * intro → divider → bullets/steps → divider → note.
+ * Builds the panel container: title (with the server icon), intro, feature
+ * bullets, closing note — separated by real separator components.
  */
-export function buildPanel(opts: PanelOptions): EmbedBuilder {
-  const embed = new EmbedBuilder();
-  embed.setColor(opts.color ?? BRAND.red);
-  embed.setTitle(clamp(panelTitle(opts.guildName, opts.title, opts.emoji), 256));
+export function buildPanel(opts: PanelOptions): ContainerBuilder {
+  const container = new ContainerBuilder();
+  // Container accents are plain RGB integers (0x000000 – 0xFFFFFF).
+  container.setAccentColor(resolveColor(opts.color ?? BRAND.red));
 
-  const blocks: string[] = [];
-  if (opts.intro) blocks.push(opts.intro);
+  // Header — a Section so the server icon can sit next to the title.
+  const heading = `# ${panelTitle(opts.guildName, opts.title, opts.emoji)}`;
+  if (opts.guildIconUrl) {
+    container.addSectionComponents(
+      new SectionBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(heading))
+        .setThumbnailAccessory(new ThumbnailBuilder().setURL(opts.guildIconUrl)),
+    );
+  } else {
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(heading));
+  }
+
+  if (opts.intro) {
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(clamp(opts.intro, 4000)));
+  }
 
   if (opts.features?.length) {
-    if (blocks.length) blocks.push('');
-    blocks.push(PANEL_DIVIDER, '');
-    blocks.push(opts.features.map(panelFeature).join('\n'));
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        clamp(opts.features.map(panelFeature).join('\n'), 4000),
+      ),
+    );
   }
 
   if (opts.steps?.length) {
-    if (blocks.length) blocks.push('');
-    blocks.push(PANEL_DIVIDER, '');
-    blocks.push(panelSteps(opts.steps));
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(clamp(panelSteps(opts.steps), 4000)),
+    );
+  }
+
+  for (const section of (opts.sections ?? []).slice(0, 10)) {
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000),
+      ),
+    );
   }
 
   if (opts.note) {
-    if (blocks.length) blocks.push('');
-    blocks.push(PANEL_DIVIDER, '');
-    blocks.push(`• ${opts.note}`);
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(clamp(`• ${opts.note}`, 4000)),
+    );
   }
 
-  const description = blocks.join('\n').trim();
-  if (description) embed.setDescription(clamp(description, 4096));
-
-  for (const section of (opts.sections ?? []).slice(0, 24)) {
-    embed.addFields({
-      name: clamp(section.title, 256),
-      value: clamp(section.lines.join('\n'), 1024),
-      inline: section.inline ?? true,
-    });
+  if (opts.footer) {
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(clamp(`-# ${opts.footer}`, 4000)),
+    );
   }
 
-  if (opts.bannerUrl) embed.setImage(opts.bannerUrl);
-  if (opts.guildIconUrl) embed.setThumbnail(opts.guildIconUrl);
-
-  embed.setFooter({ text: clamp(opts.footer ?? 'Sukuna Bot', 2048) });
-  if (opts.timestamp !== null) {
-    embed.setTimestamp(opts.timestamp === undefined ? undefined : opts.timestamp);
-  }
-  return embed;
+  return container;
 }
 
 export interface PanelButton {
@@ -172,6 +189,27 @@ export interface PanelButton {
 
 /** Discord allows 5 buttons per row and 25 buttons per message. */
 export const PANEL_MAX_BUTTONS = 25;
+
+export function panelButtonRows(buttons: PanelButton[], perRow = 5): ActionRowBuilder<ButtonBuilder>[] {
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+  const size = Math.max(1, Math.min(5, perRow));
+  const usable = buttons.slice(0, PANEL_MAX_BUTTONS);
+  for (let i = 0; i < usable.length; i += size) {
+    const row = new ActionRowBuilder<ButtonBuilder>();
+    for (const button of usable.slice(i, i + size)) {
+      const builder = new ButtonBuilder()
+        .setLabel(clamp(button.label, 80))
+        .setStyle(button.style ?? ButtonStyle.Secondary);
+      if (button.emoji) builder.setEmoji(resolveEmoji(button.emoji));
+      if (button.url) builder.setURL(button.url);
+      else builder.setCustomId(clamp(button.id, 100));
+      if (button.disabled) builder.setDisabled(true);
+      row.addComponents(builder);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
 
 /* --------------------------------------------------------------------------
  * Global panel look — set by the panel service from the dashboard config.
@@ -198,40 +236,15 @@ export function getPanelAccent(): string {
   return globalAccent;
 }
 
-export function panelButtonRows(buttons: PanelButton[], perRow = 5): ActionRowBuilder<ButtonBuilder>[] {
-  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
-  const size = Math.max(1, Math.min(5, perRow));
-  const usable = buttons.slice(0, PANEL_MAX_BUTTONS);
-  for (let i = 0; i < usable.length; i += size) {
-    const row = new ActionRowBuilder<ButtonBuilder>();
-    for (const button of usable.slice(i, i + size)) {
-      const builder = new ButtonBuilder()
-        .setLabel(clamp(button.label, 80))
-        .setStyle(button.style ?? ButtonStyle.Secondary);
-      if (button.emoji) builder.setEmoji(resolveEmoji(button.emoji));
-      if (button.url) builder.setURL(button.url);
-      else builder.setCustomId(clamp(button.id, 100));
-      if (button.disabled) builder.setDisabled(true);
-      row.addComponents(builder);
-    }
-    rows.push(row);
-  }
-  return rows;
-}
-
-export interface PanelPayload {
-  embed: EmbedBuilder;
-  components: ActionRowBuilder<ButtonBuilder>[];
-  files: AttachmentBuilder[];
-}
-
 /**
- * Attaches the generated banner artwork to a panel. The banner is what makes
- * a panel feel "big" — it renders as a full-width image under the embed.
- * Falls back silently when canvas is unavailable.
+ * Adds the generated banner artwork to a panel.
+ *
+ * Components v2 messages do not show attachments on their own — the artwork
+ * has to be exposed through a media gallery, which also renders it above the
+ * text. Falls back silently when canvas is unavailable.
  */
 export async function attachPanelBanner(
-  embed: EmbedBuilder,
+  container: ContainerBuilder,
   banner: PanelBannerOptions | null,
 ): Promise<AttachmentBuilder[]> {
   if (!banner || !bannerEnabled) return [];
@@ -241,19 +254,32 @@ export async function attachPanelBanner(
       // A global accent overrides the primary colour but keeps the gradient.
       accent: globalAccent || banner.accent,
     });
-    embed.setImage('attachment://panel-banner.png');
+    container.addMediaGalleryComponents(
+      new MediaGalleryBuilder().addItems(
+        new MediaGalleryItemBuilder()
+          .setURL('attachment://panel-banner.png')
+          .setDescription(banner.title),
+      ),
+    );
     return [new AttachmentBuilder(buffer, { name: 'panel-banner.png' })];
   } catch {
     return [];
   }
 }
 
-/** Convenience wrapper: build the embed, wire the banner and the buttons. */
+export interface PanelPayload {
+  /** Components v2 payload — send with `flags: MessageFlags.IsComponentsV2`. */
+  components: any[];
+  files: AttachmentBuilder[];
+  flags: MessageFlags.IsComponentsV2;
+}
+
+/** Convenience wrapper: build the container, wire the banner and the buttons. */
 export async function buildPanelPayload(
   opts: PanelOptions & { buttons?: PanelButton[] | undefined; banner?: PanelBannerOptions | null | undefined; perRow?: number | undefined },
 ): Promise<PanelPayload> {
-  const embed = buildPanel(opts);
-  const files = opts.banner ? await attachPanelBanner(embed, opts.banner) : [];
-  const components = panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5);
-  return { embed, components, files };
+  const container = buildPanel(opts);
+  const files = opts.banner ? await attachPanelBanner(container, opts.banner) : [];
+  const components: any[] = [container, ...panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5)];
+  return { components, files, flags: MessageFlags.IsComponentsV2 };
 }

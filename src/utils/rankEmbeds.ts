@@ -1,4 +1,4 @@
-import { EmbedBuilder, User } from 'discord.js';
+import { ContainerBuilder, SeparatorBuilder, TextDisplayBuilder, User } from 'discord.js';
 import { LevelInfo, progressBar, progressPercent } from './level';
 
 export interface RankCardOptions {
@@ -10,35 +10,33 @@ export interface RankCardOptions {
 
 /**
  * Text fallback for the rank card — used only when the canvas renderer fails.
+ * Components v2 container (no embeds).
  */
-export function buildRankCard(opts: RankCardOptions): EmbedBuilder {
+export function buildRankCard(opts: RankCardOptions): ContainerBuilder {
   const { user, info } = opts;
   const percent = progressPercent(info);
   const remaining = Math.max(0, info.xpForNext - info.xpInLevel);
 
-  const embed = new EmbedBuilder()
-    .setColor(0xef4444)
-    .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-    .setDescription(
+  const container = new ContainerBuilder().setAccentColor(0xef4444);
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
       [
+        `**${user.username}**`,
         `**Level ${info.level}**`,
         `${progressBar(percent)}  \`${percent}%\``,
         '',
         `\`${info.xpInLevel.toLocaleString()}\` / \`${info.xpForNext.toLocaleString()}\` XP`,
+        '',
+        `**XP to next level:** ${remaining.toLocaleString()} XP`,
+        `**Total XP:** ${info.totalXp.toLocaleString()}`,
+        ...(opts.position && opts.position > 0 ? [`**Rank:** #${opts.position}`] : []),
       ].join('\n'),
-    )
-    .addFields(
-      { name: 'XP to next level', value: `${remaining.toLocaleString()} XP`, inline: true },
-      { name: 'Total XP', value: info.totalXp.toLocaleString(), inline: true },
-    )
-    .setFooter({ text: opts.guildName })
-    .setTimestamp();
+    ),
+  );
+  container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${opts.guildName}`));
 
-  if (opts.position && opts.position > 0) {
-    embed.addFields({ name: 'Rank', value: `#${opts.position}`, inline: true });
-  }
-
-  return embed;
+  return container;
 }
 
 export interface LeaderboardEntry {
@@ -49,12 +47,12 @@ export interface LeaderboardEntry {
 }
 
 /**
- * Text fallback for the leaderboard.
+ * Text fallback for the leaderboard. Components v2 container (no embeds).
  */
-export function buildLeaderboardEmbed(
+export function buildLeaderboardPanel(
   entries: LeaderboardEntry[],
   guildName: string,
-): EmbedBuilder {
+): ContainerBuilder {
   const description = entries
     .map((entry, i) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `**${i + 1}.**`;
@@ -62,10 +60,12 @@ export function buildLeaderboardEmbed(
     })
     .join('\n');
 
-  return new EmbedBuilder()
-    .setColor(0xf59e0b)
-    .setTitle('🏆 Top members')
-    .setDescription(description)
-    .setFooter({ text: guildName })
-    .setTimestamp();
+  const container = new ContainerBuilder().setAccentColor(0xf59e0b);
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(`# 🏆 Top members\n${description || 'No ranked members yet.'}`),
+  );
+  container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${guildName}`));
+
+  return container;
 }

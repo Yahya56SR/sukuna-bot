@@ -1,13 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.freshnessLabel = freshnessLabel;
-exports.buildContentEmbed = buildContentEmbed;
+exports.buildContentPanel = buildContentPanel;
 exports.collectEntries = collectEntries;
 exports.buildMessagePayload = buildMessagePayload;
 /**
- * MEE6-style leaderboard embed — matches the reference design:
+ * MEE6-style leaderboard panel — matches the reference design:
  * title + member count, Top 3 podium image, Top 3 list, then
  * Diamond / Gold / Silver zones with progress bars and gap headers.
+ *
+ * Built on **Components v2**: a container with a media gallery (the podium
+ * artwork) ABOVE the text, real separators between the zones, and the
+ * `MessageFlags.IsComponentsV2` flag on the message.
  *
  * Data comes from LevelingService (Sukuna XP curve), visuals mirror
  * MEE6 + the L7aj live board.
@@ -20,7 +24,6 @@ const ZONES = [
     { emoji: '🏅', name: 'Gold Zone', from: 11, to: 18 },
     { emoji: '⚪', name: 'Silver Zone', from: 19, to: 25 },
 ];
-const DIVIDER = '─'.repeat(46);
 const MEDALS = ['🥇', '🥈', '🥉'];
 function formatXp(value) {
     return Math.floor(value).toLocaleString('en-US');
@@ -52,26 +55,31 @@ function freshnessLabel(updatedAt, now = Date.now()) {
     return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
 }
 /**
- * Build the content embed. The podium image is inlined at the TOP of the
- * description as `![Top 3](attachment://top-3.png)` so it renders above all
- * the text fields (setImage() always renders after the fields in Discord).
+ * Build the leaderboard container.
+ *
+ * The podium artwork is exposed through a media gallery so it renders ABOVE
+ * the leaderboard text (an embed image would sit below the fields, and
+ * markdown images are not rendered inside component text at all).
  */
-function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updatedAt = Date.now(), rankChanges) {
-    const title = (titleOverride || '').trim() || `🏆 ${guild.name} leaderboard`;
+function buildContentPanel(entries, guild, rows, titleOverride, updatedAt = Date.now(), rankChanges, podiumUrl) {
+    const title = (titleOverride || '').trim() || `${guild.name} leaderboard`;
     const top = entries.slice(0, 3);
-    const podiumMarkdown = podiumUrl ? `![Top 3 Podium](${podiumUrl})\n\n` : '';
-    const description = `${podiumMarkdown}👥 **${guild.memberCount.toLocaleString('en-US')}** members ✨ *Ranked by experience*`;
-    const embed = new discord_js_1.EmbedBuilder()
-        .setColor(0x2b2d63)
-        .setTitle(clampText(title, 256))
-        .setDescription(description)
-        .addFields({ name: '​', value: DIVIDER, inline: false });
+    const container = new discord_js_1.ContainerBuilder().setAccentColor(0x2b2d63);
+    // 1. Header
+    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`# 🏆 ${title}\n👥 **${guild.memberCount.toLocaleString('en-US')}** members · ✨ *Ranked by experience*`));
+    // 2. Podium image (ABOVE the leaderboard text)
+    if (podiumUrl) {
+        container.addMediaGalleryComponents(new discord_js_1.MediaGalleryBuilder().addItems(new discord_js_1.MediaGalleryItemBuilder()
+            .setURL(podiumUrl)
+            .setDescription('Top three leaderboard members')));
+    }
+    // 3. Separator
+    container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+    // 4. Top 3
     const topLines = top.map((entry, index) => `${MEDALS[index]} ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${(0, level_1.progressBar)(entry.percent, 6)} ${entry.percent}%`);
-    embed.addFields({
-        name: '👑 Top 3',
-        value: topLines.length > 0 ? topLines.join('\n') : 'No ranked members yet.',
-        inline: false,
-    });
+    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`## 👑 Top 3\n${topLines.length > 0 ? clampText(topLines.join('\n'), 900) : 'No ranked members yet.'}`));
+    // 5. Zones
+    let budget = 4000;
     for (const zone of ZONES) {
         const from = zone.from;
         if (from > rows || from > entries.length + 1)
@@ -92,16 +100,16 @@ function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updat
             const bar = (0, level_1.progressBar)(entry.percent, 6);
             return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
         });
-        embed.addFields({ name: '​', value: DIVIDER, inline: false }, {
-            name: `${zone.emoji} ${zone.name}`,
-            value: clampText(`${header}\n${lines.join('\n')}`, 1024),
-            inline: false,
-        });
+        const room = Math.min(1000, budget - zone.name.length - 20);
+        if (room < 160)
+            break;
+        const body = clampText(`${header}\n${lines.join('\n')}`, room);
+        budget -= body.length + zone.name.length + 20;
+        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`## ${zone.emoji} ${zone.name}\n${body}`));
     }
+    // 6. Footer
     const label = freshnessLabel(updatedAt);
-    // Podium is already inlined at the top of the description (see above) —
-    // do NOT setImage() here: Discord renders embed images AFTER the fields,
-    // which would put the podium at the bottom again.
     let footerText = `🔄 Updates automatically · last update ${label}`;
     if (rankChanges && (rankChanges.movedUp > 0 || rankChanges.newOnList > 0)) {
         const parts = [];
@@ -111,9 +119,8 @@ function buildContentEmbed(entries, guild, rows, titleOverride, podiumUrl, updat
             parts.push(`🆕 ${rankChanges.newOnList} new on the list`);
         footerText = `${parts.join(' · ')}\n${footerText}`;
     }
-    return embed
-        .setFooter({ text: footerText })
-        .setTimestamp(new Date(updatedAt || Date.now()));
+    container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(`-# ${footerText}`));
+    return container;
 }
 /** Collect entries from LevelingService in MEE6 display shape. */
 async function collectEntries(service, guild, limit, client) {
@@ -152,7 +159,7 @@ async function collectEntries(service, guild, limit, client) {
     return out;
 }
 /**
- * Build embed + podium attachment payload for a one-shot /leaderboard call.
+ * Build the components + podium attachment payload for a /leaderboard call.
  * Falls back to text-only if the podium render fails.
  */
 async function buildMessagePayload(entries, guild, rows, title, updatedAt = Date.now()) {
@@ -166,11 +173,16 @@ async function buildMessagePayload(entries, guild, rows, title, updatedAt = Date
         })));
         const file = new discord_js_1.AttachmentBuilder(buffer, { name: 'top-3.png' });
         return {
-            embeds: [buildContentEmbed(entries, guild, rows, title, 'attachment://top-3.png', updatedAt)],
+            components: [buildContentPanel(entries, guild, rows, title, updatedAt, undefined, 'attachment://top-3.png')],
             files: [file],
+            flags: discord_js_1.MessageFlags.IsComponentsV2,
         };
     }
     catch {
-        return { embeds: [buildContentEmbed(entries, guild, rows, title, undefined, updatedAt)], files: [] };
+        return {
+            components: [buildContentPanel(entries, guild, rows, title, updatedAt)],
+            files: [],
+            flags: discord_js_1.MessageFlags.IsComponentsV2,
+        };
     }
 }

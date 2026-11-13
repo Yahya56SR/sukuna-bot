@@ -1,43 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PANEL_MAX_BUTTONS = exports.PANEL_DIVIDER = void 0;
-exports.panelDivider = panelDivider;
+exports.PANEL_MAX_BUTTONS = void 0;
 exports.panelFeature = panelFeature;
 exports.panelSteps = panelSteps;
 exports.panelLink = panelLink;
 exports.panelTitle = panelTitle;
 exports.buildPanel = buildPanel;
+exports.panelButtonRows = panelButtonRows;
 exports.setPanelBannerEnabled = setPanelBannerEnabled;
 exports.isPanelBannerEnabled = isPanelBannerEnabled;
 exports.setPanelAccent = setPanelAccent;
 exports.getPanelAccent = getPanelAccent;
-exports.panelButtonRows = panelButtonRows;
 exports.attachPanelBanner = attachPanelBanner;
 exports.buildPanelPayload = buildPanelPayload;
 const discord_js_1 = require("discord.js");
 const embed_1 = require("./embed");
 const emoji_1 = require("./emoji");
 const panelBanner_1 = require("./panelBanner");
-/**
- * Sukuna Bot panel kit — one place that builds the big, branded Discord
- * panels used by staff applications, tickets, temporary voice and giveaways.
- *
- * The layout mirrors the "large panel" style popular on Discord:
- *
- *   <emoji> <Server> • <Section>            ← big bold title
- *   <intro paragraph, optional link>        ← description
- *   ──────────────────────────────          ← thin divider
- *   • <emoji> **Label**: `value`            ← feature bullets
- *   ──────────────────────────────
- *   • <emoji> <closing note>
- *   [big banner artwork]                    ← generated image
- *   [button grid]                           ← up to 5 buttons per row
- */
-exports.PANEL_DIVIDER = '----------------------------------------';
-/** Discord renders a line made only of dashes as a thin separator. */
-function panelDivider() {
-    return exports.PANEL_DIVIDER;
-}
 /** `• 🛠️ **Staff Team**: `Moderate and assist members`` */
 function panelFeature(feature) {
     const icon = feature.emoji ? `${(0, emoji_1.resolveEmoji)(feature.emoji)} ` : '';
@@ -47,7 +26,7 @@ function panelFeature(feature) {
     const suffix = feature.suffix ? ` ${feature.suffix}` : '';
     return `• ${icon}**${feature.label}**${value}${suffix}`;
 }
-/** `**1.** Do the thing` — a numbered list inside a description or field. */
+/** `**1.** Do the thing` — a numbered list. */
 function panelSteps(steps) {
     return steps.map((step, i) => `**${i + 1}.** ${step}`).join('\n');
 }
@@ -65,75 +44,49 @@ function clamp(value, max) {
     return `${value.slice(0, Math.max(0, max - 1))}…`;
 }
 /**
- * Builds the panel embed. The description is assembled top to bottom:
- * intro → divider → bullets/steps → divider → note.
+ * Builds the panel container: title (with the server icon), intro, feature
+ * bullets, closing note — separated by real separator components.
  */
 function buildPanel(opts) {
-    const embed = new discord_js_1.EmbedBuilder();
-    embed.setColor(opts.color ?? embed_1.BRAND.red);
-    embed.setTitle(clamp(panelTitle(opts.guildName, opts.title, opts.emoji), 256));
-    const blocks = [];
-    if (opts.intro)
-        blocks.push(opts.intro);
+    const container = new discord_js_1.ContainerBuilder();
+    // Container accents are plain RGB integers (0x000000 – 0xFFFFFF).
+    container.setAccentColor((0, discord_js_1.resolveColor)(opts.color ?? embed_1.BRAND.red));
+    // Header — a Section so the server icon can sit next to the title.
+    const heading = `# ${panelTitle(opts.guildName, opts.title, opts.emoji)}`;
+    if (opts.guildIconUrl) {
+        container.addSectionComponents(new discord_js_1.SectionBuilder()
+            .addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(heading))
+            .setThumbnailAccessory(new discord_js_1.ThumbnailBuilder().setURL(opts.guildIconUrl)));
+    }
+    else {
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(heading));
+    }
+    if (opts.intro) {
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(opts.intro, 4000)));
+    }
     if (opts.features?.length) {
-        if (blocks.length)
-            blocks.push('');
-        blocks.push(exports.PANEL_DIVIDER, '');
-        blocks.push(opts.features.map(panelFeature).join('\n'));
+        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(opts.features.map(panelFeature).join('\n'), 4000)));
     }
     if (opts.steps?.length) {
-        if (blocks.length)
-            blocks.push('');
-        blocks.push(exports.PANEL_DIVIDER, '');
-        blocks.push(panelSteps(opts.steps));
+        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(panelSteps(opts.steps), 4000)));
+    }
+    for (const section of (opts.sections ?? []).slice(0, 10)) {
+        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`**${section.title}**\n${section.lines.join('\n')}`, 4000)));
     }
     if (opts.note) {
-        if (blocks.length)
-            blocks.push('');
-        blocks.push(exports.PANEL_DIVIDER, '');
-        blocks.push(`• ${opts.note}`);
+        container.addSeparatorComponents(new discord_js_1.SeparatorBuilder().setDivider(true).setSpacing(1));
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`• ${opts.note}`, 4000)));
     }
-    const description = blocks.join('\n').trim();
-    if (description)
-        embed.setDescription(clamp(description, 4096));
-    for (const section of (opts.sections ?? []).slice(0, 24)) {
-        embed.addFields({
-            name: clamp(section.title, 256),
-            value: clamp(section.lines.join('\n'), 1024),
-            inline: section.inline ?? true,
-        });
+    if (opts.footer) {
+        container.addTextDisplayComponents(new discord_js_1.TextDisplayBuilder().setContent(clamp(`-# ${opts.footer}`, 4000)));
     }
-    if (opts.bannerUrl)
-        embed.setImage(opts.bannerUrl);
-    if (opts.guildIconUrl)
-        embed.setThumbnail(opts.guildIconUrl);
-    embed.setFooter({ text: clamp(opts.footer ?? 'Sukuna Bot', 2048) });
-    if (opts.timestamp !== null) {
-        embed.setTimestamp(opts.timestamp === undefined ? undefined : opts.timestamp);
-    }
-    return embed;
+    return container;
 }
 /** Discord allows 5 buttons per row and 25 buttons per message. */
 exports.PANEL_MAX_BUTTONS = 25;
-/* --------------------------------------------------------------------------
- * Global panel look — set by the panel service from the dashboard config.
- * ------------------------------------------------------------------------ */
-let bannerEnabled = true;
-let globalAccent = '';
-/** Master switch for the generated banner artwork. */
-function setPanelBannerEnabled(enabled) {
-    bannerEnabled = enabled !== false;
-}
-function isPanelBannerEnabled() {
-    return bannerEnabled;
-}
-/** Overrides the accent colour of every generated banner. */
-function setPanelAccent(accent) {
-    globalAccent = String(accent ?? '').trim();
-}
-function getPanelAccent() {
-    return globalAccent;
-}
 function panelButtonRows(buttons, perRow = 5) {
     const rows = [];
     const size = Math.max(1, Math.min(5, perRow));
@@ -158,12 +111,33 @@ function panelButtonRows(buttons, perRow = 5) {
     }
     return rows;
 }
+/* --------------------------------------------------------------------------
+ * Global panel look — set by the panel service from the dashboard config.
+ * ------------------------------------------------------------------------ */
+let bannerEnabled = true;
+let globalAccent = '';
+/** Master switch for the generated banner artwork. */
+function setPanelBannerEnabled(enabled) {
+    bannerEnabled = enabled !== false;
+}
+function isPanelBannerEnabled() {
+    return bannerEnabled;
+}
+/** Overrides the accent colour of every generated banner. */
+function setPanelAccent(accent) {
+    globalAccent = String(accent ?? '').trim();
+}
+function getPanelAccent() {
+    return globalAccent;
+}
 /**
- * Attaches the generated banner artwork to a panel. The banner is what makes
- * a panel feel "big" — it renders as a full-width image under the embed.
- * Falls back silently when canvas is unavailable.
+ * Adds the generated banner artwork to a panel.
+ *
+ * Components v2 messages do not show attachments on their own — the artwork
+ * has to be exposed through a media gallery, which also renders it above the
+ * text. Falls back silently when canvas is unavailable.
  */
-async function attachPanelBanner(embed, banner) {
+async function attachPanelBanner(container, banner) {
     if (!banner || !bannerEnabled)
         return [];
     try {
@@ -172,17 +146,19 @@ async function attachPanelBanner(embed, banner) {
             // A global accent overrides the primary colour but keeps the gradient.
             accent: globalAccent || banner.accent,
         });
-        embed.setImage('attachment://panel-banner.png');
+        container.addMediaGalleryComponents(new discord_js_1.MediaGalleryBuilder().addItems(new discord_js_1.MediaGalleryItemBuilder()
+            .setURL('attachment://panel-banner.png')
+            .setDescription(banner.title)));
         return [new discord_js_1.AttachmentBuilder(buffer, { name: 'panel-banner.png' })];
     }
     catch {
         return [];
     }
 }
-/** Convenience wrapper: build the embed, wire the banner and the buttons. */
+/** Convenience wrapper: build the container, wire the banner and the buttons. */
 async function buildPanelPayload(opts) {
-    const embed = buildPanel(opts);
-    const files = opts.banner ? await attachPanelBanner(embed, opts.banner) : [];
-    const components = panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5);
-    return { embed, components, files };
+    const container = buildPanel(opts);
+    const files = opts.banner ? await attachPanelBanner(container, opts.banner) : [];
+    const components = [container, ...panelButtonRows(opts.buttons ?? [], opts.perRow ?? 5)];
+    return { components, files, flags: discord_js_1.MessageFlags.IsComponentsV2 };
 }

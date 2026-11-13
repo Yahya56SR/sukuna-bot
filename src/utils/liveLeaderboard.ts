@@ -1,15 +1,24 @@
 /**
- * MEE6-style leaderboard embed — matches the reference design:
+ * MEE6-style leaderboard panel — matches the reference design:
  * title + member count, Top 3 podium image, Top 3 list, then
  * Diamond / Gold / Silver zones with progress bars and gap headers.
+ *
+ * Built on **Components v2**: a container with a media gallery (the podium
+ * artwork) ABOVE the text, real separators between the zones, and the
+ * `MessageFlags.IsComponentsV2` flag on the message.
  *
  * Data comes from LevelingService (Sukuna XP curve), visuals mirror
  * MEE6 + the L7aj live board.
  */
 import {
   AttachmentBuilder,
-  EmbedBuilder,
+  ContainerBuilder,
   escapeMarkdown,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  MessageFlags,
+  SeparatorBuilder,
+  TextDisplayBuilder,
   type Guild,
 } from 'discord.js';
 import { leaderboardPodium } from './rankcard';
@@ -40,7 +49,6 @@ const ZONES: Zone[] = [
   { emoji: '⚪', name: 'Silver Zone', from: 19, to: 25 },
 ];
 
-const DIVIDER = '─'.repeat(46);
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 function formatXp(value: number): string {
@@ -73,40 +81,60 @@ export function freshnessLabel(updatedAt: number, now: number = Date.now()): str
 }
 
 /**
- * Build the content embed. The podium image is inlined at the TOP of the
- * description as `![Top 3](attachment://top-3.png)` so it renders above all
- * the text fields (setImage() always renders after the fields in Discord).
+ * Build the leaderboard container.
+ *
+ * The podium artwork is exposed through a media gallery so it renders ABOVE
+ * the leaderboard text (an embed image would sit below the fields, and
+ * markdown images are not rendered inside component text at all).
  */
-export function buildContentEmbed(
+export function buildContentPanel(
   entries: LiveEntry[],
   guild: Guild,
   rows: number,
   titleOverride: string,
-  podiumUrl?: string,
   updatedAt: number = Date.now(),
   rankChanges?: { movedUp: number; newOnList: number },
-): EmbedBuilder {
-  const title = (titleOverride || '').trim() || `🏆 ${guild.name} leaderboard`;
+  podiumUrl?: string,
+): ContainerBuilder {
+  const title = (titleOverride || '').trim() || `${guild.name} leaderboard`;
   const top = entries.slice(0, 3);
 
-  const podiumMarkdown = podiumUrl ? `![Top 3 Podium](${podiumUrl})\n\n` : '';
-  const description = `${podiumMarkdown}👥 **${guild.memberCount.toLocaleString('en-US')}** members ✨ *Ranked by experience*`;
+  const container = new ContainerBuilder().setAccentColor(0x2b2d63);
 
-  const embed = new EmbedBuilder()
-    .setColor(0x2b2d63)
-    .setTitle(clampText(title, 256))
-    .setDescription(description)
-    .addFields({ name: '​', value: DIVIDER, inline: false });
+  // 1. Header
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `# 🏆 ${title}\n👥 **${guild.memberCount.toLocaleString('en-US')}** members · ✨ *Ranked by experience*`,
+    ),
+  );
 
+  // 2. Podium image (ABOVE the leaderboard text)
+  if (podiumUrl) {
+    container.addMediaGalleryComponents(
+      new MediaGalleryBuilder().addItems(
+        new MediaGalleryItemBuilder()
+          .setURL(podiumUrl)
+          .setDescription('Top three leaderboard members'),
+      ),
+    );
+  }
+
+  // 3. Separator
+  container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+
+  // 4. Top 3
   const topLines = top.map(
     (entry, index) =>
       `${MEDALS[index]} ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${progressBar(entry.percent, 6)} ${entry.percent}%`,
   );
-  embed.addFields({
-    name: '👑 Top 3',
-    value: topLines.length > 0 ? topLines.join('\n') : 'No ranked members yet.',
-    inline: false,
-  });
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `## 👑 Top 3\n${topLines.length > 0 ? clampText(topLines.join('\n'), 900) : 'No ranked members yet.'}`,
+    ),
+  );
+
+  // 5. Zones
+  let budget = 4000;
 
   for (const zone of ZONES) {
     const from = zone.from;
@@ -131,21 +159,19 @@ export function buildContentEmbed(
       return `\`${rankLabel}\` ${userLink(entry)} — Lv ${entry.level} · ${formatXp(entry.totalXp)} XP ${bar} ${entry.percent}%`;
     });
 
-    embed.addFields(
-      { name: '​', value: DIVIDER, inline: false },
-      {
-        name: `${zone.emoji} ${zone.name}`,
-        value: clampText(`${header}\n${lines.join('\n')}`, 1024),
-        inline: false,
-      },
+    const room = Math.min(1000, budget - zone.name.length - 20);
+    if (room < 160) break;
+    const body = clampText(`${header}\n${lines.join('\n')}`, room);
+    budget -= body.length + zone.name.length + 20;
+
+    container.addSeparatorComponents(new SeparatorBuilder().setDivider(true).setSpacing(1));
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(`## ${zone.emoji} ${zone.name}\n${body}`),
     );
   }
 
+  // 6. Footer
   const label = freshnessLabel(updatedAt);
-  // Podium is already inlined at the top of the description (see above) —
-  // do NOT setImage() here: Discord renders embed images AFTER the fields,
-  // which would put the podium at the bottom again.
-
   let footerText = `🔄 Updates automatically · last update ${label}`;
   if (rankChanges && (rankChanges.movedUp > 0 || rankChanges.newOnList > 0)) {
     const parts: string[] = [];
@@ -153,10 +179,9 @@ export function buildContentEmbed(
     if (rankChanges.newOnList > 0) parts.push(`🆕 ${rankChanges.newOnList} new on the list`);
     footerText = `${parts.join(' · ')}\n${footerText}`;
   }
+  container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${footerText}`));
 
-  return embed
-    .setFooter({ text: footerText })
-    .setTimestamp(new Date(updatedAt || Date.now()));
+  return container;
 }
 
 /** Collect entries from LevelingService in MEE6 display shape. */
@@ -197,7 +222,7 @@ export async function collectEntries(
 }
 
 /**
- * Build embed + podium attachment payload for a one-shot /leaderboard call.
+ * Build the components + podium attachment payload for a /leaderboard call.
  * Falls back to text-only if the podium render fails.
  */
 export async function buildMessagePayload(
@@ -206,7 +231,7 @@ export async function buildMessagePayload(
   rows: number,
   title: string,
   updatedAt: number = Date.now(),
-): Promise<{ embeds: EmbedBuilder[]; files: AttachmentBuilder[] }> {
+): Promise<{ components: any[]; files: AttachmentBuilder[]; flags: MessageFlags.IsComponentsV2 }> {
   try {
     const buffer = await leaderboardPodium.generate(
       entries.slice(0, 3).map((e) => ({
@@ -219,10 +244,15 @@ export async function buildMessagePayload(
     );
     const file = new AttachmentBuilder(buffer, { name: 'top-3.png' });
     return {
-      embeds: [buildContentEmbed(entries, guild, rows, title, 'attachment://top-3.png', updatedAt)],
+      components: [buildContentPanel(entries, guild, rows, title, updatedAt, undefined, 'attachment://top-3.png')],
       files: [file],
+      flags: MessageFlags.IsComponentsV2,
     };
   } catch {
-    return { embeds: [buildContentEmbed(entries, guild, rows, title, undefined, updatedAt)], files: [] };
+    return {
+      components: [buildContentPanel(entries, guild, rows, title, updatedAt)],
+      files: [],
+      flags: MessageFlags.IsComponentsV2,
+    };
   }
 }

@@ -38,12 +38,12 @@ function brandedEmbed(color = exports.BRAND.red) {
         .setFooter({ text: 'Sukuna Bot • Version 2.0' })
         .setTimestamp();
 }
-/** Visual progress bar: ▓▓▓▓▓▓░░░░ 62% */
+/** Visual progress bar: ███████░░░░░ 62% */
 function progressBar(percentage, width = 14) {
     const pct = Math.max(0, Math.min(100, percentage));
     const filled = Math.round((pct / 100) * width);
     const empty = width - filled;
-    return `${'▓'.repeat(filled)}${'░'.repeat(empty)} ${pct}%`;
+    return `${'█'.repeat(filled)}${'░'.repeat(empty)} ${pct}%`;
 }
 function formatNumber(n) {
     return Math.floor(n).toLocaleString('en-US');

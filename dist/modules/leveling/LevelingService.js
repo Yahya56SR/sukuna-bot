@@ -634,12 +634,15 @@ class LevelingCommands {
                     }
                     catch (cardErr) {
                         this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr);
-                        await interaction.editReply({ embeds: [(0, rankEmbeds_1.buildRankCard)({
+                        await interaction.editReply({
+                            components: [(0, rankEmbeds_1.buildRankCard)({
                                     user: user,
                                     info,
                                     guildName: interaction.guild?.name ?? 'this server',
                                     position: rank || undefined,
-                                })] });
+                                })],
+                            flags: discord_js_1.MessageFlags.IsComponentsV2,
+                        });
                     }
                 }
                 catch (error) {
@@ -685,12 +688,15 @@ class LevelingCommands {
                     }
                     catch (cardErr) {
                         this.logger.warn('Leveling Commands', 'Rank card render failed, using embed fallback', cardErr);
-                        await interaction.editReply({ embeds: [(0, rankEmbeds_1.buildRankCard)({
+                        await interaction.editReply({
+                            components: [(0, rankEmbeds_1.buildRankCard)({
                                     user: user,
                                     info,
                                     guildName: interaction.guild?.name ?? 'this server',
                                     position: rank || undefined,
-                                })] });
+                                })],
+                            flags: discord_js_1.MessageFlags.IsComponentsV2,
+                        });
                     }
                 }
                 catch (error) {
@@ -720,10 +726,10 @@ class LevelingCommands {
                     const entries = await (0, liveLeaderboard_1.collectEntries)(this.service, interaction.guild, Math.max(limit, 10), interaction.client);
                     const payload = await (0, liveLeaderboard_1.buildMessagePayload)(entries, interaction.guild, Math.min(25, Math.max(10, limit)), '', Date.now());
                     await interaction.editReply(payload).catch(async () => {
-                        const embed = (0, rankEmbeds_1.buildLeaderboardEmbed)(entries.map((e) => ({
+                        const panel = (0, rankEmbeds_1.buildLeaderboardPanel)(entries.map((e) => ({
                             userId: e.userId, username: e.username, level: e.level, totalXp: e.totalXp,
                         })), interaction.guild?.name ?? 'this server');
-                        await interaction.editReply({ embeds: [embed] });
+                        await interaction.editReply({ components: [panel], flags: discord_js_1.MessageFlags.IsComponentsV2 });
                     });
                 }
                 catch (error) {

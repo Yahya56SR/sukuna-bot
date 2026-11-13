@@ -70,11 +70,17 @@ function progressPercent(info) {
         return 100;
     return Math.min(100, Math.floor((info.xpInLevel / info.xpForNext) * 100));
 }
-/** MEE6-style text progress bar. */
+/**
+ * MEE6-style text progress bar.
+ *
+ * Uses the Block Elements characters (U+2588 / U+2591) — unlike the
+ * parallelogram glyphs (U+25B0 / U+25B1) they exist in every Discord client
+ * font, so the bar never shows up as a row of empty boxes.
+ */
 function progressBar(percent, size = 20) {
     const clamped = Math.max(0, Math.min(100, percent));
     const filled = Math.round((clamped / 100) * size);
-    return '▰'.repeat(filled) + '▱'.repeat(Math.max(0, size - filled));
+    return '█'.repeat(filled) + '░'.repeat(Math.max(0, size - filled));
 }
 /**
  * Random XP amount, MEE6 style (15-25 per message by default).

@@ -170,7 +170,7 @@ class GiveawaysManager {
     `);
         return Number(row?.c ?? 0);
     }
-    buildEmbed(giveaway) {
+    buildPanel(giveaway) {
         const ended = giveaway.status !== 'active';
         const guild = this.client?.guilds.cache.get(giveaway.guildId);
         const features = [
@@ -182,7 +182,25 @@ class GiveawaysManager {
             ...(ended ? [] : [{ emoji: 'clock', label: 'Ends', value: timestamp(giveaway.endsAt), code: false }]),
             { emoji: 'ticket', label: 'Entries', value: (0, embed_1.formatNumber)(giveaway.entryCount) },
         ];
-        const embed = (0, panel_1.buildPanel)({
+        if (giveaway.eligibleRoles.length > 0) {
+            features.push({
+                emoji: 'role',
+                label: 'Required roles',
+                value: giveaway.eligibleRoles.map((r) => `<@&${r}>`).join(', '),
+                code: false,
+            });
+        }
+        if (ended) {
+            features.push({
+                emoji: 'crown',
+                label: 'Winners',
+                value: giveaway.winnerIds.length > 0
+                    ? giveaway.winnerIds.map((id) => `<@${id}>`).join(', ')
+                    : 'No valid entries.',
+                code: false,
+            });
+        }
+        return (0, panel_1.buildPanel)({
             emoji: 'giveaway',
             title: ended ? 'Giveaway Ended' : 'Giveaway',
             guildName: guild?.name,
@@ -195,21 +213,11 @@ class GiveawaysManager {
                 : 'Click **Enter** below to take part!',
             footer: ended ? `Giveaway ${giveaway.id}` : 'Click Enter to participate!',
         });
-        if (giveaway.eligibleRoles.length > 0) {
-            embed.addFields({ name: 'Required roles', value: giveaway.eligibleRoles.map((r) => `<@&${r}>`).join(', ') });
-        }
-        if (ended && giveaway.winnerIds.length > 0) {
-            embed.addFields({ name: 'Winners', value: giveaway.winnerIds.map((id) => `<@${id}>`).join(', ') });
-        }
-        else if (ended) {
-            embed.addFields({ name: 'Winners', value: 'No valid entries.' });
-        }
-        return embed;
     }
     async sendGiveawayMessage(channel, giveaway) {
         const message = await channel.send({
-            embeds: [this.buildEmbed(giveaway)],
-            components: giveawayButtons(giveaway.id, giveaway.status),
+            components: [this.buildPanel(giveaway), ...giveawayButtons(giveaway.id, giveaway.status)],
+            flags: discord_js_1.MessageFlags.IsComponentsV2,
         });
         giveaway.messageId = message.id;
         await this.save(giveaway);
@@ -225,8 +233,8 @@ class GiveawaysManager {
             if (!message)
                 return;
             await message.edit({
-                embeds: [this.buildEmbed(giveaway)],
-                components: giveawayButtons(giveaway.id, giveaway.status),
+                components: [this.buildPanel(giveaway), ...giveawayButtons(giveaway.id, giveaway.status)],
+                flags: discord_js_1.MessageFlags.IsComponentsV2,
             });
         }
         catch { /* best-effort */ }

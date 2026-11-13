@@ -24,12 +24,12 @@ export function brandedEmbed(color: ColorResolvable = BRAND.red): EmbedBuilder {
     .setTimestamp();
 }
 
-/** Visual progress bar: ▓▓▓▓▓▓░░░░ 62% */
+/** Visual progress bar: ███████░░░░░ 62% */
 export function progressBar(percentage: number, width = 14): string {
   const pct = Math.max(0, Math.min(100, percentage));
   const filled = Math.round((pct / 100) * width);
   const empty = width - filled;
-  return `${'▓'.repeat(filled)}${'░'.repeat(empty)} ${pct}%`;
+  return `${'█'.repeat(filled)}${'░'.repeat(empty)} ${pct}%`;
 }
 
 export function formatNumber(n: number): string {

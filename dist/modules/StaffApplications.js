@@ -26,8 +26,39 @@ exports.DEFAULT_STAFFAPP_CONFIG = {
     maxQuestionLength: 1000,
     roleDescriptions: {},
 };
-/** Semantic emoji keys for staff roles that do not carry their own unicode emoji. */
-const ROLE_EMOJI_FALLBACK = ['staffTeam', 'designer', 'developer', 'eventHost', 'partnership', 'settings', 'role', 'member'];
+/** Semantic emoji keys for staff roles that do not match a known role name. */
+const ROLE_EMOJI_FALLBACK = ['role', 'member', 'crown', 'shield', 'settings', 'sparkles', 'question', 'logo'];
+/**
+ * Role name → emoji key. Lets a role keep a meaningful icon ("Designer" →
+ * the designer emoji) instead of a random one, using the bot's own emoji.
+ */
+const ROLE_EMOJI_BY_NAME = {
+    staff: 'staff',
+    team: 'staff',
+    mod: 'staff',
+    moderator: 'staff',
+    helper: 'support',
+    support: 'support',
+    ticket: 'ticket',
+    designer: 'designer',
+    design: 'designer',
+    graphic: 'designer',
+    media: 'designer',
+    content: 'designer',
+    artist: 'designer',
+    developer: 'developer',
+    dev: 'developer',
+    coder: 'developer',
+    bot: 'developer',
+    event: 'eventHost',
+    host: 'eventHost',
+    partnership: 'partnership',
+    partner: 'partnership',
+    admin: 'shield',
+    owner: 'crown',
+    manager: 'crown',
+    lead: 'crown',
+};
 function getDefaultStaffAppConfig() {
     return JSON.parse(JSON.stringify(exports.DEFAULT_STAFFAPP_CONFIG));
 }
@@ -136,11 +167,32 @@ class StaffApplications {
         return this.config.reviewChannelId || this.config.panelChannelId || '';
     }
     // ---------- Panel ----------
-    /** Emoji shown for a staff role — roles may carry their own unicode emoji. */
-    roleEmoji(role, index) {
-        if (role?.unicodeEmoji)
-            return String(role.unicodeEmoji);
-        return ROLE_EMOJI_FALLBACK[index % ROLE_EMOJI_FALLBACK.length] ?? 'staff';
+    /**
+     * Picks the emoji for every open role.
+     *
+     * Only the bot's own emoji are used — a role's Discord unicode emoji is
+     * ignored because it looks random next to the rest of the panel. The role
+     * name decides which emoji is used ("Designer" → the designer emoji) and
+     * roles that match nothing fall back to a fixed rotation.
+     */
+    roleEmojis(roles) {
+        const used = new Set();
+        const out = [];
+        for (const role of roles) {
+            const name = String(role?.name ?? '').toLowerCase();
+            const matched = Object.keys(ROLE_EMOJI_BY_NAME)
+                .sort((a, b) => b.length - a.length)
+                .find((needle) => name.includes(needle));
+            let key = matched ? ROLE_EMOJI_BY_NAME[matched] : undefined;
+            if (!key || used.has(key)) {
+                key = ROLE_EMOJI_FALLBACK.find((candidate) => !used.has(candidate));
+            }
+            if (!key)
+                key = ROLE_EMOJI_FALLBACK[out.length % ROLE_EMOJI_FALLBACK.length] ?? 'staff';
+            used.add(key);
+            out.push(key);
+        }
+        return out;
     }
     /**
      * Builds the big staff application panel: rich description, a feature line
@@ -151,15 +203,16 @@ class StaffApplications {
         const roles = cfg.staffRoles
             .map((rid) => guild.roles.cache.get(rid))
             .filter(Boolean);
+        const emojis = this.roleEmojis(roles);
         const features = roles.map((role, index) => ({
-            emoji: this.roleEmoji(role, index),
+            emoji: emojis[index] ?? 'staff',
             label: role.name,
-            value: String(cfg.roleDescriptions?.[role.id] ?? '').trim() || `Join the ${role.name} team`,
+            value: String(cfg.roleDescriptions?.[role.id] ?? '').trim() || `Join our ${role.name}`,
         }));
         const buttons = roles.map((role, index) => ({
             id: `${exports.STAFFAPP_PREFIX}apply:${role.id}`,
             label: role.name,
-            emoji: this.roleEmoji(role, index),
+            emoji: emojis[index] ?? 'staff',
             style: discord_js_1.ButtonStyle.Primary,
         }));
         if (buttons.length === 0) {
@@ -177,6 +230,7 @@ class StaffApplications {
             intro: `We're looking for active and dedicated members to join our team and help our community grow!${invite}`,
             features,
             note: 'Click the button below to submit your application. Serious applicants only!',
+            footer: `${guild.name} • Staff Applications`,
             banner: {
                 title: 'Staff Applications',
                 subtitle: guild.name,
@@ -185,7 +239,6 @@ class StaffApplications {
                 accentSecondary: '#f97316',
             },
             buttons,
-            footer: `${guild.name} • Staff Applications`,
         });
     }
     // ---------- Role selection step ----------
@@ -677,9 +730,9 @@ class StaffApplicationsCommands {
                         const channel = interaction.options.getChannel('channel', true);
                         const panel = await this.service.buildPanel(guild);
                         await channel.send({
-                            embeds: [panel.embed],
                             components: panel.components,
                             files: panel.files,
+                            flags: panel.flags,
                         }).catch(() => undefined);
                         // Save the panel channel so /apply buttons keep working after restart config
                         this.service.setConfig({ panelChannelId: channel.id, reviewChannelId: this.service.getConfig().reviewChannelId || channel.id });
