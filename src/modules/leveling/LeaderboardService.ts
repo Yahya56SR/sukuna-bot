@@ -159,6 +159,7 @@ export class LeaderboardService {
   private config: LeaderboardServiceConfig;
   private timer: NodeJS.Timeout | null = null;
   private refreshing = false;
+  private boardLocks = new Set<string>();
 
   constructor(logger: Logger, leveling: LevelingService, config?: Partial<LeaderboardServiceConfig>) {
     this.logger = logger;
@@ -297,19 +298,10 @@ export class LeaderboardService {
     const limit = Math.max(3, Math.min(100, rows ?? this.config.defaultRows));
     const existing = await this.getBoard(guild.id, board);
 
-    // Same channel → update the panel that is already there.
+    // Same channel → re-post the panel (with the podium) so the artwork is
+    // replaced rather than kept stale. The old message is removed first.
     if (existing?.messageId && existing.channelId === channelId) {
-      const current = await (channel as TextChannel).messages.fetch(existing.messageId).catch(() => null);
-      if (current) {
-        const payload = await this.payload(guild, board, limit, Date.now(), false);
-        await current.edit({ components: payload.components }).catch(() => undefined);
-        await this.db
-          .update(leaderboardBoards)
-          .set({ rows: limit, enabled: true, updated_at: new Date() } as any)
-          .where(sql`${leaderboardBoards.guild_id} = ${guild.id} AND ${leaderboardBoards.board} = ${board}`);
-        this.logger.info('Leaderboard Service', `Updated ${board} leaderboard in ${channelId} (${guild.name})`);
-        return { ...existing, rows: limit, enabled: true };
-      }
+      await this.deleteBoardMessage(existing);
     }
 
     // The board moved → clean up the old message first.
@@ -317,10 +309,13 @@ export class LeaderboardService {
       await this.deleteBoardMessage(existing);
     }
 
-    // Live boards are text-only: a component edit is enough to refresh them.
-    const payload = await this.payload(guild, board, limit, Date.now(), false);
+    // Live boards carry the podium artwork so they match the /leaderboard look.
+    // The refresh path re-posts the whole message so the image is replaced
+    // instead of piling up on the channel.
+    const payload = await this.payload(guild, board, limit, Date.now(), true);
     const message = await (channel as TextChannel).send({
       components: payload.components,
+      files: payload.files,
       flags: payload.flags,
       allowedMentions: { parse: [] },
     });
@@ -356,32 +351,41 @@ export class LeaderboardService {
     return saved ?? rowToBoard(record as unknown as BoardRow);
   }
 
-  /** Re-renders a posted board in place. */
+  /** Re-renders a posted board (with the podium) by re-posting it. */
   public async refreshBoard(guild: Guild, board: LeaderboardBoard): Promise<boolean> {
     if (!this.db) return false;
-    const live = await this.getBoard(guild.id, board);
-    if (!live?.messageId) return false;
+    const lockKey = `${guild.id}:${board}`;
+    if (this.boardLocks.has(lockKey)) return false;
+    this.boardLocks.add(lockKey);
+    try {
+      const live = await this.getBoard(guild.id, board);
+      if (!live) return false;
 
     const channel = await this.client?.channels.fetch(live.channelId).catch(() => null);
     if (!channel || channel.type !== ChannelType.GuildText) return false;
 
-    const message = await (channel as TextChannel).messages.fetch(live.messageId).catch(() => null);
+    // Drop the stale panel and post a fresh one with the new podium artwork.
+    await this.deleteBoardMessage(live);
+    const payload = await this.payload(guild, board, live.rows, Date.now(), true);
+    const message = await (channel as TextChannel).send({
+      components: payload.components,
+      files: payload.files,
+      flags: payload.flags,
+      allowedMentions: { parse: [] },
+    }).catch(() => null);
     if (!message) {
-      this.logger.warn('Leaderboard Service', `Board message ${live.messageId} is gone — skipping refresh`);
+      this.logger.warn('Leaderboard Service', `Could not re-post the ${board} board in ${live.channelId}`);
       return false;
     }
 
-    const payload = await this.payload(guild, board, live.rows, Date.now(), false);
-    await message.edit({ components: payload.components }).catch(async (err: Error) => {
-      this.logger.warn('Leaderboard Service', `Board edit failed (${err.message}) — reposting`);
-      await this.postBoard(guild, board, live.channelId, live.rows).catch(() => undefined);
-    });
-
     await this.db
       .update(leaderboardBoards)
-      .set({ updated_at: new Date() } as any)
+      .set({ message_id: message.id, updated_at: new Date() } as any)
       .where(sql`${leaderboardBoards.guild_id} = ${guild.id} AND ${leaderboardBoards.board} = ${board}`);
     return true;
+    } finally {
+      this.boardLocks.delete(lockKey);
+    }
   }
 
   /** Deletes the message of a live board (best effort). */
