@@ -47,6 +47,8 @@ class TempVCService {
         this.instances = new Map();
         /** Channels currently being deleted — guards against double-delete races. */
         this.deleting = new Set();
+        /** Guild+user pairs currently having a room created — guards duplicate joins. */
+        this.creating = new Set();
         this.logger = logger;
     }
     setDb(db) {
@@ -154,10 +156,16 @@ class TempVCService {
         const config = this.getConfig(guildId);
         if (!config || !config.enabled || !this.client)
             return null;
+        if (!config.categoryId) {
+            this.logger.warn('TempVC Service', `Cannot create VC for ${member.user.tag}: no category configured (run /tempvc setup or the dashboard)`);
+            return null;
+        }
         const category = member.guild.channels.cache.get(config.categoryId)
             ?? await member.guild.channels.fetch(config.categoryId).catch(() => null);
-        if (!category || category.type !== discord_js_1.ChannelType.GuildCategory)
+        if (!category || category.type !== discord_js_1.ChannelType.GuildCategory) {
+            this.logger.warn('TempVC Service', `Cannot create VC for ${member.user.tag}: category ${config.categoryId} not found or not a category`);
             return null;
+        }
         try {
             const vc = await member.guild.channels.create({
                 name: `${member.user.username}'s VC`,
@@ -181,7 +189,14 @@ class TempVCService {
                     },
                 ],
             });
-            await member.voice.setChannel(vc);
+            if (!member.voice) {
+                this.logger.warn('TempVC Service', `Created ${vc.id} but ${member.user.tag} has no cached voice state — cannot move them (is the GuildVoiceStates intent enabled?)`);
+            }
+            else {
+                await member.voice.setChannel(vc).catch((error) => {
+                    this.logger.warn('TempVC Service', `Created ${vc.id} but could not move ${member.user.tag} into it: ${error.message}`);
+                });
+            }
             const instance = {
                 channelId: vc.id,
                 ownerId: member.id,
@@ -454,15 +469,24 @@ class TempVCService {
         // If they joined the create channel, spawn a temp VC
         if (newChannelId === config.createChannelId && oldChannelId !== newChannelId && !member.user.bot) {
             // Serialize create per guild+user to avoid duplicate rooms on rapid joins.
-            const existing = Array.from(this.instances.values()).find((i) => i.guildId === guildId && i.ownerId === member.id);
-            if (existing) {
-                const channel = await this.client?.channels.fetch(existing.channelId).catch(() => null);
-                if (channel)
-                    return false;
-                // Stale row — clean it and continue to create.
-                await this.deleteTempVC(existing.channelId);
+            const lockKey = `${guildId}-${member.id}`;
+            if (this.creating.has(lockKey))
+                return false;
+            this.creating.add(lockKey);
+            try {
+                const existing = Array.from(this.instances.values()).find((i) => i.guildId === guildId && i.ownerId === member.id);
+                if (existing) {
+                    const channel = await this.client?.channels.fetch(existing.channelId).catch(() => null);
+                    if (channel)
+                        return false;
+                    // Stale row — clean it and continue to create.
+                    await this.deleteTempVC(existing.channelId);
+                }
+                return (await this.createTempVC(member)) !== null;
             }
-            return (await this.createTempVC(member)) !== null;
+            finally {
+                this.creating.delete(lockKey);
+            }
         }
         // If they left a temp VC and it's now empty, delete it
         if (oldChannelId && oldChannelId !== newChannelId) {
@@ -503,6 +527,7 @@ class TempVCService {
         this.instances.clear();
         this.configs.clear();
         this.deleting.clear();
+        this.creating.clear();
         this.logger.info('TempVC Service', 'Temp VC system shutdown');
     }
 }

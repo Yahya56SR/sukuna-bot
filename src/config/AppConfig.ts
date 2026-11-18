@@ -84,7 +84,13 @@ export class AppConfigManager {
       environment: process.env.NODE_ENV || 'development',
       discord: {
         token: process.env.DISCORD_TOKEN || '',
-        intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
+        // GuildVoiceStates is required for TempVC (voiceStateUpdate) and voice XP.
+        intents: [
+          GatewayIntentBits.Guilds,
+          GatewayIntentBits.GuildMessages,
+          GatewayIntentBits.GuildMembers,
+          GatewayIntentBits.GuildVoiceStates,
+        ],
         partials: ['Message'],
         intentsByName: [],
         retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
@@ -129,7 +135,13 @@ export function initializeConfig(): AppConfig {
     environment: process.env.NODE_ENV || 'development',
     discord: {
       token: process.env.DISCORD_TOKEN || '',
-      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
+      // GuildVoiceStates is required for TempVC (voiceStateUpdate) and voice XP.
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildVoiceStates,
+      ],
       partials: ['Message'],
       intentsByName: [],
       retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',

@@ -19,7 +19,13 @@ class AppConfigManager {
             environment: process.env.NODE_ENV || 'development',
             discord: {
                 token: process.env.DISCORD_TOKEN || '',
-                intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.GuildMembers],
+                // GuildVoiceStates is required for TempVC (voiceStateUpdate) and voice XP.
+                intents: [
+                    discord_js_1.GatewayIntentBits.Guilds,
+                    discord_js_1.GatewayIntentBits.GuildMessages,
+                    discord_js_1.GatewayIntentBits.GuildMembers,
+                    discord_js_1.GatewayIntentBits.GuildVoiceStates,
+                ],
                 partials: ['Message'],
                 intentsByName: [],
                 retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
@@ -62,7 +68,13 @@ function initializeConfig() {
         environment: process.env.NODE_ENV || 'development',
         discord: {
             token: process.env.DISCORD_TOKEN || '',
-            intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.GuildMembers],
+            // GuildVoiceStates is required for TempVC (voiceStateUpdate) and voice XP.
+            intents: [
+                discord_js_1.GatewayIntentBits.Guilds,
+                discord_js_1.GatewayIntentBits.GuildMessages,
+                discord_js_1.GatewayIntentBits.GuildMembers,
+                discord_js_1.GatewayIntentBits.GuildVoiceStates,
+            ],
             partials: ['Message'],
             intentsByName: [],
             retryOnError: process.env.DISCORD_RETRY_ON_ERROR !== 'false',
