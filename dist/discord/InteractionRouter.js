@@ -44,19 +44,27 @@ class InteractionRouter {
             else if (interaction.isButton()) {
                 await this.handleButtonInteraction(interaction);
             }
-            else if (interaction.isMessageComponent()) {
-                await this.handleComponentInteraction(interaction);
-            }
             else if (interaction.isStringSelectMenu()) {
+                // Select menus must be checked before isMessageComponent(), which is
+                // true for them as well.
                 await this.handleSelectInteraction(interaction);
             }
             else if (interaction.isModalSubmit()) {
                 await this.handleModalInteraction(interaction);
             }
+            else if (interaction.isMessageComponent()) {
+                await this.handleComponentInteraction(interaction);
+            }
         });
     }
     async handleSelectInteraction(interaction) {
-        if (String(interaction.customId).startsWith(`${StaffApplications_1.STAFFAPP_PREFIX}role-select:`)) {
+        const customId = String(interaction.customId);
+        if (customId.startsWith('tempvc:')) {
+            if (this.tempvcService)
+                await this.tempvcService.handleSelectMenu(interaction);
+            return;
+        }
+        if (customId.startsWith(`${StaffApplications_1.STAFFAPP_PREFIX}role-select:`)) {
             if (!this.staffApplications) {
                 await interaction.reply({ content: 'Staff applications are not available.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
                 return;
@@ -71,7 +79,13 @@ class InteractionRouter {
         }
     }
     async handleModalInteraction(interaction) {
-        if (String(interaction.customId).startsWith(`${StaffApplications_1.STAFFAPP_PREFIX}questions:`)) {
+        const customId = String(interaction.customId);
+        if (customId.startsWith('tempvc_modal:')) {
+            if (this.tempvcService)
+                await this.tempvcService.handleModalSubmit(interaction);
+            return;
+        }
+        if (customId.startsWith(`${StaffApplications_1.STAFFAPP_PREFIX}questions:`)) {
             if (!this.staffApplications) {
                 await interaction.reply({ content: 'Staff applications are not available.', flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
                 return;

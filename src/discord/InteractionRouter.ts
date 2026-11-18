@@ -51,18 +51,25 @@ export class InteractionRouter {
         await this.commandRegistry.handleInteraction(interaction as ChatInputCommandInteraction);
       } else if (interaction.isButton()) {
         await this.handleButtonInteraction(interaction as ButtonInteraction);
-      } else if (interaction.isMessageComponent()) {
-        await this.handleComponentInteraction(interaction as MessageComponentInteraction);
       } else if (interaction.isStringSelectMenu()) {
+        // Select menus must be checked before isMessageComponent(), which is
+        // true for them as well.
         await this.handleSelectInteraction(interaction as StringSelectMenuInteraction);
       } else if (interaction.isModalSubmit()) {
         await this.handleModalInteraction(interaction as ModalSubmitInteraction);
+      } else if (interaction.isMessageComponent()) {
+        await this.handleComponentInteraction(interaction as MessageComponentInteraction);
       }
     });
   }
 
   private async handleSelectInteraction(interaction: StringSelectMenuInteraction): Promise<void> {
-    if (String(interaction.customId).startsWith(`${STAFFAPP_PREFIX}role-select:`)) {
+    const customId = String(interaction.customId);
+    if (customId.startsWith('tempvc:')) {
+      if (this.tempvcService) await this.tempvcService.handleSelectMenu(interaction as any);
+      return;
+    }
+    if (customId.startsWith(`${STAFFAPP_PREFIX}role-select:`)) {
       if (!this.staffApplications) {
         await interaction.reply({ content: 'Staff applications are not available.', flags: MessageFlags.Ephemeral }).catch(() => undefined);
         return;
@@ -77,7 +84,12 @@ export class InteractionRouter {
   }
 
   private async handleModalInteraction(interaction: ModalSubmitInteraction): Promise<void> {
-    if (String(interaction.customId).startsWith(`${STAFFAPP_PREFIX}questions:`)) {
+    const customId = String(interaction.customId);
+    if (customId.startsWith('tempvc_modal:')) {
+      if (this.tempvcService) await this.tempvcService.handleModalSubmit(interaction as any);
+      return;
+    }
+    if (customId.startsWith(`${STAFFAPP_PREFIX}questions:`)) {
       if (!this.staffApplications) {
         await interaction.reply({ content: 'Staff applications are not available.', flags: MessageFlags.Ephemeral }).catch(() => undefined);
         return;

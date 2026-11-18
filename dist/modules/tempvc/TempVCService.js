@@ -9,18 +9,32 @@ const panel_1 = require("../../utils/panel");
 /** Config rows are keyed by guild; the dashboard's legacy single config lives in 'global'. */
 const GLOBAL_GUILD = 'global';
 const PANEL_PREFIX = 'tempvc:';
+/** Modals live under their own prefix so they never collide with button ids. */
+const MODAL_PREFIX = 'tempvc_modal:';
+const KICK_SELECT = `${PANEL_PREFIX}kick_select`;
+/**
+ * Row 1 — the things a room owner does while people are joining.
+ * Row 2 — privacy and hand-over controls.
+ * Row 3 — destructive action + admin-only panel refresh.
+ */
 const PANEL_BUTTONS = [
+    { id: 'create', label: 'CREATE', emoji: 'voice', style: discord_js_1.ButtonStyle.Primary },
     { id: 'rename', label: 'RENAME', emoji: 'pencil', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'limit', label: 'LIMIT', emoji: 'member', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'invite', label: 'INVITE', emoji: 'link', style: discord_js_1.ButtonStyle.Secondary },
+    { id: 'kick', label: 'KICK', emoji: 'kick', style: discord_js_1.ButtonStyle.Danger },
     { id: 'lock', label: 'LOCK', emoji: 'lock', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'unlock', label: 'UNLOCK', emoji: 'unlock', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'invite', label: 'INVITE', emoji: 'link', style: discord_js_1.ButtonStyle.Secondary },
-    { id: 'delete', label: 'DELETE', emoji: 'trash', style: discord_js_1.ButtonStyle.Danger },
     { id: 'hide', label: 'HIDE', emoji: 'eye', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'show', label: 'SHOW', emoji: 'eye', style: discord_js_1.ButtonStyle.Secondary },
     { id: 'claim', label: 'CLAIM', emoji: 'check', style: discord_js_1.ButtonStyle.Success },
-    { id: 'kick', label: 'KICK', emoji: 'kick', style: discord_js_1.ButtonStyle.Danger },
+    { id: 'delete', label: 'DELETE', emoji: 'trash', style: discord_js_1.ButtonStyle.Danger },
+    { id: 'refresh', label: 'PANEL', emoji: 'settings', style: discord_js_1.ButtonStyle.Secondary },
 ];
+/** Turns unknown thrown values into a one-line message for ephemeral replies. */
+function errorText(err) {
+    return err instanceof Error ? err.message : String(err);
+}
 function rowToConfig(row) {
     return {
         enabled: Boolean(row.enabled),
@@ -249,32 +263,49 @@ class TempVCService {
         return (0, panel_1.panelButtonRows)(PANEL_BUTTONS.map((button) => ({ ...button, id: `${PANEL_PREFIX}${button.id}` })), 5);
     }
     /**
-     * Builds the big temp VC control panel: intro, a bullet per control,
-     * banner artwork and the control buttons.
+     * Builds the temp VC control panel: intro, a bullet per control,
+     * the current setup, banner artwork and the control buttons.
      */
     async buildPanel(cfg, guild) {
         const createMention = cfg.createChannelId ? `<#${cfg.createChannelId}>` : '`Create VC`';
         const categoryMention = cfg.categoryId ? `<#${cfg.categoryId}>` : 'a category';
+        const rooms = guild
+            ? Array.from(this.instances.values()).filter((instance) => instance.guildId === guild.id)
+            : [];
         const features = [
-            { emoji: 'voice', label: 'Create', value: `Join ${createMention} and a room opens for you` },
+            { emoji: 'voice', label: 'Create', value: `Join ${createMention.replace(/`/g, '')} or press Create`, code: false },
             { emoji: 'pencil', label: 'Rename', value: 'Give your room any name you like' },
             { emoji: 'member', label: 'Limit', value: 'Set how many people can join' },
+            { emoji: 'link', label: 'Invite', value: 'Get a shareable invite link for your room' },
+            { emoji: 'kick', label: 'Kick', value: 'Remove a member from your room' },
             { emoji: 'lock', label: 'Lock / Unlock', value: 'Control who can join your room' },
             { emoji: 'eye', label: 'Hide / Show', value: 'Control who can see your room' },
-            { emoji: 'link', label: 'Invite', value: 'Bring someone into your room' },
             { emoji: 'check', label: 'Claim', value: 'Take over an abandoned room' },
-            { emoji: 'kick', label: 'Kick', value: 'Remove a member from your room' },
             { emoji: 'trash', label: 'Delete', value: 'Remove the room for good' },
         ];
+        const sections = [
+            {
+                title: 'Setup',
+                lines: [
+                    `Create channel: ${cfg.createChannelId ? `<#${cfg.createChannelId}>` : 'not set'}`,
+                    `Category: ${cfg.categoryId ? `<#${cfg.categoryId}>` : 'not set'}`,
+                    `Active rooms: **${rooms.length}**`,
+                ],
+            },
+        ];
+        const configured = Boolean(cfg.createChannelId && cfg.categoryId);
         return (0, panel_1.buildPanelPayload)({
             emoji: 'tempvc',
             title: 'Temporary Voice',
             guildName: guild?.name,
             guildIconUrl: guild?.iconURL({ extension: 'png', size: 256 }) ?? undefined,
             color: 0xef4444,
-            intro: `Join ${createMention} and a private room opens for you instantly in ${categoryMention}. Use the buttons below while you are inside your room.`,
+            intro: `Join ${createMention} and a private room opens for you instantly in ${categoryMention}. Every control below works on the room you are currently sitting in — no commands needed.`,
             features,
-            note: 'Only the room owner (or whoever claims an abandoned room) can manage it.',
+            sections,
+            note: configured
+                ? 'Only the room owner (or staff with Manage Server) can rename, lock, hide, kick or delete. Use PANEL to refresh the room count after changes.'
+                : '⚠️ No create channel or category is configured yet. Ask an admin to run `/tempvc setup` or set it from the dashboard, then press PANEL to refresh.',
             banner: {
                 title: 'Temporary Voice',
                 subtitle: guild?.name,
@@ -296,141 +327,342 @@ class TempVCService {
         return guild ? guild.members.fetch(interaction.user.id).catch(() => null) : null;
     }
     async handlePanelButton(interaction) {
-        const customId = interaction.customId;
+        const customId = String(interaction.customId);
         if (!customId.startsWith(PANEL_PREFIX))
             return false;
         const action = customId.slice(PANEL_PREFIX.length);
         const member = await this.resolveMember(interaction);
         if (!member) {
-            await interaction.reply({ content: 'Could not resolve your membership in this server.', ephemeral: true }).catch(() => undefined);
+            await this.reply(interaction, 'Could not resolve your membership in this server.');
             return true;
         }
-        const vcChannelId = member.voice?.channel?.id;
-        if (!vcChannelId) {
-            await interaction.reply({ content: 'You must be in a voice channel to use these controls.', ephemeral: true }).catch(() => undefined);
+        const guild = member.guild;
+        const config = this.getConfig(guild.id);
+        const isManager = member.permissions.has(discord_js_1.PermissionFlagsBits.ManageGuild);
+        // Panel-wide actions come first — they don't need a room.
+        if (action === 'refresh') {
+            if (!isManager) {
+                await this.reply(interaction, 'Only staff with **Manage Server** can refresh the panel.');
+                return true;
+            }
+            if (!config) {
+                await this.reply(interaction, 'Temporary voice is not configured yet.');
+                return true;
+            }
+            const payload = await this.buildPanel(config, guild);
+            await interaction
+                .update({ components: payload.components, files: payload.files })
+                .catch(() => undefined);
             return true;
         }
-        const temp = this.getTempVC(vcChannelId);
-        if (!temp) {
-            await interaction.reply({ content: 'This is not a temporary voice channel.', ephemeral: true }).catch(() => undefined);
+        if (action === 'create') {
+            await this.createFromPanel(interaction, member, config);
+            return true;
+        }
+        const voiceChannel = (member.voice?.channel ?? null);
+        const temp = voiceChannel ? this.getTempVC(voiceChannel.id) : undefined;
+        if (!voiceChannel || !temp) {
+            await this.reply(interaction, config?.createChannelId
+                ? `You are not inside a temporary room. Join <#${config.createChannelId}> or press **CREATE** to open one.`
+                : 'You are not inside a temporary room, and no create channel is configured yet.');
             return true;
         }
         const isOwner = temp.ownerId === member.id;
-        const guild = member.guild;
+        const allowed = isOwner || isManager;
+        const denied = async (what) => { await this.reply(interaction, `Only the room owner can ${what}.`); return true; };
         switch (action) {
-            case 'rename':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can rename it.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
-                await interaction.reply({ content: 'Use `/tempvc name <name>` to rename your VC.', ephemeral: true }).catch(() => undefined);
+            case 'rename': {
+                if (!allowed)
+                    return denied('rename it');
+                const modal = new discord_js_1.ModalBuilder()
+                    .setCustomId(`${MODAL_PREFIX}rename`)
+                    .setTitle('Rename your room')
+                    .addLabelComponents(new discord_js_1.LabelBuilder()
+                    .setLabel('Room name')
+                    .setDescription('2–100 characters, shown in the channel list')
+                    .setTextInputComponent(new discord_js_1.TextInputBuilder()
+                    .setCustomId('name')
+                    .setStyle(discord_js_1.TextInputStyle.Short)
+                    .setValue(voiceChannel.name)
+                    .setMinLength(2)
+                    .setMaxLength(100)
+                    .setRequired(true)));
+                await interaction.showModal(modal).catch(() => undefined);
                 return true;
-            case 'limit':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can set the limit.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
-                await interaction.reply({ content: 'Use `/tempvc limit <number>` to set the user limit.', ephemeral: true }).catch(() => undefined);
+            }
+            case 'limit': {
+                if (!allowed)
+                    return denied('change its limit');
+                const modal = new discord_js_1.ModalBuilder()
+                    .setCustomId(`${MODAL_PREFIX}limit`)
+                    .setTitle('Set a user limit')
+                    .addLabelComponents(new discord_js_1.LabelBuilder()
+                    .setLabel('User limit')
+                    .setDescription('Between 0 and 99 — 0 means unlimited')
+                    .setTextInputComponent(new discord_js_1.TextInputBuilder()
+                    .setCustomId('limit')
+                    .setStyle(discord_js_1.TextInputStyle.Short)
+                    .setValue(String(voiceChannel.userLimit ?? 0))
+                    .setMinLength(1)
+                    .setMaxLength(2)
+                    .setRequired(true)));
+                await interaction.showModal(modal).catch(() => undefined);
                 return true;
-            case 'lock':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can lock it.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
+            }
+            case 'invite': {
+                if (!allowed)
+                    return denied('invite people');
                 try {
-                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { Connect: false });
-                    await interaction.reply({ content: '🔒 VC locked.', ephemeral: true });
+                    const invite = await voiceChannel.createInvite({
+                        maxAge: 3600,
+                        maxUses: 0,
+                        unique: true,
+                        reason: `Temp VC invite for ${voiceChannel.name}`,
+                    });
+                    await this.reply(interaction, `🔗 Share this link (valid for 1 hour):\n${invite.url}`);
                 }
                 catch (err) {
-                    await interaction.reply({ content: `Failed to lock: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
+                    await this.reply(interaction, `Could not create an invite: ${errorText(err)}. Check my **Create Invite** permission.`);
                 }
                 return true;
-            case 'unlock':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can unlock it.', ephemeral: true }).catch(() => undefined);
+            }
+            case 'kick': {
+                if (!allowed)
+                    return denied('kick members');
+                const targets = voiceChannel.members.filter((target) => !target.user.bot && target.id !== member.id);
+                if (!targets.size) {
+                    await this.reply(interaction, 'There is nobody else in your room to kick.');
                     return true;
                 }
+                const menu = new discord_js_1.StringSelectMenuBuilder()
+                    .setCustomId(`${KICK_SELECT}:${voiceChannel.id}`)
+                    .setPlaceholder('Choose a member to remove')
+                    .setMinValues(1)
+                    .setMaxValues(1)
+                    .addOptions(targets.first(25).map((target) => ({
+                    label: target.displayName.slice(0, 100),
+                    value: target.id,
+                    description: target.user.tag.slice(0, 100),
+                })));
+                const row = new discord_js_1.ActionRowBuilder().addComponents(menu);
+                await interaction
+                    .reply({
+                    content: `Choose who to remove from **${voiceChannel.name}**:`,
+                    components: [row],
+                    flags: discord_js_1.MessageFlags.Ephemeral,
+                })
+                    .catch(() => undefined);
+                return true;
+            }
+            case 'lock': {
+                if (!allowed)
+                    return denied('lock it');
                 try {
-                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { Connect: null });
-                    await interaction.reply({ content: '🔓 VC unlocked.', ephemeral: true });
+                    await voiceChannel.permissionOverwrites.edit(guild.id, { Connect: false });
+                    await this.reply(interaction, '🔒 Room locked — new members cannot connect.');
                 }
                 catch (err) {
-                    await interaction.reply({ content: `Failed to unlock: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
+                    await this.reply(interaction, `Failed to lock: ${errorText(err)}`);
                 }
                 return true;
-            case 'invite':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can invite.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
-                await interaction.reply({ content: `Invite someone: <#${vcChannelId}>`, ephemeral: true }).catch(() => undefined);
-                return true;
-            case 'delete':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can delete it.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
+            }
+            case 'unlock': {
+                if (!allowed)
+                    return denied('unlock it');
                 try {
-                    await this.deleteTempVC(vcChannelId);
-                    await interaction.reply({ content: '🗑️ VC deleted.', ephemeral: true });
+                    await voiceChannel.permissionOverwrites.edit(guild.id, { Connect: null });
+                    await this.reply(interaction, '🔓 Room unlocked — everyone can connect again.');
                 }
                 catch (err) {
-                    await interaction.reply({ content: `Failed to delete: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
+                    await this.reply(interaction, `Failed to unlock: ${errorText(err)}`);
                 }
                 return true;
-            case 'hide':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can hide it.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
+            }
+            case 'hide': {
+                if (!allowed)
+                    return denied('hide it');
                 try {
-                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { ViewChannel: false });
-                    await interaction.reply({ content: '👁️‍🗨️ VC hidden.', ephemeral: true });
+                    await voiceChannel.permissionOverwrites.edit(guild.id, { ViewChannel: false });
+                    await this.reply(interaction, '👁️‍🗨️ Room hidden from members.');
                 }
                 catch (err) {
-                    await interaction.reply({ content: `Failed to hide: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
+                    await this.reply(interaction, `Failed to hide: ${errorText(err)}`);
                 }
                 return true;
-            case 'show':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can show it.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
+            }
+            case 'show': {
+                if (!allowed)
+                    return denied('show it');
                 try {
-                    await member.voice.channel?.permissionOverwrites.edit(guild.id, { ViewChannel: null });
-                    await interaction.reply({ content: '👁️ VC shown.', ephemeral: true });
+                    await voiceChannel.permissionOverwrites.edit(guild.id, { ViewChannel: null });
+                    await this.reply(interaction, '👁️ Room visible to members again.');
                 }
                 catch (err) {
-                    await interaction.reply({ content: `Failed to show: ${err instanceof Error ? err.message : String(err)}`, ephemeral: true });
+                    await this.reply(interaction, `Failed to show: ${errorText(err)}`);
                 }
                 return true;
+            }
+            case 'delete': {
+                if (!allowed)
+                    return denied('delete it');
+                try {
+                    await this.deleteTempVC(voiceChannel.id);
+                    await this.reply(interaction, '🗑️ Room deleted.');
+                }
+                catch (err) {
+                    await this.reply(interaction, `Failed to delete: ${errorText(err)}`);
+                }
+                return true;
+            }
             case 'claim': {
                 if (isOwner) {
-                    await interaction.reply({ content: 'You already own this VC.', ephemeral: true }).catch(() => undefined);
+                    await this.reply(interaction, 'You already own this room.');
                     return true;
                 }
                 // The owner must be genuinely gone (left the room) — not just offline in cache.
                 const ownerVoice = guild.members.cache.get(temp.ownerId)?.voice.channelId
                     ?? (await guild.members.fetch(temp.ownerId).catch(() => null))?.voice.channelId;
-                if (ownerVoice === vcChannelId) {
-                    await interaction.reply({ content: 'This VC already has an owner in the channel.', ephemeral: true }).catch(() => undefined);
+                if (ownerVoice === voiceChannel.id) {
+                    await this.reply(interaction, 'This room already has an owner in the channel.');
                     return true;
                 }
-                const channel = member.voice.channel;
-                await this.transferOwnership(temp, member.id, channel);
-                await interaction.reply({ content: '📥 VC claimed. You are now the owner.', ephemeral: true }).catch(() => undefined);
+                await this.transferOwnership(temp, member.id, voiceChannel);
+                await this.reply(interaction, '📥 Room claimed — you are now the owner.');
                 return true;
             }
-            case 'kick':
-                if (!isOwner) {
-                    await interaction.reply({ content: 'Only the VC owner can kick members.', ephemeral: true }).catch(() => undefined);
-                    return true;
-                }
-                await interaction.reply({ content: 'Use `/tempvc kick <member>` to kick from your VC.', ephemeral: true }).catch(() => undefined);
-                return true;
             default:
                 return false;
         }
+    }
+    /** CREATE button — opens a room directly, or moves the owner back into theirs. */
+    async createFromPanel(interaction, member, config) {
+        if (!config || !config.enabled) {
+            await this.reply(interaction, 'Temporary voice is disabled right now.');
+            return;
+        }
+        if (!member.voice?.channelId) {
+            await this.reply(interaction, 'Join any voice channel first, then press **CREATE** again.');
+            return;
+        }
+        const existing = Array.from(this.instances.values()).find((instance) => instance.guildId === member.guild.id && instance.ownerId === member.id);
+        if (existing) {
+            const channel = await this.client?.channels.fetch(existing.channelId).catch(() => null);
+            if (channel) {
+                if (member.voice.channelId === existing.channelId) {
+                    await this.reply(interaction, `You are already in your room: <#${existing.channelId}>.`);
+                    return;
+                }
+                try {
+                    await member.voice.setChannel(existing.channelId, 'Moved to own temp VC');
+                    await this.reply(interaction, `➡️ Moved you into your room <#${existing.channelId}>.`);
+                }
+                catch (err) {
+                    await this.reply(interaction, `Could not move you: ${errorText(err)}`);
+                }
+                return;
+            }
+            // Stale instance — clear it before creating a fresh room.
+            await this.deleteTempVC(existing.channelId);
+        }
+        const id = await this.createTempVC(member);
+        if (id)
+            await this.reply(interaction, `🔊 Your room is ready: <#${id}>.`);
+        else
+            await this.reply(interaction, 'Could not create a room — the category is missing or I lack **Manage Channels**. Check the bot log.');
+    }
+    /** Handles the rename/limit modals opened from the panel. */
+    async handleModalSubmit(interaction) {
+        const customId = String(interaction.customId);
+        if (!customId.startsWith(MODAL_PREFIX))
+            return false;
+        const action = customId.slice(MODAL_PREFIX.length);
+        const member = await this.resolveMember(interaction);
+        if (!member) {
+            await this.reply(interaction, 'Could not resolve your membership in this server.');
+            return true;
+        }
+        const voiceChannel = (member.voice?.channel ?? null);
+        const temp = voiceChannel ? this.getTempVC(voiceChannel.id) : undefined;
+        if (!voiceChannel || !temp) {
+            await this.reply(interaction, 'You are no longer inside your temporary room.');
+            return true;
+        }
+        if (temp.ownerId !== member.id && !member.permissions.has(discord_js_1.PermissionFlagsBits.ManageGuild)) {
+            await this.reply(interaction, 'Only the room owner can change it.');
+            return true;
+        }
+        try {
+            if (action === 'rename') {
+                const name = String(interaction.fields.getTextInputValue('name') ?? '').trim().replace(/\s+/g, ' ');
+                if (name.length < 2) {
+                    await this.reply(interaction, 'Please pick a name with at least 2 characters.');
+                    return true;
+                }
+                await voiceChannel.edit({ name, reason: 'Temp VC renamed by owner' });
+                await this.reply(interaction, `✅ Renamed your room to **${name}**.`);
+                return true;
+            }
+            if (action === 'limit') {
+                const raw = String(interaction.fields.getTextInputValue('limit') ?? '').trim();
+                if (!/^\d{1,2}$/.test(raw)) {
+                    await this.reply(interaction, 'The limit must be a whole number between 0 and 99.');
+                    return true;
+                }
+                const limit = Number(raw);
+                await voiceChannel.edit({ userLimit: limit, reason: 'Temp VC limit changed by owner' });
+                await this.reply(interaction, `✅ User limit set to **${limit === 0 ? 'unlimited' : limit}**.`);
+                return true;
+            }
+        }
+        catch (err) {
+            await this.reply(interaction, `Failed to update the room: ${errorText(err)}`);
+            return true;
+        }
+        return false;
+    }
+    /** Handles the member picker opened by the KICK button. */
+    async handleSelectMenu(interaction) {
+        const customId = String(interaction.customId);
+        if (!customId.startsWith(`${KICK_SELECT}:`))
+            return false;
+        const channelId = customId.slice(KICK_SELECT.length + 1);
+        const member = await this.resolveMember(interaction);
+        if (!member) {
+            await this.reply(interaction, 'Could not resolve your membership in this server.');
+            return true;
+        }
+        const temp = this.getTempVC(channelId);
+        if (!temp) {
+            await interaction.update({ content: 'That room no longer exists.', components: [] }).catch(() => undefined);
+            return true;
+        }
+        if (temp.ownerId !== member.id && !member.permissions.has(discord_js_1.PermissionFlagsBits.ManageGuild)) {
+            await this.reply(interaction, 'Only the room owner can kick members.');
+            return true;
+        }
+        const targetId = String(interaction.values?.[0] ?? '');
+        if (!targetId)
+            return true;
+        const channel = await member.guild.channels.fetch(channelId).catch(() => null);
+        const target = channel?.members.get(targetId)
+            ?? await member.guild.members.fetch(targetId).catch(() => null);
+        if (!target?.voice || target.voice.channelId !== channelId) {
+            await interaction.update({ content: 'That member already left the room.', components: [] }).catch(() => undefined);
+            return true;
+        }
+        try {
+            await target.voice.disconnect('Kicked from a temp VC');
+            await interaction
+                .update({ content: `👢 Removed **${target.user.username}** from the room.`, components: [] })
+                .catch(() => undefined);
+        }
+        catch (err) {
+            await this.reply(interaction, `Failed to kick: ${errorText(err)}`);
+        }
+        return true;
+    }
+    async reply(interaction, content) {
+        await interaction.reply({ content, flags: discord_js_1.MessageFlags.Ephemeral }).catch(() => undefined);
     }
     async transferOwnership(temp, newOwnerId, channel) {
         const oldOwnerId = temp.ownerId;
